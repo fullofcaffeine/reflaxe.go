@@ -1,6 +1,64 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "examples": [
+    {
+      "id": "portable_beta",
+      "tier": "capability-showcase",
+      "claimBearing": true,
+      "profiles": ["portable"],
+      "lanes": {
+        "default": {
+          "productSurfaces": ["portable-compiler", "runtime-stdlib", "package-downstream-examples"],
+          "evidenceModes": ["go-build-run", "downstream-example"],
+          "releaseClaimBearing": true,
+          "compatibilityOperations": [
+            "portable-language-core/control-flow",
+            "portable-language-core/classes-enums-closures",
+            "portable-language-core/exceptions",
+            "portable-collections-and-text/array-core",
+            "portable-collections-and-text/string-core",
+            "portable-collections-and-text/stringtools-core",
+            "portable-data/json",
+            "portable-data/bytes",
+            "portable-data/maps-list",
+            "portable-data/path-members",
+            "portable-data/path-construction",
+            "portable-reflection/reflect-api",
+            "portable-file-io/get-content",
+            "portable-file-io/save-content",
+            "portable-filesystem/filesystem-core",
+            "compiler-input-trust/trusted-source"
+          ]
+        },
+        "ci": {
+          "productSurfaces": ["portable-compiler", "runtime-stdlib", "package-downstream-examples"],
+          "evidenceModes": ["go-build-run", "downstream-example"],
+          "releaseClaimBearing": true,
+          "compatibilityOperations": [
+            "portable-language-core/control-flow",
+            "portable-language-core/classes-enums-closures",
+            "portable-language-core/exceptions",
+            "portable-collections-and-text/array-core",
+            "portable-collections-and-text/string-core",
+            "portable-collections-and-text/stringtools-core",
+            "portable-data/json",
+            "portable-data/bytes",
+            "portable-data/maps-list",
+            "portable-data/path-members",
+            "portable-data/path-construction",
+            "portable-reflection/reflect-api",
+            "portable-file-io/get-content",
+            "portable-file-io/save-content",
+            "portable-filesystem/filesystem-core",
+            "compiler-input-trust/trusted-source"
+          ]
+        }
+      },
+      "distinctiveClaim": "A deliberately narrow portable program exercises only named beta-admitted language, collection, data, reflection, file, and filesystem operations.",
+      "testCommand": "python3 test/run-examples.py --example portable_beta --profile portable",
+      "execution": ["haxe-custom-backend", "gofmt", "go-test", "go-run", "expected-output"],
+      "oracle": {"source": "manually authored invariants over exact compatibility operation IDs", "paths": ["examples/portable_beta/Main.hx", "docs/compatibility-support-source.json"]}
+    },
     {
       "id": "fluxproxy",
       "tier": "flagship-application",
@@ -9,11 +67,15 @@
       "lanes": {
         "default": {
           "productSurfaces": ["portable-compiler", "runtime-stdlib", "package-downstream-examples"],
-          "evidenceModes": ["go-build-run", "downstream-example"]
+          "evidenceModes": ["go-build-run", "downstream-example"],
+          "releaseClaimBearing": false,
+          "compatibilityOperations": []
         },
         "ci": {
           "productSurfaces": ["go-native-metal", "runtime-stdlib", "package-downstream-examples"],
-          "evidenceModes": ["go-build-run", "native-metal", "downstream-example"]
+          "evidenceModes": ["go-build-run", "native-metal", "downstream-example"],
+          "releaseClaimBearing": false,
+          "compatibilityOperations": []
         }
       },
       "distinctiveClaim": "A production-shaped proxy pipeline keeps one domain contract across portable/core and explicit Go-native worker variants.",
@@ -29,11 +91,15 @@
       "lanes": {
         "default": {
           "productSurfaces": ["portable-compiler", "runtime-stdlib", "package-downstream-examples"],
-          "evidenceModes": ["go-build-run", "downstream-example"]
+          "evidenceModes": ["go-build-run", "downstream-example"],
+          "releaseClaimBearing": false,
+          "compatibilityOperations": []
         },
         "ci": {
           "productSurfaces": ["portable-compiler", "runtime-stdlib", "package-downstream-examples"],
-          "evidenceModes": ["go-build-run", "downstream-example"]
+          "evidenceModes": ["go-build-run", "downstream-example"],
+          "releaseClaimBearing": false,
+          "compatibilityOperations": []
         }
       },
       "distinctiveClaim": "Portable Haxe stdlib sockets, files, and JSON run a deterministic loopback incident service under both policy presets.",
@@ -49,11 +115,15 @@
       "lanes": {
         "default": {
           "productSurfaces": ["go-native-metal", "package-downstream-examples"],
-          "evidenceModes": ["go-build-run", "native-metal", "downstream-example"]
+          "evidenceModes": ["go-build-run", "native-metal", "downstream-example"],
+          "releaseClaimBearing": false,
+          "compatibilityOperations": []
         },
         "ci": {
           "productSurfaces": ["go-native-metal", "package-downstream-examples"],
-          "evidenceModes": ["go-build-run", "native-metal", "downstream-example"]
+          "evidenceModes": ["go-build-run", "native-metal", "downstream-example"],
+          "releaseClaimBearing": false,
+          "compatibilityOperations": []
         }
       },
       "distinctiveClaim": "Typed Go extern metadata and framework facades preserve one observable contract across policy presets.",
@@ -69,11 +139,15 @@
       "lanes": {
         "default": {
           "productSurfaces": ["portable-compiler", "package-downstream-examples"],
-          "evidenceModes": ["go-build-run", "downstream-example"]
+          "evidenceModes": ["go-build-run", "downstream-example"],
+          "releaseClaimBearing": false,
+          "compatibilityOperations": []
         },
         "ci": {
           "productSurfaces": ["portable-compiler", "package-downstream-examples"],
-          "evidenceModes": ["go-build-run", "downstream-example"]
+          "evidenceModes": ["go-build-run", "downstream-example"],
+          "releaseClaimBearing": false,
+          "compatibilityOperations": []
         }
       },
       "distinctiveClaim": "A portable-only planning dashboard compiles and runs without a synthetic metal lane.",
@@ -89,11 +163,15 @@
       "lanes": {
         "default": {
           "productSurfaces": ["portable-compiler", "runtime-stdlib", "package-downstream-examples"],
-          "evidenceModes": ["go-build-run", "downstream-example"]
+          "evidenceModes": ["go-build-run", "downstream-example"],
+          "releaseClaimBearing": false,
+          "compatibilityOperations": []
         },
         "ci": {
           "productSurfaces": ["go-native-metal", "runtime-stdlib", "package-downstream-examples"],
-          "evidenceModes": ["go-build-run", "native-metal", "downstream-example"]
+          "evidenceModes": ["go-build-run", "native-metal", "downstream-example"],
+          "releaseClaimBearing": false,
+          "compatibilityOperations": []
         }
       },
       "distinctiveClaim": "A production-shaped observability pipeline keeps one contract across portable/core and explicit Go-native worker variants.",
@@ -109,11 +187,15 @@
       "lanes": {
         "default": {
           "productSurfaces": ["portable-compiler", "runtime-stdlib", "package-downstream-examples"],
-          "evidenceModes": ["go-build-run", "downstream-example"]
+          "evidenceModes": ["go-build-run", "downstream-example"],
+          "releaseClaimBearing": false,
+          "compatibilityOperations": []
         },
         "ci": {
           "productSurfaces": ["portable-compiler", "runtime-stdlib", "package-downstream-examples"],
-          "evidenceModes": ["go-build-run", "downstream-example"]
+          "evidenceModes": ["go-build-run", "downstream-example"],
+          "releaseClaimBearing": false,
+          "compatibilityOperations": []
         }
       },
       "distinctiveClaim": "The default portable path compiles and runs a deterministic command-line application.",
@@ -129,11 +211,15 @@
       "lanes": {
         "default": {
           "productSurfaces": ["go-native-metal", "package-downstream-examples"],
-          "evidenceModes": ["go-build-run", "native-metal", "downstream-example"]
+          "evidenceModes": ["go-build-run", "native-metal", "downstream-example"],
+          "releaseClaimBearing": false,
+          "compatibilityOperations": []
         },
         "ci": {
           "productSurfaces": ["go-native-metal", "package-downstream-examples"],
-          "evidenceModes": ["go-build-run", "native-metal", "downstream-example"]
+          "evidenceModes": ["go-build-run", "native-metal", "downstream-example"],
+          "releaseClaimBearing": false,
+          "compatibilityOperations": []
         }
       },
       "distinctiveClaim": "Typed Go channels and select helpers execute a deterministic worker-pool contract under both presets.",

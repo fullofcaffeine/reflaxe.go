@@ -23,7 +23,7 @@
       "focusedOwners": ["snapshot-portable", "negative-diagnostics", "portable-policy"],
       "verticalOwners": ["semantic-diff-portable", "portable-example-smoke", "isolated-haxelib-smoke", "official-haxe-target-smoke", "official-haxe-target-inventory"],
       "realRuntimeOrSystemOwners": ["semantic-diff-portable", "portable-example-smoke", "official-haxe-target-smoke", "official-haxe-target-inventory"],
-      "examples": ["profile_storyboard", "tui_todo", "incident_api", "pulseforge", "fluxproxy"],
+      "examples": ["portable_beta", "profile_storyboard", "tui_todo", "incident_api", "pulseforge", "fluxproxy"],
       "upstreamOracleAndPin": [
         "Haxe 4.3.7 behavior through --interp where the same source has a faithful portable contract",
         "docs/toolchain-policy.json",
@@ -89,7 +89,7 @@
       "focusedOwners": ["hxrt-go-tests", "stdlib-contracts", "runtime-slicing"],
       "verticalOwners": ["semantic-diff-portable", "runtime-snapshot-smokes", "stdlib-go-test-sweep"],
       "realRuntimeOrSystemOwners": ["hxrt-race-checkptr", "runtime-snapshot-smokes", "network-loopback"],
-      "examples": ["incident_api", "tui_todo", "pulseforge", "fluxproxy"],
+      "examples": ["portable_beta", "incident_api", "tui_todo", "pulseforge", "fluxproxy"],
       "upstreamOracleAndPin": ["Haxe 4.3.7 std behavior where differential execution is faithful", "Go runtime invariants", "docs/stdlib-provenance-ledger.json"],
       "adaptations": ["canonical std/go/_std overrides and typed std/hxrt bindings"],
       "knownSkips": ["target-sensitive surfaces intentionally kept out of semantic diff", "runtime admission outside named platforms"],
@@ -138,7 +138,8 @@
       "status": "partial",
       "claims": [
         "The release ZIP installs in isolation and the maintained examples compile, pass strict Go checks, execute, and match manually reviewed output at their declared tiers.",
-        "An example proves only its listed profiles, product surfaces, and execution mode."
+        "An example proves only its listed profiles, product surfaces, and execution mode.",
+        "Only release-bearing lanes may publish portable-beta operation evidence, and every operation must resolve to a release-admitted compatibility entry."
       ],
       "authoredInputs": ["installed haxelib package", "maintained example Haxe programs"],
       "producedOutputs": ["consumer Go modules", "example binaries and stdout", "release artifacts"],
@@ -147,7 +148,7 @@
       "focusedOwners": ["package-layout", "example-manifest"],
       "verticalOwners": ["isolated-haxelib-smoke", "all-examples"],
       "realRuntimeOrSystemOwners": ["all-examples", "example-binary-matrix"],
-      "examples": ["fluxproxy", "incident_api", "interop_smoke", "profile_storyboard", "pulseforge", "tui_todo", "worker_pool_select"],
+      "examples": ["portable_beta", "fluxproxy", "incident_api", "interop_smoke", "profile_storyboard", "pulseforge", "tui_todo", "worker_pool_select"],
       "upstreamOracleAndPin": ["manually reviewed expected/*.stdout", "public package layout and release policy"],
       "adaptations": ["CI HXML variants exercise declared application variants"],
       "knownSkips": ["no external third-party downstream corpus yet"],
@@ -210,7 +211,7 @@
       "snapshotOwners": 313,
       "portableSemanticDiffOwners": 155,
       "laneSemanticDiffOwners": 1,
-      "exampleProfileOwners": 12,
+      "exampleProfileOwners": 13,
       "strictStdlibModules": 55,
       "fullPortableEligibleStdlibModules": 175,
       "officialHaxeCandidateOwners": 1211,

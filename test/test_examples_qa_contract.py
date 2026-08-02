@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 import re
 import sys
+import tempfile
 from unittest import mock
 import unittest
 
@@ -14,6 +16,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 RUN_EXAMPLES = REPO_ROOT / "test" / "run-examples.py"
 EXAMPLES_ROOT = REPO_ROOT / "examples"
 EXAMPLES_MANIFEST = EXAMPLES_ROOT / "qa-manifest.json"
+COMPATIBILITY_SOURCE = REPO_ROOT / "docs" / "compatibility-support-source.json"
 PACKAGE_JSON = REPO_ROOT / "package.json"
 RUN_CI = REPO_ROOT / "test" / "run-ci.py"
 CI_HARNESS = REPO_ROOT / ".github" / "workflows" / "ci-harness.yml"
@@ -93,6 +96,82 @@ class ExamplesQaContractTest(unittest.TestCase):
             "go-native-metal", metadata["fluxproxy"].lanes["default"].product_surfaces
         )
         self.assertIn("go-native-metal", metadata["fluxproxy"].lanes["ci"].product_surfaces)
+
+    def test_release_claiming_lanes_reference_only_admitted_operations(self) -> None:
+        module = load_run_examples_module()
+        metadata = module.load_example_metadata()
+        manifest = json.loads(EXAMPLES_MANIFEST.read_text(encoding="utf-8"))
+        self.assertEqual(manifest["schemaVersion"], 2)
+        self.assertIn("portable_beta", metadata)
+
+        authority = json.loads(COMPATIBILITY_SOURCE.read_text(encoding="utf-8"))
+        admitted = {
+            f"{surface['id']}/{operation['id']}"
+            for surface in authority["surfaces"]
+            for operation in surface.get("operations", [])
+            if operation.get("release_admitted") is True
+        }
+
+        release_lanes: list[str] = []
+        for example in metadata.values():
+            for lane_id, lane in example.lanes.items():
+                label = f"{example.example_id}/{lane_id}"
+                if lane.release_claim_bearing:
+                    release_lanes.append(label)
+                    self.assertIn("portable-compiler", lane.product_surfaces, label)
+                    self.assertNotIn("go-native-metal", lane.product_surfaces, label)
+                    self.assertNotIn("native-metal", lane.evidence_modes, label)
+                    self.assertTrue(lane.compatibility_operations, label)
+                    self.assertEqual(
+                        set(lane.compatibility_operations) - admitted,
+                        set(),
+                        label,
+                    )
+                else:
+                    self.assertEqual(lane.compatibility_operations, (), label)
+
+        self.assertEqual(
+            release_lanes,
+            ["portable_beta/default", "portable_beta/ci"],
+        )
+
+    def test_release_claim_validation_fails_closed_for_excluded_operation(self) -> None:
+        module = load_run_examples_module()
+        payload = json.loads(EXAMPLES_MANIFEST.read_text(encoding="utf-8"))
+        portable_beta = next(
+            example for example in payload["examples"] if example["id"] == "portable_beta"
+        )
+        portable_beta["lanes"]["default"]["compatibilityOperations"] = [
+            "portable-networking/http-ipv4-blocking-client-core"
+        ]
+
+        with tempfile.TemporaryDirectory() as temp_name:
+            manifest = Path(temp_name) / "qa-manifest.json"
+            manifest.write_text(json.dumps(payload), encoding="utf-8")
+            with mock.patch.object(module, "QA_MANIFEST", manifest):
+                with self.assertRaisesRegex(
+                    RuntimeError,
+                    "not release-admitted",
+                ):
+                    module.load_example_metadata()
+
+    def test_release_claim_validation_requires_a_claim_bearing_example(self) -> None:
+        module = load_run_examples_module()
+        payload = json.loads(EXAMPLES_MANIFEST.read_text(encoding="utf-8"))
+        portable_beta = next(
+            example for example in payload["examples"] if example["id"] == "portable_beta"
+        )
+        portable_beta["claimBearing"] = False
+
+        with tempfile.TemporaryDirectory() as temp_name:
+            manifest = Path(temp_name) / "qa-manifest.json"
+            manifest.write_text(json.dumps(payload), encoding="utf-8")
+            with mock.patch.object(module, "QA_MANIFEST", manifest):
+                with self.assertRaisesRegex(
+                    RuntimeError,
+                    "must belong to a claim-bearing example",
+                ):
+                    module.load_example_metadata()
 
     def test_examples_harness_compiles_tests_runs_and_checks_expected_output(self) -> None:
         text = RUN_EXAMPLES.read_text(encoding="utf-8")
@@ -196,6 +275,8 @@ class ExamplesQaContractTest(unittest.TestCase):
         self.assertIn("Every example profile lane must compile", doc)
         self.assertIn("expected/*.stdout", doc)
         self.assertIn("Modules that own typed Go APIs declare `@:goNative`", doc)
+        self.assertIn("Release-bearing is narrower than claim-bearing", doc)
+        self.assertIn("compatibility operation IDs", doc)
 
 
 if __name__ == "__main__":

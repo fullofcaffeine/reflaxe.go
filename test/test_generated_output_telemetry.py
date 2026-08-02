@@ -34,6 +34,8 @@ class GeneratedOutputTelemetryTests(unittest.TestCase):
                 "default": module.ExampleLaneMetadata(
                     product_surfaces=("portable-compiler",),
                     evidence_modes=("go-build-run",),
+                    release_claim_bearing=True,
+                    compatibility_operations=("portable-data/json",),
                 )
             },
         )
@@ -102,8 +104,11 @@ class GeneratedOutputTelemetryTests(unittest.TestCase):
         self.assertFalse(entry["claimBearing"])
         self.assertEqual([], entry["productSurfaces"])
         self.assertEqual([], entry["evidenceModes"])
+        self.assertFalse(entry["releaseClaimBearing"])
+        self.assertEqual([], entry["compatibilityOperations"])
         self.assertEqual("skipped", entry["runtimeStatus"])
         self.assertEqual("diagnostic-only", entry["claimStatus"])
+        self.assertEqual("diagnostic-only", entry["releaseClaimStatus"])
 
     def test_runtime_and_stdout_completion_activate_the_declared_lane_claim(self) -> None:
         module = load_run_examples_module()
@@ -118,6 +123,9 @@ class GeneratedOutputTelemetryTests(unittest.TestCase):
         self.assertEqual(["portable-compiler"], entry["productSurfaces"])
         self.assertEqual(["go-build-run"], entry["evidenceModes"])
         self.assertEqual("supported", entry["claimStatus"])
+        self.assertTrue(entry["releaseClaimBearing"])
+        self.assertEqual(["portable-data/json"], entry["compatibilityOperations"])
+        self.assertEqual("supported", entry["releaseClaimStatus"])
 
     def test_failed_case_report_cannot_retain_an_earlier_lane_claim(self) -> None:
         module = load_run_examples_module()
@@ -130,7 +138,10 @@ class GeneratedOutputTelemetryTests(unittest.TestCase):
         published = report["entries"][0]
         self.assertFalse(published["claimBearing"])
         self.assertEqual([], published["productSurfaces"])
+        self.assertFalse(published["releaseClaimBearing"])
+        self.assertEqual([], published["compatibilityOperations"])
         self.assertEqual("case-failed", published["claimStatus"])
+        self.assertEqual("case-failed", published["releaseClaimStatus"])
 
 
 if __name__ == "__main__":

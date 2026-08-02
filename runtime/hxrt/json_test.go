@@ -25,6 +25,27 @@ func TestJsonParseBuildsPortableArrayCarriers(t *testing.T) {
 	}
 }
 
+func TestJsonParseBoxesStringsForTypedDynamicCasts(t *testing.T) {
+	decoded := JsonParse(StringFromLiteral(`{"name":"alpha","nested":{"name":"beta"}}`))
+	object, ok := decoded.(map[string]any)
+	if !ok {
+		t.Fatalf("decoded root type = %T, want map[string]any", decoded)
+	}
+
+	name, ok := object["name"].(*string)
+	if !ok || name == nil || *name != "alpha" {
+		t.Fatalf("decoded name = %#v (%T), want *string(alpha)", object["name"], object["name"])
+	}
+	nested, ok := object["nested"].(map[string]any)
+	if !ok {
+		t.Fatalf("decoded nested type = %T, want map[string]any", object["nested"])
+	}
+	nestedName, ok := nested["name"].(*string)
+	if !ok || nestedName == nil || *nestedName != "beta" {
+		t.Fatalf("decoded nested name = %#v (%T), want *string(beta)", nested["name"], nested["name"])
+	}
+}
+
 func TestJsonStringifyTraversesPortableArrayCarriers(t *testing.T) {
 	value := map[string]any{
 		"items": NewArray(1, NewArray(2, 3)),

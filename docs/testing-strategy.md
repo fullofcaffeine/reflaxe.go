@@ -106,7 +106,7 @@ profile is absent from a declared surface's supported or tested profiles.
 | Tracer bullet first | Partial: examples and semantic diff already crossed real boundaries, but the policy was implicit | R1 and the representative workflow name the tracer before permutations |
 | Lowest faithful layer and double lock | Substantially present in recent network work | Focused Go ownership tests, generated-Haxe execution, and release-policy contracts are kept as distinct locks |
 | Portfolio review | Absent as a durable review | Active owner-family inventory is recorded without inventing a quota or double-counted percentage |
-| Executable example tiers | Runtime execution already worked; tiers and claim ownership were implicit | `examples/qa-manifest.json` is now harness-enforced |
+| Executable example tiers | Runtime execution already worked; tiers and claim ownership were implicit | `examples/qa-manifest.json` is harness-enforced; exact release-operation links prevent broader QA examples from widening the beta claim |
 | R0-R5 loop and affected selection | Partial: commands and full backstops existed, but ring ownership and semantic selection did not | Rings are explicit and the selector runs in observation mode without skipping evidence |
 | Separate high-risk review | Strong through thinking labels and exact-commit reviews | A stable challenge checklist now lives in the strategy authority |
 
@@ -172,7 +172,7 @@ the third lock. None of those results is substituted for another.
 ## Portfolio guardrail
 
 The current active inventory is 313 snapshot owners, 155 portable semantic-diff
-owners, one active profile/lane semantic-diff owner, and 12 executable example
+owners, one active profile/lane semantic-diff owner, and 13 executable example
 profile owners. The strict curated stdlib sweep has 55 module owners and the
 full portable-eligible inventory has 175. The separately pinned official target
 inventory classifies 1,211 upstream owners: 607 active owners containing 650
@@ -196,6 +196,13 @@ evidence modes, distinctive claim, command, and oracle. Per-lane declarations
 matter because a flagship's default portable/core lane must not become native
 evidence merely because its CI variant uses an explicit Go-native module. The
 harness rejects manifest drift.
+
+Ordinary claim-bearing and release-bearing are separate. Every maintained
+example below proves its own documented runtime behavior. Only `portable_beta`
+publishes portable-beta operation evidence, and only after the harness resolves
+each declared operation against the compatibility authority and completes the
+real runtime/output path. This keeps a green flagship, HTTP service, or native
+interop demo from broadening a different scorecard.
 
 All current examples are claim-bearing and therefore execute:
 

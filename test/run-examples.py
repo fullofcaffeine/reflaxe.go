@@ -21,12 +21,15 @@ EXCLUDE_NAMES = {"go.sum", "_GeneratedFiles.json", ".DS_Store"}
 EXCLUDE_DIRS = {".cache"}
 TELEMETRY_DIR = ROOT / ".cache" / "generated-output-telemetry"
 QA_MANIFEST = EXAMPLES_ROOT / "qa-manifest.json"
+COMPATIBILITY_SOURCE = ROOT / "docs" / "compatibility-support-source.json"
 
 
 @dataclasses.dataclass(frozen=True)
 class ExampleLaneMetadata:
     product_surfaces: tuple[str, ...]
     evidence_modes: tuple[str, ...]
+    release_claim_bearing: bool
+    compatibility_operations: tuple[str, ...]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -84,16 +87,39 @@ def load_example_metadata() -> dict[str, ExampleMetadata]:
     if not QA_MANIFEST.exists():
         raise RuntimeError(f"missing examples QA manifest: {QA_MANIFEST}")
     payload = json.loads(QA_MANIFEST.read_text(encoding="utf-8"))
-    if payload.get("schemaVersion") != 1 or not isinstance(payload.get("examples"), list):
+    if payload.get("schemaVersion") != 2 or not isinstance(payload.get("examples"), list):
         raise RuntimeError(f"invalid examples QA manifest schema: {QA_MANIFEST}")
+
+    if not COMPATIBILITY_SOURCE.exists():
+        raise RuntimeError(f"missing compatibility authority: {COMPATIBILITY_SOURCE}")
+    compatibility = json.loads(COMPATIBILITY_SOURCE.read_text(encoding="utf-8"))
+    known_operations: set[str] = set()
+    admitted_operations: set[str] = set()
+    for surface in compatibility.get("surfaces", []):
+        surface_id = str(surface.get("id", "")).strip()
+        for operation in surface.get("operations", []):
+            operation_id = str(operation.get("id", "")).strip()
+            if not surface_id or not operation_id:
+                raise RuntimeError(
+                    f"invalid compatibility operation identity in {COMPATIBILITY_SOURCE}"
+                )
+            reference = f"{surface_id}/{operation_id}"
+            if reference in known_operations:
+                raise RuntimeError(f"duplicate compatibility operation: {reference}")
+            known_operations.add(reference)
+            if operation.get("release_admitted") is True:
+                admitted_operations.add(reference)
 
     records: dict[str, ExampleMetadata] = {}
     for raw in payload["examples"]:
         example_id = str(raw.get("id", "")).strip()
         if not example_id or example_id in records:
             raise RuntimeError(f"invalid or duplicate example id in {QA_MANIFEST}: {example_id!r}")
+        claim_bearing = raw.get("claimBearing")
+        if not isinstance(claim_bearing, bool):
+            raise RuntimeError(f"example {example_id} must declare claimBearing")
         execution = raw.get("execution", [])
-        if raw.get("claimBearing") and execution != [
+        if claim_bearing and execution != [
             "haxe-custom-backend",
             "gofmt",
             "go-test",
@@ -116,15 +142,70 @@ def load_example_metadata() -> dict[str, ExampleMetadata]:
                 raise RuntimeError(
                     f"example {example_id} lane {lane_id} must declare surfaces and evidence modes"
                 )
+            release_claim_bearing = raw_lane.get("releaseClaimBearing")
+            if not isinstance(release_claim_bearing, bool):
+                raise RuntimeError(
+                    f"example {example_id} lane {lane_id} must declare releaseClaimBearing"
+                )
+            raw_operations = raw_lane.get("compatibilityOperations")
+            if not isinstance(raw_operations, list) or not all(
+                isinstance(item, str) and item.strip() for item in raw_operations
+            ):
+                raise RuntimeError(
+                    f"example {example_id} lane {lane_id} must declare compatibilityOperations as a string list"
+                )
+            compatibility_operations = tuple(item.strip() for item in raw_operations)
+            if len(set(compatibility_operations)) != len(compatibility_operations):
+                raise RuntimeError(
+                    f"example {example_id} lane {lane_id} repeats a compatibility operation"
+                )
+            if release_claim_bearing:
+                if not claim_bearing:
+                    raise RuntimeError(
+                        f"release-bearing example {example_id} lane {lane_id} must belong to a claim-bearing example"
+                    )
+                if "portable-compiler" not in product_surfaces:
+                    raise RuntimeError(
+                        f"release-bearing example {example_id} lane {lane_id} must own portable-compiler evidence"
+                    )
+                if "go-native-metal" in product_surfaces or "native-metal" in evidence_modes:
+                    raise RuntimeError(
+                        f"release-bearing example {example_id} lane {lane_id} cannot borrow native/metal evidence"
+                    )
+                if not compatibility_operations:
+                    raise RuntimeError(
+                        f"release-bearing example {example_id} lane {lane_id} has no compatibility operations"
+                    )
+                unknown = sorted(set(compatibility_operations) - known_operations)
+                if unknown:
+                    raise RuntimeError(
+                        f"release-bearing example {example_id} lane {lane_id} names unknown compatibility operations: {unknown}"
+                    )
+                excluded = sorted(set(compatibility_operations) - admitted_operations)
+                if excluded:
+                    raise RuntimeError(
+                        f"release-bearing example {example_id} lane {lane_id} names operations that are not release-admitted: {excluded}"
+                    )
+            elif compatibility_operations:
+                raise RuntimeError(
+                    f"non-release-bearing example {example_id} lane {lane_id} cannot publish compatibility operations"
+                )
             lanes[lane_id] = ExampleLaneMetadata(
                 product_surfaces=product_surfaces,
                 evidence_modes=evidence_modes,
+                release_claim_bearing=release_claim_bearing,
+                compatibility_operations=compatibility_operations,
+            )
+        profiles = tuple(str(item) for item in raw.get("profiles", []))
+        if any(lane.release_claim_bearing for lane in lanes.values()) and profiles != ("portable",):
+            raise RuntimeError(
+                f"release-bearing example {example_id} must be portable-only"
             )
         records[example_id] = ExampleMetadata(
             example_id=example_id,
             tier=str(raw.get("tier", "")),
-            claim_bearing=bool(raw.get("claimBearing", False)),
-            profiles=tuple(str(item) for item in raw.get("profiles", [])),
+            claim_bearing=claim_bearing,
+            profiles=profiles,
             test_command=str(raw.get("testCommand", "")),
             lanes=lanes,
         )
@@ -419,12 +500,21 @@ def annotate_telemetry(
             "declaredClaimBearing": case.metadata.claim_bearing,
             "declaredProductSurfaces": list(lane_metadata.product_surfaces),
             "declaredEvidenceModes": list(lane_metadata.evidence_modes),
+            "declaredReleaseClaimBearing": lane_metadata.release_claim_bearing,
+            "declaredCompatibilityOperations": list(lane_metadata.compatibility_operations),
             "claimBearing": False,
             "productSurfaces": [],
             "evidenceModes": [],
+            "releaseClaimBearing": False,
+            "compatibilityOperations": [],
             "runtimeStatus": "skipped" if compile_only else "pending",
             "stdoutStatus": "skipped" if compile_only else "pending",
             "claimStatus": "diagnostic-only" if compile_only else "pending",
+            "releaseClaimStatus": (
+                "diagnostic-only"
+                if compile_only and lane_metadata.release_claim_bearing
+                else "pending" if lane_metadata.release_claim_bearing else "not-declared"
+            ),
         }
     )
     if telemetry.get("goTestOk") is False:
@@ -438,10 +528,14 @@ def complete_lane_telemetry(entry: dict, *, runtime_ok: bool, stdout_ok: bool | 
         entry["runtimeStatus"] = "failed"
         entry["stdoutStatus"] = "not-run"
         entry["claimStatus"] = "runtime-failed"
+        if entry["declaredReleaseClaimBearing"]:
+            entry["releaseClaimStatus"] = "runtime-failed"
     elif stdout_ok is not True:
         entry["runtimeStatus"] = "passed"
         entry["stdoutStatus"] = "failed" if stdout_ok is False else "not-run"
         entry["claimStatus"] = "stdout-failed" if stdout_ok is False else "incomplete"
+        if entry["declaredReleaseClaimBearing"]:
+            entry["releaseClaimStatus"] = entry["claimStatus"]
     else:
         entry["runtimeStatus"] = "passed"
         entry["stdoutStatus"] = "passed"
@@ -449,6 +543,10 @@ def complete_lane_telemetry(entry: dict, *, runtime_ok: bool, stdout_ok: bool | 
         entry["productSurfaces"] = list(entry["declaredProductSurfaces"])
         entry["evidenceModes"] = list(entry["declaredEvidenceModes"])
         entry["claimStatus"] = "supported" if entry["claimBearing"] else "non-claim-bearing-pass"
+        if entry["declaredReleaseClaimBearing"]:
+            entry["releaseClaimBearing"] = True
+            entry["compatibilityOperations"] = list(entry["declaredCompatibilityOperations"])
+            entry["releaseClaimStatus"] = "supported"
 
 
 def compare_stdout(expected_file: Path, actual: str) -> tuple[bool, str]:
@@ -562,7 +660,11 @@ def build_telemetry_report(results: list[CaseResult]) -> dict:
                 entry["claimBearing"] = False
                 entry["productSurfaces"] = []
                 entry["evidenceModes"] = []
+                entry["releaseClaimBearing"] = False
+                entry["compatibilityOperations"] = []
                 entry["claimStatus"] = "case-failed"
+                if entry["declaredReleaseClaimBearing"]:
+                    entry["releaseClaimStatus"] = "case-failed"
             entries.append(entry)
     entries.sort(key=lambda item: (item["caseId"], item["lane"]))
     return {
