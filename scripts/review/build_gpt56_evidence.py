@@ -170,6 +170,7 @@ MACHINE_PATH_PATTERNS = (
 # Repomix preserves their authored source exactly, so path-leak validation skips
 # only their explicit XML file blocks. The same text anywhere else still fails.
 REPOMIX_MACHINE_PATH_FIXTURE_FILES = (
+    ".audit/haxe_go-vfp.12.4.tsv",
     "test/test_review_evidence_bundle_contract.py",
 )
 

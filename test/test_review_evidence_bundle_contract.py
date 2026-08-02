@@ -86,9 +86,15 @@ class ReviewEvidenceBundleContractTest(unittest.TestCase):
             f"{fixture}\n"
             "</file>"
         )
+        decision_log_block = (
+            '<file path=".audit/haxe_go-vfp.12.4.tsv">\n'
+            "archive failed closed on D:\\a\\ fixture\n"
+            "</file>"
+        )
 
         self.assertEqual("D:\\a\\", builder.find_machine_path(fixture))
         self.assertIsNone(builder.find_repomix_machine_path(fixture_block))
+        self.assertIsNone(builder.find_repomix_machine_path(decision_log_block))
         self.assertEqual(
             "D:\\a\\",
             builder.find_repomix_machine_path(ordinary_block),
