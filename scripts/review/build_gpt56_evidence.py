@@ -166,6 +166,13 @@ MACHINE_PATH_PATTERNS = (
     re.compile(r"[A-Za-z]:\\a\\[^\\\s]+\\[^\\\s]+\\"),
     re.compile(re.escape(MACOS_PRIVATE_TEMP_ROOT) + r"[A-Za-z0-9._-]+/[^\s]+"),
 )
+# This exact text is the manually authored negative fixture that proves Windows
+# hosted-runner paths are redacted. It is source evidence, not captured machine
+# state. Keep the allowance literal and opt-in so a different absolute path
+# still fails the bundle.
+PRIMARY_MACHINE_PATH_FIXTURES = (
+    r"D:\a\reflaxe.go\reflaxe.go\src\Main.hx:3",
+)
 
 
 class EvidenceError(RuntimeError):
@@ -240,7 +247,13 @@ def redact_machine_paths(text: str) -> str:
     return text
 
 
-def find_machine_path(text: str) -> str | None:
+def find_machine_path(
+    text: str,
+    *,
+    allowed_literals: Sequence[str] = (),
+) -> str | None:
+    for literal in allowed_literals:
+        text = text.replace(literal, "<authored-machine-path-fixture>")
     home = Path.home().as_posix().rstrip("/")
     if home and home != "/" and home + "/" in text:
         return home + "/"
@@ -427,7 +440,10 @@ def run_repomix(repomix_command: Sequence[str], input_dir: Path, output_path: Pa
     assert isinstance(completed.stderr, str)
     log = normalize_repomix_log(redact_machine_paths(completed.stdout + completed.stderr))
     output_text = output_path.read_text(encoding="utf-8")
-    leaked_path = find_machine_path(output_text)
+    leaked_path = find_machine_path(
+        output_text,
+        allowed_literals=PRIMARY_MACHINE_PATH_FIXTURES,
+    )
     if leaked_path:
         raise EvidenceError(f"Repomix output contains machine-local path: {leaked_path}")
     return {
@@ -683,10 +699,14 @@ def assert_no_machine_paths(root: Path) -> int:
         except UnicodeDecodeError:
             continue
         checked += 1
-        leaked_path = find_machine_path(text)
+        relative = path.relative_to(root).as_posix()
+        allowed_literals: Sequence[str] = ()
+        if relative.startswith("primary/") and path.suffix.lower() == ".xml":
+            allowed_literals = PRIMARY_MACHINE_PATH_FIXTURES
+        leaked_path = find_machine_path(text, allowed_literals=allowed_literals)
         if leaked_path:
             raise EvidenceError(
-                f"machine-local path remains in {path.relative_to(root).as_posix()}: {leaked_path}"
+                f"machine-local path remains in {relative}: {leaked_path}"
             )
     return checked
 

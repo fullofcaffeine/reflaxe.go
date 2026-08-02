@@ -73,6 +73,25 @@ class ReviewEvidenceBundleContractTest(unittest.TestCase):
         self.assertIn("<github-workspace>/test/run-ci.py:9", redacted)
         self.assertIn("src/reflaxe/go/GoCompiler.hx:42", redacted)
 
+    def test_source_path_fixture_requires_an_explicit_narrow_allowance(self) -> None:
+        builder = load_builder()
+        fixture = r"D:\a\reflaxe.go\reflaxe.go\src\Main.hx:3"
+
+        self.assertEqual("D:\\a\\", builder.find_machine_path(fixture))
+        self.assertIsNone(
+            builder.find_machine_path(
+                fixture,
+                allowed_literals=builder.PRIMARY_MACHINE_PATH_FIXTURES,
+            )
+        )
+        self.assertEqual(
+            "D:\\a\\",
+            builder.find_machine_path(
+                r"D:\a\other\other\src\Main.hx:3",
+                allowed_literals=builder.PRIMARY_MACHINE_PATH_FIXTURES,
+            ),
+        )
+
     def test_github_workspace_redaction_precedes_nested_runner_home(self) -> None:
         builder = load_builder()
         runner_home = "/" + "home" + "/runner"
