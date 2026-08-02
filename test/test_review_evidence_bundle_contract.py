@@ -73,23 +73,25 @@ class ReviewEvidenceBundleContractTest(unittest.TestCase):
         self.assertIn("<github-workspace>/test/run-ci.py:9", redacted)
         self.assertIn("src/reflaxe/go/GoCompiler.hx:42", redacted)
 
-    def test_source_path_fixture_requires_an_explicit_narrow_allowance(self) -> None:
+    def test_repomix_scan_ignores_only_the_dedicated_path_fixture_file(self) -> None:
         builder = load_builder()
         fixture = r"D:\a\reflaxe.go\reflaxe.go\src\Main.hx:3"
+        fixture_block = (
+            '<file path="test/test_review_evidence_bundle_contract.py">\n'
+            f"{fixture}\n"
+            "</file>"
+        )
+        ordinary_block = (
+            '<file path="test/test_other_contract.py">\n'
+            f"{fixture}\n"
+            "</file>"
+        )
 
         self.assertEqual("D:\\a\\", builder.find_machine_path(fixture))
-        self.assertIsNone(
-            builder.find_machine_path(
-                fixture,
-                allowed_literals=builder.PRIMARY_MACHINE_PATH_FIXTURES,
-            )
-        )
+        self.assertIsNone(builder.find_repomix_machine_path(fixture_block))
         self.assertEqual(
             "D:\\a\\",
-            builder.find_machine_path(
-                r"D:\a\other\other\src\Main.hx:3",
-                allowed_literals=builder.PRIMARY_MACHINE_PATH_FIXTURES,
-            ),
+            builder.find_repomix_machine_path(ordinary_block),
         )
 
     def test_github_workspace_redaction_precedes_nested_runner_home(self) -> None:

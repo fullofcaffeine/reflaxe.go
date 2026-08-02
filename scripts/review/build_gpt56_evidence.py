@@ -166,12 +166,11 @@ MACHINE_PATH_PATTERNS = (
     re.compile(r"[A-Za-z]:\\a\\[^\\\s]+\\[^\\\s]+\\"),
     re.compile(re.escape(MACOS_PRIVATE_TEMP_ROOT) + r"[A-Za-z0-9._-]+/[^\s]+"),
 )
-# This exact text is the manually authored negative fixture that proves Windows
-# hosted-runner paths are redacted. It is source evidence, not captured machine
-# state. Keep the allowance literal and opt-in so a different absolute path
-# still fails the bundle.
-PRIMARY_MACHINE_PATH_FIXTURES = (
-    r"D:\a\reflaxe.go\reflaxe.go\src\Main.hx:3",
+# These files deliberately contain machine-path examples to test redaction.
+# Repomix preserves their authored source exactly, so path-leak validation skips
+# only their explicit XML file blocks. The same text anywhere else still fails.
+REPOMIX_MACHINE_PATH_FIXTURE_FILES = (
+    "test/test_review_evidence_bundle_contract.py",
 )
 
 
@@ -247,13 +246,7 @@ def redact_machine_paths(text: str) -> str:
     return text
 
 
-def find_machine_path(
-    text: str,
-    *,
-    allowed_literals: Sequence[str] = (),
-) -> str | None:
-    for literal in allowed_literals:
-        text = text.replace(literal, "<authored-machine-path-fixture>")
+def find_machine_path(text: str) -> str | None:
     home = Path.home().as_posix().rstrip("/")
     if home and home != "/" and home + "/" in text:
         return home + "/"
@@ -269,6 +262,16 @@ def find_machine_path(
         if match:
             return match.group(0)
     return None
+
+
+def find_repomix_machine_path(text: str) -> str | None:
+    for relative in REPOMIX_MACHINE_PATH_FIXTURE_FILES:
+        fixture_block = re.compile(
+            r'<file path="' + re.escape(relative) + r'">.*?</file>',
+            re.DOTALL,
+        )
+        text = fixture_block.sub("<authored-machine-path-fixture-file />", text)
+    return find_machine_path(text)
 
 
 def normalize_repomix_log(log: str) -> str:
@@ -440,10 +443,7 @@ def run_repomix(repomix_command: Sequence[str], input_dir: Path, output_path: Pa
     assert isinstance(completed.stderr, str)
     log = normalize_repomix_log(redact_machine_paths(completed.stdout + completed.stderr))
     output_text = output_path.read_text(encoding="utf-8")
-    leaked_path = find_machine_path(
-        output_text,
-        allowed_literals=PRIMARY_MACHINE_PATH_FIXTURES,
-    )
+    leaked_path = find_repomix_machine_path(output_text)
     if leaked_path:
         raise EvidenceError(f"Repomix output contains machine-local path: {leaked_path}")
     return {
@@ -700,10 +700,10 @@ def assert_no_machine_paths(root: Path) -> int:
             continue
         checked += 1
         relative = path.relative_to(root).as_posix()
-        allowed_literals: Sequence[str] = ()
         if relative.startswith("primary/") and path.suffix.lower() == ".xml":
-            allowed_literals = PRIMARY_MACHINE_PATH_FIXTURES
-        leaked_path = find_machine_path(text, allowed_literals=allowed_literals)
+            leaked_path = find_repomix_machine_path(text)
+        else:
+            leaked_path = find_machine_path(text)
         if leaked_path:
             raise EvidenceError(
                 f"machine-local path remains in {relative}: {leaked_path}"
