@@ -69,6 +69,21 @@ require_command python3
 
 echo "[beads-health] validating configuration and graph"
 bd config validate
+
+configured_remote_url="$(bd config get sync.remote)"
+dolt_origin_url="$(bd dolt remote list | awk '$1 == "origin" { print $2; exit }')"
+if [[ -z "$configured_remote_url" || -z "$dolt_origin_url" ]]; then
+  echo "[beads-health] sync.remote or Dolt origin is not configured" >&2
+  exit 1
+fi
+if [[ "$configured_remote_url" != "$dolt_origin_url" ]]; then
+  echo "[beads-health] configured sync.remote does not match Dolt origin" >&2
+  echo "[beads-health] configured: $configured_remote_url" >&2
+  echo "[beads-health] Dolt origin: $dolt_origin_url" >&2
+  echo "[beads-health] follow the existing-clone transport migration in .beads/README.md" >&2
+  exit 1
+fi
+
 bd dep cycles
 bd lint
 bd orphans

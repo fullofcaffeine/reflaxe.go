@@ -70,14 +70,26 @@ class BeadsWorkflowContractTest(unittest.TestCase):
     def test_beads_config_protects_legacy_archive_and_remote_history(self) -> None:
         text = self.read(BEADS_CONFIG)
         required_settings = [
-            'sync.remote: "git+https://github.com/fullofcaffeine/reflaxe.go.git"',
-            'federation.remote: "git+https://github.com/fullofcaffeine/reflaxe.go.git"',
+            'sync:\n    remote: "git+ssh://git@github.com/fullofcaffeine/reflaxe.go.git"',
+            'federation.remote: "git+ssh://git@github.com/fullofcaffeine/reflaxe.go.git"',
             "export.auto: false",
             "export.git-add: false",
             "sync.require_confirmation_on_mass_delete: true",
         ]
         for setting in required_settings:
             self.assertIn(setting, text)
+        self.assertNotIn("git+https://", text)
+
+        readme = self.read(BEADS_README)
+        for phrase in [
+            "GitHub SSH key",
+            "bd dolt push",
+            "bd dolt pull",
+            "bd bootstrap --yes",
+            "only to Beads history",
+            "source-code",
+        ]:
+            self.assertIn(phrase, readme)
 
     def test_legacy_archive_identity_and_tombstone_are_immutable(self) -> None:
         raw = LEGACY_ARCHIVE.read_bytes()
@@ -103,6 +115,7 @@ class BeadsWorkflowContractTest(unittest.TestCase):
         script = self.read(HEALTH_SCRIPT)
         required_fragments = [
             "bd config validate",
+            "bd dolt remote list",
             "bd dep cycles",
             "bd lint",
             "bd orphans",
@@ -111,6 +124,7 @@ class BeadsWorkflowContractTest(unittest.TestCase):
             "bd export --include-memories",
             "--session-close",
             "--verify-remote",
+            "configured sync.remote does not match Dolt origin",
         ]
         for fragment in required_fragments:
             self.assertIn(fragment, script)
