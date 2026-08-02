@@ -330,8 +330,25 @@ def validate_classification_baseline(baseline: dict, actual: list[dict]) -> None
         raise InventoryError("classification", "owner classification digest differs")
 
 
-def is_claim_evidence(propose_baseline: bool, diagnostic_selection: bool, dirty: bool) -> bool:
-    return not propose_baseline and not diagnostic_selection and not dirty
+def is_claim_evidence(
+    propose_baseline: bool,
+    diagnostic_selection: bool,
+    discover_blockers: bool,
+    dirty: bool,
+) -> bool:
+    """Return whether a successful run can advance the portable scorecard.
+
+    Blocker discovery is diagnostic even when it happens to find no failures.
+    Its recursive topology is designed to isolate problems, not to reproduce
+    the ordinary fail-fast baseline contract.
+    """
+
+    return (
+        not propose_baseline
+        and not diagnostic_selection
+        and not discover_blockers
+        and not dirty
+    )
 
 
 def load_manifest_payload(reference: dict, expected_kind: str) -> dict:
@@ -364,6 +381,22 @@ def load_manifest() -> dict:
             raise InventoryError("manifest", "blocked-owner records must be an array")
         external.extend(payload["records"])
     manifest["blockedOwners"] = [*manifest.get("blockedOwners", []), *external]
+    for reference in manifest.get("reviewedZeroRuntimeOwnerFiles", []):
+        payload = load_manifest_payload(
+            reference, "haxe.go-official-inventory-reviewed-zero-runtime-owners"
+        )
+        records = payload.get("records")
+        if not isinstance(records, list):
+            raise InventoryError("manifest", "reviewed zero-runtime records must be an array")
+        for record in records:
+            status = record.get("status")
+            if status not in ("blocked", "inapplicable"):
+                raise InventoryError(
+                    "manifest", f"invalid reviewed zero-runtime status: {status}"
+                )
+            manifest[f"{status}Owners"].append(
+                {"path": record["path"], "reason": record["reason"]}
+            )
     runtime = load_manifest_payload(
         manifest["activeRuntimeBaselineFile"],
         "haxe.go-official-inventory-active-runtime-baseline",
@@ -405,6 +438,33 @@ def classify_candidates(manifest: dict, candidates: list[dict]) -> tuple[list[di
     if unknown:
         raise InventoryError("classification", f"classified owners are absent upstream: {unknown}")
     return runnable, classified
+
+
+def classify_executed_owner(owner: dict, records: list[dict]) -> dict:
+    """Classify one owner only after a positive runtime observation.
+
+    A successful Haxe/Go build with no runtime method can be meaningful
+    compile-only evidence, but it is not the runtime evidence this scorecard
+    calls active. Such owners must be reviewed and classified in the manifest
+    instead of being inferred as inapplicable after execution.
+    """
+
+    if not records:
+        raise InventoryError(
+            "classification",
+            f"runnable owner produced zero runtime records and must be explicitly classified: "
+            f"{owner['path']}",
+        )
+    classified = dict(owner)
+    classified.update(
+        {
+            "status": "active",
+            "reason": "positive target-runtime assertions",
+            "activeTests": [record["id"] for record in records],
+            "assertions": sum(record["assertions"] for record in records),
+        }
+    )
+    return classified
 
 
 def shard_candidates(manifest: dict, candidates: list[dict]) -> list[dict]:
@@ -777,23 +837,7 @@ def main() -> int:
 
             for owner in runnable:
                 records = active_by_class.get(owner["runtimeClass"], [])
-                if records:
-                    owner.update(
-                        {
-                            "status": "active",
-                            "reason": "positive target-runtime assertions",
-                            "activeTests": [record["id"] for record in records],
-                            "assertions": sum(record["assertions"] for record in records),
-                        }
-                    )
-                else:
-                    owner.update(
-                        {
-                            "status": "inapplicable",
-                            "reason": "no active utest fixture under Go target defines",
-                        }
-                    )
-                classified.append(owner)
+                classified.append(classify_executed_owner(owner, records))
 
             normalized = canonical_runtime_records(active)
             proposal = {
@@ -824,10 +868,14 @@ def main() -> int:
                 "schemaVersion": 1,
                 "kind": "haxe.go-official-haxe-target-inventory",
                 "claimEvidence": is_claim_evidence(
-                    args.propose_baseline, diagnostic_selection, source_dirty
+                    args.propose_baseline,
+                    diagnostic_selection,
+                    args.discover_blockers,
+                    source_dirty,
                 ),
                 "diagnosticSelection": {
-                    "active": diagnostic_selection,
+                    "active": diagnostic_selection or args.discover_blockers,
+                    "discoverBlockers": args.discover_blockers,
                     "onlyShard": args.only_shard,
                     "ownerRegex": args.owner_regex,
                 },

@@ -8,7 +8,7 @@ import argparse
 import hashlib
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import shutil
 import subprocess
 import sys
@@ -169,13 +169,24 @@ def ensure_checkout(spec: dict, explicit: Path | None, cache_root: Path, name: s
 def verify_upstream(manifest: dict, haxe_root: Path, utest_root: Path) -> list[dict]:
     haxe = manifest["upstream"]["haxe"]
     utest = manifest["upstream"]["utest"]
+    haxe_evidence = []
+    for record in haxe.get(
+        "licenseEvidence",
+        [{"path": haxe["licensePath"], "sha256": haxe["licenseSha256"]}],
+    ):
+        relative = PurePosixPath(str(record["path"]))
+        if relative.is_absolute() or ".." in relative.parts:
+            raise SmokeError("provenance", f"license evidence escapes checkout: {relative}")
+        haxe_evidence.append(
+            {
+                "kind": "haxe-license",
+                "path": str(relative),
+                "sha256": sha256_file(haxe_root.joinpath(*relative.parts)),
+                "expectedSha256": record["sha256"],
+            }
+        )
     evidence = [
-        {
-            "kind": "haxe-license",
-            "path": haxe["licensePath"],
-            "sha256": sha256_file(haxe_root / haxe["licensePath"]),
-            "expectedSha256": haxe["licenseSha256"],
-        },
+        *haxe_evidence,
         {
             "kind": "utest-license-declaration",
             "path": utest["licenseEvidencePath"],
@@ -565,9 +576,14 @@ def verify_missing_selected_source_control(
 ) -> dict:
     """Remove one selected test while preserving every earlier provenance check."""
     missing_root = workspace / "missing-selected-source"
-    haxe_license = Path(manifest["upstream"]["haxe"]["licensePath"])
-    (missing_root / haxe_license).parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(haxe_root / haxe_license, missing_root / haxe_license)
+    haxe = manifest["upstream"]["haxe"]
+    for record in haxe.get(
+        "licenseEvidence",
+        [{"path": haxe["licensePath"], "sha256": haxe["licenseSha256"]}],
+    ):
+        evidence_path = Path(record["path"])
+        (missing_root / evidence_path).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(haxe_root / evidence_path, missing_root / evidence_path)
 
     records = manifest["activeSmokeRecords"]
     if not records:

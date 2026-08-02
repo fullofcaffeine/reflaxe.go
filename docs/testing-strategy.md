@@ -176,7 +176,7 @@ owners, one active profile/lane semantic-diff owner, and 12 executable example
 profile owners. The strict curated stdlib sweep has 55 module owners and the
 full portable-eligible inventory has 175. The separately pinned official target
 inventory classifies 1,211 upstream owners: 607 active owners containing 650
-runtime methods, 472 blocked owners, and 132 inapplicable owners. These are
+runtime methods, 480 blocked owners, and 124 inapplicable owners. These are
 active harness records and explicit classifications, not raw file counts.
 
 This is compatible with a focused-heavy compiler portfolio and substantial
@@ -281,7 +281,7 @@ samples, not p50/p95 promises.
 | New strategy contracts | n/a | 1.21 s before this readability pass | Focused contracts cover active-inventory derivation, fail-closed Git discovery, evidence-state reporting, telemetry wiring, official-smoke policy, and first-read documentation; they run in required local/full entrypoints |
 | New affected-plan explanation | n/a | 0.27 s | One runtime path; observation only and does not run or omit selected commands |
 | New official Haxe target smoke | n/a | 46.13 / 22.05 s | Three active official methods, 16 live assertions, compile-directory-verified installed package, full DCE, strict Go build/run, and five deliberate failure controls, including a real generated-target timeout and an actual missing selected source |
-| Extended official Haxe target inventory | n/a | 141.36 / 156.52 / 152.09 s clean-package samples | 1,211 exact owners classified; 650 active methods and 1,910 assertions execute through the installed compiler, strict Go tooling, and runtime. The cache-warm-capable samples varied, so these are observations rather than a latency promise. This is R4/R5 evidence, not required-PR work. |
+| Extended official Haxe target inventory | n/a | 141.36 / 156.52 / 152.09 s clean-package samples | 1,211 exact owners classified; 650 active methods and 1,910 assertions execute through the installed compiler, strict Go tooling, and runtime. The 480 blocked owners include seven compile-only regressions that need a separate faithful observer and one async HTTP environment gap. The cache-warm-capable samples varied, so these are observations rather than a latency promise. This is R4/R5 evidence, not required-PR work. |
 | R4 exact-SHA Quality matrix | 27m 45s Linux Go 1.25.12; 22m 31s Linux Go 1.26.5; 22m 06s macOS | 24m 38s Linux Go 1.25.12; 29m 19s Linux Go 1.26.5; 22m 55s macOS | Commit `0c51420c`; [Quality run 30713172877](https://github.com/fullofcaffeine/reflaxe.go/actions/runs/30713172877) passed all three cold hosted jobs |
 
 The strategy and selector contracts add under two seconds locally, and the new
@@ -303,7 +303,7 @@ Deferred work is tracked in Beads rather than hidden here:
 
 - `haxe_go-vfp.12.10` establishes the classified extended inventory and its
   R4/R5 evidence without broadening compatibility admission;
-- `haxe_go-vfp.12.12`: burn down the 472 exact official-inventory blockers;
+- `haxe_go-vfp.12.12`: burn down the 480 exact official-inventory blockers;
   its children separately own Haxe compilation, invalid generated Go, runtime
   semantic mismatches, and typed harness-support gaps;
 - `haxe_go-vfp.16`: graduate affected-test planning only after an observation

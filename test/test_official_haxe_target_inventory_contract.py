@@ -52,7 +52,7 @@ class OfficialHaxeTargetInventoryContractTest(unittest.TestCase):
             runtime_baseline["sha256"],
         )
         self.assertEqual(
-            {"active": 607, "blocked": 472, "inapplicable": 132},
+            {"active": 607, "blocked": 480, "inapplicable": 124},
             manifest["classificationBaseline"]["counts"],
         )
         self.assertRegex(manifest["classificationBaseline"]["sha256"], r"^[0-9a-f]{64}$")
@@ -66,6 +66,50 @@ class OfficialHaxeTargetInventoryContractTest(unittest.TestCase):
         self.assertEqual(
             "06c590f6cf74abff8510bcb8fff9b3ae604067a7175d1a9d93c4aa9fa1908eb8",
             external["sourceProposalSha256"],
+        )
+        zero_reference = manifest["reviewedZeroRuntimeOwnerFiles"][0]
+        zero_runtime = json.loads(
+            (INVENTORY_ROOT / zero_reference["path"]).read_text(encoding="utf-8")
+        )
+        self.assertEqual(117, len(zero_runtime["records"]))
+        self.assertEqual(
+            {"blocked": 7, "inapplicable": 110},
+            {
+                status: sum(item["status"] == status for item in zero_runtime["records"])
+                for status in ("blocked", "inapplicable")
+            },
+        )
+        compile_only = {
+            item["path"]
+            for item in zero_runtime["records"]
+            if item["status"] == "blocked"
+        }
+        self.assertEqual(
+            {
+                "unit/issues/Issue4359.hx",
+                "unit/issues/Issue4535.hx",
+                "unit/issues/Issue6059.hx",
+                "unit/issues/Issue6772.hx",
+                "unit/issues/Issue7332.hx",
+                "unit/issues/Issue7389.hx",
+                "unit/issues/Issue9309.hx",
+            },
+            compile_only,
+        )
+
+    def test_upstream_license_provenance_does_not_guess_one_license_for_tests(self) -> None:
+        manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+        haxe = manifest["upstream"]["haxe"]
+        self.assertEqual("mixed", haxe["license"])
+        self.assertIn("tests/unit", haxe["licenseScopeNote"])
+        self.assertIn("does not assign", haxe["licenseScopeNote"])
+        evidence = {item["path"]: item["sha256"] for item in haxe["licenseEvidence"]}
+        self.assertEqual(
+            {
+                "README.md": "708b5a3386662e375c8bf90493687a764e9b7d251c500db854c8f76c570685ae",
+                "extra/LICENSE.txt": "f84691d619932ebfd4fa3568f8311f87ed4bf12e747e9aaa619a92cb1d2d359d",
+            },
+            evidence,
         )
 
     def test_synthetic_addition_and_runtime_drift_fail_closed(self) -> None:
@@ -225,10 +269,23 @@ class OfficialHaxeTargetInventoryContractTest(unittest.TestCase):
         self.assertIn("claimEvidence", runner)
         self.assertIn("diagnosticSelection", runner)
         self.assertIn("--require-clean-source", runner)
-        self.assertTrue(module.is_claim_evidence(False, False, False))
-        self.assertFalse(module.is_claim_evidence(True, False, False))
-        self.assertFalse(module.is_claim_evidence(False, True, False))
-        self.assertFalse(module.is_claim_evidence(False, False, True))
+        self.assertTrue(module.is_claim_evidence(False, False, False, False))
+        self.assertFalse(module.is_claim_evidence(True, False, False, False))
+        self.assertFalse(module.is_claim_evidence(False, True, False, False))
+        self.assertFalse(module.is_claim_evidence(False, False, True, False))
+        self.assertFalse(module.is_claim_evidence(False, False, False, True))
+
+    def test_zero_runtime_runnable_owner_fails_instead_of_becoming_inapplicable(self) -> None:
+        module = load_runner()
+        owner = {
+            "family": "issue",
+            "path": "unit/issues/IssueExample.hx",
+            "runtimeClass": "unit.issues.IssueExample",
+        }
+        with self.assertRaisesRegex(
+            module.InventoryError, "zero runtime records.*explicitly classified"
+        ):
+            module.classify_executed_owner(owner, [])
 
 
 if __name__ == "__main__":

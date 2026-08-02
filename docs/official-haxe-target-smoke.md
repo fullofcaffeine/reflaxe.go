@@ -81,7 +81,10 @@ timeout fails the lane.
 ## Provenance and artifact flow
 
 The runner fetches or reuses ignored exact-commit checkouts. It verifies commit,
-selected-source SHA-256, and MIT license evidence before compiling. No official
+selected-source SHA-256, and the Haxe repository's mixed-license evidence before
+compiling. The pinned README and `extra/LICENSE.txt` describe different licenses
+for different project parts; selected `tests/unit` files generally do not carry
+individual notices, so the smoke does not guess one license for them. No official
 test body is committed here. In particular, the security-sensitive upstream
 TLS fixture and its private-key material are not selected, copied, or included
 in artifacts.

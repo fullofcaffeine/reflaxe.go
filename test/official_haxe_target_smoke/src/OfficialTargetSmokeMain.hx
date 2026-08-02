@@ -23,8 +23,8 @@ class OfficialTargetSmokeMain {
 		#end
 		#if official_haxe_smoke_timeout_failure
 		OfficialSmokeObserver.line(CONTROL_PREFIX + "timeout");
-		var keepRunning = true;
-		while (keepRunning) {}
+		// A real blocking call cannot be optimized away as an empty loop can.
+		Sys.sleep(60.0);
 		return;
 		#end
 

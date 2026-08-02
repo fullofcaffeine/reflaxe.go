@@ -7,9 +7,20 @@
       "repository": "https://github.com/HaxeFoundation/haxe.git",
       "commit": "e0b355c6be312c1b17382603f018cf52522ec651",
       "version": "4.3.7",
-      "license": "MIT",
+      "license": "mixed",
       "licensePath": "extra/LICENSE.txt",
-      "licenseSha256": "f84691d619932ebfd4fa3568f8311f87ed4bf12e747e9aaa619a92cb1d2d359d"
+      "licenseSha256": "f84691d619932ebfd4fa3568f8311f87ed4bf12e747e9aaa619a92cb1d2d359d",
+      "licenseScopeNote": "The pinned repository documents multiple licenses for different project parts. These tests/unit sources generally lack file-level notices, so this inventory records the repository evidence and does not assign one license to every selected test file.",
+      "licenseEvidence": [
+        {
+          "path": "README.md",
+          "sha256": "708b5a3386662e375c8bf90493687a764e9b7d251c500db854c8f76c570685ae"
+        },
+        {
+          "path": "extra/LICENSE.txt",
+          "sha256": "f84691d619932ebfd4fa3568f8311f87ed4bf12e747e9aaa619a92cb1d2d359d"
+        }
+      ]
     },
     "utest": {
       "repository": "https://github.com/haxe-utest/utest.git",
@@ -39,7 +50,14 @@
       "sha256": "57c765bb15e6ddfaadf9f3fa683c92f2fe880f111b59c682e6a1e21f77947085"
     }
   ],
+  "reviewedZeroRuntimeOwnerFiles": [
+    {
+      "path": "reviewed-zero-runtime-owners.json",
+      "sha256": "206469a566d7f6b24f68a460a67d64c0c144f3a76a217a750f770b3ed5f884ad"
+    }
+  ],
   "blockedOwners": [
+    {"path": "unit/TestHttp.hx", "reason": "applicable HTTP behavior requires the upstream asynchronous runner and external echo-server environment; blocked by haxe_go-vfp.12.12.4"},
     {"path": "unitstd/AnonFieldAccess.unit.hx", "reason": "generated Go loses structural array field and function typing"},
     {"path": "unitstd/Array.unit.hx", "reason": "the isolated adapter does not yet stage required TestSpecification support types"},
     {"path": "unitstd/EvaluationOrder.unit.hx", "reason": "generated Go erases dynamically accessed ordered fields"},
@@ -216,13 +234,12 @@
   "inapplicableRules": [
     "target-specific owners selected only by another Haxe backend",
     "upstream support or disabled modules not registered as test owners",
-    "the HTTP owner requires the upstream asynchronous external echo-server environment"
+    "owners with no Go-active behavior because their pinned source is target-gated or explicitly disabled"
   ],
   "inapplicableOwners": [
     {"path": "unit/Test.hx", "reason": "upstream test base class, not a registered owner"},
     {"path": "unit/TestCSharp.hx", "reason": "selected only for the C# target"},
     {"path": "unit/TestHL.hx", "reason": "selected only for the HashLink target"},
-    {"path": "unit/TestHttp.hx", "reason": "requires upstream async runner and external echo server"},
     {"path": "unit/TestIssues.hx", "reason": "upstream discovery macro, not a registered owner"},
     {"path": "unit/TestJava.hx", "reason": "selected only for Java"},
     {"path": "unit/TestLua.hx", "reason": "selected only for Lua"},
@@ -242,9 +259,9 @@
   "classificationBaseline": {
     "counts": {
       "active": 607,
-      "blocked": 472,
-      "inapplicable": 132
+      "blocked": 480,
+      "inapplicable": 124
     },
-    "sha256": "511f2f55f1b8156bc08cbbdb7cb826c6d5c0800b45172ccb6022ef387fc97abb"
+    "sha256": "987c5c8e74536fb35d69c97cefbaee5503e57d6840ea1b2e5eb3bffa7f0bacee"
   }
 }
