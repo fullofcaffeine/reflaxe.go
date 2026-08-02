@@ -13,6 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 RECORD = ROOT / "docs" / "reviews" / "gpt-5.6-pro" / "portable-beta-candidate-c22af0ea.json"
 GUIDE = ROOT / "docs" / "reviews" / "gpt-5.6-pro" / "portable-beta-candidate-c22af0ea.md"
+REVIEW_PROMPT = ROOT / "docs" / "reviews" / "gpt-5.6-pro" / "review-prompt-c22af0ea-portable-beta.md"
 CANDIDATE = "c22af0ea82e5e481e23277e513ed5b7c6b5c770b"
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
@@ -152,6 +153,27 @@ class PortableBetaCandidateEvidenceTest(unittest.TestCase):
             "haxe_go-vfp.12.5",
         ]:
             self.assertIn(phrase.lower(), normalized)
+
+    def test_final_review_prompt_requests_one_narrow_independent_admission_decision(self) -> None:
+        text = REVIEW_PROMPT.read_text(encoding="utf-8")
+        for phrase in [
+            CANDIDATE,
+            self.record["artifact"]["sha256"],
+            "Do not implement changes",
+            "Portable beta admission",
+            "Bounded-production verdict",
+            "Stable-1.x verdict",
+            "Go-native remains excluded",
+            "HTTP remains excluded",
+            "trusted-source-only",
+            "Every applicable prior finding",
+            "P0 or P1",
+            "Do not require optional roadmap expansion",
+            "Review model and provenance",
+            "READY",
+            "NOT_READY",
+        ]:
+            self.assertIn(phrase, text)
 
 
 if __name__ == "__main__":
