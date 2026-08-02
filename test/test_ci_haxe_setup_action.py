@@ -37,7 +37,9 @@ class CiHaxeSetupActionTest(unittest.TestCase):
 
     def test_ci_harness_uses_shared_haxe_setup_for_each_haxe_job(self) -> None:
         workflow = (REPO_ROOT / ".github" / "workflows" / "ci-harness.yml").read_text(encoding="utf-8")
-        self.assertEqual(workflow.count("uses: ./.github/actions/setup-haxe-linux"), 4)
+        # Quality, official inventory, both performance jobs, and release all
+        # compile Haxe on Linux and must share the hardened setup action.
+        self.assertEqual(workflow.count("uses: ./.github/actions/setup-haxe-linux"), 5)
 
     def test_ci_quality_keeps_macos_setup_separate(self) -> None:
         workflow = (REPO_ROOT / ".github" / "workflows" / "ci-quality.yml").read_text(encoding="utf-8")

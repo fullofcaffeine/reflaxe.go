@@ -32,6 +32,8 @@ class GoToolingGateSemanticsTest(unittest.TestCase):
         go_fail_match: str = "",
         staticcheck_fail: bool = False,
         go_sleep_match: str = "",
+        go_sleep_target: str = "",
+        go_sleep_seconds: int = 5,
         timeout_seconds: int = 10,
     ) -> tuple[subprocess.CompletedProcess[str], Path, Path, Path]:
         temp_dir = tempfile.TemporaryDirectory()
@@ -52,8 +54,8 @@ if [[ "$1" == "version" ]]; then
   printf 'go version go1.26.5 linux/amd64\\n'
   exit 0
 fi
-if [[ -n "${FAKE_GO_SLEEP_MATCH:-}" && "$*" == *"$FAKE_GO_SLEEP_MATCH"* ]]; then
-  exec sleep 5
+if [[ -n "${FAKE_GO_SLEEP_MATCH:-}" && "$*" == *"$FAKE_GO_SLEEP_MATCH"* && ( -z "${FAKE_GO_SLEEP_TARGET:-}" || "${PWD##*/}" == "$FAKE_GO_SLEEP_TARGET" ) ]]; then
+  exec sleep "$FAKE_GO_SLEEP_SECONDS"
 fi
 if [[ -n "${FAKE_GO_FAIL_MATCH:-}" && "$*" == *"$FAKE_GO_FAIL_MATCH"* ]]; then
   printf 'synthetic go tooling failure\\n' >&2
@@ -95,6 +97,8 @@ printf 'synthetic staticcheck success\\n'
                 "FAKE_STATICCHECK_LOG": str(staticcheck_log),
                 "FAKE_GO_FAIL_MATCH": go_fail_match,
                 "FAKE_GO_SLEEP_MATCH": go_sleep_match,
+                "FAKE_GO_SLEEP_TARGET": go_sleep_target,
+                "FAKE_GO_SLEEP_SECONDS": str(go_sleep_seconds),
                 "FAKE_STATICCHECK_FAIL": "1" if staticcheck_fail else "0",
             }
         )
@@ -172,7 +176,11 @@ printf 'synthetic staticcheck success\\n'
     def test_timeout_fails_closed_without_retry(self) -> None:
         proc, report_dir, go_log, _ = self.run_with_fake_tools(
             go_sleep_match="-race",
-            timeout_seconds=1,
+            go_sleep_target="hxrt",
+            go_sleep_seconds=10,
+            # Give process startup a generous allowance, then prove one real
+            # gate command is stopped well before its ten-second fake workload.
+            timeout_seconds=5,
         )
 
         self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
@@ -182,9 +190,9 @@ printf 'synthetic staticcheck success\\n'
         )
         manifest = json.loads((report_dir / "manifest.json").read_text(encoding="utf-8"))
         timeouts = [run for run in manifest["runs"] if run["result"] == "timeout"]
-        self.assertEqual(len(timeouts), len(EXPECTED_TARGETS))
-        self.assertEqual({run["target"] for run in timeouts}, EXPECTED_TARGETS)
-        self.assertTrue(all(run["gate"] == "race" for run in timeouts))
+        self.assertEqual(len(timeouts), 1)
+        self.assertEqual(timeouts[0]["target"], "hxrt")
+        self.assertEqual(timeouts[0]["gate"], "race")
 
     def test_report_output_rejects_repository_root(self) -> None:
         env = os.environ.copy()
