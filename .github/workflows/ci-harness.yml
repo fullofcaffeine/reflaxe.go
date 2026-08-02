@@ -169,8 +169,13 @@ jobs:
           haxe-version: ${{ env.HAXE_VERSION }}
           warmup-attempts: ${{ env.HAXE_SETUP_WARMUP_ATTEMPTS }}
 
+      - name: Verify clean exact source
+        run: |
+          git status --short
+          test -z "$(git status --porcelain=v1)"
+
       - name: Run complete applicable official target inventory
-        run: npm run test:official-haxe-inventory
+        run: npm run test:official-haxe-inventory -- --require-clean-source
 
       - name: Upload exact-SHA inventory evidence
         if: always()

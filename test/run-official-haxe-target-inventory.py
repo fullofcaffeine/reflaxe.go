@@ -330,6 +330,10 @@ def validate_classification_baseline(baseline: dict, actual: list[dict]) -> None
         raise InventoryError("classification", "owner classification digest differs")
 
 
+def is_claim_evidence(propose_baseline: bool, diagnostic_selection: bool, dirty: bool) -> bool:
+    return not propose_baseline and not diagnostic_selection and not dirty
+
+
 def load_manifest_payload(reference: dict, expected_kind: str) -> dict:
     relative = PurePosixPath(str(reference["path"]))
     if relative.is_absolute() or ".." in relative.parts:
@@ -633,6 +637,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--timeout", type=int, default=300)
     parser.add_argument("--propose-baseline", action="store_true")
     parser.add_argument(
+        "--require-clean-source",
+        action="store_true",
+        help="Fail unless the source checkout is clean before and after execution",
+    )
+    parser.add_argument(
         "--discover-blockers",
         action="store_true",
         help="Bisect rejected shards to exact owners and emit only a blocker proposal",
@@ -649,6 +658,11 @@ def main() -> int:
     args = parse_args()
     artifact = args.artifact_dir.resolve()
     try:
+        source_at_start = SMOKE.source_identity()
+        if args.require_clean_source and source_at_start["dirty"]:
+            raise InventoryError(
+                "source-identity", "source checkout is dirty before inventory execution"
+            )
         manifest = load_manifest()
         haxe_root = SMOKE.ensure_checkout(
             manifest["upstream"]["haxe"], args.haxe_checkout, args.checkout_cache, "haxe"
@@ -798,10 +812,20 @@ def main() -> int:
                     manifest["classificationBaseline"], classified
                 )
 
+            source = SMOKE.source_identity()
+            source_dirty = bool(source_at_start["dirty"] or source["dirty"])
+            if args.require_clean_source and source_dirty:
+                raise InventoryError(
+                    "source-identity", "source checkout became dirty during inventory execution"
+                )
+            source["cleanAtStart"] = not source_at_start["dirty"]
+
             result = {
                 "schemaVersion": 1,
                 "kind": "haxe.go-official-haxe-target-inventory",
-                "claimEvidence": not args.propose_baseline and not diagnostic_selection,
+                "claimEvidence": is_claim_evidence(
+                    args.propose_baseline, diagnostic_selection, source_dirty
+                ),
                 "diagnosticSelection": {
                     "active": diagnostic_selection,
                     "onlyShard": args.only_shard,
@@ -809,7 +833,7 @@ def main() -> int:
                 },
                 "claim": manifest["claim"],
                 "productSurface": manifest["productSurface"],
-                "source": SMOKE.source_identity(),
+                "source": source,
                 "upstream": manifest["upstream"],
                 "toolchains": toolchains,
                 "packageArtifact": package_artifact,

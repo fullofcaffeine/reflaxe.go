@@ -204,10 +204,13 @@ class OfficialHaxeTargetInventoryContractTest(unittest.TestCase):
         self.assertIn("official-haxe-target-inventory:", workflow)
         self.assertIn('go: ["1.25.12", "1.26.5"]', workflow)
         self.assertIn("npm run test:official-haxe-inventory", workflow)
+        self.assertIn("npm run test:official-haxe-inventory -- --require-clean-source", workflow)
+        self.assertIn("Verify clean exact source", workflow)
         self.assertIn("official-haxe-target-inventory-${{ matrix.go }}", workflow)
         self.assertIn("- official-haxe-target-inventory", workflow)
 
     def test_runner_uses_the_pinned_utest_failure_contract(self) -> None:
+        module = load_runner()
         runner = RUNNER.read_text(encoding="utf-8")
         self.assertIn('"UTEST_FAILURE_THROW"', runner)
         main = (INVENTORY_ROOT / "src" / "OfficialInventoryMain.hx").read_text(
@@ -221,6 +224,11 @@ class OfficialHaxeTargetInventoryContractTest(unittest.TestCase):
         self.assertIn("--resource", runner)
         self.assertIn("claimEvidence", runner)
         self.assertIn("diagnosticSelection", runner)
+        self.assertIn("--require-clean-source", runner)
+        self.assertTrue(module.is_claim_evidence(False, False, False))
+        self.assertFalse(module.is_claim_evidence(True, False, False))
+        self.assertFalse(module.is_claim_evidence(False, True, False))
+        self.assertFalse(module.is_claim_evidence(False, False, True))
 
 
 if __name__ == "__main__":

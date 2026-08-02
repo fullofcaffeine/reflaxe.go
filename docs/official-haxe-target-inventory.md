@@ -98,11 +98,16 @@ adapter limitations stay blocked under `haxe_go-vfp.12.12.4`.
 
 ## Commands
 
-Run the complete claim-bearing check:
+Run the complete baseline check:
 
 ```bash
 npm run test:official-haxe-inventory
 ```
+
+The run contributes claim evidence only when the source checkout is clean.
+Hosted lanes enforce that boundary with `--require-clean-source`; proposal,
+filtered, shard-only, and dirty-worktree runs remain useful diagnostics but set
+`claimEvidence` to false.
 
 Three local baseline runs on 2026-08-02 used Haxe 4.3.7 and Go 1.25.6 on
 Darwin/arm64 and took 141.356, 156.516, and 152.086 seconds. Every run rebuilt and
@@ -120,7 +125,8 @@ python3 test/run-official-haxe-target-inventory.py \
 ```
 
 `--owner-regex`, `--only-shard`, and `--propose-baseline` mark their result as
-non-claim evidence. `--discover-blockers` recursively isolates a failed shard
+non-claim evidence. A dirty checkout does the same. `--discover-blockers`
+recursively isolates a failed shard
 and writes a rejected blocker proposal; it is a maintainer bootstrap tool, not
 ordinary CI and not a way to bless failures. Baseline changes require semantic
 review of the upstream behavior and the reason for every classification change.
