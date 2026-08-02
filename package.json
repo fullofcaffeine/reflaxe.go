@@ -121,7 +121,7 @@
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/npm": "file:scripts/release/disabled-semantic-release-npm",
     "@semantic-release/release-notes-generator": "^14.1.1",
-    "ajv": "^8.17.1",
+    "ajv": "^8.20.0",
     "conventional-changelog-conventionalcommits": "^8.0.0",
     "lix": "^15.0.0",
     "semantic-release": "^25.0.7",
