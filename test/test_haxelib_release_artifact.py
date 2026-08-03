@@ -23,6 +23,14 @@ POLICY_DOC = ROOT / "docs" / "release-version-policy.md"
 VERSION = "0.999999.0"
 TAG = f"v{VERSION}"
 FIXED_ZIP_TIMESTAMP = (2000, 1, 1, 0, 0, 0)
+REQUIRED_SUPPORT_DOCS = {
+    "docs/compatibility-support-manifest.json",
+    "docs/compatibility-support-matrix.md",
+    "docs/compatibility-release-status.md",
+    "docs/known-gaps.md",
+    "docs/release-readiness-checklist.md",
+    "docs/toolchain-policy.md",
+}
 POSIX_HOME_PATH = re.compile(r"(?<![A-Za-z0-9])/(?:Users|home)/[^\s\"'`]+")
 WINDOWS_HOME_PATH = re.compile(r"(?i)(?<![A-Za-z0-9])[A-Z]:[\\/]+Users[\\/]+[^\s\"'`]+")
 
@@ -243,19 +251,11 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
 
     def test_package_includes_the_public_support_authorities_linked_from_readme(self) -> None:
         verifier = load_verifier_module()
-        required_support_docs = {
-            "docs/compatibility-support-manifest.json",
-            "docs/compatibility-support-matrix.md",
-            "docs/compatibility-release-status.md",
-            "docs/known-gaps.md",
-            "docs/release-readiness-checklist.md",
-            "docs/toolchain-policy.md",
-        }
-        self.assertTrue(required_support_docs.issubset(verifier.REQUIRED_SUPPORT_DOCS))
+        self.assertTrue(REQUIRED_SUPPORT_DOCS.issubset(verifier.REQUIRED_SUPPORT_DOCS))
         self.assertIn("docs", verifier.ALLOWED_ROOT_DIRECTORIES)
 
         package_runner = (ROOT / "Run.hx").read_text(encoding="utf-8")
-        for path in sorted(required_support_docs):
+        for path in sorted(REQUIRED_SUPPORT_DOCS):
             self.assertIn(f'copyRequiredFile("{path}"', package_runner)
 
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
@@ -506,7 +506,7 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
                 self.assertNotIn("reflaxe", haxelib)
                 self.assertIn("tools/go-hx.sh", names)
                 self.assertIn("tools/haxe_go_watch.py", names)
-                self.assertTrue(required_support_docs.issubset(set(names)))
+                self.assertTrue(REQUIRED_SUPPORT_DOCS.issubset(set(names)))
                 embedded = json.loads(package.read("reflaxe-package-manifest.json"))
                 self.assertEqual(manifest["contents"], embedded)
 
