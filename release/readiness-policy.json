@@ -19,8 +19,21 @@
       "haxe_go-vfp.9.1": "go-native",
       "haxe_go-vfp.10.8": "portable-http",
       "haxe_go-vfp.10.9": "preset:portable",
+      "haxe_go-vfp.12.5": "preset:portable",
       "haxe_go-vfp.12.7": "stable-1.x"
     }
+  },
+  "finalAdmission": {
+    "owner": "haxe_go-vfp.12.5",
+    "scope": "preset:portable",
+    "oracleVerdict": "READY_AFTER_BOUNDED_FIXES",
+    "oracleReviewedSourceSha": "c22af0ea82e5e481e23277e513ed5b7c6b5c770b",
+    "oracleRequestId": "orq_20260803T080027Z_615d041e",
+    "frozenPacketSha256": "ce8cc8cca65d48dceae11155e9fc651dbf8bef7f611270e7b0a43c194e33d5f9",
+    "localVerdict": "ACCEPTED_AFTER_CORRECTIONS",
+    "dispositionPath": "docs/reviews/gpt-5.6-pro/disposition-c22af0ea-portable-beta.md",
+    "processorModel": "gpt-5.6-sol",
+    "processorReasoningLevel": "xhigh"
   },
   "toolchains": {
     "haxe": [

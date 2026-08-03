@@ -49,6 +49,10 @@ leaving each detailed authority in its existing focused file.
    advances while those records are being read. The same immutable file is
    then reused for both release phases, so a tracker update halfway through a
    release cannot make the two decisions describe different tracker states.
+   The final portable-admission Bead also carries a structured review record:
+   the Oracle request, frozen packet digest, Oracle-reviewed candidate SHA and
+   verdict stay separate from the local correction disposition for the exact
+   SHA that may ship.
 6. The collector creates `candidate` evidence from governed repository files,
    the structured upstream results, the verified asset manifest, and that
    remote blocker evidence.
@@ -77,7 +81,7 @@ and never overwrites a conflicting immutable asset.
 | `toolchains` | Actual resolved Haxe and Node versions plus the exact successful Go matrix, checked against governed support lines. |
 | `security` | Structured GitHub job results for the tested SHA and zero reachable vulnerabilities. |
 | `licensing` | Approved scope digest and no unresolved questions, matching `license-policy.json`. |
-| `blockers` | Status, priority, and scopes used to block only unresolved P0/P1 work intersecting admitted scope. |
+| `blockers` | Status, priority, and scopes used to block only unresolved P0/P1 work intersecting admitted scope. The final admission owner additionally binds Oracle provenance and the local correction disposition to the exact release SHA. |
 | `artifacts` | Required roles, names, SHA-256 digests, and provenance subjects for the tested SHA. |
 | `github` | `null` for a candidate; live GitHub API truth for a published release. |
 
@@ -102,6 +106,23 @@ an already-admitted preset or platform. A temporary review blocker cannot
 invent a new scope or masquerade as a permanent compatibility exclusion. This
 lets the tracker close an admission review and unblock release without a
 follow-up source commit, while an open P0/P1 review still fails closed.
+
+The final admission owner is stricter than an ordinary closed blocker. Its
+`releaseAdmission` metadata has two independent parts:
+
+- `oracleReview` identifies what the external reviewer actually saw: the
+  reviewed source SHA, request ID, frozen packet SHA-256, and returned verdict.
+- `localDisposition` identifies the correction-focused pass over the source
+  that can actually ship: its exact SHA, accepted verdict, disposition-document
+  SHA-256, processor model, and reasoning level.
+
+The readiness verifier requires the local reviewed SHA to equal the release
+tested SHA. The surrounding blocker evidence is itself pinned to one remote
+`refs/dolt/data` commit, so the admission metadata and its tracker revision are
+one immutable input to both candidate and published decisions. This avoids two
+misleading shortcuts: claiming Oracle reviewed the successor when it reviewed
+only the predecessor, or treating a closed issue with no exact-SHA disposition
+as release approval.
 
 The release workflow generates this evidence with
 `scripts/release/refresh-readiness-blockers.py` from an isolated client of the

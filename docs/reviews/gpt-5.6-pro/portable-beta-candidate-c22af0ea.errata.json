@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "kind": "haxe.go-portable-beta-evidence-errata",
+  "candidateSourceSha": "c22af0ea82e5e481e23277e513ed5b7c6b5c770b",
+  "outerPacketSha256": "ce8cc8cca65d48dceae11155e9fc651dbf8bef7f611270e7b0a43c194e33d5f9",
+  "reviewBundleSha256": "7d76936576bb9e7e654f73ac010a474305e23b2c08ec2fe2f406441af633eb66",
+  "corrections": {
+    "hostControls": {
+      "classicDefaultBranchProtection": {
+        "available": false,
+        "error": "gh: Branch not protected (HTTP 404)"
+      },
+      "activeRepositoryRulesets": [
+        {
+          "name": "Protect master",
+          "target": "branch",
+          "enforcement": "active"
+        },
+        {
+          "name": "Protect release tags",
+          "target": "tag",
+          "enforcement": "active"
+        }
+      ],
+      "explanation": "The classic endpoint and repository rulesets are separate GitHub controls. A 404 from the classic endpoint does not mean the repository has no active protection."
+    },
+    "examplePortfolio": {
+      "programDirectories": 8,
+      "profileCases": 13,
+      "releaseClaimBearingCases": 1
+    }
+  },
+  "scope": "This record corrects summary labels only. It does not change the frozen packet, candidate source, test results, or admitted product surface."
+}

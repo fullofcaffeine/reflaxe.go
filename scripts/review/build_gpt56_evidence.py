@@ -511,6 +511,88 @@ def capture_endpoint(command: Sequence[str]) -> dict[str, Any]:
     }
 
 
+def summarize_host_controls(host_controls: dict[str, Any]) -> dict[str, Any]:
+    """Keep classic branch-protection and repository-ruleset facts distinct."""
+    classic = host_controls.get("default_branch_protection")
+    if not isinstance(classic, dict):
+        raise EvidenceError("classic branch-protection capture is missing")
+    ruleset_capture = host_controls.get("rulesets")
+    if not isinstance(ruleset_capture, dict):
+        raise EvidenceError("repository-ruleset capture is missing")
+    raw_rulesets = ruleset_capture.get("value", []) if ruleset_capture.get("ok") is True else []
+    if not isinstance(raw_rulesets, list):
+        raise EvidenceError("repository-ruleset capture did not return a list")
+    active_rulesets: list[dict[str, Any]] = []
+    for raw in raw_rulesets:
+        if not isinstance(raw, dict) or raw.get("enforcement") != "active":
+            continue
+        if (
+            not isinstance(raw.get("name"), str)
+            or not raw["name"]
+            or not isinstance(raw.get("target"), str)
+            or not raw["target"]
+        ):
+            raise EvidenceError("active repository ruleset has invalid identity")
+        active_rulesets.append(
+            {
+                "name": raw.get("name"),
+                "target": raw.get("target"),
+                "enforcement": raw.get("enforcement"),
+            }
+        )
+    active_rulesets.sort(key=lambda item: str(item.get("name", "")))
+    return {
+        "classic_default_branch_protection": {
+            "available": classic.get("ok") is True,
+            "error": None if classic.get("ok") is True else classic.get("stderr"),
+        },
+        "active_repository_rulesets": active_rulesets,
+    }
+
+
+def summarize_example_manifest(manifest: dict[str, Any]) -> dict[str, int]:
+    """Count maintained programs, profile executions, and release-bearing cases."""
+    examples = manifest.get("examples")
+    if not isinstance(examples, list):
+        raise EvidenceError("example QA manifest must contain an examples list")
+    profile_cases = 0
+    release_claim_bearing_cases = 0
+    for raw in examples:
+        if not isinstance(raw, dict):
+            raise EvidenceError("example QA manifest entry must be an object")
+        profiles = raw.get("profiles")
+        lanes = raw.get("lanes")
+        if not isinstance(profiles, list) or not all(
+            isinstance(profile, str) and profile for profile in profiles
+        ):
+            raise EvidenceError("example QA manifest profiles are invalid")
+        if not isinstance(lanes, dict):
+            raise EvidenceError("example QA manifest lanes are invalid")
+        profile_cases += len(profiles)
+        if any(
+            isinstance(lane, dict) and lane.get("releaseClaimBearing") is True
+            for lane in lanes.values()
+        ):
+            release_claim_bearing_cases += len(profiles)
+    return {
+        "program_directories": len(examples),
+        "profile_cases": profile_cases,
+        "release_claim_bearing_cases": release_claim_bearing_cases,
+    }
+
+
+def read_git_json(repo: Path, commit: str, relative: str) -> dict[str, Any]:
+    completed = run(["git", "show", f"{commit}:{relative}"], cwd=repo)
+    assert isinstance(completed.stdout, str)
+    try:
+        value = json.loads(completed.stdout)
+    except json.JSONDecodeError as error:
+        raise EvidenceError(f"exact-source JSON is invalid: {relative}: {error}") from error
+    if not isinstance(value, dict):
+        raise EvidenceError(f"exact-source JSON must contain an object: {relative}")
+    return value
+
+
 def capture_github_evidence(
     bundle_root: Path,
     *,
@@ -589,6 +671,7 @@ def capture_github_evidence(
         "release_immutable": release.get("immutable"),
         "release_asset_count": len(release.get("assets", [])),
         "release_tag_object": tag_ref.get("object", {}),
+        "host_controls": summarize_host_controls(host_controls),
         "ci_runs": [
             {
                 "database_id": summary.get("databaseId"),
@@ -883,6 +966,9 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         primary_dir.mkdir(parents=True)
 
         primary_inventory = build_primary_inventory(ROOT, source_commit)
+        primary_inventory["example_portfolio"] = summarize_example_manifest(
+            read_git_json(ROOT, source_commit, "examples/qa-manifest.json")
+        )
         write_json(primary_dir / "source-inventory.json", primary_inventory)
         source_archive = primary_dir / f"haxe.go-source-{source_commit[:8]}.tar"
         write_git_archive(
@@ -990,6 +1076,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
                 "source_repomix_security_exclusions": source_repomix_exclusions,
                 "tracked_file_count": primary_inventory["file_count"],
                 "excluded_tracked_files": list(PRIMARY_EXCLUSIONS),
+                "example_portfolio": primary_inventory["example_portfolio"],
             },
             "github": github,
             "roadmap": roadmap,

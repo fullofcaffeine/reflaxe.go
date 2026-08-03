@@ -84,7 +84,7 @@
       "area": "examples-and-real-target-smoke",
       "surface": "package-downstream-examples",
       "result": "pass",
-      "evidence": "12 classified examples plus official target smoke compile Haxe through the custom backend, build/test generated Go, execute the target, and preserve portable/metal scorecard separation"
+      "evidence": "8 maintained example program directories define 13 profile cases; 1 case is release-claim-bearing. The official target smoke compiles Haxe through the custom backend, builds/tests generated Go, executes the target, and preserves portable/metal scorecard separation."
     },
     {
       "area": "package-reproducibility-and-install",
@@ -231,13 +231,31 @@
   },
   "captured_live_state": {
     "default_branch": "master",
-    "default_branch_protected": false,
-    "repository_rulesets": [],
+    "classic_default_branch_protection": {
+      "available": false,
+      "error": "gh: Branch not protected (HTTP 404)"
+    },
+    "active_repository_rulesets": [
+      {
+        "name": "Protect master",
+        "target": "branch",
+        "enforcement": "active"
+      },
+      {
+        "name": "Protect release tags",
+        "target": "tag",
+        "enforcement": "active"
+      }
+    ],
     "reference_release_tag": "v0.53.1",
     "reference_release_tag_commit": "4adb9ae8209c24850495110e79ba6c5a8e1fa2bd",
     "reference_release_asset_count": 0,
     "reference_release_immutable": false,
-    "qualification": "These are dated host facts captured for review, not properties inferred from source or promises about future repository state."
+    "qualification": "These are dated host facts captured for review, not properties inferred from source or promises about future repository state. The classic branch-protection endpoint returned 404, while repository rulesets independently reported two active protections; the 404 must not be summarized as an unprotected repository."
+  },
+  "errata": {
+    "path": "docs/reviews/gpt-5.6-pro/portable-beta-candidate-c22af0ea.errata.json",
+    "outer_packet_sha256": "ce8cc8cca65d48dceae11155e9fc651dbf8bef7f611270e7b0a43c194e33d5f9"
   },
   "repomix": {
     "role": "navigation-only",

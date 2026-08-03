@@ -5,9 +5,12 @@ This page is the blunt status view for current limitations so teams can plan mig
 The current release claim is bounded by the generated
 [compatibility and support matrix](compatibility-support-matrix.md) and its
 [machine manifest](compatibility-support-manifest.json). Implementation or test
-evidence in this page does not expand that scope. In particular, concurrency,
-networking, Go-native APIs, non-canonical platforms, and untrusted-source
-compilation are not admitted by the current pre-1.0 beta claim.
+evidence in this page does not expand that scope. The manifest admits named,
+bounded concurrency and networking operations; green evidence for one of those
+subsets must not be read as admitting the rest of either surface. Go-native
+APIs, HTTP, named or reverse DNS, IPv6, non-canonical platforms, public or
+hostile-network guarantees, and untrusted-source compilation remain outside
+the current pre-1.0 beta claim.
 
 Generated files are now protected by the
 [output-confinement contract](generated-output-confinement.md), including stale

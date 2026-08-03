@@ -113,7 +113,7 @@ Check what each job actually ran. In particular, verify that the evidence suppor
 - 155 portable semantic-diff fixtures;
 - the complete applicable official Haxe target inventory of 55 strict upstream modules on both supported Go versions;
 - representative cold Haxe-through-custom-backend compilation, strict generated-Go build/test, execution, and observed output;
-- 12 classified example programs and independent portable/metal scorecards;
+- 8 maintained example program directories, 13 profile cases, 1 release-claim-bearing case, and independent portable/metal scorecards;
 - generated runtime, race, checkptr, resource, terminal, file, process, thread, socket, UDP, and TLS contracts applicable to admitted members;
 - fatal post-generation Go build failures;
 - deterministic Haxelib packaging and isolated package installation;

@@ -117,6 +117,94 @@ class ReleaseReadinessGateTest(unittest.TestCase):
             "applicable unresolved P0/P1 blocker: haxe_go-vfp.10.9",
         )
 
+    def test_final_admission_record_binds_oracle_and_local_review_to_release_sha(
+        self,
+    ) -> None:
+        policy = json.loads(POLICY.read_text(encoding="utf-8"))
+        admission_policy = policy["finalAdmission"]
+        self.assertEqual("haxe_go-vfp.12.5", admission_policy["owner"])
+        self.assertEqual(
+            "orq_20260803T080027Z_615d041e",
+            admission_policy["oracleRequestId"],
+        )
+        self.assertEqual(
+            "ce8cc8cca65d48dceae11155e9fc651dbf8bef7f611270e7b0a43c194e33d5f9",
+            admission_policy["frozenPacketSha256"],
+        )
+        self.assertEqual(
+            "docs/reviews/gpt-5.6-pro/disposition-c22af0ea-portable-beta.md",
+            admission_policy["dispositionPath"],
+        )
+        self.assertEqual(
+            "preset:portable",
+            policy["compatibility"]["blockerScopes"]["haxe_go-vfp.12.5"],
+        )
+
+        evidence = self.evidence()
+        final_record = next(
+            blocker
+            for blocker in evidence["blockers"]["records"]
+            if blocker["id"] == "haxe_go-vfp.12.5"
+        )
+        admission = final_record["admission"]
+        self.assertEqual(
+            "c22af0ea82e5e481e23277e513ed5b7c6b5c770b",
+            admission["oracleReview"]["reviewedSourceSha"],
+        )
+        self.assertEqual(
+            evidence["release"]["testedSha"],
+            admission["localDisposition"]["reviewedSourceSha"],
+        )
+
+        mutations = (
+            (
+                "Oracle verdict",
+                lambda value: value["oracleReview"].update(
+                    verdict="READY"
+                ),
+            ),
+            (
+                "Oracle reviewed SHA",
+                lambda value: value["oracleReview"].update(
+                    reviewedSourceSha="2" * 40
+                ),
+            ),
+            (
+                "Oracle request",
+                lambda value: value["oracleReview"].update(
+                    requestId="orq_wrong"
+                ),
+            ),
+            (
+                "frozen packet",
+                lambda value: value["oracleReview"].update(
+                    frozenPacketSha256="0" * 64
+                ),
+            ),
+            (
+                "local admission reviewed SHA",
+                lambda value: value["localDisposition"].update(
+                    reviewedSourceSha="2" * 40
+                ),
+            ),
+            (
+                "local admission disposition",
+                lambda value: value["localDisposition"].update(
+                    dispositionSha256="0" * 64
+                ),
+            ),
+        )
+        for message, mutate in mutations:
+            with self.subTest(message=message):
+                mutated = self.evidence()
+                record = next(
+                    blocker
+                    for blocker in mutated["blockers"]["records"]
+                    if blocker["id"] == "haxe_go-vfp.12.5"
+                )
+                mutate(record["admission"])
+                self.assert_rejected(mutated, message)
+
     def test_additional_review_blocker_cannot_invent_a_scope(self) -> None:
         policy = json.loads(POLICY.read_text(encoding="utf-8"))
         policy["compatibility"]["blockerScopes"]["haxe_go-vfp.10.9"] = (

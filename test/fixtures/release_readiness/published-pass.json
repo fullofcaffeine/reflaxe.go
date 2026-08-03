@@ -145,15 +145,39 @@
           "portable-http"
         ]
       },
-      {
-        "id": "haxe_go-vfp.10.9",
-        "priority": 0,
-        "status": "closed",
-        "scopes": [
-          "preset:portable"
-        ]
-      },
-      {
+    {
+      "id": "haxe_go-vfp.10.9",
+      "priority": 0,
+      "status": "closed",
+      "scopes": [
+        "preset:portable"
+      ]
+    },
+    {
+      "id": "haxe_go-vfp.12.5",
+      "priority": 0,
+      "status": "closed",
+      "scopes": [
+        "preset:portable"
+      ],
+      "admission": {
+        "schemaVersion": 1,
+        "oracleReview": {
+          "verdict": "READY_AFTER_BOUNDED_FIXES",
+          "reviewedSourceSha": "c22af0ea82e5e481e23277e513ed5b7c6b5c770b",
+          "requestId": "orq_20260803T080027Z_615d041e",
+          "frozenPacketSha256": "ce8cc8cca65d48dceae11155e9fc651dbf8bef7f611270e7b0a43c194e33d5f9"
+        },
+        "localDisposition": {
+          "verdict": "ACCEPTED_AFTER_CORRECTIONS",
+          "reviewedSourceSha": "1111111111111111111111111111111111111111",
+          "dispositionSha256": "46f0f227ee724d75ff81d84f2f48a51545069ff8dc040553ebd390023be95080",
+          "processorModel": "gpt-5.6-sol",
+          "processorReasoningLevel": "xhigh"
+        }
+      }
+    },
+    {
         "id": "haxe_go-vfp.12.7",
         "priority": 2,
         "status": "open",

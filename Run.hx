@@ -211,6 +211,12 @@ private class PackageBuildConfig {
 			"LICENSE",
 			"LICENSING.md",
 			"README.md",
+			"docs/compatibility-release-status.md",
+			"docs/compatibility-support-manifest.json",
+			"docs/compatibility-support-matrix.md",
+			"docs/known-gaps.md",
+			"docs/release-readiness-checklist.md",
+			"docs/toolchain-policy.md",
 			"extraParams.hxml",
 			"license-policy.json",
 			"licenses/HAXE-GO-GENERATED-MIT.txt",
@@ -554,6 +560,12 @@ private class PackageBuilder {
 		copyRequiredFile("LICENSE", PackageEntryKind.Metadata);
 		copyRequiredFile("LICENSING.md", PackageEntryKind.Metadata);
 		copyRequiredFile("README.md", PackageEntryKind.Metadata);
+		copyRequiredFile("docs/compatibility-release-status.md", PackageEntryKind.Metadata);
+		copyRequiredFile("docs/compatibility-support-manifest.json", PackageEntryKind.Metadata);
+		copyRequiredFile("docs/compatibility-support-matrix.md", PackageEntryKind.Metadata);
+		copyRequiredFile("docs/known-gaps.md", PackageEntryKind.Metadata);
+		copyRequiredFile("docs/release-readiness-checklist.md", PackageEntryKind.Metadata);
+		copyRequiredFile("docs/toolchain-policy.md", PackageEntryKind.Metadata);
 		copyRequiredFile("extraParams.hxml", PackageEntryKind.Metadata);
 		copyRequiredFile("license-policy.json", PackageEntryKind.Metadata);
 		copyRequiredFile("licenses/HAXE-GO-GENERATED-MIT.txt", PackageEntryKind.Metadata);

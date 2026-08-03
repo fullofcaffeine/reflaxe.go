@@ -1,5 +1,11 @@
 # Portable beta candidate evidence: `c22af0ea`
 
+> A checksum-bound [errata record](portable-beta-candidate-c22af0ea.errata.json)
+> corrects two summary mistakes without altering the frozen review packet: the
+> GitHub host uses active repository rulesets even though the classic branch
+> protection endpoint returned 404, and the example inventory is 8 maintained
+> programs / 13 profile cases / 1 release-claim-bearing case.
+
 This record says something deliberately narrow: one Haxe.Go source commit passed the complete portable-beta candidate matrix, and the proof was frozen into a reproducible ZIP. It does not say that every Haxe or Go feature is supported, and it does not publish a release.
 
 The machine-readable companion is [portable-beta-candidate-c22af0ea.json](portable-beta-candidate-c22af0ea.json).

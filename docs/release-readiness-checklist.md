@@ -20,7 +20,10 @@ the same tested commit:
    result with the generated compatibility manifest, its canonical admitted
    operation/member digest, licensing decision, verified local asset manifest,
    and one remote Beads evidence file pinned to a stable Dolt ref commit. The
-   workflow reuses that file for candidate and published checks.
+   workflow reuses that file for candidate and published checks. The final
+   portable-admission record keeps the Oracle-reviewed candidate separate from
+   the local correction-reviewed release SHA, and binds both to the request,
+   packet checksum, disposition checksum, and captured tracker revision.
 3. `scripts/release/verify-release-readiness.py` evaluates a `candidate`
    after the exact tag and local assets exist but before hosted-release
    reconciliation. Missing assets or provenance, a different tested SHA, an
@@ -180,6 +183,12 @@ GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
   real publication performs both the candidate and published live checks.
   GitHub API state—not prose, a cached release page, or caller-supplied hosted
   JSON—is authoritative for the published verdict.
+- The final-admission Bead is closed and its structured `releaseAdmission`
+  metadata names the same source SHA as the release candidate. The Oracle
+  subrecord must keep the original reviewed SHA and packet provenance; the
+  local disposition subrecord must name the exact corrected SHA and a real
+  disposition-document digest. The remote tracker commit in blocker evidence
+  makes that record immutable for the whole publication attempt.
 - `npm run security:go-tooling` exits `0`; race detector, strict checkptr,
   vet, and pinned Staticcheck reports contain no blocking findings on every
   supported Go line.

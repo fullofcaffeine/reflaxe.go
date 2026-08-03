@@ -125,6 +125,18 @@ def write_synthetic_source(root: Path) -> None:
     write_text(root / "LICENSE", "fixture license\n")
     write_text(root / "LICENSING.md", "# Fixture licensing policy\n")
     write_text(root / "README.md", "# Fixture\n")
+    for relative in (
+        "docs/compatibility-release-status.md",
+        "docs/compatibility-support-manifest.json",
+        "docs/compatibility-support-matrix.md",
+        "docs/known-gaps.md",
+        "docs/release-readiness-checklist.md",
+        "docs/toolchain-policy.md",
+    ):
+        if relative.endswith(".json"):
+            write_json(root / relative, {"fixture": True})
+        else:
+            write_text(root / relative, "# Fixture support authority\n")
     write_text(root / "extraParams.hxml", "--macro fixture.Start()\n")
     write_json(root / "license-policy.json", {"fixture": True})
     write_text(

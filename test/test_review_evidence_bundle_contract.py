@@ -31,6 +31,81 @@ def load_builder():
 
 
 class ReviewEvidenceBundleContractTest(unittest.TestCase):
+    def test_host_control_summary_keeps_classic_and_ruleset_truth_separate(self) -> None:
+        builder = load_builder()
+        controls = {
+            "default_branch_protection": {
+                "ok": False,
+                "exit_code": 1,
+                "stderr": "HTTP 404",
+            },
+            "rulesets": {
+                "ok": True,
+                "value": [
+                    {
+                        "name": "Protect master",
+                        "target": "branch",
+                        "enforcement": "active",
+                    },
+                    {
+                        "name": "Disabled legacy rule",
+                        "target": "branch",
+                        "enforcement": "disabled",
+                    },
+                    {
+                        "name": "Protect release tags",
+                        "target": "tag",
+                        "enforcement": "active",
+                    },
+                ],
+            },
+        }
+
+        summary = builder.summarize_host_controls(controls)
+
+        self.assertFalse(summary["classic_default_branch_protection"]["available"])
+        self.assertEqual(
+            ["Protect master", "Protect release tags"],
+            [rule["name"] for rule in summary["active_repository_rulesets"]],
+        )
+
+        controls["rulesets"]["value"].append(
+            {"name": "", "target": "branch", "enforcement": "active"}
+        )
+        with self.assertRaisesRegex(builder.EvidenceError, "active repository ruleset"):
+            builder.summarize_host_controls(controls)
+
+    def test_example_summary_counts_programs_profiles_and_claim_cases(self) -> None:
+        builder = load_builder()
+        manifest = {
+            "examples": [
+                {
+                    "id": "portable_beta",
+                    "profiles": ["portable"],
+                    "lanes": {
+                        "default": {"releaseClaimBearing": True},
+                        "ci": {"releaseClaimBearing": True},
+                    },
+                },
+                {
+                    "id": "interop",
+                    "profiles": ["portable", "metal"],
+                    "lanes": {
+                        "default": {"releaseClaimBearing": False},
+                        "ci": {"releaseClaimBearing": False},
+                    },
+                },
+            ]
+        }
+
+        self.assertEqual(
+            {
+                "program_directories": 2,
+                "profile_cases": 3,
+                "release_claim_bearing_cases": 1,
+            },
+            builder.summarize_example_manifest(manifest),
+        )
     def test_builder_help_requires_explicit_provenance_inputs(self) -> None:
         self.assertTrue(BUILDER.exists(), "review evidence builder must exist")
         completed = subprocess.run(

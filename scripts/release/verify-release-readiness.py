@@ -13,6 +13,7 @@ SHA joins, and reject missing, contradictory, unsupported, or unowned truth.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -94,6 +95,7 @@ def verify_policy(policy: dict[str, Any]) -> None:
         fail("readiness policy repository must be owner/name")
     required = (
         "compatibility",
+        "finalAdmission",
         "toolchains",
         "requiredSecurityGates",
         "requiredArtifactRoles",
@@ -379,7 +381,10 @@ def verify_licensing(evidence: dict[str, Any]) -> None:
 
 
 def verify_blockers(
-    policy: dict[str, Any], evidence: dict[str, Any], admitted: set[str]
+    policy: dict[str, Any],
+    evidence: dict[str, Any],
+    admitted: set[str],
+    tested_sha: str,
 ) -> None:
     authority = require_object(evidence.get("blockers"), "blocker evidence")
     if set(authority) != {"schemaVersion", "kind", "tracker", "records"}:
@@ -399,6 +404,15 @@ def verify_blockers(
     if not isinstance(tracker.get("observedAt"), str) or not tracker["observedAt"]:
         fail("blocker tracker evidence observation date is missing")
     blockers = require_list(authority.get("records"), "blocker records")
+    admission_policy = require_object(
+        policy.get("finalAdmission"), "final admission policy"
+    )
+    admission_owner = admission_policy.get("owner")
+    admission_scope = admission_policy.get("scope")
+    if not isinstance(admission_owner, str) or not admission_owner:
+        fail("final admission owner is invalid")
+    if not isinstance(admission_scope, str) or admission_scope not in admitted:
+        fail("final admission scope is not release-admitted")
     seen: set[str] = set()
     for raw in blockers:
         blocker = require_object(raw, "blocker")
@@ -415,6 +429,11 @@ def verify_blockers(
             fail(f"blocker status is invalid: {blocker_id}")
         if priority <= 1 and status in OPEN_STATUSES and scopes.intersection(admitted):
             fail(f"applicable unresolved P0/P1 blocker: {blocker_id}")
+        expected_fields = {"id", "priority", "status", "scopes"}
+        if blocker_id == admission_owner:
+            expected_fields.add("admission")
+        if set(blocker) != expected_fields:
+            fail(f"blocker evidence fields are incomplete or unknown: {blocker_id}")
     compatibility = require_object(policy["compatibility"], "compatibility policy")
     expected_scopes = require_object(
         compatibility.get("blockerScopes"), "compatibility blocker scopes"
@@ -429,6 +448,80 @@ def verify_blockers(
     for blocker_id, scope in expected_scopes.items():
         if actual_by_id[blocker_id].get("scopes") != [scope]:
             fail(f"blocker evidence scope differs for {blocker_id}")
+    if expected_scopes.get(admission_owner) != admission_scope:
+        fail("final admission owner does not govern its release scope")
+
+    final_record = require_object(
+        actual_by_id[admission_owner].get("admission"), "final admission record"
+    )
+    if set(final_record) != {"schemaVersion", "oracleReview", "localDisposition"}:
+        fail("final admission record fields are incomplete or unknown")
+    if final_record.get("schemaVersion") != 1:
+        fail("final admission record schema is unsupported")
+    oracle = require_object(final_record.get("oracleReview"), "Oracle review admission")
+    if set(oracle) != {
+        "verdict",
+        "reviewedSourceSha",
+        "requestId",
+        "frozenPacketSha256",
+    }:
+        fail("Oracle review admission fields are incomplete or unknown")
+    oracle_expectations = {
+        "verdict": admission_policy.get("oracleVerdict"),
+        "reviewedSourceSha": admission_policy.get("oracleReviewedSourceSha"),
+        "requestId": admission_policy.get("oracleRequestId"),
+        "frozenPacketSha256": admission_policy.get("frozenPacketSha256"),
+    }
+    oracle_messages = {
+        "verdict": "Oracle verdict",
+        "reviewedSourceSha": "Oracle reviewed SHA",
+        "requestId": "Oracle request",
+        "frozenPacketSha256": "frozen packet",
+    }
+    for field, expected_value in oracle_expectations.items():
+        if oracle.get(field) != expected_value:
+            fail(f"{oracle_messages[field]} differs from final admission policy")
+
+    disposition = require_object(
+        final_record.get("localDisposition"), "local admission disposition"
+    )
+    if set(disposition) != {
+        "verdict",
+        "reviewedSourceSha",
+        "dispositionSha256",
+        "processorModel",
+        "processorReasoningLevel",
+    }:
+        fail("local admission disposition fields are incomplete or unknown")
+    if disposition.get("verdict") != admission_policy.get("localVerdict"):
+        fail("local admission verdict differs from final admission policy")
+    if disposition.get("reviewedSourceSha") != tested_sha:
+        fail("local admission reviewed SHA differs from release SHA")
+    disposition_digest = disposition.get("dispositionSha256")
+    if (
+        not isinstance(disposition_digest, str)
+        or re.fullmatch(r"[0-9a-f]{64}", disposition_digest) is None
+        or disposition_digest == "0" * 64
+    ):
+        fail("local admission disposition digest is invalid")
+    disposition_relative = admission_policy.get("dispositionPath")
+    if not isinstance(disposition_relative, str) or not disposition_relative:
+        fail("final admission disposition path is invalid")
+    disposition_path = (ROOT / disposition_relative).resolve()
+    if (
+        not disposition_path.is_relative_to(ROOT.resolve())
+        or not disposition_path.is_file()
+    ):
+        fail("final admission disposition authority is unavailable")
+    authority_digest = hashlib.sha256(disposition_path.read_bytes()).hexdigest()
+    if disposition_digest != authority_digest:
+        fail("local admission disposition digest differs from source authority")
+    if disposition.get("processorModel") != admission_policy.get("processorModel"):
+        fail("local admission processor model differs from final admission policy")
+    if disposition.get("processorReasoningLevel") != admission_policy.get(
+        "processorReasoningLevel"
+    ):
+        fail("local admission reasoning level differs from final admission policy")
 
 
 def asset_map(assets: Any, label: str, *, with_roles: bool) -> dict[str, str]:
@@ -612,7 +705,7 @@ def evaluate(
     verify_toolchains(policy, evidence)
     verify_security(policy, evidence, tested_sha)
     verify_licensing(evidence)
-    verify_blockers(policy, evidence, admitted)
+    verify_blockers(policy, evidence, admitted, tested_sha)
     assets = verify_artifacts(policy, evidence, version, tested_sha)
     if mode == "live" and phase == "published":
         evidence = dict(evidence)

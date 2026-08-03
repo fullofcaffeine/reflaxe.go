@@ -14,6 +14,8 @@ ROOT = Path(__file__).resolve().parent.parent
 RECORD = ROOT / "docs" / "reviews" / "gpt-5.6-pro" / "portable-beta-candidate-c22af0ea.json"
 GUIDE = ROOT / "docs" / "reviews" / "gpt-5.6-pro" / "portable-beta-candidate-c22af0ea.md"
 REVIEW_PROMPT = ROOT / "docs" / "reviews" / "gpt-5.6-pro" / "review-prompt-c22af0ea-portable-beta.md"
+ERRATA = ROOT / "docs" / "reviews" / "gpt-5.6-pro" / "portable-beta-candidate-c22af0ea.errata.json"
+EXAMPLE_MANIFEST = ROOT / "examples" / "qa-manifest.json"
 CANDIDATE = "c22af0ea82e5e481e23277e513ed5b7c6b5c770b"
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
@@ -174,6 +176,46 @@ class PortableBetaCandidateEvidenceTest(unittest.TestCase):
             "NOT_READY",
         ]:
             self.assertIn(phrase, text)
+
+    def test_checksum_bound_errata_corrects_host_controls_and_example_units(self) -> None:
+        errata = json.loads(ERRATA.read_text(encoding="utf-8"))
+        self.assertEqual(1, errata["schemaVersion"])
+        self.assertEqual("haxe.go-portable-beta-evidence-errata", errata["kind"])
+        self.assertEqual(CANDIDATE, errata["candidateSourceSha"])
+        self.assertEqual(
+            "ce8cc8cca65d48dceae11155e9fc651dbf8bef7f611270e7b0a43c194e33d5f9",
+            errata["outerPacketSha256"],
+        )
+        host = errata["corrections"]["hostControls"]
+        self.assertFalse(host["classicDefaultBranchProtection"]["available"])
+        self.assertEqual(
+            ["Protect master", "Protect release tags"],
+            [item["name"] for item in host["activeRepositoryRulesets"]],
+        )
+
+        manifest = json.loads(EXAMPLE_MANIFEST.read_text(encoding="utf-8"))
+        examples = manifest["examples"]
+        expected = {
+            "programDirectories": len(examples),
+            "profileCases": sum(len(example["profiles"]) for example in examples),
+            "releaseClaimBearingCases": sum(
+                len(example["profiles"])
+                for example in examples
+                if any(
+                    lane["releaseClaimBearing"]
+                    for lane in example["lanes"].values()
+                )
+            ),
+        }
+        self.assertEqual(expected, errata["corrections"]["examplePortfolio"])
+        self.assertEqual(
+            {
+                "programDirectories": 8,
+                "profileCases": 13,
+                "releaseClaimBearingCases": 1,
+            },
+            expected,
+        )
 
 
 if __name__ == "__main__":

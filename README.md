@@ -82,10 +82,12 @@ That sentence is deliberately narrower than "all green modules are supported."
 The authoritative [machine manifest](docs/compatibility-support-manifest.json),
 its [human support matrix](docs/compatibility-support-matrix.md), and the
 [generated release status](docs/compatibility-release-status.md) name the exact
-admitted scope. Anything unlisted is excluded; `metal`, Go-native APIs,
-concurrency, networking, non-canonical platforms, and untrusted-source builds
-remain outside the current release claim even when implementation evidence
-exists.
+admitted scope. Anything unlisted is excluded. The manifest includes specific,
+admitted concurrency and networking subsets; that does not admit either whole
+surface. `metal`, Go-native APIs, HTTP, named or reverse DNS, IPv6,
+non-canonical platforms, public or hostile-network guarantees, and
+untrusted-source builds remain outside the current release claim even when
+implementation evidence exists.
 
 Before using the compiler as a release dependency, also read:
 

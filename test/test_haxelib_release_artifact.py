@@ -185,6 +185,7 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
                 "tools/haxe_go_watch.py",
                 "vendor/reflaxe/LICENSE",
                 "vendor/reflaxe/src/reflaxe/ReflectCompiler.hx",
+                *sorted(verifier.REQUIRED_SUPPORT_DOCS),
             )
         }
         verifier.validate_layout(layout_files)
@@ -239,6 +240,30 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
             "tool member set differs",
         ):
             verifier.validate_package_manifest(files)
+
+    def test_package_includes_the_public_support_authorities_linked_from_readme(self) -> None:
+        verifier = load_verifier_module()
+        required_support_docs = {
+            "docs/compatibility-support-manifest.json",
+            "docs/compatibility-support-matrix.md",
+            "docs/compatibility-release-status.md",
+            "docs/known-gaps.md",
+            "docs/release-readiness-checklist.md",
+            "docs/toolchain-policy.md",
+        }
+        self.assertTrue(required_support_docs.issubset(verifier.REQUIRED_SUPPORT_DOCS))
+        self.assertIn("docs", verifier.ALLOWED_ROOT_DIRECTORIES)
+
+        package_runner = (ROOT / "Run.hx").read_text(encoding="utf-8")
+        for path in sorted(required_support_docs):
+            self.assertIn(f'copyRequiredFile("{path}"', package_runner)
+
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("admitted concurrency and networking subsets", readme)
+        self.assertNotIn(
+            "concurrency, networking, non-canonical platforms",
+            readme,
+        )
 
     def test_release_artifact_entrypoints_are_release_blocking(self) -> None:
         self.assertTrue(BUILDER.is_file())
@@ -351,7 +376,7 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
                 manifest.get("stagedReleaseIdentitySha256", ""),
                 r"^[0-9a-f]{64}$",
             )
-            self.assertEqual(411, len(manifest["contents"]["entries"]))
+            self.assertEqual(417, len(manifest["contents"]["entries"]))
             packaged_sources = {
                 entry["sourcePath"] for entry in manifest["contents"]["entries"]
             }
@@ -481,6 +506,7 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
                 self.assertNotIn("reflaxe", haxelib)
                 self.assertIn("tools/go-hx.sh", names)
                 self.assertIn("tools/haxe_go_watch.py", names)
+                self.assertTrue(required_support_docs.issubset(set(names)))
                 embedded = json.loads(package.read("reflaxe-package-manifest.json"))
                 self.assertEqual(manifest["contents"], embedded)
 
@@ -517,7 +543,7 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
             self.assertEqual(0, verify.returncode, verify.stdout + verify.stderr)
             summary = json.loads(verify.stdout)
             self.assertEqual(sha256(archive), summary["sha256"])
-            self.assertEqual(412, summary["entries"])
+            self.assertEqual(418, summary["entries"])
 
             wrong_version = run_verifier(
                 archive,

@@ -94,6 +94,12 @@ def build_snapshot(policy: dict[str, Any], observed_at: str) -> dict[str, Any]:
     scopes = compatibility.get("blockerScopes")
     if not isinstance(scopes, dict) or not scopes:
         fail("readiness policy blockerScopes must be a non-empty object")
+    final_admission = policy.get("finalAdmission")
+    if not isinstance(final_admission, dict):
+        fail("readiness policy finalAdmission must be an object")
+    admission_owner = final_admission.get("owner")
+    if not isinstance(admission_owner, str) or not admission_owner:
+        fail("readiness policy finalAdmission owner is invalid")
     reference = "refs/dolt/data"
     before = remote_tracker_commit(reference)
     remote = run_text(
@@ -145,14 +151,21 @@ def build_snapshot(policy: dict[str, Any], observed_at: str) -> dict[str, Any]:
                 fail(f"remote Bead {blocker_id} priority is invalid")
             if not isinstance(status, str) or not status:
                 fail(f"remote Bead {blocker_id} status is invalid")
-            blockers.append(
-                {
-                    "id": blocker_id,
-                    "priority": priority,
-                    "status": status,
-                    "scopes": [scope],
-                }
-            )
+            record: dict[str, Any] = {
+                "id": blocker_id,
+                "priority": priority,
+                "status": status,
+                "scopes": [scope],
+            }
+            if blocker_id == admission_owner:
+                metadata = issue.get("metadata")
+                if not isinstance(metadata, dict):
+                    fail(f"remote Bead {blocker_id} has no final admission metadata")
+                admission = metadata.get("releaseAdmission")
+                if not isinstance(admission, dict):
+                    fail(f"remote Bead {blocker_id} has no releaseAdmission record")
+                record["admission"] = admission
+            blockers.append(record)
     after = remote_tracker_commit(reference)
     if after != before:
         fail("remote tracker advanced while blocker evidence was collected")

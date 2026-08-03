@@ -36,7 +36,15 @@ ALLOWED_ROOT_FILES = {
     "license-policy.json",
     PACKAGE_MANIFEST,
 }
-ALLOWED_ROOT_DIRECTORIES = {"licenses", "runtime", "src", "tools", "vendor"}
+ALLOWED_ROOT_DIRECTORIES = {"docs", "licenses", "runtime", "src", "tools", "vendor"}
+REQUIRED_SUPPORT_DOCS = {
+    "docs/compatibility-release-status.md",
+    "docs/compatibility-support-manifest.json",
+    "docs/compatibility-support-matrix.md",
+    "docs/known-gaps.md",
+    "docs/release-readiness-checklist.md",
+    "docs/toolchain-policy.md",
+}
 FORBIDDEN_SEGMENTS = {
     ".cache",
     ".git",
@@ -172,6 +180,7 @@ def validate_layout(files: dict[str, bytes]) -> None:
         "tools/haxe_go_watch.py",
         "vendor/reflaxe/LICENSE",
         "vendor/reflaxe/src/reflaxe/ReflectCompiler.hx",
+        *sorted(REQUIRED_SUPPORT_DOCS),
     ):
         if required not in names:
             raise ArtifactVerificationError(f"required package member is missing: {required}")
