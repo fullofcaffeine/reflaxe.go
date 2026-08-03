@@ -32,8 +32,10 @@ the same tested commit:
 4. After missing assets are reconciled, the verifier evaluates `published`
    evidence in `live` mode. In that mode it discards any supplied hosted-state
    claim and reads the tag, immutable flag, asset names, and asset digests from
-   the GitHub API. The hosted release must resolve to the tested SHA and match
-   the independently verified local bundle exactly.
+   the GitHub API. In the same publication path, the reconciler independently
+   requires the exact manifest-derived release body before mutation and again
+   after publication. The hosted release must resolve to the tested SHA and
+   match both the bounded notes and the verified local bundle exactly.
 
 An open roadmap item does not block a release merely because it exists.
 For example, Go-native, portable HTTP, and advanced socket work remain visible
@@ -189,6 +191,10 @@ GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
   local disposition subrecord must name the exact corrected SHA and a real
   disposition-document digest. The remote tracker commit in blocker evidence
   makes that record immutable for the whole publication attempt.
+- The public GitHub Release body contains the exact generated beta claim,
+  admitted preset/platform/toolchains, trust boundary, and named exclusion
+  groups. A generic generated changelog is not a substitute for these notes,
+  and an exact rerun fails rather than replacing contradictory public wording.
 - `npm run security:go-tooling` exits `0`; race detector, strict checkptr,
   vet, and pinned Staticcheck reports contain no blocking findings on every
   supported Go line.

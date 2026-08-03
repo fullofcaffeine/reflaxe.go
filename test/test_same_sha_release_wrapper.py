@@ -15,6 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 WRAPPER = ROOT / "scripts" / "release" / "run-same-sha-release.sh"
 LICENSE_POLICY_VERIFIER = ROOT / "scripts" / "release" / "verify-license-policy.py"
+RELEASE_NOTES_BUILDER = ROOT / "scripts" / "release" / "build-release-notes.py"
 
 
 def sha256(path: Path) -> str:
@@ -57,10 +58,15 @@ class SameShaReleaseWrapperTest(unittest.TestCase):
             check=True,
         )
         (self.repo / "scripts" / "release").mkdir(parents=True)
+        (self.repo / "docs").mkdir(parents=True)
         shutil.copy2(WRAPPER, self.repo / "scripts" / "release" / WRAPPER.name)
         shutil.copy2(
             LICENSE_POLICY_VERIFIER,
             self.repo / "scripts" / "release" / LICENSE_POLICY_VERIFIER.name,
+        )
+        shutil.copy2(
+            ROOT / "docs" / "compatibility-support-manifest.json",
+            self.repo / "docs" / "compatibility-support-manifest.json",
         )
         (self.repo / "tracked.txt").write_text("baseline\n", encoding="utf-8")
         (self.repo / "LICENSE").write_text("fixture license\n", encoding="utf-8")
@@ -242,6 +248,10 @@ with open(os.environ['RELEASE_PIPELINE_LOG'], 'a') as stream:
             "RELEASE_ARTIFACT_BUILDER": str(self.repo / "fake-builder.py"),
             "RELEASE_ASSET_VERIFIER": str(self.repo / "fake-verifier.py"),
             "RELEASE_RECONCILER": str(self.repo / "fake-reconciler.mjs"),
+            "RELEASE_NOTES_BUILDER": str(RELEASE_NOTES_BUILDER),
+            "RELEASE_COMPATIBILITY_MANIFEST": str(
+                self.repo / "docs" / "compatibility-support-manifest.json"
+            ),
             "RELEASE_READINESS_COLLECTOR": str(
                 self.repo / "fake-readiness-collector.py"
             ),
@@ -311,6 +321,13 @@ with open(os.environ['RELEASE_PIPELINE_LOG'], 'a') as stream:
         self.assertIn("completing or verifying existing exact tag v0.54.0", proc.stdout)
         pipeline = self.pipeline_log.read_text(encoding="utf-8").splitlines()
         self.assertEqual(7, len(pipeline), pipeline)
+
+    def test_release_reconciliation_receives_scoped_notes(self) -> None:
+        subprocess.run(["git", "tag", "v0.54.0"], cwd=self.repo, check=True)
+        proc = self.run_wrapper()
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        pipeline = self.pipeline_log.read_text(encoding="utf-8").splitlines()
+        self.assertIn("--notes-file", pipeline[4])
 
     def test_multiple_existing_exact_tags_fail_before_asset_build(self) -> None:
         subprocess.run(["git", "tag", "v0.54.0"], cwd=self.repo, check=True)

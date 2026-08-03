@@ -24,8 +24,8 @@ label to different code, or replace a file whose bytes disagree.
   select a new version. Given an existing tag, tested source SHA, and locally
   verified asset manifest, it reconciles or verifies only that hosted release.
 - GitHub's API is authoritative for the remote tag target, Release visibility,
-  draft/prerelease/immutable state, and hosted asset name, upload state, size,
-  and SHA-256 digest.
+  draft/prerelease/immutable state, exact release body, and hosted asset name,
+  upload state, size, and SHA-256 digest.
 - The deterministic artifact builder is authoritative for the expected local
   ZIP, checksum, content manifest, and provenance statement. The independent
   bundle verifier checks their relationships before this reconciler can run.
@@ -46,8 +46,9 @@ again before any GitHub mutation.
 | Tag exists, Release absent | Create one draft with `gh release create --verify-tag`, then query the API and recheck the tag. A lost create response is resolved by querying GitHub again. |
 | Empty or partial matching draft | Preserve matching bytes and upload only missing assets. |
 | Draft has a duplicate, unexpected, incomplete, wrong-size, or wrong-digest asset | Fail before the first mutation. Never delete or replace the conflicting bytes. |
-| Complete matching draft | Publish it, then re-query until GitHub reports the exact complete Release immutable. |
-| Complete immutable published Release | Read-only success. This makes an exact rerun idempotent. |
+| Complete matching draft | Publish it, then re-query until GitHub reports the exact notes and complete Release immutable. |
+| Complete immutable published Release | Read-only success only when notes and assets still match. This makes an exact rerun idempotent. |
+| Draft or published Release has different notes | Fail before mutation. Do not silently replace public scope wording. |
 | Published but mutable, incomplete, prerelease, or conflicting Release | Fail as a release incident. Publish a corrective version; do not rewrite history. |
 
 The read-only `verify` mode applies the same rules but cannot create a draft,

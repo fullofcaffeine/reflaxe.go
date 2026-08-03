@@ -28,7 +28,12 @@ function sha256(bytes) {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
-function releaseRecord({ draft = true, immutable = false, assets = [] } = {}) {
+function releaseRecord({
+  draft = true,
+  immutable = false,
+  assets = [],
+  body = "Release notes fixture",
+} = {}) {
   return {
     id: 42,
     tag_name: TAG,
@@ -37,6 +42,7 @@ function releaseRecord({ draft = true, immutable = false, assets = [] } = {}) {
     draft,
     prerelease: false,
     immutable,
+    body,
     assets,
   };
 }
@@ -81,12 +87,13 @@ class FakeGitHubAdapter {
     return this.release;
   }
 
-  async createDraft({ tag, sourceSha }) {
+  async createDraft({ tag, sourceSha, notes }) {
     this.operations.push("create-draft");
     this.release = releaseRecord();
     this.release.tag_name = tag;
     this.release.name = tag;
     this.release.target_commitish = sourceSha;
+    this.release.body = notes;
     if (this.loseCreateResponse) throw new Error("lost create response");
     return this.release;
   }
@@ -268,6 +275,26 @@ try {
     /unexpected assets: surprise\.bin/,
   );
   assert.deepEqual(unexpected.operations, [`get-tag:${TAG}`, `get-release:${TAG}`]);
+
+  const conflictingNotes = completeAdapter(expected);
+  conflictingNotes.release.body = "Generic generated notes";
+  await expectStateFailure(
+    "conflicting release notes",
+    () =>
+      reconcileHostedRelease({
+        mode: "reconcile",
+        tag: TAG,
+        sourceSha: SOURCE_SHA,
+        expectedAssets: expected,
+        notes: "Release notes fixture",
+        adapter: conflictingNotes,
+      }),
+    /release notes do not match/i,
+  );
+  assert.deepEqual(
+    conflictingNotes.operations,
+    [`get-tag:${TAG}`, `get-release:${TAG}`],
+  );
 
   const duplicate = completeAdapter(expected);
   duplicate.release.assets.push({ ...duplicate.release.assets[0], id: 200 });

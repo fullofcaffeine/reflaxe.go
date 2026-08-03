@@ -188,6 +188,8 @@ fi
 RELEASE_ARTIFACT_BUILDER="${RELEASE_ARTIFACT_BUILDER:-$ROOT_DIR/scripts/release/build-haxelib-artifact.py}"
 RELEASE_ASSET_VERIFIER="${RELEASE_ASSET_VERIFIER:-$ROOT_DIR/scripts/release/verify-release-assets.py}"
 RELEASE_RECONCILER="${RELEASE_RECONCILER:-$ROOT_DIR/scripts/release/reconcile-github-release.mjs}"
+RELEASE_NOTES_BUILDER="${RELEASE_NOTES_BUILDER:-$ROOT_DIR/scripts/release/build-release-notes.py}"
+RELEASE_COMPATIBILITY_MANIFEST="${RELEASE_COMPATIBILITY_MANIFEST:-$ROOT_DIR/docs/compatibility-support-manifest.json}"
 RELEASE_READINESS_COLLECTOR="${RELEASE_READINESS_COLLECTOR:-$ROOT_DIR/scripts/release/collect-release-readiness.py}"
 RELEASE_READINESS_VERIFIER="${RELEASE_READINESS_VERIFIER:-$ROOT_DIR/scripts/release/verify-release-readiness.py}"
 RELEASE_READINESS_POLICY="${RELEASE_READINESS_POLICY:-$ROOT_DIR/release/readiness-policy.json}"
@@ -195,6 +197,8 @@ for required_file in \
   "$RELEASE_ARTIFACT_BUILDER" \
   "$RELEASE_ASSET_VERIFIER" \
   "$RELEASE_RECONCILER" \
+  "$RELEASE_NOTES_BUILDER" \
+  "$RELEASE_COMPATIBILITY_MANIFEST" \
   "$RELEASE_READINESS_COLLECTOR" \
   "$RELEASE_READINESS_VERIFIER" \
   "$RELEASE_READINESS_POLICY"; do
@@ -240,9 +244,18 @@ python3 "$RELEASE_READINESS_VERIFIER" \
   --policy "$RELEASE_READINESS_POLICY" \
   --evidence "$CANDIDATE_EVIDENCE" \
   --mode live
+RELEASE_NOTES="$RELEASE_WORK_DIR/release-notes.md"
+python3 "$RELEASE_NOTES_BUILDER" \
+  --version "$RELEASE_VERSION" \
+  --tag "$RELEASE_TAG" \
+  --source-sha "$TESTED_SHA" \
+  --repository "$GITHUB_REPOSITORY" \
+  --manifest "$RELEASE_COMPATIBILITY_MANIFEST" \
+  --output "$RELEASE_NOTES"
 node "$RELEASE_RECONCILER" \
   --repository "$GITHUB_REPOSITORY" \
-  --assets "$ASSET_MANIFEST"
+  --assets "$ASSET_MANIFEST" \
+  --notes-file "$RELEASE_NOTES"
 PUBLISHED_EVIDENCE="$RELEASE_WORK_DIR/readiness-published.json"
 python3 "$RELEASE_READINESS_COLLECTOR" \
   --phase published \

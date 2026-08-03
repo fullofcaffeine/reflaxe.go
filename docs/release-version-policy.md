@@ -32,8 +32,10 @@ The release identity flow is:
    commit; CI also verifies the tag at `origin`.
 7. If semantic-release created a tag—or a prior interrupted attempt already
    left exactly one canonical tag at this tested commit—the same wrapper builds
-   and independently verifies all release assets, reconciles one GitHub draft,
-   and succeeds only after GitHub reports the published release immutable.
+   and independently verifies all release assets, builds scope-bounded release
+   notes from the governed compatibility manifest, reconciles one GitHub draft,
+   and succeeds only after GitHub reports the published release immutable with
+   the exact approved notes and assets.
 8. When versioned package metadata is needed,
    `scripts/release/stage-release-metadata.py` writes it into a new
    output directory and binds the version, tag, source commit, and metadata
@@ -164,7 +166,8 @@ count, and `sha256:<digest>`. `release:verify-assets` independently re-hashes
 every file, checks the checksum sidecar, content identity, reproducibility
 evidence, and provenance subjects before the GitHub reconciler may mutate a
 draft. The reconciler verifies GitHub's hosted sizes and digests again and
-publishes only the complete draft; a failure leaves it unpublished. A rerun
+publishes only the complete draft with exact manifest-derived notes; a failure
+leaves it unpublished. A rerun
 rebuilds the same bytes and completes or read-only verifies that exact tag. An
 existing tag with the requested name is accepted only when it already points
 to the supplied source commit.

@@ -84,6 +84,22 @@ that test was corrected and the exact artifact, isolated install, and release
 catalog were rerun successfully. This is recorded rather than hidden because it
 demonstrates that the release proof was sensitive to the new package members.
 
+The first publication attempt was deliberately canceled before its final
+release step when the local xhigh pass found that the wrapper would ask GitHub
+for generic generated notes. No tag or GitHub Release had been created. The
+correction now derives the public beta claim and exclusions from the governed
+compatibility manifest, passes those notes into the same-SHA reconciler, and
+rejects an existing draft or published release whose wording differs. Focused
+tests first failed for the missing notes builder, missing wrapper hand-off, and
+missing hosted-body check; all three then passed with the implementation. The
+release contracts and full snapshot suite were rerun after the correction.
+
+This pre-publication finding does not change the Oracle verdict or broaden the
+reviewed product surface. It is a release-governance correction found by the
+local agent's required second pass. The final exact source SHA and this file's
+new digest are recorded together in the Bead only after the commit exists, so
+the non-circular exact-SHA rule above still applies.
+
 Remaining limits are unchanged: stable 1.x, Go-native/metal admission, HTTP,
 named/reverse DNS, IPv6, non-Linux runtime admission, untrusted-source
 compilation, and public/hostile-network guarantees still require their own

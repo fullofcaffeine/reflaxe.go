@@ -63,6 +63,7 @@ def main() -> int:
         ["python3", "test/test_release_readiness_gate.py"],
         ["python3", "test/test_release_identity_contract.py"],
         ["python3", "test/test_release_package_metadata_contract.py"],
+        ["python3", "test/test_release_notes.py"],
         ["node", "test/test_release_reconciliation.mjs"],
         ["node", "test/test_release_version_policy.mjs"],
         ["python3", "test/test_review_evidence_bundle_contract.py"],

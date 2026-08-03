@@ -176,13 +176,16 @@ function inspectAssets(release, expectedAssets) {
   };
 }
 
-function verifyReleaseMetadata(release, tag) {
+function verifyReleaseMetadata(release, tag, notes = "") {
   if (!release || typeof release !== "object") fail(`GitHub Release ${tag} does not exist`);
   if (release.tag_name !== tag) fail("GitHub Release tag does not match release identity");
   if (release.prerelease !== false) fail("stable GitHub Release must not be a prerelease");
   if (typeof release.draft !== "boolean") fail("GitHub Release draft state is missing");
   if (release.draft && release.immutable === true) {
     fail("draft GitHub Release unexpectedly reports immutable");
+  }
+  if (notes.length > 0 && release.body !== notes) {
+    fail("GitHub Release notes do not match the approved bounded release notes");
   }
 }
 
@@ -214,8 +217,8 @@ async function verifyRemoteTagIdentity(adapter, tag, sourceSha) {
   }
 }
 
-async function verifyPublishedRelease({ adapter, release, tag, sourceSha, expectedAssets }) {
-  verifyReleaseMetadata(release, tag);
+async function verifyPublishedRelease({ adapter, release, tag, sourceSha, expectedAssets, notes }) {
+  verifyReleaseMetadata(release, tag, notes);
   if (release.draft) fail(`GitHub Release ${tag} is still a draft`);
   if (release.immutable !== true) fail(`published GitHub Release ${tag} is not immutable`);
   requireCompleteAssets(release, expectedAssets);
@@ -223,12 +226,12 @@ async function verifyPublishedRelease({ adapter, release, tag, sourceSha, expect
   return { state: "verified-immutable", release };
 }
 
-async function waitForImmutable({ adapter, tag, expectedAssets, attempts, delayMs, wait }) {
+async function waitForImmutable({ adapter, tag, expectedAssets, notes, attempts, delayMs, wait }) {
   let lastRelease = null;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     lastRelease = await adapter.getRelease(tag);
     if (lastRelease && lastRelease.draft === false && lastRelease.immutable === true) {
-      verifyReleaseMetadata(lastRelease, tag);
+      verifyReleaseMetadata(lastRelease, tag, notes);
       requireCompleteAssets(lastRelease, expectedAssets);
       return lastRelease;
     }
@@ -280,9 +283,9 @@ export async function reconcileHostedRelease({
     await verifyRemoteTagIdentity(adapter, tag, sourceSha);
   }
 
-  verifyReleaseMetadata(release, tag);
+  verifyReleaseMetadata(release, tag, notes);
   if (!release.draft) {
-    return verifyPublishedRelease({ adapter, release, tag, sourceSha, expectedAssets });
+    return verifyPublishedRelease({ adapter, release, tag, sourceSha, expectedAssets, notes });
   }
   if (mode === "verify") fail(`GitHub Release ${tag} is still a draft`);
 
@@ -292,9 +295,9 @@ export async function reconcileHostedRelease({
   let { missing } = inspectAssets(release, expectedAssets);
   for (const expected of missing) {
     release = await adapter.getRelease(tag);
-    verifyReleaseMetadata(release, tag);
+    verifyReleaseMetadata(release, tag, notes);
     if (!release.draft) {
-      return verifyPublishedRelease({ adapter, release, tag, sourceSha, expectedAssets });
+      return verifyPublishedRelease({ adapter, release, tag, sourceSha, expectedAssets, notes });
     }
     let current = inspectAssets(release, expectedAssets);
     if (!current.missing.some((asset) => asset.name === expected.name)) continue;
@@ -303,9 +306,9 @@ export async function reconcileHostedRelease({
     // Re-read after the tag check so a concurrently published Release is
     // observed before this command attempts another asset mutation.
     release = await adapter.getRelease(tag);
-    verifyReleaseMetadata(release, tag);
+    verifyReleaseMetadata(release, tag, notes);
     if (!release.draft) {
-      return verifyPublishedRelease({ adapter, release, tag, sourceSha, expectedAssets });
+      return verifyPublishedRelease({ adapter, release, tag, sourceSha, expectedAssets, notes });
     }
     current = inspectAssets(release, expectedAssets);
     if (!current.missing.some((asset) => asset.name === expected.name)) continue;
@@ -314,9 +317,9 @@ export async function reconcileHostedRelease({
     } catch (error) {
       release = await recoverLostMutation(adapter, tag, error);
       if (!release) throw error;
-      verifyReleaseMetadata(release, tag);
+      verifyReleaseMetadata(release, tag, notes);
       if (!release.draft) {
-        return verifyPublishedRelease({ adapter, release, tag, sourceSha, expectedAssets });
+        return verifyPublishedRelease({ adapter, release, tag, sourceSha, expectedAssets, notes });
       }
       const refreshed = inspectAssets(release, expectedAssets);
       if (refreshed.missing.some((asset) => asset.name === expected.name)) throw error;
@@ -324,9 +327,9 @@ export async function reconcileHostedRelease({
   }
 
   release = await adapter.getRelease(tag);
-  verifyReleaseMetadata(release, tag);
+  verifyReleaseMetadata(release, tag, notes);
   if (!release.draft) {
-    return verifyPublishedRelease({ adapter, release, tag, sourceSha, expectedAssets });
+    return verifyPublishedRelease({ adapter, release, tag, sourceSha, expectedAssets, notes });
   }
   ({ missing } = inspectAssets(release, expectedAssets));
   if (missing.length > 0) {
@@ -335,9 +338,9 @@ export async function reconcileHostedRelease({
 
   await verifyRemoteTagIdentity(adapter, tag, sourceSha);
   release = await adapter.getRelease(tag);
-  verifyReleaseMetadata(release, tag);
+  verifyReleaseMetadata(release, tag, notes);
   if (!release.draft) {
-    return verifyPublishedRelease({ adapter, release, tag, sourceSha, expectedAssets });
+    return verifyPublishedRelease({ adapter, release, tag, sourceSha, expectedAssets, notes });
   }
   requireCompleteAssets(release, expectedAssets);
   try {
@@ -350,6 +353,7 @@ export async function reconcileHostedRelease({
     adapter,
     tag,
     expectedAssets,
+    notes,
     attempts: immutableAttempts,
     delayMs: immutableDelayMs,
     wait,
