@@ -1,5 +1,15 @@
 # Portable beta Oracle disposition
 
+## Local baseline
+
+Before applying the response, the repository already had a narrow generated
+compatibility authority: 38 admitted operations / 173 symbols for the portable
+Linux/amd64 pre-1.0 beta, with Go-native/metal and unlisted operations kept
+separate. The frozen review source was an ancestor of the current branch. Local
+inspection reproduced four evidence/governance defects but no defect in the
+admitted compiler/runtime implementation and no reason for a universal IR or a
+new profile-specific semantic backend.
+
 ## Outcome
 
 The Oracle response is accepted as advisory evidence with four retained
@@ -47,6 +57,38 @@ correction-focused second pass for this situation. That pass must challenge the
 new tests' mutation sensitivity, the independence of the package/evidence
 oracles, exact-SHA joins, unsupported claim expansion, and preservation of the
 original Oracle provenance before the tracker admission record is written.
+
+## Verification and remaining limits
+
+Processor: `gpt-5.6-sol` at `xhigh`, matching the ledger policy.
+
+The retained changes were verified locally with:
+
+- focused red-to-green mutation contracts for final admission, host-control
+  summaries, example units, the checksum-bound erratum, and packaged support
+  authorities;
+- `npm run test:changed`;
+- `npm test`: 313 snapshot cases passed;
+- `npm run test:examples`: 13 real Haxe-to-Go build/run profile cases passed;
+- `npm run test:official-haxe-smoke`: 3 installed-target smoke cases passed;
+- `npm run compatibility:verify` and `npm run release:status`;
+- `python3 test/test_haxelib_release_artifact.py`: 5 deterministic exact-commit
+  artifact contracts passed;
+- `npm run test:haxelib-release-install`: 2 isolated Haxelib install/run
+  contracts passed; and
+- `npm run test:release-contracts`: the complete release contract catalog
+  passed on the corrected commit.
+
+The first exact-commit artifact run exposed a test-only variable-scope error;
+that test was corrected and the exact artifact, isolated install, and release
+catalog were rerun successfully. This is recorded rather than hidden because it
+demonstrates that the release proof was sensitive to the new package members.
+
+Remaining limits are unchanged: stable 1.x, Go-native/metal admission, HTTP,
+named/reverse DNS, IPv6, non-Linux runtime admission, untrusted-source
+compilation, and public/hostile-network guarantees still require their own
+evidence or remain explicitly excluded. Oracle's proposed additional delta
+review was not run and is not represented as evidence.
 
 ## Closure rule
 
