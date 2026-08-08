@@ -124,7 +124,7 @@
     "ajv": "^8.17.1",
     "conventional-changelog-conventionalcommits": "^8.0.0",
     "lix": "^15.0.0",
-    "semantic-release": "^25.0.7",
+    "semantic-release": "^25.0.9",
     "semver": "^7.8.5"
   }
 }
