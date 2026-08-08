@@ -94,8 +94,10 @@ publishing. It is never hosted-release evidence. Production publication uses
    - `npm run release:readiness -- --evidence <evidence.json> --mode fixture`
      for deterministic local fixture/debugging work only; the same-SHA
      publication wrapper invokes `--mode live`.
-   - Publish only through a manual `CI Harness` run on `master`
-     with `publish_release` enabled; normal pushes must not publish.
+   - A green `master` push starts the release job automatically. Pull requests,
+     scheduled runs, feature branches, and manual workflow runs cannot publish.
+   - Run `npm run security:github-governance:live` before changing release
+     infrastructure and during periodic repository security maintenance.
 9. Go dynamic and static tooling gates:
    - `npm run security:go-tooling`
    - Confirm the race detector, strict checkptr, vet, and pinned Staticcheck

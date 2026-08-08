@@ -153,9 +153,14 @@ npm run release:readiness -- \
   --mode fixture
 ```
 
-Production operators do not hand-build evidence or use fixture mode. Start the
-manual `CI Harness` workflow on `master` with `publish_release` enabled; the
-same-SHA wrapper collects and verifies both phases automatically.
+Production operators do not hand-build evidence or use fixture mode. A green
+push to `master` starts the release job. The same-SHA wrapper collects and
+verifies both release phases automatically.
+
+The live GitHub-settings audit is separate because the workflow token cannot
+read repository administration settings. Run
+`npm run security:github-governance:live` before release-infrastructure changes
+and during periodic repository security maintenance.
 
 Related contracts:
 

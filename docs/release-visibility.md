@@ -18,8 +18,8 @@ This runs `scripts/release/check-release-state.sh` and verifies:
 - semantic-release `tagFormat` is `v${version}`
 - the release configuration has no tracked-checkout mutator
 - the final workflow checks out and publishes the exact tested SHA
-- publication requires an explicit manual `publish_release` request
-  on `master`; ordinary pushes only validate
+- publication can run only after all required jobs pass for a `master` push;
+  other events only validate
 - CI workflow release wiring exists (`semantic-release` in `ci-harness`)
 - examples tag-release asset paths are normalized to deterministic staging paths
 - optional remote GitHub release visibility for the latest tag (when `gh` can access the repo)

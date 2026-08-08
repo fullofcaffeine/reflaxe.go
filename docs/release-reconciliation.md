@@ -85,8 +85,8 @@ The intended same-job flow is:
 
 There is therefore no `.github/workflows/release-repair.yml`, no
 `deployments: write` permission, and no release environment approval object.
-Human approval can still exist at the manual `publish_release` input and
-repository/ruleset level without creating a second publication engine.
+The green `master` workflow owns ordinary publication. Repository rules remain
+the host-level control without creating a second publication engine.
 
 ## Sibling compiler comparison
 

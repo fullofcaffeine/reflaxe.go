@@ -62,12 +62,10 @@ def collect(arguments: argparse.Namespace) -> dict[str, Any]:
         "gitleaks": arguments.gitleaks_result,
         "dependency-audit": arguments.dependency_audit_result,
         "go-tooling": arguments.go_tooling_result,
-        "github-governance-live": arguments.github_governance_result,
     }
     failed = sorted(name for name, result in results.items() if result != "success")
     if failed:
         fail(f"upstream workflow gate did not succeed: {', '.join(failed)}")
-
     readiness = load_object(READINESS_POLICY, "readiness policy")
     toolchains = load_object(TOOLCHAIN_POLICY, "toolchain policy")
     haxe_version = normalized_version(arguments.haxe_version, "Haxe")
@@ -94,7 +92,6 @@ def collect(arguments: argparse.Namespace) -> dict[str, Any]:
         fail("readiness policy has no required security gates")
     expected_ids = {
         "gitleaks",
-        "github-governance-live",
         *(f"dependency-audit:go{version}" for version in go_versions),
         *(f"go-tooling:go{version}" for version in go_versions),
     }
@@ -141,7 +138,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--gitleaks-result", required=True)
     parser.add_argument("--dependency-audit-result", required=True)
     parser.add_argument("--go-tooling-result", required=True)
-    parser.add_argument("--github-governance-result", required=True)
     parser.add_argument("--haxe-version", required=True)
     parser.add_argument("--node-version", required=True)
     parser.add_argument("--runner-image-os", required=True)

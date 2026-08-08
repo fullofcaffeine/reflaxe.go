@@ -585,8 +585,6 @@ else:
                 "success",
                 "--go-tooling-result",
                 "success",
-                "--github-governance-result",
-                "success",
                 "--haxe-version",
                 "4.3.7",
                 "--node-version",
@@ -630,6 +628,10 @@ else:
                     and gate["testedSha"] == tested_sha
                     for gate in evidence["security"]["gates"]
                 )
+            )
+            self.assertNotIn(
+                "github-governance-live",
+                {gate["id"] for gate in evidence["security"]["gates"]},
             )
 
             command[command.index("success", command.index("--gitleaks-result"))] = (

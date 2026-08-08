@@ -81,45 +81,45 @@ or weakened. It does not mutate GitHub. Change the JSON policy and its tests
 first, review the effect, apply the matching host change through GitHub's API or
 settings UI, and run the live verifier again.
 
-### Release-job reader credentials
+### Periodic administrator audit
 
-The release job needs to read repository settings that GitHub deliberately
-hides from its ordinary job token. It must not solve that problem by storing a
-broad personal token or by giving the governance check permission to publish a
-release. Use a private GitHub App with this exact boundary:
+The normal GitHub Actions token cannot read all repository administration
+settings. The project does not store a personal administration token in GitHub
+Actions.
 
-1. Grant the app `Administration: read-only` for repository permissions. Leave
-   every optional write permission disabled; GitHub supplies read-only metadata
-   access automatically.
-2. Install the app for this repository only. Do not grant access to every
-   repository owned by the account.
-3. Put the app client ID in the repository variable
-   `RELEASE_GOVERNANCE_APP_CLIENT_ID` and its private key in the Actions secret
-   `RELEASE_GOVERNANCE_APP_PRIVATE_KEY`.
-4. Dispatch CI Harness with `verify_release_governance` enabled and
-   `publish_release` disabled. The read-only Release Governance job must read
-   the repository settings, Actions policy, immutable-release state,
-   vulnerability-alert state, and both rulesets without starting the
-   write-enabled Complete Release job.
+A green push to `master` starts the release job automatically. The release job
+uses the built-in `GITHUB_TOKEN` as its only publication credential. It checks
+the final tag, assets, source commit, and immutable GitHub Release before it
+reports success.
 
-The workflow asks GitHub for a short-lived installation token scoped to this
-repository only and explicitly requests only `Administration: read-only`. That
-token is passed only to the live governance verifier in its `contents: read`
-job. The separate Complete Release job does not reference the app credentials;
-its built-in `GITHUB_TOKEN` remains the sole credential used by the release
-publisher. The token-creation action revokes the installation token when the
-governance job ends.
-Missing app configuration fails before semantic-release or tag creation with a
-direct setup message.
+The live settings check is a periodic administrator audit. Run it before a
+change to release infrastructure. Also run it during repository security
+maintenance:
 
-For private-key rotation, create a second app key, replace
-`RELEASE_GOVERNANCE_APP_PRIVATE_KEY`, run the non-publishing
-`verify_release_governance` dispatch, and only then revoke the old key. For
-emergency revocation, uninstall the app from the repository and delete the
-Actions secret and variable. Future release runs will then fail at the
-credential preflight without creating a tag. App permission or installation
-changes require the same source-policy review and live verification as other
-governance changes.
+~~~bash
+npm run security:github-governance:live
+~~~
+
+This command uses the local `gh` login. It changes no GitHub settings. It is
+not evidence from the release workflow, and release evidence does not claim
+that GitHub Actions ran it.
+
+This split matches the family precedent in Genes. Its release job uses only
+`contents: write`, while administrators inspect protected host settings with a
+separate local command. `haxe.elixir.codex`, `haxe.rust`, and `haxe.ruby` also
+publish automatically after their primary-branch checks pass.
+
+### Optional future App automation
+
+A private GitHub App is an optional future improvement. It can move the live
+settings audit into GitHub Actions if hosted verification later becomes useful.
+
+If the project adopts this automation, give the App `Administration: read-only`.
+Install it for this repository only. Keep its short-lived token separate from
+the publication job. Do not replace it with a broad personal access token.
+
+This possible improvement is tracked in Bead `haxe_go-vfp.12.14`. It is not a
+current release requirement.
 
 GitHub's repository-rules API and Actions-permissions API are the canonical
 references for the fields represented here:

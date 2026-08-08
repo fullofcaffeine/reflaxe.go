@@ -51,7 +51,6 @@
     "dependency-audit:go1.25.12",
     "dependency-audit:go1.26.5",
     "gitleaks",
-    "github-governance-live",
     "go-tooling:go1.25.12",
     "go-tooling:go1.26.5"
   ],

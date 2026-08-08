@@ -15,9 +15,8 @@ experimental-surface, release-channel, and stable-admission rules.
 
 The release identity flow is:
 
-1. Normal pushes, pull requests, and scheduled runs execute validation but
-   cannot publish. Publication starts only from an explicit manual release request
-   on `master` with the `publish_release` input enabled.
+1. Pull requests, scheduled runs, feature-branch pushes, and manual runs cannot
+   publish. A green `master` push enters the release job automatically.
 2. `package.json`, `package-lock.json`, and
    `haxelib.json` carry the 0.0.0 development sentinel.
 3. semantic-release reads the newest canonical `v<SemVer>` tag
@@ -101,13 +100,16 @@ then publishes it. Release automation never rewrites or commits CHANGELOG.md,
 `package.json`, or `haxelib.json`. GitHub generates hosted release notes from
 the commits between the exact previous and next Git tags.
 
-The final workflow job exists only for a manual run whose
-`publish_release` input is true on `master`. It waits for
-every release-blocking job, checks out the workflow run's explicit commit,
-receives that same value as `RELEASE_TESTED_SHA`, and has only
-`contents: write`. Commenting, labeling, and issue mutation are
-disabled because they are unrelated to publishing the tested source. A routine
-master push cannot publish accumulated Conventional Commits.
+The final workflow job exists only for a push to `master`. It waits for every
+release-blocking job and checks out the workflow run's explicit commit. It
+receives that value as `RELEASE_TESTED_SHA` and has only `contents: write`.
+Commenting, labeling, and issue mutation remain disabled. semantic-release
+publishes only when the accumulated Conventional Commits require a new version.
+
+The job cannot read all repository administration settings with its normal
+token. Administrators inspect those settings separately with
+`npm run security:github-governance:live`. Release evidence does not describe
+that separate audit as an exact-SHA workflow gate.
 
 ## Staged metadata
 

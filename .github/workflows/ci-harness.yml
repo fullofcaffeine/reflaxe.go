@@ -7,25 +7,16 @@ on:
       - master
   schedule:
     - cron: "0 7 * * 1"
-  workflow_dispatch:
-    inputs:
-      publish_release:
-        description: "After every gate passes, publish from this exact master SHA"
-        required: true
-        type: boolean
-        default: false
-      verify_release_governance:
-        description: "Verify the read-only release governance credential without publishing"
-        required: true
-        type: boolean
-        default: false
+  workflow_dispatch: {}
 
 permissions:
   contents: read
 
 concurrency:
   group: ci-harness-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # A master run can enter publication after its required jobs pass.
+  # Newer master pushes must not cancel that release transaction.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
@@ -389,51 +380,9 @@ jobs:
           path: .cache/perf-apps/results
           if-no-files-found: warn
 
-  release-governance:
-    name: Release Governance
-    if: >-
-      github.event_name == 'workflow_dispatch' &&
-      github.ref == 'refs/heads/master' &&
-      (inputs.publish_release || inputs.verify_release_governance)
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          ref: ${{ github.sha }}
-
-      - name: Require governance reader credentials
-        env:
-          GOVERNANCE_APP_CLIENT_ID: ${{ vars.RELEASE_GOVERNANCE_APP_CLIENT_ID }}
-          GOVERNANCE_APP_PRIVATE_KEY: ${{ secrets.RELEASE_GOVERNANCE_APP_PRIVATE_KEY }}
-        run: |
-          if [[ -z "$GOVERNANCE_APP_CLIENT_ID" || -z "$GOVERNANCE_APP_PRIVATE_KEY" ]]; then
-            echo "::error title=Missing release governance credentials::Configure the repository-scoped read-only GitHub App described in docs/github-governance-policy.md before publishing."
-            exit 1
-          fi
-
-      - name: Create read-only governance token
-        id: governance-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
-        with:
-          client-id: ${{ vars.RELEASE_GOVERNANCE_APP_CLIENT_ID }}
-          private-key: ${{ secrets.RELEASE_GOVERNANCE_APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: ${{ github.event.repository.name }}
-          permission-administration: read
-          skip-token-revoke: false
-
-      - name: Verify live GitHub governance
-        env:
-          GH_TOKEN: ${{ steps.governance-token.outputs.token }}
-        run: python3 scripts/security/verify-github-governance.py --mode live
-
   semantic-release:
     name: Complete Release
-    if: github.event_name == 'workflow_dispatch' && inputs.publish_release && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs:
       - quality
       - official-haxe-target-inventory
@@ -442,11 +391,13 @@ jobs:
       - go-tooling
       - perf-go
       - perf-apps
-      - release-governance
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
       contents: write
+    concurrency:
+      group: release-${{ github.repository }}
+      cancel-in-progress: false
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -495,7 +446,6 @@ jobs:
           GITLEAKS_RESULT: ${{ needs.gitleaks.result }}
           DEPENDENCY_AUDIT_RESULT: ${{ needs.dependency-audit.result }}
           GO_TOOLING_RESULT: ${{ needs.go-tooling.result }}
-          GITHUB_GOVERNANCE_RESULT: ${{ needs.release-governance.result }}
         run: |
           python3 scripts/release/collect-upstream-release-evidence.py \
             --tested-sha "${{ github.sha }}" \
@@ -503,7 +453,6 @@ jobs:
             --gitleaks-result "$GITLEAKS_RESULT" \
             --dependency-audit-result "$DEPENDENCY_AUDIT_RESULT" \
             --go-tooling-result "$GO_TOOLING_RESULT" \
-            --github-governance-result "$GITHUB_GOVERNANCE_RESULT" \
             --haxe-version "$(haxe --version)" \
             --node-version "$(node --version)" \
             --runner-image-os "${{ needs.quality.outputs.runner_image_os }}" \

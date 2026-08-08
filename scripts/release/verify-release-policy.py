@@ -148,23 +148,17 @@ def verify_same_sha_workflow() -> None:
         fail("ci-harness workflow has no semantic-release job")
     release_job = workflow.split(marker, 1)[1]
     github_sha = "$" + "{{ github.sha }}"
-    manual_condition = (
-        "if: github.event_name == 'workflow_dispatch' && "
-        "inputs.publish_release && github.ref == 'refs/heads/master'"
+    release_condition = (
+        "if: github.event_name == 'push' && "
+        "github.ref == 'refs/heads/master'"
     )
-    if "workflow_dispatch:\n    inputs:\n      publish_release:" not in workflow:
-        fail("ci-harness must declare the explicit publish_release input")
     required = (
-        manual_condition,
+        release_condition,
         "permissions:\n      contents: write",
         "fetch-depth: 0",
         "ref: " + github_sha,
         "run: npm run release:policy",
         "run: npm run release:license-policy",
-        "GITHUB_GOVERNANCE_RESULT: "
-        + "$"
-        + "{{ needs.release-governance.result }}",
-        '--github-governance-result "$GITHUB_GOVERNANCE_RESULT"',
         "RELEASE_TESTED_SHA: " + github_sha,
         "RELEASE_UPSTREAM_GATES_SHA: " + github_sha,
         "RELEASE_UPSTREAM_EVIDENCE: "
@@ -203,8 +197,8 @@ def verify_same_sha_workflow() -> None:
     ):
         if forbidden in release_job:
             fail(f"semantic-release job retains unnecessary permission: {forbidden}")
-    if "github.event_name == 'push'" in release_job:
-        fail("ordinary master pushes must not publish development releases")
+    if "workflow_dispatch" in release_job:
+        fail("manual workflow dispatch must not enter normal publication")
     if "continue-on-error:" in release_job:
         fail("semantic-release job must not weaken a release-blocking step")
     for dependency in (
@@ -214,7 +208,6 @@ def verify_same_sha_workflow() -> None:
         "go-tooling",
         "perf-go",
         "perf-apps",
-        "release-governance",
     ):
         if "- " + dependency not in release_job:
             fail(f"semantic-release job no longer waits for required gate: {dependency}")

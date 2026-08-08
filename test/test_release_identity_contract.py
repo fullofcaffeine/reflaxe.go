@@ -104,13 +104,18 @@ class ReleaseIdentityContractTest(unittest.TestCase):
         release_job = workflow.split("\n  semantic-release:", 1)[1]
         github_sha = "$" + "{{ github.sha }}"
         haxe_version = "$" + "{{ env.HAXE_VERSION }}"
-        self.assertIn("workflow_dispatch:\n    inputs:\n      publish_release:", workflow)
         self.assertIn(
-            "if: github.event_name == 'workflow_dispatch' && "
-            "inputs.publish_release && github.ref == 'refs/heads/master'",
+            "if: github.event_name == 'push' && "
+            "github.ref == 'refs/heads/master'",
             release_job,
         )
-        self.assertNotIn("github.event_name == 'push'", release_job)
+        self.assertNotIn("publish_release:", workflow)
+        self.assertIn(
+            "cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}",
+            workflow,
+        )
+        self.assertIn("group: release-${{ github.repository }}", release_job)
+        self.assertIn("cancel-in-progress: false", release_job)
         self.assertIn("ref: " + github_sha, release_job)
         self.assertIn("RELEASE_TESTED_SHA: " + github_sha, release_job)
         self.assertIn("RELEASE_UPSTREAM_GATES_SHA: " + github_sha, release_job)
@@ -141,15 +146,7 @@ class ReleaseIdentityContractTest(unittest.TestCase):
             "scripts/release/refresh-readiness-blockers.py",
             release_job,
         )
-        self.assertIn("- release-governance", release_job)
-        self.assertIn(
-            "GITHUB_GOVERNANCE_RESULT: ${{ needs.release-governance.result }}",
-            release_job,
-        )
-        self.assertIn(
-            '--github-governance-result "$GITHUB_GOVERNANCE_RESULT"',
-            release_job,
-        )
+        self.assertNotIn("github-governance-confirmed", release_job)
         self.assertIn("run: npm run release:license-policy", release_job)
         self.assertIn("run: npm run release", release_job)
         self.assertIn("name: Setup Haxe (linux)", release_job)
@@ -327,7 +324,7 @@ class ReleaseIdentityContractTest(unittest.TestCase):
             "breaking 0.x change advances the minor version",
             "never rewrites or commits CHANGELOG.md",
             "exact CI-tested SHA",
-            "explicit manual release request",
+            "green `master` push",
             "npm run test:release-version-policy",
         ):
             self.assertIn(phrase, doc)
