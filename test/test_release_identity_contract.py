@@ -147,6 +147,12 @@ class ReleaseIdentityContractTest(unittest.TestCase):
             release_job,
         )
         self.assertIn(
+            "CGO_ENABLED=1 GOFLAGS=-tags=gms_pure_go go install "
+            "github.com/steveyegge/beads/cmd/bd@c3e600c940ad",
+            release_job,
+        )
+        self.assertNotIn("beads/cmd/bd@v1.1.0", release_job)
+        self.assertIn(
             '--remote "git+https://github.com/${{ github.repository }}.git"',
             release_job,
         )
