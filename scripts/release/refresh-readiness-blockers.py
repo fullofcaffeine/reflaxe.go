@@ -44,14 +44,20 @@ def load_object(path: Path, label: str) -> dict[str, Any]:
     return value
 
 
-def run_text(command: list[str], label: str, *, cwd: Path = ROOT) -> str:
+def run_text(
+    command: list[str],
+    label: str,
+    *,
+    cwd: Path = ROOT,
+    timeout_seconds: int = 30,
+) -> str:
     try:
         process = subprocess.run(
             command,
             cwd=cwd,
             text=True,
             capture_output=True,
-            timeout=30,
+            timeout=timeout_seconds,
         )
     except (OSError, subprocess.TimeoutExpired) as error:
         fail(f"cannot query {label}: {error}")
@@ -87,7 +93,13 @@ def remote_tracker_commit(reference: str) -> str:
     return fields[0]
 
 
-def build_snapshot(policy: dict[str, Any], observed_at: str) -> dict[str, Any]:
+def build_snapshot(
+    policy: dict[str, Any],
+    observed_at: str,
+    *,
+    remote_override: str | None = None,
+    prefix_override: str | None = None,
+) -> dict[str, Any]:
     compatibility = policy.get("compatibility")
     if not isinstance(compatibility, dict):
         fail("readiness policy compatibility section is missing")
@@ -102,12 +114,18 @@ def build_snapshot(policy: dict[str, Any], observed_at: str) -> dict[str, Any]:
         fail("readiness policy finalAdmission owner is invalid")
     reference = "refs/dolt/data"
     before = remote_tracker_commit(reference)
-    remote = run_text(
-        ["bd", "config", "get", "sync.remote"], "Beads remote configuration"
-    ).strip()
-    prefix = run_text(
-        ["bd", "config", "get", "issue_prefix"], "Beads issue prefix"
-    ).strip()
+    remote = remote_override
+    if remote is None:
+        remote = run_text(
+            ["bd", "config", "get", "sync.remote"],
+            "Beads remote configuration",
+        ).strip()
+    prefix = prefix_override
+    if prefix is None:
+        prefix = run_text(
+            ["bd", "config", "get", "issue_prefix"],
+            "Beads issue prefix",
+        ).strip()
     if not remote or not prefix:
         fail("Beads remote configuration or issue prefix is empty")
     blockers: list[dict[str, Any]] = []
@@ -130,6 +148,7 @@ def build_snapshot(policy: dict[str, Any], observed_at: str) -> dict[str, Any]:
             ],
             "remote Beads initialization",
             cwd=checkout,
+            timeout_seconds=300,
         )
         for blocker_id, scope in scopes.items():
             if not isinstance(blocker_id, str) or not isinstance(scope, str):
@@ -185,6 +204,20 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--observed-at", required=True)
     parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument(
+        "--remote",
+        help=(
+            "Beads Dolt remote used by the isolated reader. Required on clean "
+            "runners that do not have a local Beads database."
+        ),
+    )
+    parser.add_argument(
+        "--prefix",
+        help=(
+            "Beads issue prefix used by the isolated reader. Required on clean "
+            "runners that do not have a local Beads database."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -192,7 +225,12 @@ def main() -> int:
     arguments = parse_args()
     try:
         policy = load_object(POLICY_PATH, "readiness policy")
-        expected = build_snapshot(policy, arguments.observed_at)
+        expected = build_snapshot(
+            policy,
+            arguments.observed_at,
+            remote_override=arguments.remote,
+            prefix_override=arguments.prefix,
+        )
         rendered = json.dumps(expected, indent=2) + "\n"
         if arguments.output.exists():
             fail(f"blocker evidence output already exists: {arguments.output}")

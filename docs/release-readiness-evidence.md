@@ -126,14 +126,20 @@ as release approval.
 
 The release workflow generates this evidence with
 `scripts/release/refresh-readiness-blockers.py` from an isolated client of the
-configured remote and records the exact `refs/dolt/data` commit. The completed
-hosted-artifact owner (`haxe_go-vfp.4.8`) therefore remains visible as closed
-rather than being fabricated or silently dropped. Omitting a compatibility
-owner, using an unadmitted scope for an additional review owner, or failing to
-account for every policy blocker makes verification fail. Changing a blocker's
-state is picked up by the next workflow run; the current run deliberately keeps
-using its one captured tracker state through candidate and published
-verification.
+configured remote and records the exact `refs/dolt/data` commit. On a clean
+GitHub runner there is no local Beads database yet, so the workflow passes the
+public HTTPS Dolt remote and the `haxe_go` issue prefix explicitly. The script
+then creates a disposable, read-only tracker client; it never treats the
+tracked legacy JSONL archive as current issue state. Remote bootstrap may take
+up to five minutes on a slow connection; later tracker queries keep their
+shorter 30-second bound, and every timeout fails the release closed. The
+completed hosted-artifact owner (`haxe_go-vfp.4.8`) therefore remains visible
+as closed rather than being fabricated or silently dropped. Omitting a
+compatibility owner, using an unadmitted scope for an additional review owner,
+or failing to account for every policy blocker makes verification fail.
+Changing a blocker's state is picked up by the next workflow run; the current
+run deliberately keeps using its one captured tracker state through candidate
+and published verification.
 
 If policy admits one of those scopes, the exclusion must be removed and its
 applicable P0/P1 blocker must be closed. Changing a claim without changing its

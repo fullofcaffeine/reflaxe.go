@@ -146,6 +146,11 @@ class ReleaseIdentityContractTest(unittest.TestCase):
             "scripts/release/refresh-readiness-blockers.py",
             release_job,
         )
+        self.assertIn(
+            '--remote "git+https://github.com/${{ github.repository }}.git"',
+            release_job,
+        )
+        self.assertIn('--prefix "haxe_go"', release_job)
         self.assertNotIn("github-governance-confirmed", release_job)
         self.assertIn("run: npm run release:license-policy", release_job)
         self.assertIn("run: npm run release", release_job)

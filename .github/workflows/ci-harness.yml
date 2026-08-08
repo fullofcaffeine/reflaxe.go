@@ -438,6 +438,8 @@ jobs:
           go install github.com/steveyegge/beads/cmd/bd@v1.1.0
           python3 scripts/release/refresh-readiness-blockers.py \
             --observed-at "$(date -u +%F)" \
+            --remote "git+https://github.com/${{ github.repository }}.git" \
+            --prefix "haxe_go" \
             --output "${{ runner.temp }}/haxe-go-release-blockers.json"
 
       - name: Collect exact-SHA upstream gate evidence
