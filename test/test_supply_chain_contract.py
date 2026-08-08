@@ -25,6 +25,10 @@ RELEASE_CONTRACTS = ROOT / "test" / "run-release-contracts.py"
 
 EXPECTED_ACTIONS = {
     "actions/checkout": ("v6.0.3", "df4cb1c069e1874edd31b4311f1884172cec0e10"),
+    "actions/create-github-app-token": (
+        "v3.2.0",
+        "bcd2ba49218906704ab6c1aa796996da409d3eb1",
+    ),
     "actions/dependency-review-action": ("v5.0.0", "a1d282b36b6f3519aa1f3fc636f609c47dddb294"),
     "actions/download-artifact": ("v8.0.1", "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c"),
     "actions/setup-go": ("v6.5.0", "924ae3a1cded613372ab5595356fb5720e22ba16"),

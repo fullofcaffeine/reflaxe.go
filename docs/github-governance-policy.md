@@ -81,6 +81,46 @@ or weakened. It does not mutate GitHub. Change the JSON policy and its tests
 first, review the effect, apply the matching host change through GitHub's API or
 settings UI, and run the live verifier again.
 
+### Release-job reader credentials
+
+The release job needs to read repository settings that GitHub deliberately
+hides from its ordinary job token. It must not solve that problem by storing a
+broad personal token or by giving the governance check permission to publish a
+release. Use a private GitHub App with this exact boundary:
+
+1. Grant the app `Administration: read-only` for repository permissions. Leave
+   every optional write permission disabled; GitHub supplies read-only metadata
+   access automatically.
+2. Install the app for this repository only. Do not grant access to every
+   repository owned by the account.
+3. Put the app client ID in the repository variable
+   `RELEASE_GOVERNANCE_APP_CLIENT_ID` and its private key in the Actions secret
+   `RELEASE_GOVERNANCE_APP_PRIVATE_KEY`.
+4. Dispatch CI Harness with `verify_release_governance` enabled and
+   `publish_release` disabled. The read-only Release Governance job must read
+   the repository settings, Actions policy, immutable-release state,
+   vulnerability-alert state, and both rulesets without starting the
+   write-enabled Complete Release job.
+
+The workflow asks GitHub for a short-lived installation token scoped to this
+repository only and explicitly requests only `Administration: read-only`. That
+token is passed only to the live governance verifier in its `contents: read`
+job. The separate Complete Release job does not reference the app credentials;
+its built-in `GITHUB_TOKEN` remains the sole credential used by the release
+publisher. The token-creation action revokes the installation token when the
+governance job ends.
+Missing app configuration fails before semantic-release or tag creation with a
+direct setup message.
+
+For private-key rotation, create a second app key, replace
+`RELEASE_GOVERNANCE_APP_PRIVATE_KEY`, run the non-publishing
+`verify_release_governance` dispatch, and only then revoke the old key. For
+emergency revocation, uninstall the app from the repository and delete the
+Actions secret and variable. Future release runs will then fail at the
+credential preflight without creating a tag. App permission or installation
+changes require the same source-policy review and live verification as other
+governance changes.
+
 GitHub's repository-rules API and Actions-permissions API are the canonical
 references for the fields represented here:
 

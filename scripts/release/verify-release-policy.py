@@ -161,7 +161,10 @@ def verify_same_sha_workflow() -> None:
         "ref: " + github_sha,
         "run: npm run release:policy",
         "run: npm run release:license-policy",
-        "run: npm run security:github-governance:live",
+        "GITHUB_GOVERNANCE_RESULT: "
+        + "$"
+        + "{{ needs.release-governance.result }}",
+        '--github-governance-result "$GITHUB_GOVERNANCE_RESULT"',
         "RELEASE_TESTED_SHA: " + github_sha,
         "RELEASE_UPSTREAM_GATES_SHA: " + github_sha,
         "RELEASE_UPSTREAM_EVIDENCE: "
@@ -211,6 +214,7 @@ def verify_same_sha_workflow() -> None:
         "go-tooling",
         "perf-go",
         "perf-apps",
+        "release-governance",
     ):
         if "- " + dependency not in release_job:
             fail(f"semantic-release job no longer waits for required gate: {dependency}")

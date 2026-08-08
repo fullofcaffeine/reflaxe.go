@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -14,6 +16,8 @@ DOC_PATH = ROOT / "docs" / "github-governance-policy.md"
 EVIDENCE_PATH = ROOT / "docs" / "reviews" / "github-governance-vfp-4.10.md"
 VERIFIER_PATH = ROOT / "scripts" / "security" / "verify-github-governance.py"
 RELEASE_CONTRACT_RUNNER = ROOT / "test" / "run-release-contracts.py"
+WORKFLOW_PATH = ROOT / ".github" / "workflows" / "ci-harness.yml"
+ACTIONS_LOCK_PATH = ROOT / ".github" / "actions-lock.json"
 
 
 class GithubGovernancePolicyContract(unittest.TestCase):
@@ -148,6 +152,125 @@ class GithubGovernancePolicyContract(unittest.TestCase):
             "python3 scripts/security/verify-github-governance.py --mode live",
             package["scripts"]["security:github-governance:live"],
         )
+
+    def test_release_uses_a_repo_scoped_read_only_governance_token(self) -> None:
+        workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
+        governance_job = workflow.split("\n  release-governance:", 1)[1].split(
+            "\n  semantic-release:", 1
+        )[0]
+        release_job = workflow.split("\n  semantic-release:", 1)[1]
+        self.assertIn(
+            "      - name: Require governance reader credentials", governance_job
+        )
+        self.assertIn(
+            "      - name: Create read-only governance token", governance_job
+        )
+        credential_step = governance_job.split(
+            "      - name: Require governance reader credentials", 1
+        )[1].split("      - name: Create read-only governance token", 1)[0]
+        token_step = governance_job.split(
+            "      - name: Create read-only governance token", 1
+        )[1].split("      - name: Verify live GitHub governance", 1)[0]
+        governance_step = governance_job.split(
+            "      - name: Verify live GitHub governance", 1
+        )[1]
+        publish_step = release_job.split(
+            "      - name: Select version and publish verified assets", 1
+        )[1]
+
+        self.assertIn("verify_release_governance:", workflow)
+        self.assertIn("permissions:\n      contents: read", governance_job)
+        self.assertIn("- release-governance", release_job)
+        self.assertNotIn("RELEASE_GOVERNANCE_APP_", release_job)
+        self.assertNotIn("steps.governance-token.outputs.token", release_job)
+        self.assertIn(
+            "GOVERNANCE_APP_CLIENT_ID: "
+            "${{ vars.RELEASE_GOVERNANCE_APP_CLIENT_ID }}",
+            credential_step,
+        )
+        self.assertIn(
+            "GOVERNANCE_APP_PRIVATE_KEY: "
+            "${{ secrets.RELEASE_GOVERNANCE_APP_PRIVATE_KEY }}",
+            credential_step,
+        )
+        self.assertIn(
+            "::error title=Missing release governance credentials::",
+            credential_step,
+        )
+        self.assertIn(
+            "uses: actions/create-github-app-token@"
+            "bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0",
+            token_step,
+        )
+        self.assertIn(
+            "client-id: ${{ vars.RELEASE_GOVERNANCE_APP_CLIENT_ID }}", token_step
+        )
+        self.assertIn(
+            "private-key: ${{ secrets.RELEASE_GOVERNANCE_APP_PRIVATE_KEY }}",
+            token_step,
+        )
+        self.assertIn("owner: ${{ github.repository_owner }}", token_step)
+        self.assertIn(
+            "repositories: ${{ github.event.repository.name }}", token_step
+        )
+        self.assertIn("permission-administration: read", token_step)
+        self.assertIn("skip-token-revoke: false", token_step)
+        self.assertNotIn("permission-administration: write", token_step)
+        self.assertNotIn("permission-contents:", token_step)
+        self.assertIn(
+            "GH_TOKEN: ${{ steps.governance-token.outputs.token }}", governance_step
+        )
+        self.assertNotIn("secrets.GITHUB_TOKEN", governance_step)
+        self.assertIn("GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}", publish_step)
+
+        actions_lock = json.loads(ACTIONS_LOCK_PATH.read_text(encoding="utf-8"))
+        locked = {item["repository"]: item for item in actions_lock["actions"]}
+        self.assertEqual(
+            {
+                "repository": "actions/create-github-app-token",
+                "version": "v3.2.0",
+                "commit": "bcd2ba49218906704ab6c1aa796996da409d3eb1",
+            },
+            locked["actions/create-github-app-token"],
+        )
+
+        documentation = DOC_PATH.read_text(encoding="utf-8")
+        for phrase in (
+            "RELEASE_GOVERNANCE_APP_CLIENT_ID",
+            "RELEASE_GOVERNANCE_APP_PRIVATE_KEY",
+            "Administration: read-only",
+            "this repository only",
+            "rotation",
+            "revocation",
+        ):
+            self.assertIn(phrase, documentation)
+
+    def test_live_verifier_explains_insufficient_reader_authority(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="haxe-go-governance-gh-") as raw:
+            fake_gh = Path(raw) / "gh"
+            fake_gh.write_text(
+                "#!/bin/sh\n"
+                "echo 'HTTP 403: Resource not accessible by integration' >&2\n"
+                "exit 1\n",
+                encoding="utf-8",
+            )
+            fake_gh.chmod(0o755)
+            environment = os.environ.copy()
+            environment["PATH"] = raw + os.pathsep + environment["PATH"]
+            proc = subprocess.run(
+                ["python3", str(VERIFIER_PATH), "--mode", "live"],
+                cwd=ROOT,
+                env=environment,
+                text=True,
+                capture_output=True,
+            )
+
+        self.assertNotEqual(0, proc.returncode)
+        self.assertIn(
+            "governance reader lacks required Administration: read-only access",
+            proc.stderr,
+        )
+        self.assertIn("repos/fullofcaffeine/reflaxe.go", proc.stderr)
 
 
 if __name__ == "__main__":

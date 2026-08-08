@@ -48,6 +48,29 @@ portions use the separate generated-output MIT grant, and generated projects
 carry the applicable texts under `LICENSES/` automatically. See
 [LICENSING.md](LICENSING.md) for the exact boundary and approval record.
 
+## Install from the GitHub release tag
+
+The beta is currently distributed through its immutable GitHub release rather
+than the public Haxelib registry. Haxelib can install the exact Git tag directly:
+
+```bash
+haxelib git reflaxe.go https://github.com/fullofcaffeine/reflaxe.go.git v0.54.0
+```
+
+Lix can install the same tag into a project scope:
+
+```bash
+lix install gh:fullofcaffeine/reflaxe.go#v0.54.0
+```
+
+Both commands resolve the tag to commit
+`92d458e760a30bcb57f2cefb6202f0996fe1ac71`. Direct Git installs read the
+repository's development sentinel `0.0.0`; that value prevents source files
+from pretending to be a published package and does not make the Git reference
+float. If tooling needs packaged `0.54.0` metadata, install the verified
+[GitHub release ZIP](https://github.com/fullofcaffeine/reflaxe.go/releases/tag/v0.54.0)
+instead.
+
 ## Quick start
 
 ```bash

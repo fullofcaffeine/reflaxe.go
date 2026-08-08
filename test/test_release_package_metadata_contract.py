@@ -10,6 +10,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PACKAGE_JSON = REPO_ROOT / "package.json"
 HAXELIB_JSON = REPO_ROOT / "haxelib.json"
+README = REPO_ROOT / "README.md"
 RELEASE_STATE_SCRIPT = REPO_ROOT / "scripts" / "release" / "check-release-state.sh"
 
 
@@ -29,6 +30,19 @@ class ReleasePackageMetadataContractTest(unittest.TestCase):
         script = RELEASE_STATE_SCRIPT.read_text(encoding="utf-8")
         self.assertIn("HAXELIB_URL", script)
         self.assertIn("https://github.com/${REPO_SLUG}", script)
+
+    def test_readme_documents_immutable_git_installation(self) -> None:
+        readme = README.read_text(encoding="utf-8")
+        for phrase in (
+            "Install from the GitHub release tag",
+            "haxelib git reflaxe.go "
+            "https://github.com/fullofcaffeine/reflaxe.go.git v0.54.0",
+            "lix install gh:fullofcaffeine/reflaxe.go#v0.54.0",
+            "92d458e760a30bcb57f2cefb6202f0996fe1ac71",
+            "development sentinel `0.0.0`",
+            "GitHub release ZIP",
+        ):
+            self.assertIn(phrase, readme)
 
 
 if __name__ == "__main__":

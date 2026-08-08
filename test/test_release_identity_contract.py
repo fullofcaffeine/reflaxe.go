@@ -141,8 +141,14 @@ class ReleaseIdentityContractTest(unittest.TestCase):
             "scripts/release/refresh-readiness-blockers.py",
             release_job,
         )
+        self.assertIn("- release-governance", release_job)
         self.assertIn(
-            "run: npm run security:github-governance:live", release_job
+            "GITHUB_GOVERNANCE_RESULT: ${{ needs.release-governance.result }}",
+            release_job,
+        )
+        self.assertIn(
+            '--github-governance-result "$GITHUB_GOVERNANCE_RESULT"',
+            release_job,
         )
         self.assertIn("run: npm run release:license-policy", release_job)
         self.assertIn("run: npm run release", release_job)

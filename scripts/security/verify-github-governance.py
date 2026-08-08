@@ -145,6 +145,16 @@ def run_gh(
     proc = subprocess.run(command, cwd=ROOT, text=True, capture_output=True)
     if proc.returncode != 0:
         detail = (proc.stderr or proc.stdout).strip()
+        if re.search(
+            r"(?:\b403\b|\b404\b|resource not accessible|requires? admin)",
+            detail,
+            flags=re.IGNORECASE,
+        ):
+            raise GovernanceError(
+                "governance reader lacks required Administration: read-only access "
+                f"to {endpoint}; verify the app permission and this-repository-only "
+                f"installation. GitHub said: {detail}"
+            )
         raise GovernanceError(f"GitHub API {endpoint} failed: {detail}")
     if not expect_json:
         return None
