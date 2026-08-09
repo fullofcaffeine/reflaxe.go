@@ -43,7 +43,7 @@ again before any GitHub mutation.
 | GitHub state | Reconciliation result |
 | --- | --- |
 | Remote tag missing or points elsewhere | Fail. The command never creates, moves, or deletes a Git tag. |
-| Tag exists, Release absent | Create one draft with `gh release create --verify-tag`, then query the API and recheck the tag. A lost create response is resolved by querying GitHub again. |
+| Tag exists, Release absent | Create one draft with `gh release create --verify-tag`, then query the API and recheck the tag. GitHub can accept creation before either read endpoint exposes the draft, so the same command uses a short bounded backoff. A lost create response is resolved by querying GitHub again. |
 | Empty or partial matching draft | Preserve matching bytes and upload only missing assets. |
 | Draft has a duplicate, unexpected, incomplete, wrong-size, or wrong-digest asset | Fail before the first mutation. Never delete or replace the conflicting bytes. |
 | Complete matching draft | Publish it, then re-query until GitHub reports the exact notes and complete Release immutable. |
@@ -94,6 +94,13 @@ The intended same-job flow is:
 4. Invoke the same reconciliation command for that tag and manifest.
 5. Recheck the tag before publication and after the final hosted verification.
 6. Treat immutable, digest-matching GitHub API state as the only success.
+
+The draft-creation read uses bounded retries because GitHub's write result and
+subsequent read visibility are not atomic. The retry is limited to finding the
+exact draft that was just requested; it never creates a second version, moves
+a tag, replaces an asset, or turns an unknown state into success. If visibility
+does not converge, the job fails and a later ordinary CI run resumes the same
+tag and draft through this idempotent path.
 
 There is therefore no `.github/workflows/release-repair.yml`, no
 `deployments: write` permission, and no release environment approval object.

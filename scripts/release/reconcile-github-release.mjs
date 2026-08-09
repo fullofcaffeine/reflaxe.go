@@ -425,6 +425,7 @@ export class GitHubReleaseAdapter {
     token,
     fetchImpl = globalThis.fetch,
     executeImpl = executeReleaseCommand,
+    waitImpl = (delayMs) => new Promise((resolveWait) => setTimeout(resolveWait, delayMs)),
   }) {
     if (typeof repository !== "string" || !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository)) {
       fail("repository must use OWNER/NAME form");
@@ -432,10 +433,12 @@ export class GitHubReleaseAdapter {
     if (typeof token !== "string" || token.length === 0) fail("GitHub API token is required");
     if (typeof fetchImpl !== "function") fail("Fetch API is required");
     if (typeof executeImpl !== "function") fail("GitHub CLI executor is required");
+    if (typeof waitImpl !== "function") fail("release visibility waiter is required");
     this.repository = repository;
     this.token = token;
     this.fetchImpl = fetchImpl;
     this.executeImpl = executeImpl;
+    this.waitImpl = waitImpl;
     this.apiRoot = `https://api.github.com/repos/${repository}`;
   }
 
@@ -512,9 +515,17 @@ export class GitHubReleaseAdapter {
       env: { ...process.env, GH_TOKEN: this.token },
       input: notes,
     });
-    const release = await this.getRelease(tag);
-    if (!release) fail(`GitHub did not return the newly created draft Release ${tag}`);
-    return release;
+    // GitHub may acknowledge `gh release create` before the draft appears in
+    // either REST lookup. This is eventual consistency, not contradictory
+    // state. Re-read the authoritative endpoints with a short bounded backoff;
+    // a later workflow run can still resume the same draft if all reads fail.
+    const visibilityDelaysMs = [0, 1000, 2000, 4000, 5000, 5000, 5000, 5000];
+    for (const delayMs of visibilityDelaysMs) {
+      if (delayMs > 0) await this.waitImpl(delayMs);
+      const release = await this.getRelease(tag);
+      if (release) return release;
+    }
+    fail(`GitHub did not make the newly created draft Release ${tag} visible after bounded retries`);
   }
 
   async uploadAsset(release, expected) {

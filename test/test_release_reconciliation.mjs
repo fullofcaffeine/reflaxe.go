@@ -581,6 +581,36 @@ try {
   assert.equal(createCommands[0].args.includes("--draft"), true);
   assert.equal(createCommands[0].input, "fixture notes");
 
+  // GitHub can accept draft creation before that draft becomes visible through
+  // either release lookup endpoint. Reconciliation must wait for authoritative
+  // visibility instead of failing a safe, retryable release halfway through.
+  let delayedVisibilityReads = 0;
+  const visibilityWaits = [];
+  const delayedVisibilityAdapter = new GitHubReleaseAdapter({
+    repository: "fullofcaffeine/reflaxe.go",
+    token: "fixture-token",
+    executeImpl() {},
+    waitImpl: async (delayMs) => visibilityWaits.push(delayMs),
+    fetchImpl: async (url) => {
+      if (url.endsWith(`/releases/tags/${TAG}`)) {
+        return new Response("not found", { status: 404 });
+      }
+      if (url.endsWith("/releases?per_page=100&page=1")) {
+        delayedVisibilityReads += 1;
+        return Response.json(delayedVisibilityReads < 3 ? [] : [releaseRecord()]);
+      }
+      return new Response("unexpected request", { status: 500 });
+    },
+  });
+  const eventuallyVisibleDraft = await delayedVisibilityAdapter.createDraft({
+    tag: TAG,
+    sourceSha: SOURCE_SHA,
+    notes: "fixture notes",
+  });
+  assert.equal(eventuallyVisibleDraft?.draft, true);
+  assert.equal(delayedVisibilityReads, 3);
+  assert.deepEqual(visibilityWaits, [1000, 2000]);
+
   const mutationRequests = [];
   const mutationAdapter = new GitHubReleaseAdapter({
     repository: "fullofcaffeine/reflaxe.go",
