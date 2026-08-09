@@ -51,7 +51,7 @@ again before any GitHub mutation.
 | Draft or published Release has different notes | Fail before mutation. Do not silently replace public scope wording. |
 | Published but mutable, incomplete, prerelease, or conflicting Release | Fail as a release incident. Publish a corrective version; do not rewrite history. |
 
-## Retired tag reservation
+## Retired tag reservations
 
 `v0.54.1` is one deliberate exception to normal completion. The old readiness
 rule created that tag, then rejected the same commit because it required the
@@ -62,6 +62,20 @@ to `v0.54.1`.
 The tag remains immutable as an unpublished reservation. The project will not
 move, erase, or reuse it. The corrected release-policy commit will select the
 next patch version after all of its own CI gates pass.
+
+`v0.54.2` is a second immutable unpublished reservation. The first run of the
+corrected policy created that exact tag and an empty draft Release, then failed
+closed when GitHub temporarily returned no draft through either read endpoint.
+The bounded-visibility retry fix necessarily changed the source commit. Since
+an exact-SHA release may never move an older tag onto newer code, the fixed
+workflow correctly published `v0.54.3` instead. The empty `v0.54.2` draft and
+tag are retained as honest history; they are not moved, deleted, reused, filled
+with artifacts from different source, or treated as a completed release.
+
+This corrects an imprecise phrase in the retry-fix commit body that called the
+`v0.54.2` draft resumable without stating the same-SHA condition. A draft is
+resumable only while the release implementation and artifacts can be rebuilt
+from the commit already named by its immutable tag.
 
 The read-only `verify` mode applies the same rules but cannot create a draft,
 upload an asset, or publish. Reconciliation uploads only missing assets; it has

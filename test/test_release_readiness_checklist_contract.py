@@ -80,6 +80,8 @@ class ReleaseReadinessChecklistContractTest(unittest.TestCase):
             self.assertIn("historical beta baseline", document)
             self.assertIn("routine release", document)
         self.assertIn("v0.54.1", checklist)
+        self.assertIn("v0.54.2", checklist)
+        self.assertIn("v0.54.3", checklist)
         self.assertIn("unpublished", checklist)
         self.assertIn("fresh review", version_policy)
 

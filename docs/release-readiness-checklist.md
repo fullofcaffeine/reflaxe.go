@@ -48,10 +48,14 @@ admitted claim while its P0/P1 blocker remains unresolved.
 publishing. It is never hosted-release evidence. Production publication uses
 `live` mode through `scripts/release/run-same-sha-release.sh`.
 
-`v0.54.1` is an unpublished tag at commit `e276af1b`. The old gate created the
-tag before it found that the beta review SHA did not match the routine release
-SHA. The project will not move or erase this tag, and it will not attach a
-GitHub Release to it. The next eligible commit uses the next patch version.
+`v0.54.1` and `v0.54.2` are immutable unpublished reservations. The old gate
+created `v0.54.1` before rejecting the routine release SHA. The first corrected
+run created the exact `v0.54.2` tag and an empty draft, then stopped when
+GitHub briefly hid that new draft from its read endpoints. Fixing that retry
+required a new source commit, so exact-SHA policy correctly selected `v0.54.3`
+for the fixed code. The project will not move, erase, reuse, or publish either
+reserved tag. `v0.54.3` is the first completed routine release under the
+release-line admission rule.
 
 ## Required GA gates
 
