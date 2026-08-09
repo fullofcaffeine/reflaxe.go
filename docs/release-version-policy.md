@@ -11,6 +11,10 @@ the mechanical mapping from that authored classification to a release number.
 The [SemVer lifecycle policy](semver-lifecycle-policy.md) owns deprecation,
 experimental-surface, release-channel, and stable-admission rules.
 
+The original portable-beta review is the historical beta baseline. It proves
+that the project admitted the named pre-1.0 release line. It does not claim
+that the reviewer examined every later routine release commit.
+
 ## What, why, and how
 
 The release identity flow is:
@@ -88,6 +92,34 @@ approval plus the Beads interaction log may change afterward. Any other product,
 policy, test, documentation, workflow, or packaging change makes the approval
 stale and requires a new review. After the major ships, the historical approval
 does not gate ordinary maintenance within that already-admitted line.
+
+## Beta baseline and routine releases
+
+The readiness policy applies the same rule to the current pre-1.0 line. The
+historical beta baseline stays fixed at `v0.54.0`. Each routine release then
+proves its own commit with current CI, security results, compatibility data,
+blocker data, and verified package bytes.
+
+This matches the sibling compiler policy. `haxe.elixir.codex` and `haxe.rust`
+permit routine `0.x` releases without per-commit approval. `haxe.ruby` applies
+approval to a stable major release line, not to every patch commit.
+
+A fresh review is required when a change affects one of these boundaries:
+
+- the public compatibility claim or admitted scope;
+- the security or trust boundary;
+- the public API or runtime ABI;
+- licensing or distribution rights;
+- the release policy or publication authority; or
+- graduation to a new stable major version.
+
+The review uses the risk level of the change. A release-policy change uses an
+xhigh second pass. A routine fix with unchanged boundaries uses its normal
+focused review and CI evidence. Neither path requires a GitHub GUI approval.
+
+The machine gate preserves this list but does not classify source changes by
+meaning. The repository work rules and Beads record the risk decision. An open
+applicable P0 or P1 Bead blocks release after that decision.
 
 ## Version-only semantic-release
 

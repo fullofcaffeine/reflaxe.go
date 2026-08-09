@@ -20,10 +20,10 @@ the same tested commit:
    result with the generated compatibility manifest, its canonical admitted
    operation/member digest, licensing decision, verified local asset manifest,
    and one remote Beads evidence file pinned to a stable Dolt ref commit. The
-   workflow reuses that file for candidate and published checks. The final
-   portable-admission record keeps the Oracle-reviewed candidate separate from
-   the local correction-reviewed release SHA, and binds both to the request,
-   packet checksum, disposition checksum, and captured tracker revision.
+   workflow reuses that file for candidate and published checks. The
+   historical beta baseline keeps the Oracle-reviewed candidate separate from
+   the local correction review. Routine release evidence comes from the exact
+   current CI commit, current governed authorities, and current artifacts.
 3. `scripts/release/verify-release-readiness.py` evaluates a `candidate`
    after the exact tag and local assets exist but before hosted-release
    reconciliation. Missing assets or provenance, a different tested SHA, an
@@ -47,6 +47,11 @@ admitted claim while its P0/P1 blocker remains unresolved.
 `fixture` mode exists only to test pass and failure semantics without
 publishing. It is never hosted-release evidence. Production publication uses
 `live` mode through `scripts/release/run-same-sha-release.sh`.
+
+`v0.54.1` is an unpublished tag at commit `e276af1b`. The old gate created the
+tag before it found that the beta review SHA did not match the routine release
+SHA. The project will not move or erase this tag, and it will not attach a
+GitHub Release to it. The next eligible commit uses the next patch version.
 
 ## Required GA gates
 
@@ -187,12 +192,12 @@ GO_APP_PERF_ENFORCE_METAL_BUDGET=1 npm run test:perf:apps
   real publication performs both the candidate and published live checks.
   GitHub API state—not prose, a cached release page, or caller-supplied hosted
   JSON—is authoritative for the published verdict.
-- The final-admission Bead is closed and its structured `releaseAdmission`
-  metadata names the same source SHA as the release candidate. The Oracle
-  subrecord must keep the original reviewed SHA and packet provenance; the
-  local disposition subrecord must name the exact corrected SHA and a real
-  disposition-document digest. The remote tracker commit in blocker evidence
-  makes that record immutable for the whole publication attempt.
+- The release-line admission Bead is closed. Its structured
+  `releaseAdmission` metadata must match the historical beta baseline in the
+  readiness policy. The Oracle and local disposition records keep their real
+  reviewed SHAs and digests. They do not claim review of each routine release.
+  Current CI, current authorities, current blockers, and current artifacts
+  prove the exact routine release SHA.
 - The public GitHub Release body contains the exact generated beta claim,
   admitted preset/platform/toolchains, trust boundary, and named exclusion
   groups. A generic generated changelog is not a substitute for these notes,

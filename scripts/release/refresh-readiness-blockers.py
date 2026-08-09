@@ -106,12 +106,12 @@ def build_snapshot(
     scopes = compatibility.get("blockerScopes")
     if not isinstance(scopes, dict) or not scopes:
         fail("readiness policy blockerScopes must be a non-empty object")
-    final_admission = policy.get("finalAdmission")
-    if not isinstance(final_admission, dict):
-        fail("readiness policy finalAdmission must be an object")
-    admission_owner = final_admission.get("owner")
+    release_line_admission = policy.get("releaseLineAdmission")
+    if not isinstance(release_line_admission, dict):
+        fail("readiness policy releaseLineAdmission must be an object")
+    admission_owner = release_line_admission.get("owner")
     if not isinstance(admission_owner, str) or not admission_owner:
-        fail("readiness policy finalAdmission owner is invalid")
+        fail("readiness policy releaseLineAdmission owner is invalid")
     reference = "refs/dolt/data"
     before = remote_tracker_commit(reference)
     remote = remote_override

@@ -86,7 +86,7 @@ def unique_strings(value: Any, label: str) -> list[str]:
 
 
 def verify_policy(policy: dict[str, Any]) -> None:
-    if policy.get("schemaVersion") != 1:
+    if policy.get("schemaVersion") != 2:
         fail("unsupported readiness policy schema")
     if policy.get("kind") != "haxe.go-release-readiness-policy":
         fail("readiness policy kind is invalid")
@@ -95,7 +95,7 @@ def verify_policy(policy: dict[str, Any]) -> None:
         fail("readiness policy repository must be owner/name")
     required = (
         "compatibility",
-        "finalAdmission",
+        "releaseLineAdmission",
         "toolchains",
         "requiredSecurityGates",
         "requiredArtifactRoles",
@@ -104,6 +104,75 @@ def verify_policy(policy: dict[str, Any]) -> None:
     for field in required:
         if field not in policy:
             fail(f"readiness policy is missing {field}")
+
+    admission = require_object(
+        policy.get("releaseLineAdmission"), "release-line admission policy"
+    )
+    if admission.get("mode") != "historical-beta-baseline":
+        fail("release-line admission mode is unsupported")
+    baseline_tag = admission.get("baselineTag")
+    if not isinstance(baseline_tag, str) or re.fullmatch(
+        r"v(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)",
+        baseline_tag,
+    ) is None:
+        fail("release-line admission baseline tag is invalid")
+    baseline_sha = admission.get("baselineSourceSha")
+    if not isinstance(baseline_sha, str) or SHA_RE.fullmatch(baseline_sha) is None:
+        fail("release-line admission baseline SHA is invalid")
+    if admission.get("routineReleaseProof") != "current-exact-sha-ci-and-authorities":
+        fail("routine release proof is unsupported")
+    required_triggers = {
+        "compatibility-claim-or-admitted-scope",
+        "security-or-trust-boundary",
+        "public-api-or-abi",
+        "licensing-or-distribution-rights",
+        "release-policy-or-publication-authority",
+        "stable-major-graduation",
+    }
+    if set(
+        unique_strings(admission.get("freshReviewTriggers"), "fresh review triggers")
+    ) != required_triggers:
+        fail("fresh review triggers are incomplete or unknown")
+    try:
+        resolved = subprocess.run(
+            ["git", "rev-parse", "--verify", f"{baseline_tag}^{{commit}}"],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        fail(f"cannot resolve release-line admission baseline tag: {error}")
+    if resolved.returncode != 0 or resolved.stdout.strip() != baseline_sha:
+        fail("release-line admission baseline tag and SHA differ")
+
+
+def verify_release_line_ancestry(
+    policy: dict[str, Any], tested_sha: str, *, mode: str
+) -> None:
+    """Require a real release candidate to remain on the admitted beta history."""
+
+    if mode != "live":
+        return
+    admission = require_object(
+        policy.get("releaseLineAdmission"), "release-line admission policy"
+    )
+    baseline_sha = admission.get("baselineSourceSha")
+    try:
+        ancestry = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", baseline_sha, tested_sha],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        fail(f"cannot verify release-line ancestry: {error}")
+    if ancestry.returncode == 1:
+        fail("release SHA does not descend from the historical beta baseline")
+    if ancestry.returncode != 0:
+        detail = (ancestry.stderr or ancestry.stdout).strip()
+        fail(f"cannot verify release-line ancestry: {detail}")
 
 
 def verify_repository_authorities(
@@ -405,14 +474,14 @@ def verify_blockers(
         fail("blocker tracker evidence observation date is missing")
     blockers = require_list(authority.get("records"), "blocker records")
     admission_policy = require_object(
-        policy.get("finalAdmission"), "final admission policy"
+        policy.get("releaseLineAdmission"), "release-line admission policy"
     )
     admission_owner = admission_policy.get("owner")
     admission_scope = admission_policy.get("scope")
     if not isinstance(admission_owner, str) or not admission_owner:
-        fail("final admission owner is invalid")
+        fail("release-line admission owner is invalid")
     if not isinstance(admission_scope, str) or admission_scope not in admitted:
-        fail("final admission scope is not release-admitted")
+        fail("release-line admission scope is not release-admitted")
     seen: set[str] = set()
     for raw in blockers:
         blocker = require_object(raw, "blocker")
@@ -449,7 +518,7 @@ def verify_blockers(
         if actual_by_id[blocker_id].get("scopes") != [scope]:
             fail(f"blocker evidence scope differs for {blocker_id}")
     if expected_scopes.get(admission_owner) != admission_scope:
-        fail("final admission owner does not govern its release scope")
+        fail("release-line admission owner does not govern its release scope")
 
     final_record = require_object(
         actual_by_id[admission_owner].get("admission"), "final admission record"
@@ -495,8 +564,10 @@ def verify_blockers(
         fail("local admission disposition fields are incomplete or unknown")
     if disposition.get("verdict") != admission_policy.get("localVerdict"):
         fail("local admission verdict differs from final admission policy")
-    if disposition.get("reviewedSourceSha") != tested_sha:
-        fail("local admission reviewed SHA differs from release SHA")
+    if disposition.get("reviewedSourceSha") != admission_policy.get(
+        "baselineSourceSha"
+    ):
+        fail("local admission baseline SHA differs from release-line policy")
     disposition_digest = disposition.get("dispositionSha256")
     if (
         not isinstance(disposition_digest, str)
@@ -698,6 +769,7 @@ def evaluate(
         fail("evidence phase must be candidate or published")
 
     version, tag, tested_sha = verify_release(evidence)
+    verify_release_line_ancestry(policy, tested_sha, mode=mode)
     verify_repository_authorities(policy, evidence)
     admitted = verify_compatibility(policy, evidence)
     verify_public_api(evidence, tested_sha)

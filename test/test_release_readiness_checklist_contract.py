@@ -72,6 +72,17 @@ class ReleaseReadinessChecklistContractTest(unittest.TestCase):
         self.assertIn("def build_release_contracts_command", ci_runner)
         self.assertIn("test/run-release-contracts.py", ci_runner)
 
+    def test_docs_separate_beta_admission_from_routine_release_proof(self) -> None:
+        checklist = (REPO_ROOT / "docs" / "release-readiness-checklist.md").read_text(encoding="utf-8")
+        evidence = (REPO_ROOT / "docs" / "release-readiness-evidence.md").read_text(encoding="utf-8")
+        version_policy = (REPO_ROOT / "docs" / "release-version-policy.md").read_text(encoding="utf-8")
+        for document in (checklist, evidence, version_policy):
+            self.assertIn("historical beta baseline", document)
+            self.assertIn("routine release", document)
+        self.assertIn("v0.54.1", checklist)
+        self.assertIn("unpublished", checklist)
+        self.assertIn("fresh review", version_policy)
+
 
 if __name__ == "__main__":
     unittest.main()

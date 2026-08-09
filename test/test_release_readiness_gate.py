@@ -117,12 +117,26 @@ class ReleaseReadinessGateTest(unittest.TestCase):
             "applicable unresolved P0/P1 blocker: haxe_go-vfp.10.9",
         )
 
-    def test_final_admission_record_binds_oracle_and_local_review_to_release_sha(
+    def test_release_line_admission_keeps_historical_review_separate_from_release_sha(
         self,
     ) -> None:
         policy = json.loads(POLICY.read_text(encoding="utf-8"))
-        admission_policy = policy["finalAdmission"]
+        admission_policy = policy["releaseLineAdmission"]
+        self.assertEqual("historical-beta-baseline", admission_policy["mode"])
         self.assertEqual("haxe_go-vfp.12.5", admission_policy["owner"])
+        self.assertEqual("v0.54.0", admission_policy["baselineTag"])
+        self.assertEqual(
+            "92d458e760a30bcb57f2cefb6202f0996fe1ac71",
+            admission_policy["baselineSourceSha"],
+        )
+        self.assertEqual(
+            "current-exact-sha-ci-and-authorities",
+            admission_policy["routineReleaseProof"],
+        )
+        self.assertIn(
+            "release-policy-or-publication-authority",
+            admission_policy["freshReviewTriggers"],
+        )
         self.assertEqual(
             "orq_20260803T080027Z_615d041e",
             admission_policy["oracleRequestId"],
@@ -152,6 +166,10 @@ class ReleaseReadinessGateTest(unittest.TestCase):
             admission["oracleReview"]["reviewedSourceSha"],
         )
         self.assertEqual(
+            admission_policy["baselineSourceSha"],
+            admission["localDisposition"]["reviewedSourceSha"],
+        )
+        self.assertNotEqual(
             evidence["release"]["testedSha"],
             admission["localDisposition"]["reviewedSourceSha"],
         )
@@ -182,7 +200,7 @@ class ReleaseReadinessGateTest(unittest.TestCase):
                 ),
             ),
             (
-                "local admission reviewed SHA",
+                "local admission baseline SHA",
                 lambda value: value["localDisposition"].update(
                     reviewedSourceSha="2" * 40
                 ),
@@ -216,6 +234,43 @@ class ReleaseReadinessGateTest(unittest.TestCase):
             "additional readiness blocker does not govern an admitted scope",
             result.stderr,
         )
+
+    def test_release_line_admission_rejects_incomplete_review_triggers(self) -> None:
+        policy = json.loads(POLICY.read_text(encoding="utf-8"))
+        policy["releaseLineAdmission"]["freshReviewTriggers"].remove(
+            "security-or-trust-boundary"
+        )
+        result = self.run_evidence(self.evidence(), policy=policy)
+        self.assertNotEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertIn("fresh review triggers", result.stderr)
+
+    def test_release_line_admission_rejects_moved_baseline_identity(self) -> None:
+        policy = json.loads(POLICY.read_text(encoding="utf-8"))
+        policy["releaseLineAdmission"]["baselineSourceSha"] = "2" * 40
+        result = self.run_evidence(self.evidence(), policy=policy)
+        self.assertNotEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertIn("baseline tag and SHA differ", result.stderr)
+
+    def test_live_release_must_descend_from_the_beta_baseline(self) -> None:
+        root_sha = subprocess.run(
+            ["git", "rev-list", "--max-parents=0", "HEAD"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.splitlines()[0]
+        evidence = self.evidence()
+        evidence["phase"] = "candidate"
+        evidence["github"] = None
+        evidence["release"]["testedSha"] = root_sha
+        evidence["release"]["sourceSha"] = root_sha
+        evidence["publicApi"]["testedSha"] = root_sha
+        evidence["artifacts"]["verifiedForSha"] = root_sha
+        for gate in evidence["security"]["gates"]:
+            gate["testedSha"] = root_sha
+        result = self.run_evidence(evidence, mode="live")
+        self.assertNotEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertIn("does not descend from the historical beta baseline", result.stderr)
 
     def test_candidate_fixture_passes_without_pretending_assets_are_hosted(self) -> None:
         evidence = self.evidence()
@@ -375,6 +430,7 @@ class ReleaseReadinessGateTest(unittest.TestCase):
             fake_gh.write_text(
                 """#!/usr/bin/env python3
 import json
+import os
 import sys
 
 endpoint = sys.argv[-1]
@@ -392,7 +448,7 @@ if endpoint.endswith("/releases/tags/v0.54.0"):
     }))
 elif endpoint.endswith("/git/ref/tags/v0.54.0"):
     print(json.dumps({
-        "object": {"type": "commit", "sha": "1" * 40}
+        "object": {"type": "commit", "sha": os.environ["FAKE_RELEASE_SHA"]}
     }))
 else:
     print("unexpected endpoint: " + endpoint, file=sys.stderr)
@@ -403,8 +459,22 @@ else:
             fake_gh.chmod(0o755)
             evidence = self.evidence()
             evidence["github"]["apiAuthoritative"] = False
+            release_sha = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=ROOT,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+            evidence["release"]["testedSha"] = release_sha
+            evidence["release"]["sourceSha"] = release_sha
+            evidence["publicApi"]["testedSha"] = release_sha
+            evidence["artifacts"]["verifiedForSha"] = release_sha
+            for gate in evidence["security"]["gates"]:
+                gate["testedSha"] = release_sha
             environment = os.environ.copy()
             environment["PATH"] = f"{bin_dir}{os.pathsep}{environment['PATH']}"
+            environment["FAKE_RELEASE_SHA"] = release_sha
             result = self.run_evidence(evidence, mode="live", env=environment)
             self.assertEqual(0, result.returncode, result.stdout + result.stderr)
 

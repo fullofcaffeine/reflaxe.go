@@ -49,10 +49,9 @@ leaving each detailed authority in its existing focused file.
    advances while those records are being read. The same immutable file is
    then reused for both release phases, so a tracker update halfway through a
    release cannot make the two decisions describe different tracker states.
-   The final portable-admission Bead also carries a structured review record:
-   the Oracle request, frozen packet digest, Oracle-reviewed candidate SHA and
-   verdict stay separate from the local correction disposition for the exact
-   SHA that may ship.
+   The portable-admission Bead also carries the historical beta baseline. Its
+   Oracle record and local correction record keep the exact SHAs that those
+   reviews examined. They do not change for each routine release.
 6. The collector creates `candidate` evidence from governed repository files,
    the structured upstream results, the verified asset manifest, and that
    remote blocker evidence.
@@ -81,7 +80,7 @@ and never overwrites a conflicting immutable asset.
 | `toolchains` | Actual resolved Haxe and Node versions plus the exact successful Go matrix, checked against governed support lines. |
 | `security` | Structured GitHub job results for the tested SHA and zero reachable vulnerabilities. |
 | `licensing` | Approved scope digest and no unresolved questions, matching `license-policy.json`. |
-| `blockers` | Status, priority, and scopes used to block only unresolved P0/P1 work intersecting admitted scope. The final admission owner additionally binds Oracle provenance and the local correction disposition to the exact release SHA. |
+| `blockers` | Status, priority, and scopes used to block only unresolved P0/P1 work intersecting admitted scope. The admission owner also supplies the immutable historical beta baseline. |
 | `artifacts` | Required roles, names, SHA-256 digests, and provenance subjects for the tested SHA. |
 | `github` | `null` for a candidate; live GitHub API truth for a published release. |
 
@@ -107,22 +106,33 @@ invent a new scope or masquerade as a permanent compatibility exclusion. This
 lets the tracker close an admission review and unblock release without a
 follow-up source commit, while an open P0/P1 review still fails closed.
 
-The final admission owner is stricter than an ordinary closed blocker. Its
+The release-line admission owner is stricter than an ordinary closed blocker. Its
 `releaseAdmission` metadata has two independent parts:
 
 - `oracleReview` identifies what the external reviewer actually saw: the
   reviewed source SHA, request ID, frozen packet SHA-256, and returned verdict.
-- `localDisposition` identifies the correction-focused pass over the source
-  that can actually ship: its exact SHA, accepted verdict, disposition-document
-  SHA-256, processor model, and reasoning level.
+- `localDisposition` identifies the correction-focused pass that accepted the
+  historical beta baseline. It records the exact SHA, verdict, document digest,
+  processor model, and reasoning level.
 
-The readiness verifier requires the local reviewed SHA to equal the release
-tested SHA. The surrounding blocker evidence is itself pinned to one remote
-`refs/dolt/data` commit, so the admission metadata and its tracker revision are
-one immutable input to both candidate and published decisions. This avoids two
-misleading shortcuts: claiming Oracle reviewed the successor when it reviewed
-only the predecessor, or treating a closed issue with no exact-SHA disposition
-as release approval.
+The readiness verifier requires this record to match the historical beta
+baseline tag and SHA in the policy. Routine release proof is separate. It uses
+the exact current CI SHA, support authorities, blocker snapshot, security
+results, and verified artifacts. This avoids claiming that an old reviewer
+examined new code while also avoiding a new approval ceremony for each fix.
+In live mode, Git must also prove that the release commit descends from the
+historical baseline commit.
+
+A fresh review is still required when a change alters a named review trigger.
+These triggers include the public compatibility claim, admitted scope, security
+or trust boundary, public API or ABI, licensing rights, publication authority,
+and stable-major graduation. The review is part of the change that alters that
+boundary. It is not a GitHub GUI approval for every release.
+
+CI makes sure that the trigger list remains complete. CI cannot decide whether
+a source change has altered one of those concepts. The repository agent rules,
+the Bead `thinking:*` label, and the change review own that decision. An open
+P0 or P1 Bead for the admitted scope then blocks publication automatically.
 
 The release workflow generates this evidence with
 `scripts/release/refresh-readiness-blockers.py` from an isolated client of the
@@ -180,3 +190,4 @@ Related contracts:
 - [Release retry and reconciliation](release-reconciliation.md)
 - [GitHub governance policy](github-governance-policy.md)
 - [Independent xhigh second-pass review](reviews/release-readiness-vfp-6.5.md)
+- [Release-line admission second pass](reviews/release-line-admission-vfp-12.20.md)

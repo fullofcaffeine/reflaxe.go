@@ -51,6 +51,18 @@ again before any GitHub mutation.
 | Draft or published Release has different notes | Fail before mutation. Do not silently replace public scope wording. |
 | Published but mutable, incomplete, prerelease, or conflicting Release | Fail as a release incident. Publish a corrective version; do not rewrite history. |
 
+## Retired tag reservation
+
+`v0.54.1` is one deliberate exception to normal completion. The old readiness
+rule created that tag, then rejected the same commit because it required the
+first beta review SHA for every routine release. The tagged source still
+contains that old rule. Therefore, automation will not attach a GitHub Release
+to `v0.54.1`.
+
+The tag remains immutable as an unpublished reservation. The project will not
+move, erase, or reuse it. The corrected release-policy commit will select the
+next patch version after all of its own CI gates pass.
+
 The read-only `verify` mode applies the same rules but cannot create a draft,
 upload an asset, or publish. Reconciliation uploads only missing assets; it has
 no delete-or-replace operation. `npm run release:status` uses the locked `semver`

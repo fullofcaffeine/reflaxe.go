@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "kind": "haxe.go-release-readiness-policy",
   "repository": "fullofcaffeine/reflaxe.go",
   "compatibility": {
@@ -23,9 +23,21 @@
       "haxe_go-vfp.12.7": "stable-1.x"
     }
   },
-  "finalAdmission": {
+  "releaseLineAdmission": {
+    "mode": "historical-beta-baseline",
     "owner": "haxe_go-vfp.12.5",
     "scope": "preset:portable",
+    "baselineTag": "v0.54.0",
+    "baselineSourceSha": "92d458e760a30bcb57f2cefb6202f0996fe1ac71",
+    "routineReleaseProof": "current-exact-sha-ci-and-authorities",
+    "freshReviewTriggers": [
+      "compatibility-claim-or-admitted-scope",
+      "security-or-trust-boundary",
+      "public-api-or-abi",
+      "licensing-or-distribution-rights",
+      "release-policy-or-publication-authority",
+      "stable-major-graduation"
+    ],
     "oracleVerdict": "READY_AFTER_BOUNDED_FIXES",
     "oracleReviewedSourceSha": "c22af0ea82e5e481e23277e513ed5b7c6b5c770b",
     "oracleRequestId": "orq_20260803T080027Z_615d041e",

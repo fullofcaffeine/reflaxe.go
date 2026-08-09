@@ -35,6 +35,11 @@ The status script makes those assumptions explicit and machine-checkable before
 release jobs run. The detailed version and source-identity contract is in
 [Release Version and Source-Identity Policy](release-version-policy.md).
 
+The historical beta baseline approves the current pre-1.0 release line. Each
+routine release still needs current exact-SHA CI, security, compatibility,
+blocker, package, and hosted-state evidence. The historical review is not
+copied forward as if its reviewer examined each new commit.
+
 Compatibility truth has its own fail-closed chain:
 
 1. Humans edit `docs/compatibility-support-source.json`.
