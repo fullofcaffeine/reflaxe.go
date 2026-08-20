@@ -14,10 +14,10 @@ import unittest
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def haxe_env() -> dict[str, str]:
+def haxe_env(**overrides: str) -> dict[str, str]:
     env = os.environ.copy()
     env["HAXE_NO_SERVER"] = "1"
-    env["GOFLAGS"] = ""
+    env.update(overrides)
     return env
 
 
@@ -60,7 +60,10 @@ func main() {
     )
 
 
-def run_compiler(module_root: Path) -> subprocess.CompletedProcess[str]:
+def run_compiler(
+    module_root: Path, **environment: str
+) -> subprocess.CompletedProcess[str]:
+    environment.setdefault("GOCACHE", str(module_root / "go-cache"))
     return subprocess.run(
         [
             shutil.which("haxe") or "haxe",
@@ -96,7 +99,7 @@ def run_compiler(module_root: Path) -> subprocess.CompletedProcess[str]:
             "Main",
         ],
         cwd=module_root,
-        env=haxe_env(),
+        env=haxe_env(**environment),
         capture_output=True,
         text=True,
         timeout=240,
@@ -118,6 +121,7 @@ def structured_build(**overrides: object) -> dict[str, object]:
         "trimpath": True,
         "race": True,
         "arguments": ["-buildvcs=false"],
+        "environment": [{"name": "GOCACHE", "source": "inherit"}],
     }
     build.update(overrides)
     return build
@@ -129,10 +133,26 @@ class ExistingModuleStructuredBuildTest(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="haxe-go-structured-build-") as raw:
             module_root = Path(raw)
             (module_root / "dist").mkdir()
-            write_project(module_root, structured_build())
+            go_cache = module_root / "go-cache"
+            build = structured_build(
+                environment=[
+                    {"name": "CGO_ENABLED", "source": "literal", "value": "1"},
+                    {"name": "GOCACHE", "source": "inherit"},
+                    {"name": "GOPROXY", "source": "inherit"},
+                ]
+            )
+            write_project(module_root, build)
             go_mod = (module_root / "go.mod").read_bytes()
 
-            completed = run_compiler(module_root)
+            completed = run_compiler(
+                module_root,
+                GOCACHE=str(go_cache),
+                GOPROXY="https://build-user:build-password@example.invalid",
+                GOFLAGS="-ambient-flags-must-not-run",
+                GOWORK=str(module_root / "ambient-secret-workspace"),
+                GOTOOLCHAIN="auto",
+                CLOUD_ACCESS_TOKEN="ambient-secret-token",
+            )
             output = completed.stdout + completed.stderr
 
             self.assertEqual(0, completed.returncode, output)
@@ -140,7 +160,7 @@ class ExistingModuleStructuredBuildTest(unittest.TestCase):
             first_report = report_path.read_bytes()
             self.assertEqual(
                 {
-                    "schemaVersion": 1,
+                    "schemaVersion": 2,
                     "contract": "reflaxe.go/build-invocation",
                     "workingDirectory": ".",
                     "command": "go",
@@ -156,9 +176,47 @@ class ExistingModuleStructuredBuildTest(unittest.TestCase):
                         "dist/tool",
                         "./cmd/tool",
                     ],
+                    "environment": [
+                        {
+                            "name": "CGO_ENABLED",
+                            "source": "literal",
+                            "value": "1",
+                        },
+                        {
+                            "name": "GOCACHE",
+                            "source": "inherit",
+                            "value": "<path>",
+                        },
+                        {
+                            "name": "GOENV",
+                            "source": "compiler",
+                            "value": "off",
+                        },
+                        {
+                            "name": "GOPROXY",
+                            "source": "inherit",
+                            "value": "<redacted>",
+                        },
+                        {
+                            "name": "GOTOOLCHAIN",
+                            "source": "compiler",
+                            "value": "local",
+                        },
+                        {
+                            "name": "GOWORK",
+                            "source": "compiler",
+                            "value": "off",
+                        },
+                    ],
                 },
                 json.loads(first_report),
             )
+            report_text = first_report.decode("utf-8")
+            self.assertNotIn("build-password", report_text)
+            self.assertNotIn(str(module_root), report_text)
+            self.assertNotIn("CLOUD_ACCESS_TOKEN", report_text)
+            self.assertNotIn("ambient-secret-token", report_text)
+            self.assertNotIn("GOFLAGS", report_text)
             self.assertFalse((module_root / "should-not-exist").exists())
             self.assertEqual(go_mod, (module_root / "go.mod").read_bytes())
             self.assertFalse((module_root / "go.sum").exists())
@@ -178,11 +236,102 @@ class ExistingModuleStructuredBuildTest(unittest.TestCase):
             )
             self.assertFalse((module_root / "should-not-exist").exists())
 
-            repeated = run_compiler(module_root)
+            repeated = run_compiler(
+                module_root,
+                GOCACHE=str(go_cache),
+                GOPROXY="https://build-user:build-password@example.invalid",
+                GOFLAGS="-ambient-flags-must-not-run",
+                GOWORK=str(module_root / "ambient-secret-workspace"),
+                GOTOOLCHAIN="auto",
+                CLOUD_ACCESS_TOKEN="ambient-secret-token",
+            )
             self.assertEqual(0, repeated.returncode, repeated.stdout + repeated.stderr)
             self.assertEqual(first_report, report_path.read_bytes())
             self.assertEqual(go_mod, (module_root / "go.mod").read_bytes())
             self.assertFalse((module_root / "go.sum").exists())
+
+    def test_unknown_and_forbidden_environment_names_fail_before_writes(self) -> None:
+        for name in ("CLOUD_ACCESS_TOKEN", "GOFLAGS"):
+            with self.subTest(name=name), tempfile.TemporaryDirectory(
+                prefix="haxe-go-structured-build-"
+            ) as raw:
+                module_root = Path(raw)
+                write_project(
+                    module_root,
+                    structured_build(
+                        environment=[
+                            {"name": name, "source": "literal", "value": "secret"}
+                        ]
+                    ),
+                )
+
+                completed = run_compiler(module_root)
+                output = completed.stdout + completed.stderr
+
+                self.assertNotEqual(0, completed.returncode, output)
+                self.assertIn("GO-BUILD-ENVIRONMENT", output)
+                self.assertIn(name, output)
+                self.assertNotIn("secret", output)
+                self.assertFalse((module_root / "haxego_generated_main.go").exists())
+                self.assertFalse((module_root / "reflaxe_go_build.json").exists())
+                self.assertNotIn(str(module_root), output)
+
+    def test_incompatible_cgo_configuration_fails_before_writes(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="haxe-go-structured-build-") as raw:
+            module_root = Path(raw)
+            write_project(
+                module_root,
+                structured_build(
+                    race=False,
+                    environment=[
+                        {"name": "CGO_ENABLED", "source": "literal", "value": "0"},
+                        {"name": "CC", "source": "literal", "value": "clang"},
+                    ],
+                ),
+            )
+
+            completed = run_compiler(module_root)
+            output = completed.stdout + completed.stderr
+
+            self.assertNotEqual(0, completed.returncode, output)
+            self.assertIn("GO-BUILD-ENVIRONMENT", output)
+            self.assertIn("CGO_ENABLED", output)
+            self.assertIn("CC", output)
+            self.assertFalse((module_root / "haxego_generated_main.go").exists())
+            self.assertFalse((module_root / "reflaxe_go_build.json").exists())
+            self.assertNotIn(str(module_root), output)
+
+    def test_cgo_disabled_build_uses_the_governed_environment(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="haxe-go-structured-build-") as raw:
+            module_root = Path(raw)
+            (module_root / "dist").mkdir()
+            go_cache = module_root / "go-cache"
+            write_project(
+                module_root,
+                structured_build(
+                    race=False,
+                    environment=[
+                        {"name": "CGO_ENABLED", "source": "literal", "value": "0"},
+                        {"name": "GOCACHE", "source": "inherit"},
+                    ],
+                ),
+            )
+
+            completed = run_compiler(
+                module_root,
+                GOCACHE=str(go_cache),
+                GOFLAGS="-ambient-flags-must-not-run",
+                CLOUD_ACCESS_TOKEN="ambient-secret-token",
+            )
+            output = completed.stdout + completed.stderr
+
+            self.assertEqual(0, completed.returncode, output)
+            self.assertTrue((module_root / "dist" / "tool").is_file())
+            report = json.loads((module_root / "reflaxe_go_build.json").read_text())
+            self.assertIn(
+                {"name": "CGO_ENABLED", "source": "literal", "value": "0"},
+                report["environment"],
+            )
 
     def test_unapproved_argument_fails_before_generated_writes(self) -> None:
         with tempfile.TemporaryDirectory(prefix="haxe-go-structured-build-") as raw:

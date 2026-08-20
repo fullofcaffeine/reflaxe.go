@@ -9,23 +9,26 @@ private typedef GoBuildRequestData = {
 	final trimpath:Bool;
 	final race:Bool;
 	final arguments:Array<String>;
+	final environment:GoBuildEnvironment;
 }
 
 /** The exact process boundary recorded and executed for a typed Go build. */
 class GoBuildInvocation {
 	public final command:String;
 	public final arguments:Array<String>;
+	public final environment:GoBuildEnvironment;
 
-	public function new(command:String, arguments:Array<String>) {
+	public function new(command:String, arguments:Array<String>, environment:GoBuildEnvironment) {
 		this.command = command;
 		this.arguments = arguments.copy();
+		this.environment = environment;
 	}
 
 	/** Render a path-independent record of the effective process invocation. */
 	public function renderJson():String {
 		final lines = [
 			"{",
-			'\t"schemaVersion": 1,',
+			'\t"schemaVersion": 2,',
 			'\t"contract": "reflaxe.go/build-invocation",',
 			'\t"workingDirectory": ".",',
 			'\t"command": "${jsonEscape(command)}",',
@@ -34,6 +37,14 @@ class GoBuildInvocation {
 		for (index in 0...arguments.length) {
 			final suffix = index == arguments.length - 1 ? "" : ",";
 			lines.push('\t\t"${jsonEscape(arguments[index])}"${suffix}');
+		}
+		lines.push("\t],");
+		lines.push('\t"environment": [');
+		final environmentEntries = environment.reportEntries();
+		for (index in 0...environmentEntries.length) {
+			final entry = environmentEntries[index];
+			final suffix = index == environmentEntries.length - 1 ? "" : ",";
+			lines.push('\t\t{"name": "${jsonEscape(entry.name)}", "source": "${jsonEscape(entry.source)}", "value": "${jsonEscape(entry.value)}"}${suffix}');
 		}
 		lines.push("\t]");
 		lines.push("}");
@@ -67,6 +78,8 @@ class GoBuildRequest {
 	final race:Bool;
 	final additionalArguments:Array<String>;
 
+	public final environment:GoBuildEnvironment;
+
 	@:allow(reflaxe.go.compiler.GoProjectModeResolver)
 	private function new(data:GoBuildRequestData) {
 		packageTarget = data.packageTarget;
@@ -76,6 +89,7 @@ class GoBuildRequest {
 		trimpath = data.trimpath;
 		race = data.race;
 		additionalArguments = data.arguments.copy();
+		environment = data.environment;
 	}
 
 	/** Build the exact, deterministic process invocation. */
@@ -99,7 +113,7 @@ class GoBuildRequest {
 		arguments.push("-o");
 		arguments.push(output);
 		arguments.push(packageTarget);
-		return new GoBuildInvocation("go", arguments);
+		return new GoBuildInvocation("go", arguments, environment);
 	}
 
 	static function joinQuoted(values:Array<String>):String {

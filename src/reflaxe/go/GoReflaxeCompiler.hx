@@ -31,7 +31,7 @@ import reflaxe.go.compiler.GoPostBuildRunner;
 import reflaxe.go.compiler.GoProjectMode;
 import reflaxe.go.compiler.GoProjectMode.GoEntrypointSymbol;
 import reflaxe.go.compiler.GoProjectModeResolver;
-import reflaxe.go.compiler.GoProjectModeResolver.GoProjectModeError;
+import reflaxe.go.compiler.GoProjectModeError;
 import reflaxe.go.compiler.GoSurfaceContractRegistry;
 import reflaxe.go.compiler.GoSurfaceContractRegistry.GoSurfaceContractRegistrySnapshot;
 import reflaxe.go.compiler.GoSurfaceContractRegistry.GoSurfaceImportRequirement;
@@ -583,7 +583,8 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 						return;
 					case GoBuild(request):
 						final invocation = request.invocation();
-						final result = GoPostBuildRunner.run(project.moduleRoot, invocation.command, invocation.arguments);
+						final result = GoPostBuildRunner.runGoverned(project.moduleRoot, invocation.command, invocation.arguments,
+							invocation.environment.processEntries());
 						if (moduleFileGuard != null) {
 							try {
 								moduleFileGuard.verify();

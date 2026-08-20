@@ -15,6 +15,8 @@ def find_reflaxe_go_tools() -> tuple[Path, Path]:
 	if result.returncode == 0:
 		for line in result.stdout.splitlines():
 			candidate = Path(line.strip())
+			if not candidate.is_absolute() or not candidate.is_dir():
+				continue
 			for root in (candidate, candidate.parent, candidate.parent.parent):
 				for tools in (root / "tools", root / "scripts" / "dev"):
 					watcher = tools / "haxe_go_watch.py"

@@ -2357,7 +2357,7 @@
     {
       "capability": "macro_and_tooling_boundary",
       "classification": "required",
-      "context": "run",
+      "context": "runInternal",
       "exception_id": "compiler_dynamic_boundary",
       "file": "src/reflaxe/go/compiler/GoPostBuildRunner.hx",
       "max_count": 2,

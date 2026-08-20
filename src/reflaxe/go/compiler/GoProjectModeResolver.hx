@@ -7,6 +7,8 @@ import haxe.Json;
 import haxe.io.Path;
 import haxe.macro.Context;
 import reflaxe.go.ast.GoPackageName;
+import reflaxe.go.compiler.GoBuildEnvironmentResolver.GoBuildEnvironmentInput;
+import reflaxe.go.compiler.GoProjectModeError.GoProjectModeErrorKind;
 import reflaxe.go.compiler.GoProjectMode.ExistingGoModuleProject;
 import reflaxe.go.compiler.GoProjectMode.GoBuildPolicy;
 import reflaxe.go.compiler.GoProjectMode.GoEntrypointSymbol;
@@ -29,6 +31,7 @@ private typedef RawBuild = {
 	final ?trimpath:Bool;
 	final ?race:Bool;
 	final ?arguments:Array<String>;
+	final environment:Array<GoBuildEnvironmentInput>;
 }
 
 private typedef RawProjectManifest = {
@@ -40,33 +43,6 @@ private typedef RawProjectManifest = {
 	final runtimeDir:String;
 	final entrypoint:RawEntrypoint;
 	final build:RawBuild;
-}
-
-/** Stable, path-free categories for existing-module configuration errors. */
-enum abstract GoProjectModeErrorKind(String) to String {
-	final InvalidManifest = "GO-EXISTING-MODULE-MANIFEST";
-	final InvalidModuleFile = "GO-EXISTING-MODULE-FILE";
-	final ConfigurationConflict = "GO-EXISTING-MODULE-CONFLICT";
-	final UnsupportedProjectShape = "GO-EXISTING-MODULE-UNSUPPORTED";
-	final InvalidPackageName = "GO-PACKAGE-NAME";
-	final InvalidPackageDirectory = "GO-PACKAGE-DIR";
-	final PackageMismatch = "GO-PACKAGE-MISMATCH";
-	final EntrypointOwnership = "GO-ENTRYPOINT-OWNERSHIP";
-	final InvalidBuildTarget = "GO-BUILD-TARGET";
-	final InvalidBuildOutput = "GO-BUILD-OUTPUT";
-	final InvalidBuildTag = "GO-BUILD-TAG";
-	final InvalidLinkerArgument = "GO-BUILD-LDFLAG";
-	final InvalidBuildArgument = "GO-BUILD-ARGUMENT";
-}
-
-/** A project error that can safely appear in portable compiler diagnostics. */
-class GoProjectModeError extends haxe.Exception {
-	public final kind:GoProjectModeErrorKind;
-
-	public function new(kind:GoProjectModeErrorKind, explanation:String) {
-		this.kind = kind;
-		super('[${kind}] Existing Go module configuration is invalid: ${explanation}.');
-	}
 }
 
 /**
@@ -128,7 +104,8 @@ class GoProjectModeResolver {
 			"ldflags",
 			"trimpath",
 			"race",
-			"arguments"
+			"arguments",
+			"environment"
 		], ["kind"], "build has an invalid shape");
 		validateString(raw.build, "kind");
 
@@ -201,7 +178,8 @@ class GoProjectModeResolver {
 			"ldflags",
 			"trimpath",
 			"race",
-			"arguments"
+			"arguments",
+			"environment"
 		];
 		validateObject(raw, fields, fields, "go-build has an invalid shape");
 		for (field in ["packageTarget", "output"]) {
@@ -213,12 +191,14 @@ class GoProjectModeResolver {
 		for (field in ["trimpath", "race"]) {
 			validateBool(raw, field);
 		}
+		validateEnvironmentArray(raw, "environment");
 
 		final packageTarget = validateBuildTarget(moduleRoot, raw.packageTarget);
 		final output = validateBuildOutput(moduleRoot, raw.output);
 		final tags = canonicalBuildTags(raw.tags);
 		validateLinkerArguments(raw.ldflags);
 		final arguments = canonicalBuildArguments(raw.arguments);
+		final environment = GoBuildEnvironmentResolver.resolve(raw.environment, raw.race);
 		return GoBuildPolicy.GoBuild(new GoBuildRequest({
 			packageTarget: packageTarget,
 			output: output,
@@ -226,7 +206,8 @@ class GoProjectModeResolver {
 			ldflags: raw.ldflags,
 			trimpath: raw.trimpath,
 			race: raw.race,
-			arguments: arguments
+			arguments: arguments,
+			environment: environment
 		}));
 	}
 
@@ -506,6 +487,20 @@ class GoProjectModeResolver {
 			if (!Std.isOfType(item, String)) {
 				throw new GoProjectModeError(InvalidManifest, "the project manifest contains a non-string array item");
 			}
+		}
+	}
+
+	static function validateEnvironmentArray(value:{}, field:String):Void {
+		if (!Reflect.hasField(value, field) || !Std.isOfType(Reflect.field(value, field), Array)) {
+			throw new GoProjectModeError(InvalidManifest, "the project manifest contains a non-array environment field");
+		}
+		final entries:Array<{}> = Reflect.field(value, field);
+		for (entry in entries) {
+			validateObject(entry, ["name", "source", "value"], ["name", "source"], "a build environment entry has an invalid shape");
+			validateString(entry, "name");
+			validateString(entry, "source");
+			if (Reflect.hasField(entry, "value"))
+				validateString(entry, "value");
 		}
 	}
 

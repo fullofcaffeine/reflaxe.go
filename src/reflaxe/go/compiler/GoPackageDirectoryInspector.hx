@@ -8,8 +8,8 @@ import haxe.io.Path;
 import reflaxe.go.ast.GoPackageName;
 import reflaxe.go.compiler.GoProjectMode.GoEntrypointPolicy;
 import reflaxe.go.compiler.GoProjectMode.GoProjectRelativePath;
-import reflaxe.go.compiler.GoProjectModeResolver.GoProjectModeError;
-import reflaxe.go.compiler.GoProjectModeResolver.GoProjectModeErrorKind;
+import reflaxe.go.compiler.GoProjectModeError;
+import reflaxe.go.compiler.GoProjectModeError.GoProjectModeErrorKind;
 import sys.FileSystem;
 import sys.io.File;
 
