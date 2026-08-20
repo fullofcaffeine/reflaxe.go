@@ -241,8 +241,8 @@
     {
       "id": "portable-tracer-smoke",
       "surfaces": ["portable-compiler", "runtime-stdlib", "package-downstream-examples"],
-      "patterns": ["src/reflaxe/go/**", "std/go/_std/**", "std/hxrt/**", "runtime/hxrt/**", "examples/tui_todo/**"],
-      "commands": ["npm run test:smoke"],
+      "patterns": ["src/reflaxe/go/**", "std/go/_std/**", "std/hxrt/**", "runtime/hxrt/**", "examples/tui_todo/**", "test/test_existing_module_preservation.py"],
+      "commands": ["npm run test:smoke", "npm run test:existing-module-preservation"],
       "rings": ["R1", "R2", "R4", "R5"],
       "alwaysRun": true
     },

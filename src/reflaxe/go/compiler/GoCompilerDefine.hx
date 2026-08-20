@@ -27,6 +27,7 @@ enum abstract GoCompilerDefine(String) to String {
 	var DefineGoCodegenOnly = "go_codegen_only";
 	var DefineGoCommand = "go_cmd";
 	var DefineGoBuildOutput = "go_build_output";
+	var DefineGoProject = "reflaxe_go_project";
 	var DefineProfile = "reflaxe_go_profile";
 	var DefinePortableProfile = "reflaxe_go_portable";
 	var DefineIdiomaticProfile = "reflaxe_go_idiomatic";

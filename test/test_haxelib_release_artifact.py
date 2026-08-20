@@ -20,6 +20,7 @@ BUILDER = ROOT / "scripts" / "release" / "build-haxelib-artifact.py"
 VERIFIER = ROOT / "scripts" / "release" / "verify-haxelib-artifact.py"
 BUNDLE_VERIFIER = ROOT / "scripts" / "release" / "verify-release-assets.py"
 POLICY_DOC = ROOT / "docs" / "release-version-policy.md"
+CANONICAL_LAYOUT_STATUS = ROOT / "test" / "canonical_std_layout_status.json"
 VERSION = "0.999999.0"
 TAG = f"v{VERSION}"
 FIXED_ZIP_TIMESTAMP = (2000, 1, 1, 0, 0, 0)
@@ -33,6 +34,10 @@ REQUIRED_SUPPORT_DOCS = {
 }
 POSIX_HOME_PATH = re.compile(r"(?<![A-Za-z0-9])/(?:Users|home)/[^\s\"'`]+")
 WINDOWS_HOME_PATH = re.compile(r"(?i)(?<![A-Za-z0-9])[A-Z]:[\\/]+Users[\\/]+[^\s\"'`]+")
+
+CANONICAL_PACKAGE_INVENTORY = json.loads(
+    CANONICAL_LAYOUT_STATUS.read_text(encoding="utf-8")
+)["closeoutEvidence"]
 
 
 def load_verifier_module():
@@ -376,7 +381,10 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
                 manifest.get("stagedReleaseIdentitySha256", ""),
                 r"^[0-9a-f]{64}$",
             )
-            self.assertEqual(417, len(manifest["contents"]["entries"]))
+            self.assertEqual(
+                CANONICAL_PACKAGE_INVENTORY["packagedManifestEntries"],
+                len(manifest["contents"]["entries"]),
+            )
             packaged_sources = {
                 entry["sourcePath"] for entry in manifest["contents"]["entries"]
             }
@@ -543,7 +551,10 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
             self.assertEqual(0, verify.returncode, verify.stdout + verify.stderr)
             summary = json.loads(verify.stdout)
             self.assertEqual(sha256(archive), summary["sha256"])
-            self.assertEqual(418, summary["entries"])
+            self.assertEqual(
+                CANONICAL_PACKAGE_INVENTORY["packagedArchiveMembers"],
+                summary["entries"],
+            )
 
             wrong_version = run_verifier(
                 archive,

@@ -35,6 +35,7 @@ enum abstract GoOutputPathErrorKind(String) to String {
 	final InvalidManagedMetadata = "GO-OUTPUT-PATH-004";
 	final InvalidDestination = "GO-OUTPUT-PATH-005";
 	final WriteFailed = "GO-OUTPUT-PATH-006";
+	final ProtectedCallerFile = "GO-EXISTING-MODULE-MUTATION";
 }
 
 /**
@@ -98,8 +99,15 @@ class GoGeneratedOutputBoundary {
 
 	final outputRoot:String;
 	final canonicalRoot:String;
+	final reservedPaths:Map<String, Bool>;
 
-	public function new(configuredRoot:String) {
+	public function new(configuredRoot:String, ?callerOwnedPaths:Array<String>) {
+		reservedPaths = [];
+		if (callerOwnedPaths != null) {
+			for (path in callerOwnedPaths) {
+				reservedPaths.set(reservedPathKey(path), true);
+			}
+		}
 		if (configuredRoot == null || StringTools.trim(configuredRoot) == "") {
 			throw new GoOutputPathError(InvalidRoot, "the configured root is empty");
 		}
@@ -143,6 +151,9 @@ class GoGeneratedOutputBoundary {
 	**/
 	public function validateDestination(path:String):GoOutputRelativePath {
 		final relative = validateRelativePath(path);
+		if (reservedPaths.exists(reservedPathKey(relative.toString()))) {
+			throw new GoOutputPathError(ProtectedCallerFile, "the destination is caller-owned in existing-module mode");
+		}
 		assertDestinationSafe(relative);
 		return relative;
 	}
@@ -171,7 +182,10 @@ class GoGeneratedOutputBoundary {
 			for (managedPath in metadata.filesGenerated) {
 				try {
 					validateDestination(managedPath);
-				} catch (_:GoOutputPathError) {
+				} catch (error:GoOutputPathError) {
+					if (error.kind == ProtectedCallerFile) {
+						throw error;
+					}
 					throw new GoOutputPathError(InvalidManagedMetadata, "managed-file metadata contains an unsafe destination");
 				}
 			}
@@ -335,6 +349,10 @@ class GoGeneratedOutputBoundary {
 
 	static function isWindowsDeviceName(segment:String):Bool {
 		return ~/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/i.match(segment);
+	}
+
+	static function reservedPathKey(path:String):String {
+		return path.toLowerCase();
 	}
 
 	static function isSymbolicLink(path:String):Bool {

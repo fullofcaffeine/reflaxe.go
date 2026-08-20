@@ -10,7 +10,19 @@
 - `go_module=<module/path>`
   - Optional Go module path for generated `go.mod` and runtime imports (`<module/path>/hxrt`).
   - Defaults to `snapshot` when omitted.
+  - In existing-module mode, this value is optional and must match the module
+    path in the caller-owned `go.mod`.
   - Runtime details: `docs/hxrt-runtime.md`
+- `reflaxe_go_project=<manifest>`
+  - Activates existing-module mode with a typed JSON project manifest.
+  - The compiler reads the module path from the caller-owned `go.mod`.
+  - The compiler never creates, changes, or removes `go.mod` or `go.sum` in
+    this mode.
+  - `go_output` must name the selected package directory.
+  - The first implementation supports the module root as package `main`, the
+    `hxrt` runtime directory, a compiler-owned main entry point, and no build.
+  - See [existing Go module mode](existing-go-module-mode.md) for the manifest
+    and the follow-up package, entry-point, build, and ownership work.
 - `reflaxe.dont_output_metadata_id`
   - Recommended for deterministic snapshots.
 

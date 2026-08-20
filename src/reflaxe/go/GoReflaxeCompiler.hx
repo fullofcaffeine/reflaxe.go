@@ -23,7 +23,11 @@ import reflaxe.go.compiler.GoAutoLoweringModeTools;
 import reflaxe.go.compiler.GoBuildContextResolver;
 import reflaxe.go.compiler.GoGeneratedOutputBoundary;
 import reflaxe.go.compiler.GoGeneratedOutputBoundary.GoOutputPathError;
+import reflaxe.go.compiler.GoModuleFileGuard;
 import reflaxe.go.compiler.GoPostBuildRunner;
+import reflaxe.go.compiler.GoProjectMode;
+import reflaxe.go.compiler.GoProjectModeResolver;
+import reflaxe.go.compiler.GoProjectModeResolver.GoProjectModeError;
 import reflaxe.go.compiler.GoSurfaceContractRegistry;
 import reflaxe.go.compiler.GoSurfaceContractRegistry.GoSurfaceContractRegistrySnapshot;
 import reflaxe.go.compiler.GoSurfaceContractRegistry.GoSurfaceImportRequirement;
@@ -238,6 +242,8 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 	var compilationContext:Null<CompilationContext> = null;
 	var lastRuntimePlan:Null<GoRuntimeCapabilityManifestSnapshot> = null;
 	var outputBoundary:Null<GoGeneratedOutputBoundary> = null;
+	var projectMode:GoProjectMode = GoProjectMode.Standalone;
+	var moduleFileGuard:Null<GoModuleFileGuard> = null;
 	var typeUsageLedger:GoTypeUsageLedger = new GoTypeUsageLedger();
 	var lastTypeUsageReport:GoTypeUsageLedgerSnapshot = GoTypeUsageLedger.emptySnapshot();
 	var lastSurfaceContractReport:GoSurfaceContractRegistrySnapshot = GoSurfaceContractRegistry.emptySnapshot();
@@ -252,16 +258,30 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 	}
 
 	override public function onCompileStart():Void {
-		buildContext = GoBuildContextResolver.resolve();
 		compilationContext = null;
 		selectedClasses = [];
 		selectedEnums = [];
 		generatedFiles = [];
 		lastRuntimePlan = null;
 		outputBoundary = null;
+		projectMode = GoProjectMode.Standalone;
+		moduleFileGuard = null;
 		typeUsageLedger = new GoTypeUsageLedger();
 		lastTypeUsageReport = GoTypeUsageLedger.emptySnapshot();
 		lastSurfaceContractReport = GoSurfaceContractRegistry.emptySnapshot();
+		try {
+			projectMode = GoProjectModeResolver.resolve();
+		} catch (error:GoProjectModeError) {
+			Context.fatalError(error.message, Context.currentPos());
+			return;
+		}
+		var resolvedBuildContext = GoBuildContextResolver.resolve();
+		switch (projectMode) {
+			case Standalone:
+			case ExistingModule(project):
+				resolvedBuildContext = resolvedBuildContext.withGoModuleName(project.modulePath);
+		}
+		buildContext = resolvedBuildContext;
 	}
 
 	override public function onCompileEnd():Void {
@@ -402,14 +422,31 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		}
 
 		try {
-			var boundary = new GoGeneratedOutputBoundary(configuredRoot);
+			var callerOwnedPaths:Array<String> = [];
+			switch (projectMode) {
+				case Standalone:
+				case ExistingModule(project):
+					moduleFileGuard = new GoModuleFileGuard(project.moduleRoot);
+					callerOwnedPaths = ["go.mod", "go.sum"];
+			}
+			var boundary = new GoGeneratedOutputBoundary(configuredRoot, callerOwnedPaths);
 			boundary.validateManagedFileMetadata();
 			for (path in extraFiles.keys()) {
 				boundary.validateDestination(path);
 			}
 			outputBoundary = boundary;
 			super.generateFiles();
+			if (moduleFileGuard != null) {
+				moduleFileGuard.verify();
+			}
 		} catch (error:GoOutputPathError) {
+			if (moduleFileGuard != null) {
+				try {
+					moduleFileGuard.verify();
+				} catch (verificationError:GoOutputPathError) {
+					error = verificationError;
+				}
+			}
 			Context.fatalError(error.message, Context.currentPos());
 		}
 	}
@@ -425,7 +462,11 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		}
 
 		var resolvedBuildContext = effectiveBuildContext();
-		saveGeneratedFile("go.mod", buildGoMod(resolvedBuildContext.goModuleName));
+		switch (projectMode) {
+			case Standalone:
+				saveGeneratedFile("go.mod", buildGoMod(resolvedBuildContext.goModuleName));
+			case ExistingModule(_):
+		}
 		writeGeneratedLicenseMaterial();
 		writeRuntime(compilationContext, resolvedBuildContext);
 		emitBuildReports(compilationContext, resolvedBuildContext);
@@ -466,6 +507,19 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 	override public function onOutputComplete():Void {
 		if (output == null || output.outputDir == null) {
 			return;
+		}
+
+		switch (projectMode) {
+			case Standalone:
+			case ExistingModule(_):
+				if (moduleFileGuard != null) {
+					try {
+						moduleFileGuard.verify();
+					} catch (error:GoOutputPathError) {
+						Context.fatalError(error.message, Context.currentPos());
+					}
+				}
+				return;
 		}
 
 		if (Context.defined(GoCompilerDefine.DefineGoNoBuild) || Context.defined(GoCompilerDefine.DefineGoCodegenOnly)) {
