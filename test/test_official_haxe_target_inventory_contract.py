@@ -246,7 +246,7 @@ class OfficialHaxeTargetInventoryContractTest(unittest.TestCase):
     def test_supported_cold_ci_lanes_publish_exact_inventory_evidence(self) -> None:
         workflow = CI_HARNESS.read_text(encoding="utf-8")
         self.assertIn("official-haxe-target-inventory:", workflow)
-        self.assertIn('go: ["1.25.12", "1.26.5"]', workflow)
+        self.assertIn('go: ["1.25.13", "1.26.6"]', workflow)
         self.assertIn("npm run test:official-haxe-inventory", workflow)
         self.assertIn("npm run test:official-haxe-inventory -- --require-clean-source", workflow)
         self.assertIn("Verify clean exact source", workflow)

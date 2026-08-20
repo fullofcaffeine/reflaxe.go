@@ -33,11 +33,11 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            go: "1.25.12"
+            go: "1.25.13"
           - os: ubuntu-latest
-            go: "1.26.5"
+            go: "1.26.6"
           - os: macos-latest
-            go: "1.26.5"
+            go: "1.26.6"
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
