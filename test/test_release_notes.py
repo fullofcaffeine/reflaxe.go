@@ -50,7 +50,7 @@ class ReleaseNotesTest(unittest.TestCase):
         self.assertIn("portable", notes)
         self.assertIn("Linux/amd64", notes)
         self.assertIn("Haxe 4.3.7", notes)
-        self.assertIn("Go 1.25.12 and 1.26.5", notes)
+        self.assertIn("Go 1.25.13 and 1.26.6", notes)
         self.assertIn("metal", notes)
         self.assertIn("HTTP", notes)
         self.assertIn("named/reverse DNS", notes)

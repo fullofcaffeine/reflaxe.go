@@ -1,6 +1,6 @@
 # Supported Toolchain Policy
 
-Effective date: 2026-07-14
+Effective date: 2026-08-19
 
 Machine-readable source: [toolchain-policy.json](toolchain-policy.json)
 
@@ -38,7 +38,7 @@ does not establish production or security support.
 | --- | --- | --- | --- | --- |
 | Haxe compiler | `4.3.7` | `4.3.7` | `4.3.7` | Exact current stable Haxe compiler used by the target and semantic baselines. |
 | Generated Go language floor | `1.22` | n/a | n/a | Language and module semantics permitted in generated `go.mod`; not a patched build-toolchain claim. |
-| Go build and test toolchain | `1.25.12` and `1.26.5` | `1.26.5` | `1.25.12`, `1.26.5` | Exact approved patches from the two current upstream-supported Go release lines. |
+| Go build and test toolchain | `1.25.13` and `1.26.6` | `1.26.6` | `1.25.13`, `1.26.6` | Exact approved patches from the two current upstream-supported Go release lines. |
 | Node repository tooling | latest patch of `24` | latest patch of `24` | `24` | Active LTS line for npm and release tooling. |
 | npm lock and CI executor | exact `packageManager` value | exact `packageManager` value | `npm@11.16.0` | One reviewed npm version generates and consumes the lock; `package.json` owns the exact value. |
 
@@ -65,6 +65,11 @@ Schema version 2 therefore replaces `go.ci_selectors` with exact
 long-lived support policy; the exact-version fields identify the toolchains
 that produced current CI and release evidence. A later patch is adopted by an
 intentional policy change, not silently during an unrelated build.
+
+The 2026-08-19 refresh moved both supported lines to 1.25.13 and 1.26.6.
+The previous patches had reachable standard-library findings in `net/url`,
+`crypto/tls`, `encoding/asn1`, and `net/http`. The fail-closed dependency audit
+rejected them before release evidence could be accepted.
 
 Setting `check-latest: true` on a wildcard was considered and rejected for
 release evidence. It would avoid preferring an older matching cache entry, but

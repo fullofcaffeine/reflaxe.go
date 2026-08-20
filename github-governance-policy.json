@@ -77,15 +77,15 @@
                 "integration_id": 15368
               },
               {
-                "context": "test:ci (ubuntu-latest, go 1.25.12)",
+                "context": "test:ci (ubuntu-latest, go 1.25.13)",
                 "integration_id": 15368
               },
               {
-                "context": "test:ci (ubuntu-latest, go 1.26.5)",
+                "context": "test:ci (ubuntu-latest, go 1.26.6)",
                 "integration_id": 15368
               },
               {
-                "context": "test:ci (macos-latest, go 1.26.5)",
+                "context": "test:ci (macos-latest, go 1.26.6)",
                 "integration_id": 15368
               },
               {

@@ -51,7 +51,7 @@ class GoToolingGateSemanticsTest(unittest.TestCase):
 set -euo pipefail
 printf 'args=%s\\n' "$*" >>"$FAKE_GO_LOG"
 if [[ "$1" == "version" ]]; then
-  printf 'go version go1.26.5 linux/amd64\\n'
+  printf 'go version go1.26.6 linux/amd64\\n'
   exit 0
 fi
 if [[ -n "${FAKE_GO_SLEEP_MATCH:-}" && "$*" == *"$FAKE_GO_SLEEP_MATCH"* && ( -z "${FAKE_GO_SLEEP_TARGET:-}" || "${PWD##*/}" == "$FAKE_GO_SLEEP_TARGET" ) ]]; then
