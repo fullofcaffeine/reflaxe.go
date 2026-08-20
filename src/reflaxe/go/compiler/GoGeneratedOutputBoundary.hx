@@ -36,6 +36,7 @@ enum abstract GoOutputPathErrorKind(String) to String {
 	final InvalidDestination = "GO-OUTPUT-PATH-005";
 	final WriteFailed = "GO-OUTPUT-PATH-006";
 	final ProtectedCallerFile = "GO-EXISTING-MODULE-MUTATION";
+	final GeneratedFileConflict = "GO-GENERATED-FILE-CONFLICT";
 }
 
 /**
@@ -100,9 +101,11 @@ class GoGeneratedOutputBoundary {
 	final outputRoot:String;
 	final canonicalRoot:String;
 	final reservedPaths:Map<String, Bool>;
+	final managedPaths:Map<String, Bool>;
 
 	public function new(configuredRoot:String, ?callerOwnedPaths:Array<String>) {
 		reservedPaths = [];
+		managedPaths = [];
 		if (callerOwnedPaths != null) {
 			for (path in callerOwnedPaths) {
 				reservedPaths.set(reservedPathKey(path), true);
@@ -181,7 +184,8 @@ class GoGeneratedOutputBoundary {
 			}
 			for (managedPath in metadata.filesGenerated) {
 				try {
-					validateDestination(managedPath);
+					final relative = validateDestination(managedPath);
+					managedPaths.set(reservedPathKey(relative.toString()), true);
 				} catch (error:GoOutputPathError) {
 					if (error.kind == ProtectedCallerFile) {
 						throw error;
@@ -193,6 +197,27 @@ class GoGeneratedOutputBoundary {
 			throw error;
 		} catch (_:haxe.Exception) {
 			throw new GoOutputPathError(InvalidManagedMetadata, "managed-file metadata could not be validated");
+		}
+	}
+
+	/**
+		Rejects replacement of a file that the current Reflaxe inventory does not own.
+
+		This is the narrow first-generation collision rule for existing-module source
+		files. The digest-backed transaction and cleanup authority remain owned by the
+		later mixed-owner output contract.
+	**/
+	public function validateManagedReplacement(path:String):Void {
+		final relative = validateDestination(path);
+		final destination = absolutePath(relative);
+		try {
+			if (FileSystem.exists(destination) && !managedPaths.exists(reservedPathKey(relative.toString()))) {
+				throw new GoOutputPathError(GeneratedFileConflict, "a generated source destination is caller-owned");
+			}
+		} catch (error:GoOutputPathError) {
+			throw error;
+		} catch (_:haxe.Exception) {
+			throw new GoOutputPathError(InvalidDestination, "a generated source destination could not be inspected");
 		}
 	}
 

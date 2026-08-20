@@ -90,11 +90,12 @@ class CompilationContext {
 	public final surfacePlan:GoSurfacePlanSnapshot;
 
 	public function new(profile:GoProfile, ?goModuleName:String, ?rawNativeMode:RawNativeMode, ?emitLineDirectives:Bool, ?buildContext:GoBuildContext,
-			?typedUsageLedger:GoTypeUsageLedgerSnapshot, ?surfaceContractRegistry:GoSurfaceContractRegistrySnapshot, ?surfacePlan:GoSurfacePlanSnapshot) {
+			?typedUsageLedger:GoTypeUsageLedgerSnapshot, ?surfaceContractRegistry:GoSurfaceContractRegistrySnapshot, ?surfacePlan:GoSurfacePlanSnapshot,
+			?runtimeImportPath:String) {
 		this.profile = profile;
 		var moduleName = normalizeGoModuleName(goModuleName);
 		this.goModuleName = moduleName;
-		this.runtimeImportPath = moduleName + "/hxrt";
+		this.runtimeImportPath = normalizeRuntimeImportPath(runtimeImportPath, moduleName);
 		this.rawNativeMode = rawNativeMode == null ? RawNativeMode.Interp : rawNativeMode;
 		this.emitLineDirectives = emitLineDirectives == true;
 		this.buildContext = buildContext == null ? GoBuildContext.legacyDefaults(profile, moduleName, this.rawNativeMode,
@@ -126,9 +127,16 @@ class CompilationContext {
 	}
 
 	public static function fromBuildContext(buildContext:GoBuildContext, ?typedUsageLedger:GoTypeUsageLedgerSnapshot,
-			?surfaceContractRegistry:GoSurfaceContractRegistrySnapshot, ?surfacePlan:GoSurfacePlanSnapshot):CompilationContext {
+			?surfaceContractRegistry:GoSurfaceContractRegistrySnapshot, ?surfacePlan:GoSurfacePlanSnapshot, ?runtimeImportPath:String):CompilationContext {
 		return new CompilationContext(buildContext.profile, buildContext.goModuleName, buildContext.rawNativeMode, buildContext.emitLineDirectives,
-			buildContext, typedUsageLedger, surfaceContractRegistry, surfacePlan);
+			buildContext, typedUsageLedger, surfaceContractRegistry, surfacePlan, runtimeImportPath);
+	}
+
+	static function normalizeRuntimeImportPath(raw:Null<String>, moduleName:String):String {
+		if (raw == null || StringTools.trim(raw) == "") {
+			return moduleName + "/hxrt";
+		}
+		return StringTools.trim(raw);
 	}
 
 	static function normalizeGoModuleName(raw:Null<String>):String {

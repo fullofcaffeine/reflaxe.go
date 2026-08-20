@@ -37,7 +37,8 @@ project/                 moduleRoot, caller-owned
   go.sum                 caller-owned
   cmd/tool/              packageDir
     main.go              caller-owned bridge
-    haxe_generated.go    compiler-owned
+    haxego_generated_main.go
+                          compiler-owned
   internal/haxe_hxrt/    runtimeDir, compiler-owned
 ```
 
@@ -140,11 +141,14 @@ All generated Go files use `packageName`. The compiler rejects a package
 directory that contains another package declaration.
 
 The `compiler-main` policy emits `func main()` and requires `packageName` to be
-`main`. The compiler rejects an existing `func main()` declaration.
+`main`. Until the digest-backed ownership record lands, the compiler admits
+this policy only in an empty package directory or one that contains only files
+in the current generated-file inventory.
 
-The `caller-bridge` policy emits one exported function with the configured
-symbol. It does not emit `func main()`. A native Go `main` function can call
-the bridge and keep ownership of process startup.
+The `caller-bridge` policy emits one function with the configured symbol. It does
+not emit `func main()`. An exported symbol lets another package call the bridge;
+an unexported symbol can be used by caller Go files in the same package. A native
+Go `main` function can therefore keep ownership of process startup.
 
 M03-03 owns package declarations, both entry-point policies, symbol validation,
 and the generated runtime import path.

@@ -6,9 +6,12 @@ import eval.luv.Result;
 import haxe.Json;
 import haxe.io.Path;
 import haxe.macro.Context;
+import reflaxe.go.ast.GoPackageName;
 import reflaxe.go.compiler.GoProjectMode.ExistingGoModuleProject;
 import reflaxe.go.compiler.GoProjectMode.GoBuildPolicy;
+import reflaxe.go.compiler.GoProjectMode.GoEntrypointSymbol;
 import reflaxe.go.compiler.GoProjectMode.GoEntrypointPolicy;
+import reflaxe.go.compiler.GoProjectMode.GoProjectRelativePath;
 import sys.FileSystem;
 import sys.io.File;
 
@@ -38,6 +41,10 @@ enum abstract GoProjectModeErrorKind(String) to String {
 	final InvalidModuleFile = "GO-EXISTING-MODULE-FILE";
 	final ConfigurationConflict = "GO-EXISTING-MODULE-CONFLICT";
 	final UnsupportedProjectShape = "GO-EXISTING-MODULE-UNSUPPORTED";
+	final InvalidPackageName = "GO-PACKAGE-NAME";
+	final InvalidPackageDirectory = "GO-PACKAGE-DIR";
+	final PackageMismatch = "GO-PACKAGE-MISMATCH";
+	final EntrypointOwnership = "GO-ENTRYPOINT-OWNERSHIP";
 }
 
 /** A project error that can safely appear in portable compiler diagnostics. */
@@ -109,15 +116,28 @@ class GoProjectModeResolver {
 		}
 
 		final moduleRoot = resolveModuleRoot(manifestPath, raw.moduleRoot);
-		if (raw.packageDir != "." || raw.packageName != "main" || raw.runtimeDir != "hxrt") {
-			throw new GoProjectModeError(UnsupportedProjectShape, "this release supports only packageDir '.', packageName 'main', and runtimeDir 'hxrt'");
+		final packageDir = resolveProjectDirectory(moduleRoot, raw.packageDir, "packageDir");
+		final runtimeDir = resolveProjectDirectory(moduleRoot, raw.runtimeDir, "runtimeDir");
+		if (packageDir.value().toLowerCase() == runtimeDir.value().toLowerCase()) {
+			throw new GoProjectModeError(InvalidPackageDirectory, "packageDir and runtimeDir must identify different Go packages");
 		}
+		if (!GoPackageName.isIdentifier(raw.packageName)) {
+			throw new GoProjectModeError(InvalidPackageName, "packageName is not a valid Go package identifier");
+		}
+		final packageName = GoPackageName.named(raw.packageName);
 
 		final entrypoint = switch (raw.entrypoint.kind) {
 			case "compiler-main" if (!Reflect.hasField(raw.entrypoint, "symbol")):
+				if (packageName.value() != "main") {
+					throw new GoProjectModeError(InvalidPackageName, "compiler-main requires packageName main");
+				}
 				GoEntrypointPolicy.CompilerMain;
-			case "caller-bridge":
-				throw new GoProjectModeError(UnsupportedProjectShape, "caller-bridge entrypoints are implemented by the next compatibility slice");
+			case "caller-bridge" if (raw.entrypoint.symbol != null):
+				if (!GoPackageName.isIdentifier(raw.entrypoint.symbol)) {
+					throw new GoProjectModeError(InvalidManifest, "caller-bridge symbol is not a valid Go identifier");
+				}
+				final symbol = GoEntrypointSymbol.named(raw.entrypoint.symbol);
+				GoEntrypointPolicy.CallerBridge(symbol);
 			case _:
 				throw new GoProjectModeError(InvalidManifest, "entrypoint has an unsupported kind or fields");
 		};
@@ -125,7 +145,8 @@ class GoProjectModeResolver {
 			throw new GoProjectModeError(UnsupportedProjectShape, "typed Go build requests are implemented by a later compatibility slice");
 		}
 
-		validateLegacyDefines(moduleRoot);
+		GoPackageDirectoryInspector.validate(moduleRoot, packageDir, packageName, entrypoint);
+		validateLegacyDefines(moduleRoot, packageDir);
 		final modulePath = readModulePath(moduleRoot);
 		final assertedModule = Context.definedValue(GoCompilerDefine.DefineGoModule);
 		if (assertedModule != null && StringTools.trim(assertedModule) != "" && StringTools.trim(assertedModule) != modulePath) {
@@ -136,12 +157,35 @@ class GoProjectModeResolver {
 			manifestPath: manifestPath,
 			moduleRoot: moduleRoot,
 			modulePath: modulePath,
-			packageDir: raw.packageDir,
-			packageName: raw.packageName,
-			runtimeDir: raw.runtimeDir,
+			packageDir: packageDir,
+			packageName: packageName,
+			runtimeDir: runtimeDir,
 			entrypoint: entrypoint,
 			build: GoBuildPolicy.NoBuild
 		});
+	}
+
+	static function resolveProjectDirectory(moduleRoot:String, configuredPath:String, field:String):GoProjectRelativePath {
+		validateRelativePath(configuredPath, field);
+		final relative = GoProjectRelativePath.validated(configuredPath);
+		var current = moduleRoot;
+		final segments:Array<String> = configuredPath == "." ? [] : configuredPath.split("/");
+		for (segment in segments) {
+			current = Path.join([current, segment]);
+			if (isSymbolicLink(current)) {
+				throw new GoProjectModeError(InvalidPackageDirectory, field + " contains a symbolic link");
+			}
+			try {
+				if (FileSystem.exists(current) && !FileSystem.isDirectory(current)) {
+					throw new GoProjectModeError(InvalidPackageDirectory, field + " is not a directory");
+				}
+			} catch (error:GoProjectModeError) {
+				throw error;
+			} catch (_:haxe.Exception) {
+				throw new GoProjectModeError(InvalidPackageDirectory, field + " could not be inspected");
+			}
+		}
+		return relative;
 	}
 
 	static function resolveModuleRoot(manifestPath:String, configuredRoot:String):String {
@@ -162,22 +206,41 @@ class GoProjectModeResolver {
 		}
 	}
 
-	static function validateLegacyDefines(moduleRoot:String):Void {
+	static function validateLegacyDefines(moduleRoot:String, packageDir:GoProjectRelativePath):Void {
 		final configuredOutput = Context.definedValue(GoCompilerDefine.DefineGoOutput);
 		if (configuredOutput == null || StringTools.trim(configuredOutput) == "") {
 			throw new GoProjectModeError(ConfigurationConflict, "go_output is required");
 		}
 		final canonicalOutput = try {
-			normalizePath(FileSystem.fullPath(StringTools.trim(configuredOutput)));
+			canonicalPathAllowMissing(StringTools.trim(configuredOutput));
 		} catch (_:haxe.Exception) {
 			throw new GoProjectModeError(ConfigurationConflict, "go_output could not be resolved");
 		}
-		if (!samePath(canonicalOutput, moduleRoot)) {
+		final packageRoot = canonicalPathAllowMissing(Path.join([moduleRoot, packageDir.value()]));
+		if (!samePath(canonicalOutput, packageRoot)) {
 			throw new GoProjectModeError(ConfigurationConflict, "go_output does not match moduleRoot/packageDir");
 		}
 		if (Context.defined(GoCompilerDefine.DefineGoCommand) || Context.defined(GoCompilerDefine.DefineGoBuildOutput)) {
 			throw new GoProjectModeError(ConfigurationConflict, "legacy Go build defines conflict with build.kind none");
 		}
+	}
+
+	static function canonicalPathAllowMissing(path:String):String {
+		var current = normalizePath(FileSystem.absolutePath(path));
+		final missing:Array<String> = [];
+		while (!FileSystem.exists(current)) {
+			final parent = normalizePath(Path.directory(current));
+			if (parent == current || parent == "") {
+				throw new haxe.Exception("path has no existing ancestor");
+			}
+			missing.unshift(Path.withoutDirectory(current));
+			current = parent;
+		}
+		var canonical = normalizePath(FileSystem.fullPath(current));
+		for (segment in missing) {
+			canonical = normalizePath(Path.join([canonical, segment]));
+		}
+		return canonical;
 	}
 
 	static function readModulePath(moduleRoot:String):String {
