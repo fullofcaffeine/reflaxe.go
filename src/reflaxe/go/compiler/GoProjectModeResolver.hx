@@ -22,6 +22,13 @@ private typedef RawEntrypoint = {
 
 private typedef RawBuild = {
 	final kind:String;
+	final ?packageTarget:String;
+	final ?output:String;
+	final ?tags:Array<String>;
+	final ?ldflags:Array<String>;
+	final ?trimpath:Bool;
+	final ?race:Bool;
+	final ?arguments:Array<String>;
 }
 
 private typedef RawProjectManifest = {
@@ -45,6 +52,11 @@ enum abstract GoProjectModeErrorKind(String) to String {
 	final InvalidPackageDirectory = "GO-PACKAGE-DIR";
 	final PackageMismatch = "GO-PACKAGE-MISMATCH";
 	final EntrypointOwnership = "GO-ENTRYPOINT-OWNERSHIP";
+	final InvalidBuildTarget = "GO-BUILD-TARGET";
+	final InvalidBuildOutput = "GO-BUILD-OUTPUT";
+	final InvalidBuildTag = "GO-BUILD-TAG";
+	final InvalidLinkerArgument = "GO-BUILD-LDFLAG";
+	final InvalidBuildArgument = "GO-BUILD-ARGUMENT";
 }
 
 /** A project error that can safely appear in portable compiler diagnostics. */
@@ -108,7 +120,16 @@ class GoProjectModeResolver {
 		if (Reflect.hasField(raw.entrypoint, "symbol")) {
 			validateString(raw.entrypoint, "symbol");
 		}
-		validateObject(raw.build, ["kind"], ["kind"], "build has an invalid shape");
+		validateObject(raw.build, [
+			"kind",
+			"packageTarget",
+			"output",
+			"tags",
+			"ldflags",
+			"trimpath",
+			"race",
+			"arguments"
+		], ["kind"], "build has an invalid shape");
 		validateString(raw.build, "kind");
 
 		if (raw.schemaVersion != 1 || raw.mode != "existing-module") {
@@ -141,12 +162,10 @@ class GoProjectModeResolver {
 			case _:
 				throw new GoProjectModeError(InvalidManifest, "entrypoint has an unsupported kind or fields");
 		};
-		if (raw.build.kind != "none") {
-			throw new GoProjectModeError(UnsupportedProjectShape, "typed Go build requests are implemented by a later compatibility slice");
-		}
+		final build = resolveBuildPolicy(moduleRoot, raw.build);
 
 		GoPackageDirectoryInspector.validate(moduleRoot, packageDir, packageName, entrypoint);
-		validateLegacyDefines(moduleRoot, packageDir);
+		validateLegacyDefines(moduleRoot, packageDir, build);
 		final modulePath = readModulePath(moduleRoot);
 		final assertedModule = Context.definedValue(GoCompilerDefine.DefineGoModule);
 		if (assertedModule != null && StringTools.trim(assertedModule) != "" && StringTools.trim(assertedModule) != modulePath) {
@@ -161,8 +180,161 @@ class GoProjectModeResolver {
 			packageName: packageName,
 			runtimeDir: runtimeDir,
 			entrypoint: entrypoint,
-			build: GoBuildPolicy.NoBuild
+			build: build
 		});
+	}
+
+	static function resolveBuildPolicy(moduleRoot:String, raw:RawBuild):GoBuildPolicy {
+		if (raw.kind == "none") {
+			validateObject(raw, ["kind"], ["kind"], "build kind none has an invalid shape");
+			return GoBuildPolicy.NoBuild;
+		}
+		if (raw.kind != "go-build") {
+			throw new GoProjectModeError(UnsupportedProjectShape, "build has an unsupported kind");
+		}
+
+		final fields = [
+			"kind",
+			"packageTarget",
+			"output",
+			"tags",
+			"ldflags",
+			"trimpath",
+			"race",
+			"arguments"
+		];
+		validateObject(raw, fields, fields, "go-build has an invalid shape");
+		for (field in ["packageTarget", "output"]) {
+			validateString(raw, field);
+		}
+		for (field in ["tags", "ldflags", "arguments"]) {
+			validateStringArray(raw, field);
+		}
+		for (field in ["trimpath", "race"]) {
+			validateBool(raw, field);
+		}
+
+		final packageTarget = validateBuildTarget(moduleRoot, raw.packageTarget);
+		final output = validateBuildOutput(moduleRoot, raw.output);
+		final tags = canonicalBuildTags(raw.tags);
+		validateLinkerArguments(raw.ldflags);
+		final arguments = canonicalBuildArguments(raw.arguments);
+		return GoBuildPolicy.GoBuild(new GoBuildRequest({
+			packageTarget: packageTarget,
+			output: output,
+			tags: tags,
+			ldflags: raw.ldflags,
+			trimpath: raw.trimpath,
+			race: raw.race,
+			arguments: arguments
+		}));
+	}
+
+	static function validateBuildTarget(moduleRoot:String, value:String):String {
+		if (value == ".") {
+			return value;
+		}
+		if (!StringTools.startsWith(value, "./")) {
+			throw new GoProjectModeError(InvalidBuildTarget, "the package target must be dot or a module-relative package");
+		}
+		final relative = value.substr(2);
+		try {
+			resolveProjectDirectory(moduleRoot, relative, "build.packageTarget");
+		} catch (_:GoProjectModeError) {
+			throw new GoProjectModeError(InvalidBuildTarget, "the package target is not a safe module-relative package");
+		}
+		return value;
+	}
+
+	static function validateBuildOutput(moduleRoot:String, value:String):String {
+		try {
+			validateRelativePath(value, "build.output");
+			if (value == ".") {
+				throw new GoProjectModeError(InvalidBuildOutput, "the output must name a module-relative file");
+			}
+			var current = moduleRoot;
+			final segments = value.split("/");
+			for (index in 0...segments.length) {
+				current = Path.join([current, segments[index]]);
+				if (isSymbolicLink(current)) {
+					throw new GoProjectModeError(InvalidBuildOutput, "the output path contains a symbolic link");
+				}
+				if (index < segments.length - 1 && FileSystem.exists(current) && !FileSystem.isDirectory(current)) {
+					throw new GoProjectModeError(InvalidBuildOutput, "the output parent is not a directory");
+				}
+				if (index == segments.length - 1 && FileSystem.exists(current) && FileSystem.isDirectory(current)) {
+					throw new GoProjectModeError(InvalidBuildOutput, "the output must name a file");
+				}
+			}
+		} catch (error:GoProjectModeError) {
+			if (error.kind == InvalidBuildOutput) {
+				throw error;
+			}
+			throw new GoProjectModeError(InvalidBuildOutput, "the output is not a safe module-relative file");
+		} catch (_:haxe.Exception) {
+			throw new GoProjectModeError(InvalidBuildOutput, "the output could not be inspected");
+		}
+		return value;
+	}
+
+	static function canonicalBuildTags(values:Array<String>):Array<String> {
+		final unique:Map<String, Bool> = [];
+		for (value in values) {
+			if (value == null || value == "" || !~/^[A-Za-z0-9_.]+$/.match(value)) {
+				throw new GoProjectModeError(InvalidBuildTag, "a build tag is not a valid standalone tag");
+			}
+			unique.set(value, true);
+		}
+		final result = [for (value in unique.keys()) value];
+		result.sort(Reflect.compare);
+		return result;
+	}
+
+	static function validateLinkerArguments(values:Array<String>):Void {
+		for (value in values) {
+			var hasControl = false;
+			if (value != null) {
+				for (index in 0...value.length) {
+					final code = value.charCodeAt(index);
+					if (code != null && (code < 32 || code == 127)) {
+						hasControl = true;
+					}
+				}
+			}
+			if (value == null || value == "" || hasControl || (value.indexOf("'") != -1 && value.indexOf('"') != -1)) {
+				throw new GoProjectModeError(InvalidLinkerArgument, "a linker argument cannot be represented by the Go linker argument grammar");
+			}
+		}
+	}
+
+	static function canonicalBuildArguments(values:Array<String>):Array<String> {
+		final byFamily:Map<String, String> = [];
+		for (value in values) {
+			final family = approvedBuildArgumentFamily(value);
+			if (family == null || byFamily.exists(family)) {
+				throw new GoProjectModeError(InvalidBuildArgument, "an additional Go build argument is unapproved or repeated");
+			}
+			byFamily.set(family, value);
+		}
+		if (!byFamily.exists("mod")) {
+			byFamily.set("mod", "-mod=readonly");
+		}
+		final result = [for (value in byFamily) value];
+		result.sort(Reflect.compare);
+		return result;
+	}
+
+	static function approvedBuildArgumentFamily(value:String):Null<String> {
+		return switch (value) {
+			case "-a": "a";
+			case "-v": "v";
+			case "-x": "x";
+			case _ if (~/^-buildvcs=(auto|false|true)$/.match(value)): "buildvcs";
+			case _ if (~/^-buildmode=(archive|c-archive|c-shared|default|exe|pie|plugin|shared)$/.match(value)): "buildmode";
+			case _ if (~/^-mod=(readonly|vendor)$/.match(value)): "mod";
+			case _ if (~/^-p=[1-9][0-9]*$/.match(value)): "p";
+			case _: null;
+		};
 	}
 
 	static function resolveProjectDirectory(moduleRoot:String, configuredPath:String, field:String):GoProjectRelativePath {
@@ -206,7 +378,7 @@ class GoProjectModeResolver {
 		}
 	}
 
-	static function validateLegacyDefines(moduleRoot:String, packageDir:GoProjectRelativePath):Void {
+	static function validateLegacyDefines(moduleRoot:String, packageDir:GoProjectRelativePath, build:GoBuildPolicy):Void {
 		final configuredOutput = Context.definedValue(GoCompilerDefine.DefineGoOutput);
 		if (configuredOutput == null || StringTools.trim(configuredOutput) == "") {
 			throw new GoProjectModeError(ConfigurationConflict, "go_output is required");
@@ -221,7 +393,14 @@ class GoProjectModeResolver {
 			throw new GoProjectModeError(ConfigurationConflict, "go_output does not match moduleRoot/packageDir");
 		}
 		if (Context.defined(GoCompilerDefine.DefineGoCommand) || Context.defined(GoCompilerDefine.DefineGoBuildOutput)) {
-			throw new GoProjectModeError(ConfigurationConflict, "legacy Go build defines conflict with build.kind none");
+			throw new GoProjectModeError(ConfigurationConflict, "legacy Go build defines conflict with the typed build policy");
+		}
+		switch (build) {
+			case NoBuild:
+			case GoBuild(_) if (Context.defined(GoCompilerDefine.DefineGoNoBuild)
+				|| Context.defined(GoCompilerDefine.DefineGoCodegenOnly)):
+				throw new GoProjectModeError(ConfigurationConflict, "legacy no-build defines conflict with build.kind go-build");
+			case GoBuild(_):
 		}
 	}
 
@@ -309,6 +488,24 @@ class GoProjectModeResolver {
 	static function validateInt(value:{}, field:String):Void {
 		if (!Reflect.hasField(value, field) || !Std.isOfType(Reflect.field(value, field), Int)) {
 			throw new GoProjectModeError(InvalidManifest, "the project manifest contains a non-integer field");
+		}
+	}
+
+	static function validateBool(value:{}, field:String):Void {
+		if (!Reflect.hasField(value, field) || !Std.isOfType(Reflect.field(value, field), Bool)) {
+			throw new GoProjectModeError(InvalidManifest, "the project manifest contains a non-boolean field");
+		}
+	}
+
+	static function validateStringArray(value:{}, field:String):Void {
+		if (!Reflect.hasField(value, field) || !Std.isOfType(Reflect.field(value, field), Array)) {
+			throw new GoProjectModeError(InvalidManifest, "the project manifest contains a non-array field");
+		}
+		final values:Array<{}> = Reflect.field(value, field);
+		for (item in values) {
+			if (!Std.isOfType(item, String)) {
+				throw new GoProjectModeError(InvalidManifest, "the project manifest contains a non-string array item");
+			}
 		}
 	}
 

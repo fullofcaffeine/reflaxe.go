@@ -44,6 +44,7 @@ def main() -> int:
         ["python3", "test/test_inline_throw_accessor_result_type_contract.py"],
         ["python3", "test/test_existing_module_preservation.py"],
         ["python3", "test/test_existing_module_package_output.py"],
+        ["python3", "test/test_existing_module_structured_build.py"],
         ["python3", "test/test_language_hard_fail_inventory_contract.py"],
         ["python3", "test/test_license_policy_contract.py"],
         ["python3", "test/test_lambda_iterable_lowering_ownership_contract.py"],
