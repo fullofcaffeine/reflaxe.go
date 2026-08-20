@@ -52,9 +52,10 @@ abstract GoProjectRelativePath(String) {
 	}
 }
 
-/** Build behavior supported by the first existing-module safety slice. */
+/** Build behavior requested by an existing-module manifest. */
 enum GoBuildPolicy {
 	NoBuild;
+	GoBuild(request:GoBuildRequest);
 }
 
 typedef ExistingGoModuleProjectData = {

@@ -159,9 +159,36 @@ The `build` field selects `none` or a typed Go build request. A request contains
 a package target, output path, tags, linker flags, `trimpath`, race mode, and
 an approved argument list.
 
+```json
+{
+  "kind": "go-build",
+  "packageTarget": "./cmd/tool",
+  "output": "dist/tool",
+  "tags": ["gms_pure_go"],
+  "ldflags": ["-s", "-w", "-X", "main.Build=release candidate"],
+  "trimpath": true,
+  "race": false,
+  "arguments": ["-buildvcs=false"]
+}
+```
+
+Every field is required. `packageTarget` is `.` or one exact `./` package below
+the module root. `output` is a module-relative file path. Tags are sorted and
+deduplicated. Linker flags remain ordered tokens; the compiler encodes them
+with Go's quoted-argument rules before passing one `-ldflags` process argument.
+The output file's parent directory must already exist, as required by `go build`.
+
+Additional arguments are closed to these forms: `-a`, `-v`, `-x`,
+`-buildvcs=auto|false|true`, the Go `-buildmode` values, `-mod=readonly|vendor`,
+and a positive `-p` value. Fields already modeled by the request cannot be
+repeated through `arguments`. The compiler adds `-mod=readonly` when the list
+does not select a module mode, which protects caller-owned module files.
+
 The compiler invokes Go from `moduleRoot`. It passes each argument as a process
 argument and never constructs an unrestricted shell string. M03-04 owns this
-request and its deterministic report.
+request. It records the effective command and argument array in the generated
+`reflaxe_go_build.json`; the report uses `.` for the working directory and does
+not contain the machine-local module path.
 
 M03-05 owns the explicit environment allowlist for CGO and cross-compilation.
 The project manifest does not inherit arbitrary environment variables.

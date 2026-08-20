@@ -29,8 +29,11 @@
   - Existing-module generated source names start with `haxego_generated_` and
     refuse to replace a destination that the current generated-file inventory
     does not own.
-  - The current build policy remains `none`; typed build requests and the
-    digest-backed mixed-owner output transaction are follow-up work.
+  - `build.kind=none` performs generation only. `build.kind=go-build` selects a
+    typed module-root build with one package target, output, tags, linker
+    arguments, trimpath/race switches, and allowlisted extra arguments. Its
+    exact process argument array is recorded in `reflaxe_go_build.json`.
+  - The digest-backed mixed-owner output transaction remains follow-up work.
   - See [existing Go module mode](existing-go-module-mode.md) for the manifest
     and the follow-up build and ownership work.
 - `reflaxe.dont_output_metadata_id`

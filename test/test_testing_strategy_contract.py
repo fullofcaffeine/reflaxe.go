@@ -172,6 +172,7 @@ class TestingStrategyContractTest(unittest.TestCase):
         package = json.loads(PACKAGE.read_text(encoding="utf-8"))
         command = "python3 test/test_existing_module_preservation.py"
         package_output_command = "python3 test/test_existing_module_package_output.py"
+        structured_build_command = "python3 test/test_existing_module_structured_build.py"
 
         self.assertEqual(
             command, package["scripts"].get("test:existing-module-preservation")
@@ -194,6 +195,18 @@ class TestingStrategyContractTest(unittest.TestCase):
         )
         self.assertIn(
             "test/test_existing_module_package_output.py",
+            RELEASE_RUNNER.read_text(encoding="utf-8"),
+        )
+        self.assertEqual(
+            structured_build_command,
+            package["scripts"].get("test:existing-module-structured-build"),
+        )
+        self.assertIn(
+            "npm run test:existing-module-structured-build",
+            package["scripts"]["test:strategy"],
+        )
+        self.assertIn(
+            "test/test_existing_module_structured_build.py",
             RELEASE_RUNNER.read_text(encoding="utf-8"),
         )
 

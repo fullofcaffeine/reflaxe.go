@@ -13,6 +13,7 @@ import reflaxe.go.analyze.GoProfileContractAnalyzer;
 import reflaxe.go.analyze.GoProfileContractAnalyzer.PortableNativeScanMode;
 import reflaxe.go.analyze.GoNativeBoundaryAnalyzer;
 import reflaxe.go.compiler.GoBuildContext;
+import reflaxe.go.compiler.GoBuildRequest;
 import reflaxe.go.compiler.GoCompilerDefine;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureReason;
@@ -467,6 +468,11 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 					for (file in generatedFiles) {
 						boundary.validateManagedReplacement(project.generatedSourcePath(file.relativePath));
 					}
+					switch (project.build) {
+						case NoBuild:
+						case GoBuild(_):
+							boundary.validateManagedReplacement(GoBuildRequest.REPORT_PATH);
+					}
 			}
 			for (path in extraFiles.keys()) {
 				boundary.validateDestination(path);
@@ -507,6 +513,15 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		writeGeneratedLicenseMaterial();
 		writeRuntime(compilationContext, resolvedBuildContext);
 		emitBuildReports(compilationContext, resolvedBuildContext);
+		switch (projectMode) {
+			case Standalone:
+			case ExistingModule(project):
+				switch (project.build) {
+					case NoBuild:
+					case GoBuild(request):
+						saveGeneratedFile(GoBuildRequest.REPORT_PATH, request.invocation().renderJson());
+				}
+		}
 	}
 
 	function generatedSourcePath(fileName:String):String {
@@ -555,7 +570,7 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 
 		switch (projectMode) {
 			case Standalone:
-			case ExistingModule(_):
+			case ExistingModule(project):
 				if (moduleFileGuard != null) {
 					try {
 						moduleFileGuard.verify();
@@ -563,7 +578,26 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 						Context.fatalError(error.message, Context.currentPos());
 					}
 				}
-				return;
+				switch (project.build) {
+					case NoBuild:
+						return;
+					case GoBuild(request):
+						final invocation = request.invocation();
+						final result = GoPostBuildRunner.run(project.moduleRoot, invocation.command, invocation.arguments);
+						if (moduleFileGuard != null) {
+							try {
+								moduleFileGuard.verify();
+							} catch (error:GoOutputPathError) {
+								Context.fatalError(error.message, Context.currentPos());
+							}
+						}
+						switch (result) {
+							case BuildSucceeded:
+							case BuildFailed(_):
+								Context.fatalError(GoPostBuildRunner.failureMessage(invocation.command, invocation.arguments, result), Context.currentPos());
+						}
+						return;
+				}
 		}
 
 		if (Context.defined(GoCompilerDefine.DefineGoNoBuild) || Context.defined(GoCompilerDefine.DefineGoCodegenOnly)) {
