@@ -168,7 +168,11 @@ an approved argument list.
   "ldflags": ["-s", "-w", "-X", "main.Build=release candidate"],
   "trimpath": true,
   "race": false,
-  "arguments": ["-buildvcs=false"]
+  "arguments": ["-buildvcs=false"],
+  "environment": [
+    {"name": "CGO_ENABLED", "source": "literal", "value": "1"},
+    {"name": "GOCACHE", "source": "inherit"}
+  ]
 }
 ```
 
@@ -184,14 +188,40 @@ and a positive `-p` value. Fields already modeled by the request cannot be
 repeated through `arguments`. The compiler adds `-mod=readonly` when the list
 does not select a module mode, which protects caller-owned module files.
 
-The compiler invokes Go from `moduleRoot`. It passes each argument as a process
-argument and never constructs an unrestricted shell string. M03-04 owns this
-request. It records the effective command and argument array in the generated
-`reflaxe_go_build.json`; the report uses `.` for the working directory and does
-not contain the machine-local module path.
+The `environment` list is required. Each entry has a `literal` or `inherit`
+source. A literal entry includes `value`. An inherited entry reads only the
+same allowlisted variable from the compiler process.
 
-M03-05 owns the explicit environment allowlist for CGO and cross-compilation.
-The project manifest does not inherit arbitrary environment variables.
+The first environment contract permits these variables:
+
+- build selection: `CGO_ENABLED`, `GOOS`, and `GOARCH`
+- architecture tuning: `GOAMD64`, `GOARM`, `GOARM64`, `GO386`, `GOMIPS`,
+  `GOMIPS64`, `GOPPC64`, `GORISCV64`, and `GOWASM`
+- compiler programs: `CC`, `CXX`, and `PKG_CONFIG`
+- cache and temporary paths: `GOCACHE`, `GOMODCACHE`, `GOPATH`, `TMPDIR`,
+  `TEMP`, and `TMP`
+- module and network policy: `GOPROXY`, `GOPRIVATE`, `GONOPROXY`, `GONOSUMDB`,
+  `GOSUMDB`, `HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY`
+- certificate paths: `SSL_CERT_FILE` and `SSL_CERT_DIR`
+
+`GOCACHE` is required and must resolve to one absolute path. Compiler program
+values contain one basename or path. They cannot contain arguments or shell
+syntax. Architecture-tuning values require a matching explicit `GOARCH`.
+
+The compiler sets `GOENV=off`, `GOWORK=off`, and `GOTOOLCHAIN=local`. The
+manifest cannot replace these values. The compiler also keeps the host `PATH`
+and the required Windows process variables. It does not copy other ambient
+variables into the Go process.
+
+The compiler invokes Go from `moduleRoot`. It passes each argument as a process
+argument and never constructs an unrestricted shell string. The generated
+`reflaxe_go_build.json` report has schema version 2. It records the command,
+arguments, and governed environment in stable order.
+
+Plain environment values appear in the report. Paths appear as `<path>`.
+Network and certificate values appear as `<redacted>`. The report does not
+contain the host launch baseline or an ambient variable that the manifest did
+not select.
 
 ## Diagnostics and reports
 

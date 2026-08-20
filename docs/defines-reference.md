@@ -31,8 +31,9 @@
     does not own.
   - `build.kind=none` performs generation only. `build.kind=go-build` selects a
     typed module-root build with one package target, output, tags, linker
-    arguments, trimpath/race switches, and allowlisted extra arguments. Its
-    exact process argument array is recorded in `reflaxe_go_build.json`.
+    arguments, trimpath/race switches, allowlisted extra arguments, and a
+    governed environment. The schema-version-2 `reflaxe_go_build.json` report
+    records the exact arguments and redacted environment.
   - The digest-backed mixed-owner output transaction remains follow-up work.
   - See [existing Go module mode](existing-go-module-mode.md) for the manifest
     and the follow-up build and ownership work.
