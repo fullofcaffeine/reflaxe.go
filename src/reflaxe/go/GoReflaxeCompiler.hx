@@ -24,8 +24,11 @@ import reflaxe.go.compiler.GoBuildContextResolver;
 import reflaxe.go.compiler.GoGeneratedOutputBoundary;
 import reflaxe.go.compiler.GoGeneratedOutputBoundary.GoOutputPathError;
 import reflaxe.go.compiler.GoModuleFileGuard;
+import reflaxe.go.compiler.GoOutputIdentity;
+import reflaxe.go.compiler.GoOutputIdentity.GoGeneratedFileStyle;
 import reflaxe.go.compiler.GoPostBuildRunner;
 import reflaxe.go.compiler.GoProjectMode;
+import reflaxe.go.compiler.GoProjectMode.GoEntrypointSymbol;
 import reflaxe.go.compiler.GoProjectModeResolver;
 import reflaxe.go.compiler.GoProjectModeResolver.GoProjectModeError;
 import reflaxe.go.compiler.GoSurfaceContractRegistry;
@@ -280,6 +283,14 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 			case Standalone:
 			case ExistingModule(project):
 				resolvedBuildContext = resolvedBuildContext.withGoModuleName(project.modulePath);
+				if (output == null) {
+					Context.fatalError("GoReflaxeCompiler output manager is not initialized", Context.currentPos());
+					return;
+				}
+				// `go_output` remains the package assertion. The managed writer is
+				// rooted at the caller module so package and runtime paths share one
+				// confined, module-relative namespace.
+				output.setOutputDir(project.moduleRoot);
 		}
 		buildContext = resolvedBuildContext;
 	}
@@ -289,14 +300,15 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		var boundarySnapshot = GoNativeBoundaryAnalyzer.collect(allModules);
 		resolvedBuildContext = resolvedBuildContext.withNativeBoundaryModules(boundarySnapshot.modules);
 		buildContext = resolvedBuildContext;
-		var runtimeImportPath = resolvedBuildContext.goModuleName + "/hxrt";
+		var outputIdentity = resolveOutputIdentity(resolvedBuildContext);
+		var runtimeImportPath = outputIdentity.runtimeImportPath;
 		var authoritySnapshot = typeUsageLedger.snapshot([], runtimeImportPath);
 		var surfaceContractSnapshot = GoSurfaceContractRegistry.defaultRegistry().snapshot(authoritySnapshot);
 		var surfacePlan = GoSurfacePlanner.plan(resolvedBuildContext, surfaceContractSnapshot);
-		var context = CompilationContext.fromBuildContext(resolvedBuildContext, authoritySnapshot, surfaceContractSnapshot, surfacePlan);
+		var context = CompilationContext.fromBuildContext(resolvedBuildContext, authoritySnapshot, surfaceContractSnapshot, surfacePlan, runtimeImportPath);
 		compilationContext = context;
 		lastSurfaceContractReport = surfaceContractSnapshot;
-		var compiler = new GoCompiler(context, resolveSelectedMainIdentity());
+		var compiler = new GoCompiler(context, resolveSelectedMainIdentity(), outputIdentity);
 		retainSuppliedPortableFacadeEnums();
 		if (selectedClasses.length == 0 && selectedEnums.length == 0) {
 			generatedFiles = compiler.compileModule(allModules);
@@ -304,6 +316,24 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 			generatedFiles = compiler.compileSelectedTypes(selectedClasses, selectedEnums);
 		}
 		lastTypeUsageReport = typeUsageLedger.snapshot(context.inferredHxrtFeatureReasons, context.runtimeImportPath);
+	}
+
+	function resolveOutputIdentity(buildContext:GoBuildContext):GoOutputIdentity {
+		return switch (projectMode) {
+			case Standalone:
+				GoOutputIdentity.standalone(buildContext.goModuleName + "/hxrt");
+			case ExistingModule(project):
+				final entrySymbol = switch (project.entrypoint) {
+					case CompilerMain: GoEntrypointSymbol.named("main");
+					case CallerBridge(symbol): symbol;
+				};
+				new GoOutputIdentity({
+					packageName: project.packageName,
+					entrySymbol: entrySymbol,
+					runtimeImportPath: project.runtimeImportPath(),
+					fileStyle: GoGeneratedFileStyle.ExistingModuleFiles
+				});
+		};
 	}
 
 	/**
@@ -431,6 +461,13 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 			}
 			var boundary = new GoGeneratedOutputBoundary(configuredRoot, callerOwnedPaths);
 			boundary.validateManagedFileMetadata();
+			switch (projectMode) {
+				case Standalone:
+				case ExistingModule(project):
+					for (file in generatedFiles) {
+						boundary.validateManagedReplacement(project.generatedSourcePath(file.relativePath));
+					}
+			}
 			for (path in extraFiles.keys()) {
 				boundary.validateDestination(path);
 			}
@@ -458,7 +495,7 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		}
 
 		for (file in generatedFiles) {
-			saveGeneratedFile(file.relativePath, file.contents);
+			saveGeneratedFile(generatedSourcePath(file.relativePath), file.contents);
 		}
 
 		var resolvedBuildContext = effectiveBuildContext();
@@ -470,6 +507,13 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		writeGeneratedLicenseMaterial();
 		writeRuntime(compilationContext, resolvedBuildContext);
 		emitBuildReports(compilationContext, resolvedBuildContext);
+	}
+
+	function generatedSourcePath(fileName:String):String {
+		return switch (projectMode) {
+			case Standalone: fileName;
+			case ExistingModule(project): project.generatedSourcePath(fileName);
+		};
 	}
 
 	/**
@@ -653,7 +697,10 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 			if (!FileSystem.exists(sourcePath) || FileSystem.isDirectory(sourcePath)) {
 				Context.fatalError('Missing packaged hxrt file required by the feature plan: "' + fileName + '"', Context.currentPos());
 			}
-			var targetPath = Path.join(["hxrt", fileName]);
+			var targetPath = switch (projectMode) {
+				case Standalone: Path.join(["hxrt", fileName]);
+				case ExistingModule(project): project.runtimePath(fileName);
+			};
 			copyGeneratedFile(sourcePath, targetPath);
 		}
 	}

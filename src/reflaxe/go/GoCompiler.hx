@@ -18,6 +18,7 @@ import reflaxe.go.compiler.GoLambdaIterableLowering;
 import reflaxe.go.compiler.GoNativeTypeEligibility;
 import reflaxe.go.compiler.GoNativeTypeEligibility.GoNativeEligibilityRole;
 import reflaxe.go.compiler.GoNativeTypeEligibility.GoNativeTypeEligibilityResult;
+import reflaxe.go.compiler.GoOutputIdentity;
 import reflaxe.go.compiler.GoSourceModuleRegistry;
 import reflaxe.go.compiler.GoSourceOwnedStdlibPlanner;
 import reflaxe.go.compiler.GoSurfaceContractRegistry.GoNativeRepresentation;
@@ -254,6 +255,7 @@ class GoCompiler {
 	#if macro
 	final compilationContext:CompilationContext;
 	final mainIdentity:GoMainIdentity;
+	final outputIdentity:GoOutputIdentity;
 	final staticFunctionInfos:Map<String, FunctionInfo>;
 	final localFunctionScopes:Array<Map<String, FunctionInfo>>;
 	final localLambdaAliasScopes:Array<Map<String, String>>;
@@ -318,7 +320,7 @@ class GoCompiler {
 	var requiresSharedArrayRuntime:Bool;
 	#end
 
-	public function new(?compilationContext:CompilationContext, ?mainIdentity:GoMainIdentity) {
+	public function new(?compilationContext:CompilationContext, ?mainIdentity:GoMainIdentity, ?outputIdentity:GoOutputIdentity) {
 		#if macro
 		this.compilationContext = compilationContext == null ? new CompilationContext(GoProfile.Portable, "snapshot") : compilationContext;
 		this.mainIdentity = if (mainIdentity == null || mainIdentity.className == "" || mainIdentity.moduleName == "") {
@@ -327,6 +329,7 @@ class GoCompiler {
 		} else {
 			mainIdentity;
 		};
+		this.outputIdentity = outputIdentity == null ? GoOutputIdentity.standalone(this.compilationContext.runtimeImportPath) : outputIdentity;
 		staticFunctionInfos = new Map<String, FunctionInfo>();
 		localFunctionScopes = [];
 		localLambdaAliasScopes = [];
@@ -572,8 +575,8 @@ class GoCompiler {
 		}
 		for (index in 0...mainDecls.length) {
 			switch (mainDecls[index]) {
-				case GoDecl.GoFuncDecl("main", null, params, results, body):
-					mainDecls[index] = GoDecl.GoFuncDecl("main", null, params, results,
+				case GoDecl.GoFuncDecl(name, null, params, results, body) if (name == outputIdentity.entrySymbol.value()):
+					mainDecls[index] = GoDecl.GoFuncDecl(name, null, params, results,
 						[GoStmt.GoDeferStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.ThreadWaitForAll"), []))].concat(body));
 					return;
 				case _:
@@ -611,6 +614,9 @@ class GoCompiler {
 	}
 
 	function nextGoFileName(base:String, usedFileNames:Map<String, Int>):String {
+		if (outputIdentity.usesExistingModuleFiles()) {
+			base = "haxego_generated_" + base;
+		}
 		var key = base.toLowerCase();
 		var count = usedFileNames.exists(key) ? usedFileNames.get(key) : 0;
 		usedFileNames.set(key, count + 1);
@@ -659,7 +665,7 @@ class GoCompiler {
 
 	function renderGeneratedFile(relativePath:String, decls:Array<GoDecl>, candidateImports:Array<String>):GoGeneratedFile {
 		var file:GoFile = {
-			packageName: "main",
+			packageName: outputIdentity.packageName,
 			imports: [for (path in candidateImports) GoImportPath.parse(path)],
 			decls: decls
 		};
@@ -11388,7 +11394,7 @@ class GoCompiler {
 
 	function staticSymbol(classType:ClassType, fieldName:String):String {
 		noteStdlibClass(classType);
-		return GoNaming.staticSymbol(classType.pack, classType.name, fieldName, isSelectedMainClass(classType));
+		return GoNaming.staticSymbol(classType.pack, classType.name, fieldName, isSelectedMainClass(classType) ? outputIdentity.entrySymbol.value() : null);
 	}
 
 	function normalizeIdent(name:String):String {

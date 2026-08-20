@@ -125,7 +125,7 @@ class ExistingModulePreservationTest(unittest.TestCase):
                 0, go_test.returncode, go_test.stdout + go_test.stderr
             )
             assert_module_files_unchanged(self, module_root, go_mod, go_sum)
-            self.assertTrue((module_root / "main.go").is_file())
+            self.assertTrue((module_root / "haxego_generated_main.go").is_file())
             self.assertTrue((module_root / "hxrt").is_dir())
             metadata = json.loads(
                 (module_root / "_GeneratedFiles.json").read_text(encoding="utf-8")
@@ -197,7 +197,7 @@ class ExistingModulePreservationTest(unittest.TestCase):
             output = completed.stdout + completed.stderr
 
             self.assertNotEqual(0, completed.returncode, output)
-            self.assertIn("Refused generated output", output)
+            self.assertIn("GO-PACKAGE-DIR", output)
             assert_module_files_unchanged(self, module_root, go_mod, go_sum)
             self.assertEqual([], list(outside.iterdir()))
             self.assertNotIn(str(module_root), output)

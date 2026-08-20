@@ -19,10 +19,20 @@
   - The compiler never creates, changes, or removes `go.mod` or `go.sum` in
     this mode.
   - `go_output` must name the selected package directory.
-  - The first implementation supports the module root as package `main`, the
-    `hxrt` runtime directory, a compiler-owned main entry point, and no build.
+  - `packageDir`, `packageName`, and `runtimeDir` select one confined package
+    and its separate runtime package inside the caller module.
+  - `compiler-main` emits `func main` only into an empty package `main`
+    directory or one that contains only files in the current generated-file
+    inventory.
+    `caller-bridge` emits the configured Go function and preserves a
+    caller-owned process entry point in either a `main` or non-`main` package.
+  - Existing-module generated source names start with `haxego_generated_` and
+    refuse to replace a destination that the current generated-file inventory
+    does not own.
+  - The current build policy remains `none`; typed build requests and the
+    digest-backed mixed-owner output transaction are follow-up work.
   - See [existing Go module mode](existing-go-module-mode.md) for the manifest
-    and the follow-up package, entry-point, build, and ownership work.
+    and the follow-up build and ownership work.
 - `reflaxe.dont_output_metadata_id`
   - Recommended for deterministic snapshots.
 
