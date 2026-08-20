@@ -26,6 +26,7 @@ This page helps you find the right docs quickly.
 - [Native policy presets and semantic boundaries](native-policy-presets.md)
 - [Profile semantics guide](profile-semantics-guide.md)
 - [Defines reference](defines-reference.md)
+- [Existing Go module mode](existing-go-module-mode.md)
 - [Examples matrix](examples-matrix.md)
 - [Go concurrency + interop guide](go-concurrency-interop-guide.md)
 - [Concurrency contract](concurrency-contract.md)
