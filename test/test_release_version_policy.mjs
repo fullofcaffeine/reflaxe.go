@@ -133,6 +133,11 @@ async function proveSemanticReleaseIntegration() {
     new URL("../scripts/release/analyze-commits.mjs", import.meta.url),
   );
   const git = (...args) => execFileSync("git", args, { cwd, stdio: "ignore" });
+  const localEnv = Object.fromEntries(
+    Object.entries(process.env).filter(
+      ([key]) => key !== "CI" && !key.startsWith("GITHUB_"),
+    ),
+  );
 
   try {
     git("init", "-q", "-b", "master");
@@ -162,7 +167,7 @@ async function proveSemanticReleaseIntegration() {
       },
       {
         cwd,
-        env: process.env,
+        env: localEnv,
         stdout: silentStream,
         stderr: silentStream,
       },
@@ -186,7 +191,7 @@ async function proveSemanticReleaseIntegration() {
       },
       {
         cwd,
-        env: process.env,
+        env: localEnv,
         stdout: silentStream,
         stderr: silentStream,
       },
