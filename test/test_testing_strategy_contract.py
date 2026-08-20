@@ -14,6 +14,7 @@ STRATEGY = ROOT / "test" / "testing-strategy.json"
 EXAMPLES = ROOT / "examples" / "qa-manifest.json"
 DOC = ROOT / "docs" / "testing-strategy.md"
 PACKAGE = ROOT / "package.json"
+RELEASE_RUNNER = ROOT / "test" / "run-release-contracts.py"
 
 
 class TestingStrategyContractTest(unittest.TestCase):
@@ -165,6 +166,22 @@ class TestingStrategyContractTest(unittest.TestCase):
         self.assertIn(
             "python3 test/test_generated_output_telemetry.py",
             package["scripts"]["test:strategy"],
+        )
+
+    def test_existing_module_preservation_is_release_blocking(self) -> None:
+        package = json.loads(PACKAGE.read_text(encoding="utf-8"))
+        command = "python3 test/test_existing_module_preservation.py"
+
+        self.assertEqual(
+            command, package["scripts"].get("test:existing-module-preservation")
+        )
+        self.assertIn(
+            "npm run test:existing-module-preservation",
+            package["scripts"]["test:strategy"],
+        )
+        self.assertIn(
+            "test/test_existing_module_preservation.py",
+            RELEASE_RUNNER.read_text(encoding="utf-8"),
         )
 
     def test_examples_declare_tier_surface_profiles_and_real_execution(self) -> None:

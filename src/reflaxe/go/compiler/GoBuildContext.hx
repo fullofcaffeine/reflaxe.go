@@ -130,6 +130,15 @@ class GoBuildContext {
 			nativeStackTraceEnabled, nativeBoundaryModules);
 	}
 
+	/** Returns the same build policy with a caller-validated module import path. */
+	public function withGoModuleName(goModuleName:String):GoBuildContext {
+		return new GoBuildContext(profile, currentPolicyResolution(), goModuleName, rawNativeMode, emitLineDirectives, strictExamples,
+			strictUserBoundaryPolicy, strictUserBoundaries, metalFallbackAllowed, metalContractHardError, hxrtForceFullCopy, hxrtFeaturesDefinePresent,
+			hxrtNoFeatureInfer, hxrtManualFeatures, contractReportEnabled, runtimePlanReportEnabled, optimizerPlanReportEnabled, typeUsageReportEnabled,
+			surfaceContractReportEnabled, autoLoweringMode, optimizationPreset, portableStringFastpathEnabled, portableConcurrencyFastpathEnabled,
+			nativeStackTraceEnabled, nativeBoundaryModules);
+	}
+
 	/** Compatibility alias; new code should use `withNativeBoundaryModules`. */
 	public function withMetalLaneModules(metalLaneModules:Array<String>):GoBuildContext {
 		return withNativeBoundaryModules(metalLaneModules);
