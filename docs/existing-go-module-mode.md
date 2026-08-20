@@ -123,6 +123,27 @@ Existing-module mode writes `packageDir/.reflaxe-go-owned.json`. This versioned
 record stores paths relative to `moduleRoot`, content digests, package
 identity, runtime location, and the manifest schema version.
 
+```json
+{
+  "schemaVersion": 1,
+  "manifestSchemaVersion": 1,
+  "modulePath": "example.com/caller/project",
+  "packageDir": "cmd/tool",
+  "packageName": "main",
+  "runtimeDir": "internal/haxe_hxrt",
+  "files": [
+    {
+      "path": "cmd/tool/haxego_generated_main.go",
+      "sha256": "<lowercase SHA-256>"
+    }
+  ]
+}
+```
+
+Paths are sorted and case-unique. Unknown fields, malformed digests, path
+aliases, another project identity, or an unsupported version fail before a new
+output write.
+
 The compiler can replace or remove a file only when the record owns that file.
 The recorded digest must also match the current bytes. A changed generated file
 is a conflict, because the compiler cannot know whether the caller owns the edit.
@@ -132,8 +153,21 @@ must be absent or empty. These rules prevent the compiler from adopting files
 that another tool created.
 
 The compiler never uses the standalone `_GeneratedFiles.json` list to remove
-files in a mixed-owner module. M03-08 owns traversal, symlink, stale-record,
-changed-file, and interrupted-write tests.
+files or grant package ownership in a mixed-owner module. Existing-module mode
+does not write that legacy inventory.
+
+The compiler plans every generated source, runtime file, report, license, and
+macro extra file before it changes the module. It verifies all prior digests,
+stages new bytes, preserves verified old bytes, and publishes the ownership
+record last. A package-local transaction journal lets the next invocation roll
+back an interrupted pre-commit install or verify and clean a completed commit.
+An unexpected third digest, missing backup, malformed journal, or symlink keeps
+the evidence in place and fails with `GO-OUTPUT-TRANSACTION`.
+
+This recovery contract protects one compiler writer for one manifest. It does
+not make a shared output tree safe for simultaneous compiler processes or a
+hostile local process. M03-08 covers traversal, symlink, stale-record,
+changed-file, mixed-owner, and interrupted-write behavior.
 
 ## Package and entry point
 
@@ -141,9 +175,8 @@ All generated Go files use `packageName`. The compiler rejects a package
 directory that contains another package declaration.
 
 The `compiler-main` policy emits `func main()` and requires `packageName` to be
-`main`. Until the digest-backed ownership record lands, the compiler admits
-this policy only in an empty package directory or one that contains only files
-in the current generated-file inventory.
+`main`. The compiler admits this policy only in an empty package directory or
+one whose Go sources match the current digest-backed ownership record.
 
 The `caller-bridge` policy emits one function with the configured symbol. It does
 not emit `func main()`. An exported symbol lets another package call the bridge;
@@ -245,6 +278,12 @@ entry-point, cleanup, and build behavior.
 
 Existing-module mode starts only when `reflaxe_go_project` names a valid
 manifest. Existing users do not need to change their HXML files.
+
+An existing-module tree produced before the ownership record existed is not
+adopted from `_GeneratedFiles.json`, a filename prefix, or matching regenerated
+bytes. Remove that legacy generated output explicitly, then run the current
+compiler once to establish the package-local record. This manual step prevents
+path-only metadata from claiming caller files.
 
 In existing-module mode, legacy defines have these meanings:
 

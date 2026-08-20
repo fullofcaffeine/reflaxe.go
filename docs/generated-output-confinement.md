@@ -8,10 +8,11 @@ Before a compiler-owned file is written, copied, recorded, or selected for stale
 file deletion, the path must pass the typed boundary in
 `src/reflaxe/go/compiler/GoGeneratedOutputBoundary.hx`.
 
-The configured `go_output` directory is the ownership root. Compiler-managed
-Go source, `go.mod`, reports, copied `hxrt` files, Reflaxe extra files, and
-Reflaxe's `_GeneratedFiles.json` inventory must remain below its canonical
-filesystem location.
+The configured `go_output` directory is the ownership root in standalone mode.
+Compiler-managed Go source, `go.mod`, reports, copied `hxrt` files, Reflaxe
+extra files, and `_GeneratedFiles.json` must remain below its canonical
+filesystem location. Existing-module mode instead uses the caller module root
+as its confinement root and a digest-backed package ownership record.
 
 This contract exists because lexical joining is not confinement. A relative
 name can contain traversal, a host can interpret separators differently, and a
@@ -19,7 +20,8 @@ path that looks nested can traverse a symbolic link to another tree.
 
 ## How the write flow works
 
-The compiler establishes the boundary before Reflaxe starts generation:
+For standalone output, the compiler establishes the boundary before Reflaxe
+starts generation:
 
 1. Resolve `go_output` to an absolute, canonical directory. Symlinked ancestor
    directories are resolved, but the configured output directory itself may not
@@ -35,6 +37,13 @@ The compiler establishes the boundary before Reflaxe starts generation:
 The legacy `GoOutputIterator` helpers use the same boundary for direct writes.
 They are retained for compatibility, but they are not a second output policy.
 
+Existing-module output does not invoke Reflaxe's generic writer or stale-file
+deletion. It collects all artifacts in a typed plan, validates prior ownership
+digests, then installs them through `GoExistingModuleOutputTransaction`. The
+package-local `.reflaxe-go-owned.json` record is the commit marker. The legacy
+`_GeneratedFiles.json` file has no replacement, cleanup, or package-ownership
+authority in this mode.
+
 Haxelib staging is a separate process with a separate configured root, so
 `Run.hx` keeps its package-specific typed boundary. It validates POSIX archive
 member names, resolves every destination below the canonical package root, and
@@ -49,6 +58,7 @@ package.
 | Selective or full `hxrt` copy | Runtime feature plan and directory entries | `copyManagedFile` through the same boundary |
 | Reflaxe extra files | Compiler/plugin-provided keys | Whole set preflighted before generation |
 | Stale output deletion | `_GeneratedFiles.json` entries | Metadata path and every entry preflighted before generation |
+| Existing-module replacement and stale cleanup | `.reflaxe-go-owned.json` paths and SHA-256 digests | Complete artifact plan plus manifest-last output transaction |
 | Legacy iterator output | `GoGeneratedFile.relativePath` and runtime entries | Direct boundary writer/copy methods |
 | Haxelib package writes and clean deletion | Declared package mappings | `PackagePathTools.confinedDestination` and delete-tree preflight |
 
