@@ -224,6 +224,49 @@ func StringSubstrStringPtr(value *string, pos int, length int, hasLength bool) *
 	return StringFromLiteral(sliceStringByRuneRange(raw, start, end))
 }
 
+// StringIndexOfStringPtr implements Haxe String.indexOf in code-point space.
+// Why: Go strings expose byte indexes, but portable Haxe string operations use
+// character indexes. What: the helper returns the first matching code-point
+// offset at or after the optional start. How: it clamps the start like Haxe and
+// compares rune-range slices so multi-byte UTF-8 text keeps portable indexes.
+func StringIndexOfStringPtr(value *string, search *string, startIndex int, hasStart bool) int {
+	raw := stringValueOrNullToken(value)
+	needle := stringValueOrNullToken(search)
+	total := utf8.RuneCountInString(raw)
+
+	start := 0
+	if hasStart {
+		start = startIndex
+		if start < 0 {
+			if needle == "" {
+				return 0
+			}
+			start = total + start
+			if start < 0 {
+				start = 0
+			}
+		}
+		if start > total {
+			start = total
+		}
+	}
+
+	if needle == "" {
+		return start
+	}
+
+	needleLen := utf8.RuneCountInString(needle)
+	if needleLen > total-start {
+		return -1
+	}
+	for index := start; index <= total-needleLen; index++ {
+		if sliceStringByRuneRange(raw, index, index+needleLen) == needle {
+			return index
+		}
+	}
+	return -1
+}
+
 func StringLastIndexOfStringPtr(value *string, search *string, startIndex int, hasStart bool) int {
 	raw := stringValueOrNullToken(value)
 	needle := stringValueOrNullToken(search)
@@ -381,6 +424,10 @@ func StringSubstring(value any, start int, end int) *string {
 
 func StringSubstr(value any, pos int, length int, hasLength bool) *string {
 	return StringSubstrStringPtr(StdString(value), pos, length, hasLength)
+}
+
+func StringIndexOf(value any, search any, startIndex int, hasStart bool) int {
+	return StringIndexOfStringPtr(StdString(value), StdString(search), startIndex, hasStart)
 }
 
 func StringLastIndexOf(value any, search any, startIndex int, hasStart bool) int {
