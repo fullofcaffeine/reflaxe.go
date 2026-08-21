@@ -84,6 +84,37 @@ class GoTypeMapper {
 		};
 	}
 
+	/**
+		What: Detects switch subjects whose runtime carrier is a Haxe string.
+		Why: User-defined string abstracts retain their nominal type in the typed AST,
+		so `isStringType` alone would emit a Go switch over string pointers or `any`.
+		How: Follow only abstract backing types, with applied type parameters and a
+		cycle guard, until the chain reaches the ordinary Haxe `String` type.
+	**/
+	public static function isStringSwitchType(type:Type):Bool {
+		return isStringSwitchTypeInner(type, new Map<String, Bool>());
+	}
+
+	static function isStringSwitchTypeInner(type:Type, seen:Map<String, Bool>):Bool {
+		if (isStringType(type)) {
+			return true;
+		}
+		return switch (Context.follow(type)) {
+			case TAbstract(abstractRef, params):
+				var abstractType = abstractRef.get();
+				var identity = abstractType.pack.concat([abstractType.name]).join(".");
+				if (seen.exists(identity)) {
+					false;
+				} else {
+					seen.set(identity, true);
+					var backingType = TypeTools.applyTypeParameters(abstractType.type, abstractType.params, params);
+					isStringSwitchTypeInner(backingType, seen);
+				}
+			case _:
+				false;
+		};
+	}
+
 	public static function isInterfaceType(type:Type):Bool {
 		var followed = Context.follow(type);
 		return switch (followed) {
@@ -440,7 +471,8 @@ class GoTypeMapper {
 	public static function goFunctionType(args:Array<{name:String, opt:Bool, t:Type}>, returnType:Type, classTypeName:GoClassTypeNamer,
 			enumTypeName:GoEnumTypeNamer):String {
 		var params = [
-			for (arg in args) functionParameterStorageGoType(arg, classTypeName, enumTypeName)
+			for (arg in args)
+				functionParameterStorageGoType(arg, classTypeName, enumTypeName)
 		].join(", ");
 		if (isVoidType(returnType)) {
 			return "func(" + params + ")";
@@ -664,7 +696,8 @@ class GoTypeMapper {
 		return switch (Context.follow(field.type)) {
 			case TFun(args, returnType):
 				var params = [
-					for (arg in args) functionParameterStorageGoType(arg, classTypeName, enumTypeName)
+					for (arg in args)
+						functionParameterStorageGoType(arg, classTypeName, enumTypeName)
 				].join(", ");
 				var returnSuffix = isVoidType(returnType) ? "" : " " + scalarGoType(returnType, classTypeName, enumTypeName);
 				GoNaming.normalizeIdent(field.name) + "(" + params + ")" + returnSuffix;

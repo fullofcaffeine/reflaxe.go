@@ -4115,7 +4115,7 @@ class GoCompiler {
 	}
 
 	function lowerSwitchStmt(value:TypedExpr, cases:Array<{values:Array<TypedExpr>, expr:TypedExpr}>, defaultExpr:Null<TypedExpr>):GoStmt {
-		var stringSwitch = isStringType(value.t);
+		var stringSwitch = GoTypeMapper.isStringSwitchType(value.t);
 		var loweredCases = new Array<GoSwitchCase>();
 		for (caseEntry in cases) {
 			loweredCases.push({
@@ -4134,7 +4134,7 @@ class GoCompiler {
 	function lowerSwitchExpr(value:TypedExpr, cases:Array<{values:Array<TypedExpr>, expr:TypedExpr}>, defaultExpr:Null<TypedExpr>,
 			resultType:Type):LoweredExprWithPrefix {
 		var temp = freshTempName("hx_switch");
-		var stringSwitch = isStringType(value.t);
+		var stringSwitch = GoTypeMapper.isStringSwitchType(value.t);
 		var loweredCases = new Array<GoSwitchCase>();
 
 		for (caseEntry in cases) {
