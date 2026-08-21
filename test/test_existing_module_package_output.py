@@ -212,6 +212,19 @@ class ExistingModulePackageOutputTest(unittest.TestCase):
             self.assertIn(f'"{MODULE_PATH}/internal/haxe_hxrt"', generated_text)
             self.assertTrue((module_root / "internal" / "haxe_hxrt").is_dir())
 
+            all_generated_go = sorted(module_root.glob("cmd/tool/*.go")) + sorted(
+                module_root.glob("internal/haxe_hxrt/*.go")
+            )
+            formatted = subprocess.run(
+                ["gofmt", "-d", *[str(path) for path in all_generated_go]],
+                cwd=module_root,
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            self.assertEqual(0, formatted.returncode, formatted.stderr)
+            self.assertEqual("", formatted.stdout, formatted.stdout)
+
             repeated = run_compiler(module_root, "cmd/tool")
             self.assertEqual(0, repeated.returncode, repeated.stdout + repeated.stderr)
             self.assertEqual(caller_main, (package_dir / "main.go").read_bytes())
