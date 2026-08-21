@@ -82,15 +82,7 @@ class GoASTPrinter {
 				out.add("type ");
 				out.add(name);
 				out.add(" struct {\n");
-				for (field in fields) {
-					out.add("\t");
-					if (field.name != "") {
-						out.add(field.name);
-						out.add(" ");
-					}
-					out.add(field.typeName.render());
-					out.add("\n");
-				}
+				out.add(printStructFields(fields));
 				out.add("}\n");
 				out.toString();
 			case GoGlobalVarDecl(name, typeName, value):
@@ -132,6 +124,37 @@ class GoASTPrinter {
 				out.add("}\n");
 				out.toString();
 		}
+	}
+
+	/**
+		Render named struct fields in the stable column shape produced by `gofmt`.
+
+		Why: existing-module ownership hashes the compiler's final bytes. If `gofmt`
+		changes field spacing, ordinary Go tooling invalidates that ownership record.
+		What: align the type column one space after the longest named field.
+		How: compute the closed field group's maximum identifier width, while leaving
+		anonymous fields as a type-only line.
+	**/
+	static function printStructFields(fields:Array<GoParam>):String {
+		var longestName = 0;
+		for (field in fields) {
+			if (field.name.length > longestName) {
+				longestName = field.name.length;
+			}
+		}
+		final out = new StringBuf();
+		for (field in fields) {
+			out.add("\t");
+			if (field.name != "") {
+				out.add(field.name);
+				for (_ in field.name.length...longestName + 1) {
+					out.add(" ");
+				}
+			}
+			out.add(field.typeName.render());
+			out.add("\n");
+		}
+		return out.toString();
 	}
 
 	static function printParams(params:Array<GoParam>):String {

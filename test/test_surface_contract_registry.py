@@ -493,7 +493,7 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         self.assertIn("*hxrt.Array", main_go)
         self.assertNotIn("var values []int", main_go)
         self.assertIn("b []int", bytes_go)
-        self.assertIn("__hx_raw *hxrt.ByteView", bytes_go)
+        self.assertRegex(bytes_go, r"__hx_raw\s+\*hxrt\.ByteView")
         self.assertIn("iterator map[string]any", main_go)
         self.assertIn('"hasNext"] = func() bool', main_go)
         self.assertIn('"next"] = func() int', main_go)
