@@ -127,11 +127,13 @@ class ExistingModulePreservationTest(unittest.TestCase):
             assert_module_files_unchanged(self, module_root, go_mod, go_sum)
             self.assertTrue((module_root / "haxego_generated_main.go").is_file())
             self.assertTrue((module_root / "hxrt").is_dir())
-            metadata = json.loads(
-                (module_root / "_GeneratedFiles.json").read_text(encoding="utf-8")
+            self.assertFalse((module_root / "_GeneratedFiles.json").exists())
+            ownership = json.loads(
+                (module_root / ".reflaxe-go-owned.json").read_text(encoding="utf-8")
             )
-            self.assertNotIn("go.mod", metadata["filesGenerated"])
-            self.assertNotIn("go.sum", metadata["filesGenerated"])
+            owned_paths = {entry["path"] for entry in ownership["files"]}
+            self.assertNotIn("go.mod", owned_paths)
+            self.assertNotIn("go.sum", owned_paths)
 
     def test_success_keeps_an_absent_go_sum_absent(self) -> None:
         with tempfile.TemporaryDirectory(prefix="haxe-go-existing-module-") as raw:
@@ -144,7 +146,7 @@ class ExistingModulePreservationTest(unittest.TestCase):
             self.assertEqual(0, completed.returncode, output)
             assert_module_files_unchanged(self, module_root, go_mod, go_sum)
 
-    def test_reserved_module_file_alias_in_old_metadata_fails_before_generation(self) -> None:
+    def test_reserved_module_file_alias_in_legacy_metadata_grants_no_authority(self) -> None:
         with tempfile.TemporaryDirectory(prefix="haxe-go-existing-module-") as raw:
             module_root = Path(raw)
             go_mod, go_sum = write_project(module_root)
@@ -161,10 +163,13 @@ class ExistingModulePreservationTest(unittest.TestCase):
             completed = run_compiler(module_root)
             output = completed.stdout + completed.stderr
 
-            self.assertNotEqual(0, completed.returncode, output)
-            self.assertIn("GO-EXISTING-MODULE-MUTATION", output)
+            self.assertEqual(0, completed.returncode, output)
             assert_module_files_unchanged(self, module_root, go_mod, go_sum)
-            self.assertFalse((module_root / "main.go").exists())
+            self.assertTrue((module_root / "haxego_generated_main.go").exists())
+            ownership = json.loads(
+                (module_root / ".reflaxe-go-owned.json").read_text(encoding="utf-8")
+            )
+            self.assertNotIn("go.mod", {entry["path"].lower() for entry in ownership["files"]})
             self.assertNotIn(str(module_root), output)
 
     def test_unknown_manifest_field_fails_before_generation(self) -> None:

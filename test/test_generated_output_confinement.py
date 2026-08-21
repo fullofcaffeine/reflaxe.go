@@ -180,11 +180,23 @@ class GeneratedOutputConfinementTest(unittest.TestCase):
         self.assertTrue(boundary.is_file())
         self.assertIn("GoGeneratedOutputBoundary", compiler)
         self.assertIn("validateManagedFileMetadata", compiler)
+        self.assertIn("new GoExistingModuleOutputPlan", compiler)
+        self.assertIn("new GoExistingModuleOutputTransaction", compiler)
         self.assertNotIn("outputManager.saveFile(", compiler)
         self.assertNotIn("output.saveFile(", compiler)
         self.assertIn("GoGeneratedOutputBoundary", iterator)
         self.assertNotIn("File.saveContent(", iterator)
         self.assertNotIn("File.copy(", iterator)
+        inspector = (
+            ROOT
+            / "src"
+            / "reflaxe"
+            / "go"
+            / "compiler"
+            / "GoPackageDirectoryInspector.hx"
+        ).read_text(encoding="utf-8")
+        self.assertIn("GoExistingModuleOwnership", inspector)
+        self.assertNotIn("_GeneratedFiles.json", inspector)
 
 
 if __name__ == "__main__":

@@ -3,19 +3,14 @@ package reflaxe.go.compiler;
 #if (macro || eval)
 import eval.luv.File.FileSync;
 import eval.luv.Result;
-import haxe.Json;
 import haxe.io.Path;
 import reflaxe.go.ast.GoPackageName;
 import reflaxe.go.compiler.GoProjectMode.GoEntrypointPolicy;
-import reflaxe.go.compiler.GoProjectMode.GoProjectRelativePath;
+import reflaxe.go.compiler.GoProjectMode.ExistingGoModuleProject;
 import reflaxe.go.compiler.GoProjectModeError;
 import reflaxe.go.compiler.GoProjectModeError.GoProjectModeErrorKind;
 import sys.FileSystem;
 import sys.io.File;
-
-private typedef LegacyManagedMetadata = {
-	final filesGenerated:Array<String>;
-}
 
 /**
 	Validates caller Go package clauses before existing-module output begins.
@@ -23,11 +18,11 @@ private typedef LegacyManagedMetadata = {
 	The scanner reads only the required leading `package` clause. It skips Go
 	comments without trying to model declarations or infer symbol ownership.
 	Compiler-owned `main` is admitted only for an empty directory or for a rerun
-	whose Go sources all appear in the current generated-file inventory.
+	whose Go sources have exact digests in the package ownership record.
 **/
 class GoPackageDirectoryInspector {
-	public static function validate(moduleRoot:String, packageDir:GoProjectRelativePath, packageName:GoPackageName, entrypoint:GoEntrypointPolicy):Void {
-		final directory = Path.join([moduleRoot, packageDir.value()]);
+	public static function validate(project:ExistingGoModuleProject, boundary:GoGeneratedOutputBoundary):Void {
+		final directory = Path.join([project.moduleRoot, project.packageDir.value()]);
 		if (!FileSystem.exists(directory)) {
 			return;
 		}
@@ -41,10 +36,10 @@ class GoPackageDirectoryInspector {
 			throw new GoProjectModeError(GoProjectModeErrorKind.InvalidPackageDirectory, "packageDir could not be inspected");
 		}
 		goFiles.sort((left, right) -> left < right ? -1 : (left > right ? 1 : 0));
-		final managedPaths = provisionalManagedPaths(moduleRoot);
+		final ownership = GoExistingModuleOwnership.load(project, boundary);
 		final callerGoFiles = [
 			for (name in goFiles)
-				if (!isManagedGeneratedSource(packageDir, name, managedPaths)) name
+				if (!ownership.ownsCurrent(project.generatedSourcePath(name), boundary)) name
 		];
 
 		for (name in goFiles) {
@@ -57,49 +52,18 @@ class GoPackageDirectoryInspector {
 			} catch (_:haxe.Exception) {
 				throw new GoProjectModeError(GoProjectModeErrorKind.PackageMismatch, "an existing Go source has no readable package clause");
 			}
-			final externalTestPackage = StringTools.endsWith(name, "_test.go") && declared == packageName.value() + "_test";
-			if (declared != packageName.value() && !externalTestPackage) {
+			final externalTestPackage = StringTools.endsWith(name, "_test.go") && declared == project.packageName.value() + "_test";
+			if (declared != project.packageName.value() && !externalTestPackage) {
 				throw new GoProjectModeError(GoProjectModeErrorKind.PackageMismatch, "an existing Go source declares another package");
 			}
 		}
 
-		switch (entrypoint) {
+		switch (project.entrypoint) {
 			case CompilerMain if (callerGoFiles.length > 0):
 				throw new GoProjectModeError(GoProjectModeErrorKind.EntrypointOwnership,
 					"compiler-main requires an empty package directory until compiler ownership is established");
 			case _:
 		}
-	}
-
-	/**
-		Reads only a provisional ownership hint for the preflight decision.
-
-		The generated-output boundary validates the full metadata before any write or
-		deletion. An absent or malformed hint grants no ownership here.
-	**/
-	static function provisionalManagedPaths(moduleRoot:String):Map<String, Bool> {
-		final paths:Map<String, Bool> = [];
-		final metadataPath = Path.join([moduleRoot, GoGeneratedOutputBoundary.MANAGED_FILE_METADATA]);
-		try {
-			if (!FileSystem.exists(metadataPath) || FileSystem.isDirectory(metadataPath) || isSymbolicLink(metadataPath)) {
-				return paths;
-			}
-			final metadata:LegacyManagedMetadata = Json.parse(File.getContent(metadataPath));
-			if (metadata == null || metadata.filesGenerated == null) {
-				return paths;
-			}
-			for (path in metadata.filesGenerated) {
-				if (path != null) {
-					paths.set(path.toLowerCase(), true);
-				}
-			}
-		} catch (_:haxe.Exception) {}
-		return paths;
-	}
-
-	static function isManagedGeneratedSource(packageDir:GoProjectRelativePath, name:String, managedPaths:Map<String, Bool>):Bool {
-		return StringTools.startsWith(name.toLowerCase(), "haxego_generated_")
-			&& managedPaths.exists(packageDir.resolve(name).toLowerCase());
 	}
 
 	static function isGoSourceName(name:String):Bool {

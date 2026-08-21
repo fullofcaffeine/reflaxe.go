@@ -8,6 +8,7 @@ import haxe.io.Path;
 import haxe.macro.Context;
 import reflaxe.go.ast.GoPackageName;
 import reflaxe.go.compiler.GoBuildEnvironmentResolver.GoBuildEnvironmentInput;
+import reflaxe.go.compiler.GoGeneratedOutputBoundary.GoOutputPathError;
 import reflaxe.go.compiler.GoProjectModeError.GoProjectModeErrorKind;
 import reflaxe.go.compiler.GoProjectMode.ExistingGoModuleProject;
 import reflaxe.go.compiler.GoProjectMode.GoBuildPolicy;
@@ -72,6 +73,8 @@ class GoProjectModeResolver {
 		try {
 			return ExistingModule(parseManifest(StringTools.trim(manifestDefine)));
 		} catch (error:GoProjectModeError) {
+			throw error;
+		} catch (error:GoOutputPathError) {
 			throw error;
 		} catch (_:haxe.Exception) {
 			throw new GoProjectModeError(InvalidManifest, "the project manifest could not be read or parsed");
@@ -140,8 +143,6 @@ class GoProjectModeResolver {
 				throw new GoProjectModeError(InvalidManifest, "entrypoint has an unsupported kind or fields");
 		};
 		final build = resolveBuildPolicy(moduleRoot, raw.build);
-
-		GoPackageDirectoryInspector.validate(moduleRoot, packageDir, packageName, entrypoint);
 		validateLegacyDefines(moduleRoot, packageDir, build);
 		final modulePath = readModulePath(moduleRoot);
 		final assertedModule = Context.definedValue(GoCompilerDefine.DefineGoModule);
@@ -149,7 +150,7 @@ class GoProjectModeResolver {
 			throw new GoProjectModeError(ConfigurationConflict, "go_module does not match the caller module path");
 		}
 
-		return new ExistingGoModuleProject({
+		final project = new ExistingGoModuleProject({
 			manifestPath: manifestPath,
 			moduleRoot: moduleRoot,
 			modulePath: modulePath,
@@ -159,6 +160,12 @@ class GoProjectModeResolver {
 			entrypoint: entrypoint,
 			build: build
 		});
+		final moduleGuard = new GoModuleFileGuard(moduleRoot);
+		final boundary = new GoGeneratedOutputBoundary(moduleRoot, ["go.mod", "go.sum"]);
+		new GoExistingModuleOutputTransaction(project, boundary).recover();
+		moduleGuard.verify();
+		GoPackageDirectoryInspector.validate(project, boundary);
+		return project;
 	}
 
 	static function resolveBuildPolicy(moduleRoot:String, raw:RawBuild):GoBuildPolicy {

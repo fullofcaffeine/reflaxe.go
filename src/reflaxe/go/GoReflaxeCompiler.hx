@@ -22,6 +22,8 @@ import reflaxe.go.compiler.GoRuntimeCapabilityManifest.GoRuntimeCapabilityManife
 import reflaxe.go.compiler.GoRuntimeCapabilityManifest.GoRuntimeCapabilitySelection;
 import reflaxe.go.compiler.GoAutoLoweringModeTools;
 import reflaxe.go.compiler.GoBuildContextResolver;
+import reflaxe.go.compiler.GoExistingModuleOutputPlan;
+import reflaxe.go.compiler.GoExistingModuleOutputTransaction;
 import reflaxe.go.compiler.GoGeneratedOutputBoundary;
 import reflaxe.go.compiler.GoGeneratedOutputBoundary.GoOutputPathError;
 import reflaxe.go.compiler.GoModuleFileGuard;
@@ -246,6 +248,7 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 	var compilationContext:Null<CompilationContext> = null;
 	var lastRuntimePlan:Null<GoRuntimeCapabilityManifestSnapshot> = null;
 	var outputBoundary:Null<GoGeneratedOutputBoundary> = null;
+	var existingModuleOutputPlan:Null<GoExistingModuleOutputPlan> = null;
 	var projectMode:GoProjectMode = GoProjectMode.Standalone;
 	var moduleFileGuard:Null<GoModuleFileGuard> = null;
 	var typeUsageLedger:GoTypeUsageLedger = new GoTypeUsageLedger();
@@ -268,6 +271,7 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		generatedFiles = [];
 		lastRuntimePlan = null;
 		outputBoundary = null;
+		existingModuleOutputPlan = null;
 		projectMode = GoProjectMode.Standalone;
 		moduleFileGuard = null;
 		typeUsageLedger = new GoTypeUsageLedger();
@@ -276,6 +280,9 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		try {
 			projectMode = GoProjectModeResolver.resolve();
 		} catch (error:GoProjectModeError) {
+			Context.fatalError(error.message, Context.currentPos());
+			return;
+		} catch (error:GoOutputPathError) {
 			Context.fatalError(error.message, Context.currentPos());
 			return;
 		}
@@ -453,32 +460,26 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		}
 
 		try {
-			var callerOwnedPaths:Array<String> = [];
 			switch (projectMode) {
 				case Standalone:
+					final boundary = new GoGeneratedOutputBoundary(configuredRoot);
+					boundary.validateManagedFileMetadata();
+					for (path in extraFiles.keys()) {
+						boundary.validateDestination(path);
+					}
+					outputBoundary = boundary;
+					super.generateFiles();
 				case ExistingModule(project):
 					moduleFileGuard = new GoModuleFileGuard(project.moduleRoot);
-					callerOwnedPaths = ["go.mod", "go.sum"];
+					final boundary = new GoGeneratedOutputBoundary(configuredRoot, ["go.mod", "go.sum"]);
+					outputBoundary = boundary;
+					final plan = new GoExistingModuleOutputPlan(project, boundary);
+					existingModuleOutputPlan = plan;
+					generateFilesManually();
+					collectExistingModuleExtraFiles(plan);
+					existingModuleOutputPlan = null;
+					new GoExistingModuleOutputTransaction(project, boundary).commit(plan);
 			}
-			var boundary = new GoGeneratedOutputBoundary(configuredRoot, callerOwnedPaths);
-			boundary.validateManagedFileMetadata();
-			switch (projectMode) {
-				case Standalone:
-				case ExistingModule(project):
-					for (file in generatedFiles) {
-						boundary.validateManagedReplacement(project.generatedSourcePath(file.relativePath));
-					}
-					switch (project.build) {
-						case NoBuild:
-						case GoBuild(_):
-							boundary.validateManagedReplacement(GoBuildRequest.REPORT_PATH);
-					}
-			}
-			for (path in extraFiles.keys()) {
-				boundary.validateDestination(path);
-			}
-			outputBoundary = boundary;
-			super.generateFiles();
 			if (moduleFileGuard != null) {
 				moduleFileGuard.verify();
 			}
@@ -491,6 +492,32 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 				}
 			}
 			Context.fatalError(error.message, Context.currentPos());
+		}
+	}
+
+	/** Preserve Reflaxe's priority ordering while adding macro extra files to one plan. */
+	function collectExistingModuleExtraFiles(plan:GoExistingModuleOutputPlan):Void {
+		for (path in extraFiles.keys()) {
+			final content = extraFiles.get(path);
+			if (content == null) {
+				continue;
+			}
+			final priorities:Array<Int> = [];
+			for (priority in content.keys()) {
+				final fragment = content.get(priority);
+				if (fragment != null && StringTools.trim(fragment).length > 0) {
+					priorities.push(priority);
+				}
+			}
+			priorities.sort((left, right) -> left - right);
+			final fragments:Array<String> = [];
+			for (priority in priorities) {
+				final fragment = content.get(priority);
+				if (fragment != null && StringTools.trim(fragment).length > 0) {
+					fragments.push(fragment);
+				}
+			}
+			plan.add(path, fragments.join("\n\n"));
 		}
 	}
 
@@ -544,7 +571,11 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		if (output == null || outputBoundary == null) {
 			throw new GoOutputPathError(InvalidRoot, "the compiler output boundary is unavailable");
 		}
-		outputBoundary.saveFile(output, path, content);
+		if (existingModuleOutputPlan != null) {
+			existingModuleOutputPlan.add(path, content);
+		} else {
+			outputBoundary.saveFile(output, path, content);
+		}
 	}
 
 	/**
@@ -560,7 +591,17 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		if (output == null || outputBoundary == null) {
 			throw new GoOutputPathError(InvalidRoot, "the compiler output boundary is unavailable");
 		}
-		outputBoundary.copyManagedFile(output, sourcePath, targetPath);
+		if (existingModuleOutputPlan != null) {
+			try {
+				existingModuleOutputPlan.addBytes(targetPath, sys.io.File.getBytes(sourcePath));
+			} catch (error:GoOutputPathError) {
+				throw error;
+			} catch (_:haxe.Exception) {
+				throw new GoOutputPathError(WriteFailed, "a compiler support file could not be read");
+			}
+		} else {
+			outputBoundary.copyManagedFile(output, sourcePath, targetPath);
+		}
 	}
 
 	override public function onOutputComplete():Void {
