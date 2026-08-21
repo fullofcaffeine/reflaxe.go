@@ -6,7 +6,7 @@ private extern class HxrtJson {
 	@:go.name("JsonParse")
 	static function parse(source:String):Dynamic;
 	@:go.name("JsonStringify")
-	static function stringify(value:Dynamic):String;
+	static function stringify(value:Dynamic, space:Null<String>):String;
 }
 
 /**
@@ -25,6 +25,6 @@ class Json {
 	}
 
 	public static inline function stringify(value:Dynamic, ?replacer:(key:Dynamic, value:Dynamic) -> Dynamic, ?space:String):String {
-		return HxrtJson.stringify(value);
+		return HxrtJson.stringify(value, space);
 	}
 }

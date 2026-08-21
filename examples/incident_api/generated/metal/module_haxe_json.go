@@ -7,5 +7,5 @@ func haxe__Json_parse(text *string) any {
 }
 
 func haxe__Json_stringify(value any, replacer func(any, any) any, space *string) *string {
-	return hxrt.StdString(hxrt.JsonStringify(value))
+	return hxrt.StdString(hxrt.JsonStringify(value, space))
 }

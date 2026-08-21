@@ -23,6 +23,14 @@ class Main {
 			}
 		};
 		var encoded = haxe.Json.stringify(source);
+		var prettySource:Dynamic = {
+			items: [1, 2]
+		};
+		emit("space.omitted", haxe.Json.stringify(prettySource));
+		emit("space.null", haxe.Json.stringify(prettySource, null, null));
+		emit("space.empty", haxe.Json.stringify(prettySource, null, ""));
+		emit("space.two", haxe.Json.stringify(prettySource, null, "  "));
+		emit("space.tab", haxe.Json.stringify(prettySource, null, "\t"));
 
 		var decoded:Dynamic = haxe.Json.parse(encoded);
 		emit("src.decoded.a", Reflect.field(decoded, "a"));

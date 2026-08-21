@@ -132,12 +132,18 @@ func JsonParse(source *string) any {
 	return jsonToHaxeValue(decoded)
 }
 
-func JsonStringify(value any) *string {
+func JsonStringify(value any, space *string) *string {
 	normalized, ok := jsonFromHaxeValue(value, make(map[jsonVisit]bool))
 	if !ok {
 		return StringFromLiteral("null")
 	}
-	encoded, err := json.Marshal(normalized)
+	var encoded []byte
+	var err error
+	if space == nil {
+		encoded, err = json.Marshal(normalized)
+	} else {
+		encoded, err = json.MarshalIndent(normalized, "", *space)
+	}
 	if err != nil {
 		return StringFromLiteral("null")
 	}
