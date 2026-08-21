@@ -12,8 +12,14 @@ type hxrt__TypeEnumValue struct {
 
 func main() {
 	var parsed any = hxrt.JsonParse(hxrt.StringFromLiteral("[1,true,\"x\"]"))
-	var v any = any(hxrt.StdString(hxrt.JsonStringify(parsed)))
+	var v any = any(func() *string {
+		var space *string = nil
+		return hxrt.StdString(hxrt.JsonStringify(parsed, space))
+	}())
 	hxrt.Println(v)
+	var pretty any = hxrt.JsonParse(hxrt.StringFromLiteral("{\"items\":[1,2]}"))
+	var v_1 any = any(hxrt.StdString(hxrt.JsonStringify(pretty, hxrt.StringFromLiteral("  "))))
+	hxrt.Println(v_1)
 	var object any = hxrt.JsonParse(hxrt.StringFromLiteral("{\"name\":\"alpha\"}"))
 	name := func(hx_value_1 any) *string {
 		if hx_value_1 == nil {

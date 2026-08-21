@@ -148,11 +148,12 @@ func checkTextAndData() {
 		return hx_value_22.(*string)
 	}(Reflect_field(parsed, hxrt.StringFromLiteral("name")))
 	require(hxrt.StringEqualStringPtr(parsedName, hxrt.StringFromLiteral("alpha")), hxrt.StringFromLiteral("JSON value contract"))
+	var space *string = nil
 	encoded := hxrt.StdString(hxrt.JsonStringify(any(func() map[string]any {
 		hx_obj_24 := map[string]any{}
 		hx_obj_24["name"] = hxrt.StringFromLiteral("alpha")
 		return hx_obj_24
-	}())))
+	}()), space))
 	require(StringTools_contains(encoded, hxrt.StringFromLiteral("\"name\":\"alpha\"")), hxrt.StringFromLiteral("JSON stringify contract"))
 	path := New_haxe__io__Path(haxe__io__Path_join(hxrt.NewArray(hxrt.StringFromLiteral("reports"), hxrt.StringFromLiteral("result.json"))))
 	require(hxrt.StringEqualStringPtr(path.dir, hxrt.StringFromLiteral("reports")), hxrt.StringFromLiteral("Path directory contract"))

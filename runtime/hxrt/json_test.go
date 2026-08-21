@@ -51,7 +51,7 @@ func TestJsonStringifyTraversesPortableArrayCarriers(t *testing.T) {
 		"items": NewArray(1, NewArray(2, 3)),
 	}
 
-	got := JsonStringify(value)
+	got := JsonStringify(value, nil)
 	if got == nil || *got != `{"items":[1,[2,3]]}` {
 		t.Fatalf("JsonStringify() = %v, want nested JSON arrays", StdString(got))
 	}
@@ -61,7 +61,7 @@ func TestJsonStringifyRejectsCyclicPortableArray(t *testing.T) {
 	value := NewArray(nil)
 	value.Set(0, value)
 
-	got := JsonStringify(value)
+	got := JsonStringify(value, nil)
 	if got == nil || *got != "null" {
 		t.Fatalf("JsonStringify(cycle) = %v, want null", StdString(got))
 	}
@@ -71,8 +71,43 @@ func TestJsonStringifyAllowsRepeatedArrayOutsideActivePath(t *testing.T) {
 	shared := NewArray(1)
 	value := NewArray(shared, shared)
 
-	got := JsonStringify(value)
+	got := JsonStringify(value, nil)
 	if got == nil || *got != `[[1],[1]]` {
 		t.Fatalf("JsonStringify(repeated alias) = %v, want [[1],[1]]", StdString(got))
+	}
+}
+
+func TestJsonStringifyHonorsPresentIndentation(t *testing.T) {
+	value := map[string]any{"items": NewArray(1, 2)}
+
+	for _, test := range []struct {
+		name  string
+		space *string
+		want  string
+	}{
+		{name: "omitted", space: nil, want: `{"items":[1,2]}`},
+		{name: "empty", space: StringFromLiteral(""), want: `{
+"items": [
+1,
+2
+]
+}`},
+		{name: "two spaces", space: StringFromLiteral("  "), want: `{
+  "items": [
+    1,
+    2
+  ]
+}`},
+		{name: "tab", space: StringFromLiteral("\t"), want: "{\n\t\"items\": [\n\t\t1,\n\t\t2\n\t]\n}"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			got := JsonStringify(value, test.space)
+			if got == nil {
+				t.Fatal("JsonStringify() = nil")
+			}
+			if *got != test.want {
+				t.Fatalf("JsonStringify() = %q, want %q", *got, test.want)
+			}
+		})
 	}
 }
