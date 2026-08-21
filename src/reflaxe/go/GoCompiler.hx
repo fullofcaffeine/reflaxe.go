@@ -7645,6 +7645,22 @@ class GoCompiler {
 								expr: GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, posExpr, lenExpr, hasLenExpr]),
 								isStringLike: true
 							};
+						case "indexOf":
+							var searchExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"),
+								[GoExpr.GoStringLiteral("")]);
+							var startExpr = args.length > 1 ? lowerExpr(args[1]).expr : GoExpr.GoIntLiteral(0);
+							var hasStartExpr = GoExpr.GoBoolLiteral(args.length > 1);
+							var helper = if (useTypedHelpers) {
+								compilationContext.optimizerStringInstanceTypedLowerings++;
+								"hxrt.StringIndexOfStringPtr";
+							} else {
+								compilationContext.optimizerStringInstanceLegacyLowerings++;
+								"hxrt.StringIndexOf";
+							};
+							{
+								expr: GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, searchExpr, startExpr, hasStartExpr]),
+								isStringLike: false
+							};
 						case "lastIndexOf":
 							var searchExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"),
 								[GoExpr.GoStringLiteral("")]);

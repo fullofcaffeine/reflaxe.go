@@ -23,6 +23,38 @@ func TestStringEqualStringPtrDistinguishesNullFromLiteral(t *testing.T) {
 	}
 }
 
+func TestStringIndexOfStringPtrUsesLogicalRuneIndexes(t *testing.T) {
+	value := "a😀bé😀"
+	needle := "😀"
+	empty := ""
+	missing := "missing"
+
+	tests := []struct {
+		name     string
+		search   *string
+		start    int
+		hasStart bool
+		want     int
+	}{
+		{name: "first unicode match", search: &needle, want: 1},
+		{name: "match after start", search: &needle, start: 2, hasStart: true, want: 4},
+		{name: "empty at start", search: &empty, start: 3, hasStart: true, want: 3},
+		{name: "empty clamps past end", search: &empty, start: 99, hasStart: true, want: 5},
+		{name: "negative start is relative to end", search: &needle, start: -1, hasStart: true, want: 4},
+		{name: "empty clamps negative start to zero", search: &empty, start: -1, hasStart: true, want: 0},
+		{name: "large negative start clamps to zero", search: &needle, start: -99, hasStart: true, want: 1},
+		{name: "missing", search: &missing, want: -1},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if got := StringIndexOfStringPtr(&value, test.search, test.start, test.hasStart); got != test.want {
+				t.Fatalf("StringIndexOfStringPtr() = %d, want %d", got, test.want)
+			}
+		})
+	}
+}
+
 func TestStringParseFloatExactAcceptsOnlyValidatedCompleteTokens(t *testing.T) {
 	valid := "-125.5e-1"
 	if got := StringParseFloatExact(&valid); got != -12.55 {
