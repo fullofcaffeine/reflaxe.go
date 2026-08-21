@@ -232,98 +232,125 @@ func main() {
 	hxrt.Println(v_22)
 	var v_23 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("generic.insert.null="), insertGeneric(nil, 2, -99, nil)))
 	hxrt.Println(v_23)
+	var v_24 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("generic.shift.string="), shiftGeneric(makeSame(), hxrt.StringFromLiteral("tail"))))
+	hxrt.Println(v_24)
+	var v_25 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("generic.shift.null="), shiftGeneric(nil, 2)))
+	hxrt.Println(v_25)
+	shifted := hxrt.NewArray(1, 2)
+	shiftedAlias := shifted
+	var v_26 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("shift.value="), func() any {
+		hx_value_65 := shifted.Get(0)
+		shifted.RemoveAt(0)
+		return hx_value_65
+	}()), hxrt.StringFromLiteral(":")), hxrt.StringJoinAny(shiftedAlias.Values(), hxrt.StringFromLiteral(","))))
+	hxrt.Println(v_26)
+	emptyShift := hxrt.NewArray()
+	var v_27 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("shift.empty="), hxrt.StdString(func() any {
+		hx_value_67 := emptyShift.Get(0)
+		emptyShift.RemoveAt(0)
+		return hx_value_67
+	}())), hxrt.StringFromLiteral(":")), emptyShift.Len()))
+	hxrt.Println(v_27)
+	ignoredShift := hxrt.NewArray(1, 2)
+	func() any {
+		hx_value_69 := ignoredShift.Get(0)
+		ignoredShift.RemoveAt(0)
+		return hx_value_69
+	}()
+	var v_28 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("shift.ignored="), hxrt.StringJoinAny(ignoredShift.Values(), hxrt.StringFromLiteral(","))))
+	hxrt.Println(v_28)
 	holder := makeHolder()
-	var v_24 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("field.remove="), hxrt.StdString(func() bool {
-		hx_arr_64 := func(hx_obj_65 map[string]any) *hxrt.Array {
-			hx_field_66 := hx_obj_65["values"]
-			if hx_field_66 == nil {
-				var hx_zero_67 *hxrt.Array
-				return hx_zero_67
+	var v_29 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("field.remove="), hxrt.StdString(func() bool {
+		hx_arr_70 := func(hx_obj_71 map[string]any) *hxrt.Array {
+			hx_field_72 := hx_obj_71["values"]
+			if hx_field_72 == nil {
+				var hx_zero_73 *hxrt.Array
+				return hx_zero_73
 			}
-			return hx_field_66.(*hxrt.Array)
+			return hx_field_72.(*hxrt.Array)
 		}(holder)
-		var hx_remove_value_68 any = 1
-		hx_remove_index_69 := 0
-		for hx_remove_index_69 < hx_arr_64.Len() {
-			hx_remove_element_70 := hx_arr_64.Get(hx_remove_index_69)
-			if hxrt.HaxeEqual(hx_remove_element_70, hx_remove_value_68) {
-				hx_arr_64.RemoveAt(hx_remove_index_69)
+		var hx_remove_value_74 any = 1
+		hx_remove_index_75 := 0
+		for hx_remove_index_75 < hx_arr_70.Len() {
+			hx_remove_element_76 := hx_arr_70.Get(hx_remove_index_75)
+			if hxrt.HaxeEqual(hx_remove_element_76, hx_remove_value_74) {
+				hx_arr_70.RemoveAt(hx_remove_index_75)
 				return true
 			}
-			hx_remove_index_69 = (hx_remove_index_69 + 1)
+			hx_remove_index_75 = (hx_remove_index_75 + 1)
 		}
 		return false
-	}())), hxrt.StringFromLiteral(":")), hxrt.StringJoinAny(func(hx_obj_71 map[string]any) *hxrt.Array {
-		hx_field_72 := hx_obj_71["values"]
-		if hx_field_72 == nil {
-			var hx_zero_73 *hxrt.Array
-			return hx_zero_73
+	}())), hxrt.StringFromLiteral(":")), hxrt.StringJoinAny(func(hx_obj_77 map[string]any) *hxrt.Array {
+		hx_field_78 := hx_obj_77["values"]
+		if hx_field_78 == nil {
+			var hx_zero_79 *hxrt.Array
+			return hx_zero_79
 		}
-		return hx_field_72.(*hxrt.Array)
+		return hx_field_78.(*hxrt.Array)
 	}(holder).Values(), hxrt.StringFromLiteral(","))))
-	hxrt.Println(v_24)
+	hxrt.Println(v_29)
 	func() {
-		hx_arr_74 := func(hx_obj_75 map[string]any) *hxrt.Array {
-			hx_field_76 := hx_obj_75["values"]
-			if hx_field_76 == nil {
-				var hx_zero_77 *hxrt.Array
-				return hx_zero_77
+		hx_arr_80 := func(hx_obj_81 map[string]any) *hxrt.Array {
+			hx_field_82 := hx_obj_81["values"]
+			if hx_field_82 == nil {
+				var hx_zero_83 *hxrt.Array
+				return hx_zero_83
 			}
-			return hx_field_76.(*hxrt.Array)
+			return hx_field_82.(*hxrt.Array)
 		}(holder)
-		hx_insert_position_78 := 1
-		var hx_insert_value_79 any = 1
-		hx_arr_74.Insert(hx_insert_position_78, hx_insert_value_79)
+		hx_insert_position_84 := 1
+		var hx_insert_value_85 any = 1
+		hx_arr_80.Insert(hx_insert_position_84, hx_insert_value_85)
 	}()
-	var v_25 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("field.insert="), hxrt.StringJoinAny(func(hx_obj_80 map[string]any) *hxrt.Array {
-		hx_field_81 := hx_obj_80["values"]
-		if hx_field_81 == nil {
-			var hx_zero_82 *hxrt.Array
-			return hx_zero_82
+	var v_30 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("field.insert="), hxrt.StringJoinAny(func(hx_obj_86 map[string]any) *hxrt.Array {
+		hx_field_87 := hx_obj_86["values"]
+		if hx_field_87 == nil {
+			var hx_zero_88 *hxrt.Array
+			return hx_zero_88
 		}
-		return hx_field_81.(*hxrt.Array)
+		return hx_field_87.(*hxrt.Array)
 	}(holder).Values(), hxrt.StringFromLiteral(","))))
-	hxrt.Println(v_25)
+	hxrt.Println(v_30)
 	holderEvaluations = 0
 	removedFromTemporary := func() bool {
-		hx_arr_83 := func(hx_obj_84 map[string]any) *hxrt.Array {
-			hx_field_85 := hx_obj_84["values"]
-			if hx_field_85 == nil {
-				var hx_zero_86 *hxrt.Array
-				return hx_zero_86
+		hx_arr_89 := func(hx_obj_90 map[string]any) *hxrt.Array {
+			hx_field_91 := hx_obj_90["values"]
+			if hx_field_91 == nil {
+				var hx_zero_92 *hxrt.Array
+				return hx_zero_92
 			}
-			return hx_field_85.(*hxrt.Array)
+			return hx_field_91.(*hxrt.Array)
 		}(makeCountedHolder())
-		var hx_remove_value_87 any = 1
-		hx_remove_index_88 := 0
-		for hx_remove_index_88 < hx_arr_83.Len() {
-			hx_remove_element_89 := hx_arr_83.Get(hx_remove_index_88)
-			if hxrt.HaxeEqual(hx_remove_element_89, hx_remove_value_87) {
-				hx_arr_83.RemoveAt(hx_remove_index_88)
+		var hx_remove_value_93 any = 1
+		hx_remove_index_94 := 0
+		for hx_remove_index_94 < hx_arr_89.Len() {
+			hx_remove_element_95 := hx_arr_89.Get(hx_remove_index_94)
+			if hxrt.HaxeEqual(hx_remove_element_95, hx_remove_value_93) {
+				hx_arr_89.RemoveAt(hx_remove_index_94)
 				return true
 			}
-			hx_remove_index_88 = (hx_remove_index_88 + 1)
+			hx_remove_index_94 = (hx_remove_index_94 + 1)
 		}
 		return false
 	}()
-	var v_26 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("receiver.remove="), hxrt.StdString(removedFromTemporary)), hxrt.StringFromLiteral(":")), holderEvaluations))
-	hxrt.Println(v_26)
+	var v_31 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("receiver.remove="), hxrt.StdString(removedFromTemporary)), hxrt.StringFromLiteral(":")), holderEvaluations))
+	hxrt.Println(v_31)
 	holderEvaluations = 0
 	func() {
-		hx_arr_90 := func(hx_obj_91 map[string]any) *hxrt.Array {
-			hx_field_92 := hx_obj_91["values"]
-			if hx_field_92 == nil {
-				var hx_zero_93 *hxrt.Array
-				return hx_zero_93
+		hx_arr_96 := func(hx_obj_97 map[string]any) *hxrt.Array {
+			hx_field_98 := hx_obj_97["values"]
+			if hx_field_98 == nil {
+				var hx_zero_99 *hxrt.Array
+				return hx_zero_99
 			}
-			return hx_field_92.(*hxrt.Array)
+			return hx_field_98.(*hxrt.Array)
 		}(makeCountedHolder())
-		hx_insert_position_94 := 1
-		var hx_insert_value_95 any = 1
-		hx_arr_90.Insert(hx_insert_position_94, hx_insert_value_95)
+		hx_insert_position_100 := 1
+		var hx_insert_value_101 any = 1
+		hx_arr_96.Insert(hx_insert_position_100, hx_insert_value_101)
 	}()
-	var v_27 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("receiver.insert="), holderEvaluations))
-	hxrt.Println(v_27)
+	var v_32 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("receiver.insert="), holderEvaluations))
+	hxrt.Println(v_32)
 }
 
 func makeCountedHolder() map[string]any {
@@ -332,9 +359,9 @@ func makeCountedHolder() map[string]any {
 }
 
 func makeHolder() map[string]any {
-	hx_obj_96 := map[string]any{}
-	hx_obj_96["values"] = hxrt.NewArray(1, 2, 1)
-	return hx_obj_96
+	hx_obj_102 := map[string]any{}
+	hx_obj_102["values"] = hxrt.NewArray(1, 2, 1)
+	return hx_obj_102
 }
 
 func makeSame() *string {
@@ -342,35 +369,35 @@ func makeSame() *string {
 }
 
 func markedInsertValue() int {
-	hx_arr_97 := events
-	hx_arr_97.Push(hxrt.StringFromLiteral("value"))
+	hx_arr_103 := events
+	hx_arr_103.Push(hxrt.StringFromLiteral("value"))
 	return 2
 }
 
 func markedPosition() int {
-	hx_arr_98 := events
-	hx_arr_98.Push(hxrt.StringFromLiteral("position"))
+	hx_arr_104 := events
+	hx_arr_104.Push(hxrt.StringFromLiteral("position"))
 	return -1
 }
 
 func markedRemoveValue() int {
-	hx_arr_99 := events
-	hx_arr_99.Push(hxrt.StringFromLiteral("value"))
+	hx_arr_105 := events
+	hx_arr_105.Push(hxrt.StringFromLiteral("value"))
 	return 1
 }
 
 func removeGeneric(first any, second any, value any) *string {
 	values := hxrt.NewArray(first, second)
 	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StdString(func() bool {
-		var hx_remove_value_101 any = value
-		hx_remove_index_102 := 0
-		for hx_remove_index_102 < values.Len() {
-			hx_remove_element_103 := values.Get(hx_remove_index_102)
-			if hxrt.HaxeEqual(hx_remove_element_103, hx_remove_value_101) {
-				values.RemoveAt(hx_remove_index_102)
+		var hx_remove_value_107 any = value
+		hx_remove_index_108 := 0
+		for hx_remove_index_108 < values.Len() {
+			hx_remove_element_109 := values.Get(hx_remove_index_108)
+			if hxrt.HaxeEqual(hx_remove_element_109, hx_remove_value_107) {
+				values.RemoveAt(hx_remove_index_108)
 				return true
 			}
-			hx_remove_index_102 = (hx_remove_index_102 + 1)
+			hx_remove_index_108 = (hx_remove_index_108 + 1)
 		}
 		return false
 	}()), hxrt.StringFromLiteral(":")), values.Len()), hxrt.StringFromLiteral(":")), hxrt.StdString(values.Get(0)))
@@ -379,15 +406,15 @@ func removeGeneric(first any, second any, value any) *string {
 func removeGenericCount(first any, second any, value any) *string {
 	values := hxrt.NewArray(first, second)
 	return hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StdString(func() bool {
-		var hx_remove_value_105 any = value
-		hx_remove_index_106 := 0
-		for hx_remove_index_106 < values.Len() {
-			hx_remove_element_107 := values.Get(hx_remove_index_106)
-			if hxrt.HaxeEqual(hx_remove_element_107, hx_remove_value_105) {
-				values.RemoveAt(hx_remove_index_106)
+		var hx_remove_value_111 any = value
+		hx_remove_index_112 := 0
+		for hx_remove_index_112 < values.Len() {
+			hx_remove_element_113 := values.Get(hx_remove_index_112)
+			if hxrt.HaxeEqual(hx_remove_element_113, hx_remove_value_111) {
+				values.RemoveAt(hx_remove_index_112)
 				return true
 			}
-			hx_remove_index_106 = (hx_remove_index_106 + 1)
+			hx_remove_index_112 = (hx_remove_index_112 + 1)
 		}
 		return false
 	}()), hxrt.StringFromLiteral(":")), values.Len())
@@ -396,15 +423,15 @@ func removeGenericCount(first any, second any, value any) *string {
 func removeGenericFour(first any, second any, third any, fourth any, value any) *string {
 	values := hxrt.NewArray(first, second, third, fourth)
 	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StdString(func() bool {
-		var hx_remove_value_109 any = value
-		hx_remove_index_110 := 0
-		for hx_remove_index_110 < values.Len() {
-			hx_remove_element_111 := values.Get(hx_remove_index_110)
-			if hxrt.HaxeEqual(hx_remove_element_111, hx_remove_value_109) {
-				values.RemoveAt(hx_remove_index_110)
+		var hx_remove_value_115 any = value
+		hx_remove_index_116 := 0
+		for hx_remove_index_116 < values.Len() {
+			hx_remove_element_117 := values.Get(hx_remove_index_116)
+			if hxrt.HaxeEqual(hx_remove_element_117, hx_remove_value_115) {
+				values.RemoveAt(hx_remove_index_116)
 				return true
 			}
-			hx_remove_index_110 = (hx_remove_index_110 + 1)
+			hx_remove_index_116 = (hx_remove_index_116 + 1)
 		}
 		return false
 	}()), hxrt.StringFromLiteral(":")), hxrt.StringJoinAny(func() *hxrt.Array {
@@ -417,6 +444,15 @@ func removeGenericFour(first any, second any, third any, fourth any, value any) 
 		}
 		return _g
 	}().Values(), hxrt.StringFromLiteral(",")))
+}
+
+func shiftGeneric(first any, second any) *string {
+	values := hxrt.NewArray(first, second)
+	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StdString(func() any {
+		hx_value_120 := values.Get(0)
+		values.RemoveAt(0)
+		return hx_value_120
+	}()), hxrt.StringFromLiteral(":")), values.Len()), hxrt.StringFromLiteral(":")), hxrt.StdString(values.Get(0)))
 }
 
 func showNullableInts(values *hxrt.Array) *string {

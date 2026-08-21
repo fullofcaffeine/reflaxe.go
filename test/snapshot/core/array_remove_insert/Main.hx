@@ -11,11 +11,11 @@ typedef SnapshotArrayMutationHolder = {
 }
 
 /**
-	What: Pins generated Go for portable `Array.remove` and `Array.insert`.
-	Why: Both operations must mutate typed slices and write them back without raw
-	stdlib-specific rewrites.
-	How: Cover primitive, string, reference, nullable, generic, and anonymous-field
-	mutation shapes together with every insertion position rule.
+	What: Pins generated Go for portable Array removal and insertion operations.
+	Why: These operations must preserve shared identity and typed return values
+	without raw stdlib-specific rewrites.
+	How: Cover remove, insert, and shift across primitive, reference, nullable,
+	generic, alias, and anonymous-field shapes.
 **/
 class Main {
 	static var events:Array<String> = [];
@@ -44,6 +44,11 @@ class Main {
 		var values = [first, second];
 		values.insert(pos, value);
 		return values.length + ":" + Std.string(values[1]);
+	}
+
+	static function shiftGeneric<T>(first:T, second:T):String {
+		var values = [first, second];
+		return Std.string(values.shift()) + ":" + values.length + ":" + Std.string(values[0]);
 	}
 
 	static function showNullableInts(values:Array<Null<Int>>):String {
@@ -138,6 +143,17 @@ class Main {
 		Sys.println("generic.remove.null=" + removeGeneric(null, 2, null));
 		Sys.println("generic.remove.nullString=" + removeGenericFour(null, "A", "null", "B", "null"));
 		Sys.println("generic.insert.null=" + insertGeneric(null, 2, -99, null));
+		Sys.println("generic.shift.string=" + shiftGeneric(makeSame(), "tail"));
+		Sys.println("generic.shift.null=" + shiftGeneric(null, 2));
+
+		var shifted = [1, 2];
+		var shiftedAlias = shifted;
+		Sys.println("shift.value=" + shifted.shift() + ":" + shiftedAlias.join(","));
+		var emptyShift = new Array<Null<Int>>();
+		Sys.println("shift.empty=" + Std.string(emptyShift.shift()) + ":" + emptyShift.length);
+		var ignoredShift = [1, 2];
+		ignoredShift.shift();
+		Sys.println("shift.ignored=" + ignoredShift.join(","));
 
 		var holder = makeHolder();
 		Sys.println("field.remove=" + holder.values.remove(1) + ":" + holder.values.join(","));

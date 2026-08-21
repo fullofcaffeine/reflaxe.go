@@ -11,11 +11,11 @@ typedef ArrayMutationHolder = {
 }
 
 /**
-	What: Exercises portable `Array.remove` and `Array.insert` mutation semantics.
+	What: Exercises portable Array removal and insertion semantics.
 	Why: Go slices have no matching methods, and library code must not rebuild
 	arrays manually to preserve Haxe behavior.
-	How: Cover equality, identity, nullable and generic values, insertion position
-	rules, and write-back through an anonymous-object field.
+	How: Cover remove, insert, and shift across equality, identity, nullable,
+	generic, alias, position, and anonymous-object field cases.
 **/
 class Main {
 	static var events:Array<String> = [];
@@ -44,6 +44,11 @@ class Main {
 		var values = [first, second];
 		values.insert(pos, value);
 		return values.length + ":" + Std.string(values[1]);
+	}
+
+	static function shiftGeneric<T>(first:T, second:T):String {
+		var values = [first, second];
+		return Std.string(values.shift()) + ":" + values.length + ":" + Std.string(values[0]);
 	}
 
 	static function showNullableInts(values:Array<Null<Int>>):String {
@@ -138,6 +143,17 @@ class Main {
 		Sys.println("generic.remove.null=" + removeGeneric(null, 2, null));
 		Sys.println("generic.remove.nullString=" + removeGenericFour(null, "A", "null", "B", "null"));
 		Sys.println("generic.insert.null=" + insertGeneric(null, 2, -99, null));
+		Sys.println("generic.shift.string=" + shiftGeneric(makeSame(), "tail"));
+		Sys.println("generic.shift.null=" + shiftGeneric(null, 2));
+
+		var shifted = [1, 2];
+		var shiftedAlias = shifted;
+		Sys.println("shift.value=" + shifted.shift() + ":" + shiftedAlias.join(","));
+		var emptyShift = new Array<Null<Int>>();
+		Sys.println("shift.empty=" + Std.string(emptyShift.shift()) + ":" + emptyShift.length);
+		var ignoredShift = [1, 2];
+		ignoredShift.shift();
+		Sys.println("shift.ignored=" + ignoredShift.join(","));
 
 		var holder = makeHolder();
 		Sys.println("field.remove=" + holder.values.remove(1) + ":" + holder.values.join(","));

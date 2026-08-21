@@ -11281,6 +11281,47 @@ class GoCompiler {
 		};
 	}
 
+	/**
+		What: Lowers `Array.shift()` as a first-element removal on the selected
+		portable Array representation.
+		Why: The shared carrier must mutate one identity for every alias, while the
+		native-slice fallback must write its shortened header back to the source site.
+		How: Evaluate the receiver once, return the correct empty value, then combine
+		the carrier's existing read/removal primitives or a structured native slice.
+	**/
+	function lowerArrayShiftExpr(target:TypedExpr, returnType:Type):LoweredExpr {
+		var site = lowerArrayMutationSite(target);
+		var shared = usesSharedArrayCarrier(target);
+		var resultType = shared ? valueStorageGoType(returnType) : typeToGoType(returnType);
+		var body = if (shared) {
+			var valueName = freshTempName("hx_value");
+			var shifted = coerceStoredArrayElementExpr(GoExpr.GoIdent(valueName), returnType);
+			site.prefix.concat([
+				GoStmt.GoVarDecl(valueName, "any", GoExpr.GoCall(GoExpr.GoSelector(site.tempExpr, "Get"), [GoExpr.GoIntLiteral(0)]), true),
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(site.tempExpr, "RemoveAt"), [GoExpr.GoIntLiteral(0)])),
+				GoStmt.GoReturn(shifted)
+			]);
+		} else {
+			var lenName = freshTempName("hx_len");
+			var valueName = freshTempName("hx_value");
+			var zeroName = freshTempName("hx_zero");
+			site.prefix.concat([
+				GoStmt.GoVarDecl(lenName, "int", GoExpr.GoCall(GoExpr.GoIdent("len"), [site.tempExpr]), true),
+				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent(lenName), GoExpr.GoIntLiteral(0)), [
+					GoStmt.GoVarDecl(zeroName, resultType, null, false),
+					GoStmt.GoReturn(GoExpr.GoIdent(zeroName))
+				],
+					null),
+				GoStmt.GoVarDecl(valueName, resultType, GoExpr.GoIndex(site.tempExpr, GoExpr.GoIntLiteral(0)), true),
+				GoStmt.GoAssign(site.tempExpr, GoExpr.GoSlice(site.tempExpr, GoExpr.GoIntLiteral(1), null))
+			]).concat(site.writeBack(site.tempExpr)).concat([GoStmt.GoReturn(GoExpr.GoIdent(valueName))]);
+		};
+		return {
+			expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [resultType], body), []),
+			isStringLike: isStringType(returnType)
+		};
+	}
+
 	function lowerArrayInstanceCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
 		var methodCall = asArrayMethodCall(callee);
 		if (methodCall == null || !isArrayType(methodCall.target.t)) {
@@ -11370,6 +11411,8 @@ class GoCompiler {
 					expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [resultType], body), []),
 					isStringLike: isStringType(returnType)
 				};
+			case "shift" if (args.length == 0):
+				lowerArrayShiftExpr(methodCall.target, returnType);
 			case _:
 				null;
 		};
