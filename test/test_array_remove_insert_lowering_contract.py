@@ -49,7 +49,7 @@ class ArrayRemoveInsertLoweringContract(unittest.TestCase):
         self.assertIn('GoExpr.GoSelector(site.tempExpr, "RemoveAt")', remove)
         self.assertNotIn("site.writeBack", remove)
 
-        insert = function_block(compiler, "lowerArrayInsertExpr", "lowerArrayInstanceCall")
+        insert = function_block(compiler, "lowerArrayInsertExpr", "lowerArrayShiftExpr")
         self.assertIn("lowerArrayMutationSite", insert)
         self.assertIn('GoExpr.GoSelector(site.tempExpr, "Insert")', insert)
         self.assertNotIn("site.writeBack", insert)
@@ -84,6 +84,18 @@ class ArrayRemoveInsertLoweringContract(unittest.TestCase):
         self.assertIn("haxeNumericValue", equality)
         self.assertIn("referenceEqual", equality)
         self.assertNotIn("DeepEqual", equality)
+
+    def test_shift_uses_the_shared_carrier_and_structured_slice_fallback(self) -> None:
+        compiler = GO_COMPILER.read_text(encoding="utf-8")
+        shift = function_block(
+            compiler, "lowerArrayShiftExpr", "lowerArrayInstanceCall"
+        )
+        self.assertIn("lowerArrayMutationSite", shift)
+        self.assertIn('GoExpr.GoSelector(site.tempExpr, "Get")', shift)
+        self.assertIn('GoExpr.GoSelector(site.tempExpr, "RemoveAt")', shift)
+        self.assertIn("coerceStoredArrayElementExpr", shift)
+        self.assertIn("site.writeBack(site.tempExpr)", shift)
+        self.assertNotIn("GoStmt.GoRaw", shift)
 
     def test_erased_equality_is_a_selective_runtime_feature(self) -> None:
         analyzer = HXRT_ANALYZER.read_text(encoding="utf-8")
