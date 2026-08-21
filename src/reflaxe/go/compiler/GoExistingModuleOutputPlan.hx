@@ -43,7 +43,9 @@ class GoExistingModuleOutputPlan {
 
 	public function add(path:String, content:StringOrBytes):Void {
 		final bytes = switch (content.data()) {
-			case String(value): haxe.io.Bytes.ofString(value);
+			case String(value):
+				final rendered = StringTools.endsWith(path.toLowerCase(), ".go") ? GoSourceFormatter.format(value) : value;
+				haxe.io.Bytes.ofString(rendered);
 			case Bytes(value): value;
 		};
 		addBytes(path, bytes);

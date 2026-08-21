@@ -2379,6 +2379,30 @@
       "surface": "compiler"
     },
     {
+      "capability": "macro_and_tooling_boundary",
+      "classification": "required",
+      "context": "closeQuietly",
+      "exception_id": "compiler_dynamic_boundary",
+      "file": "src/reflaxe/go/compiler/GoSourceFormatter.hx",
+      "max_count": 1,
+      "metric": "haxe_dynamic",
+      "owner": "compiler_adapter",
+      "profile": "shared",
+      "surface": "compiler"
+    },
+    {
+      "capability": "macro_and_tooling_boundary",
+      "classification": "required",
+      "context": "format",
+      "exception_id": "compiler_dynamic_boundary",
+      "file": "src/reflaxe/go/compiler/GoSourceFormatter.hx",
+      "max_count": 1,
+      "metric": "haxe_dynamic",
+      "owner": "compiler_adapter",
+      "profile": "shared",
+      "surface": "compiler"
+    },
+    {
       "capability": "dynamic_values",
       "classification": "required",
       "context": "callMethod",

@@ -28,7 +28,7 @@ def write_module(module_root: Path) -> tuple[bytes, bytes]:
     (module_root / "go.mod").write_bytes(go_mod)
     (module_root / "go.sum").write_bytes(go_sum)
     (module_root / "Main.hx").write_text(
-        'class Main { static function main():Void { Sys.println("bridge ran"); } }\n',
+        '@:goNative class Main { static function main():Void { Sys.stderr().writeString(""); Sys.println("bridge ran"); } }\n',
         encoding="utf-8",
     )
     return go_mod, go_sum
@@ -57,7 +57,12 @@ def write_manifest(
     return path
 
 
-def run_compiler(module_root: Path, package_dir: str) -> subprocess.CompletedProcess[str]:
+def run_compiler(
+    module_root: Path,
+    package_dir: str,
+    *,
+    environment: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
     output_dir = module_root / package_dir
     return subprocess.run(
         [
@@ -94,7 +99,7 @@ def run_compiler(module_root: Path, package_dir: str) -> subprocess.CompletedPro
             "Main",
         ],
         cwd=module_root,
-        env=haxe_env(),
+        env=environment or haxe_env(),
         capture_output=True,
         text=True,
         timeout=180,
@@ -178,6 +183,43 @@ def write_interrupted_transaction(
 
 @unittest.skipUnless(shutil.which("haxe") and shutil.which("go"), "requires Haxe and Go")
 class ExistingModulePackageOutputTest(unittest.TestCase):
+    def test_gofmt_failure_stops_before_the_output_transaction(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="haxe-go-package-output-") as raw:
+            module_root = Path(raw)
+            go_mod, go_sum = write_module(module_root)
+            package_dir = module_root / "cmd" / "tool"
+            package_dir.mkdir(parents=True)
+            caller_main = b"package main\n\nfunc main() { RunHaxeMain() }\n"
+            (package_dir / "main.go").write_bytes(caller_main)
+            write_manifest(
+                module_root,
+                package_dir="cmd/tool",
+                package_name="main",
+                runtime_dir="internal/haxe_hxrt",
+                entrypoint={"kind": "caller-bridge", "symbol": "RunHaxeMain"},
+            )
+            tool_dir = module_root / "tools"
+            tool_dir.mkdir()
+            formatter = tool_dir / "gofmt"
+            formatter.write_text(
+                "#!/bin/sh\nprintf 'forced formatter failure\\n' >&2\nexit 1\n",
+                encoding="utf-8",
+            )
+            formatter.chmod(0o755)
+            environment = haxe_env()
+            environment["PATH"] = str(tool_dir) + os.pathsep + environment["PATH"]
+
+            completed = run_compiler(
+                module_root, "cmd/tool", environment=environment
+            )
+            output = completed.stdout + completed.stderr
+
+            self.assertNotEqual(0, completed.returncode, output)
+            self.assertIn("Refused generated output: gofmt failed:", output)
+            self.assertEqual([], generated_sources(package_dir))
+            self.assertEqual(caller_main, (package_dir / "main.go").read_bytes())
+            assert_module_files_unchanged(self, module_root, go_mod, go_sum)
+
     def test_caller_bridge_joins_nested_main_package_and_runs(self) -> None:
         with tempfile.TemporaryDirectory(prefix="haxe-go-package-output-") as raw:
             module_root = Path(raw)

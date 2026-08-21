@@ -116,14 +116,26 @@ class GoASTPrinter {
 				}
 
 				out.add(" {\n");
-				for (bodyStmt in body) {
-					out.add("\t");
-					out.add(printStmt(bodyStmt));
-					out.add("\n");
-				}
+				out.add(printStmtList(body, 1));
 				out.add("}\n");
 				out.toString();
 		}
+	}
+
+	/** Render complete statements at one relative indentation depth. */
+	static function printStmtList(statements:Array<GoStmt>, indentLevel:Int):String {
+		final out = new StringBuf();
+		for (statement in statements) {
+			out.add(indentLines(printStmt(statement), indentLevel));
+			out.add("\n");
+		}
+		return out.toString();
+	}
+
+	/** Prefix every line, including lines owned by a nested statement. */
+	static function indentLines(value:String, indentLevel:Int):String {
+		final indent = [for (_ in 0...indentLevel) "\t"].join("");
+		return indent + value.split("\n").join("\n" + indent);
 	}
 
 	/**
@@ -211,13 +223,9 @@ class GoASTPrinter {
 			case GoWhile(cond, body):
 				var out = new StringBuf();
 				out.add("for ");
-				out.add(printExpr(cond));
+				out.add(printCondition(cond));
 				out.add(" {\n");
-				for (bodyStmt in body) {
-					out.add("\t");
-					out.add(printStmt(bodyStmt));
-					out.add("\n");
-				}
+				out.add(printStmtList(body, 1));
 				out.add("}");
 				out.toString();
 			case GoFor(initializer, condition, post, body):
@@ -226,7 +234,7 @@ class GoASTPrinter {
 				if (initializer == null && post == null) {
 					if (condition != null) {
 						out.add(" ");
-						out.add(printExpr(condition));
+						out.add(printCondition(condition));
 					}
 				} else {
 					out.add(" ");
@@ -235,7 +243,7 @@ class GoASTPrinter {
 					}
 					out.add("; ");
 					if (condition != null) {
-						out.add(printExpr(condition));
+						out.add(printCondition(condition));
 					}
 					out.add("; ");
 					if (post != null) {
@@ -243,15 +251,11 @@ class GoASTPrinter {
 					}
 				}
 				out.add(" {\n");
-				for (inner in body) {
-					out.add("\t");
-					out.add(printStmt(inner));
-					out.add("\n");
-				}
+				out.add(printStmtList(body, 1));
 				out.add("}");
 				out.toString();
 			case GoLabeled(label, stmt):
-				label + ":\n" + printStmt(stmt);
+				label + ":\n" + indentLines(printStmt(stmt), 1);
 			case GoRangeStmt(keyName, valueName, source, useShort, body):
 				var out = new StringBuf();
 				out.add("for ");
@@ -273,31 +277,19 @@ class GoASTPrinter {
 				}
 				out.add(printExpr(source));
 				out.add(" {\n");
-				for (bodyStmt in body) {
-					out.add("\t");
-					out.add(printStmt(bodyStmt));
-					out.add("\n");
-				}
+				out.add(printStmtList(body, 1));
 				out.add("}");
 				out.toString();
 			case GoIf(cond, thenBody, elseBody):
 				var out = new StringBuf();
 				out.add("if ");
-				out.add(printExpr(cond));
+				out.add(printCondition(cond));
 				out.add(" {\n");
-				for (bodyStmt in thenBody) {
-					out.add("\t");
-					out.add(printStmt(bodyStmt));
-					out.add("\n");
-				}
+				out.add(printStmtList(thenBody, 1));
 				out.add("}");
 				if (elseBody != null) {
 					out.add(" else {\n");
-					for (bodyStmt in elseBody) {
-						out.add("\t");
-						out.add(printStmt(bodyStmt));
-						out.add("\n");
-					}
+					out.add(printStmtList(elseBody, 1));
 					out.add("}");
 				}
 				out.toString();
@@ -307,17 +299,12 @@ class GoASTPrinter {
 				out.add(printExpr(value));
 				out.add(" {\n");
 				for (caseEntry in cases) {
-					out.add("\t");
 					out.add(printSwitchCase(caseEntry));
 					out.add("\n");
 				}
 				if (defaultBody != null) {
-					out.add("\tdefault:\n");
-					for (bodyStmt in defaultBody) {
-						out.add("\t\t");
-						out.add(printStmt(bodyStmt));
-						out.add("\n");
-					}
+					out.add("default:\n");
+					out.add(printStmtList(defaultBody, 1));
 				}
 				out.add("}");
 				out.toString();
@@ -331,17 +318,12 @@ class GoASTPrinter {
 				out.add(printExpr(value));
 				out.add(".(type) {\n");
 				for (caseEntry in cases) {
-					out.add("\t");
 					out.add(printTypeSwitchCase(caseEntry));
 					out.add("\n");
 				}
 				if (defaultBody != null) {
-					out.add("\tdefault:\n");
-					for (bodyStmt in defaultBody) {
-						out.add("\t\t");
-						out.add(printStmt(bodyStmt));
-						out.add("\n");
-					}
+					out.add("default:\n");
+					out.add(printStmtList(defaultBody, 1));
 				}
 				out.add("}");
 				out.toString();
@@ -349,7 +331,6 @@ class GoASTPrinter {
 				var out = new StringBuf();
 				out.add("select {\n");
 				for (caseEntry in cases) {
-					out.add("\t");
 					out.add(printSelectCase(caseEntry));
 					out.add("\n");
 				}
@@ -368,11 +349,7 @@ class GoASTPrinter {
 		out.add("case ");
 		out.add([for (value in caseEntry.values) printExpr(value)].join(", "));
 		out.add(":\n");
-		for (stmt in caseEntry.body) {
-			out.add("\t\t");
-			out.add(printStmt(stmt));
-			out.add("\n");
-		}
+		out.add(printStmtList(caseEntry.body, 1));
 		return StringTools.rtrim(out.toString());
 	}
 
@@ -381,11 +358,7 @@ class GoASTPrinter {
 		out.add("case ");
 		out.add(caseEntry.typeName.render());
 		out.add(":\n");
-		for (stmt in caseEntry.body) {
-			out.add("\t\t");
-			out.add(printStmt(stmt));
-			out.add("\n");
-		}
+		out.add(printStmtList(caseEntry.body, 1));
 		return StringTools.rtrim(out.toString());
 	}
 
@@ -419,11 +392,7 @@ class GoASTPrinter {
 			case GoSelectClause.GoSelectDefault:
 				out.add("default:\n");
 		}
-		for (stmt in caseEntry.body) {
-			out.add("\t\t");
-			out.add(printStmt(stmt));
-			out.add("\n");
-		}
+		out.add(printStmtList(caseEntry.body, 1));
 		return StringTools.rtrim(out.toString());
 	}
 
@@ -467,11 +436,7 @@ class GoASTPrinter {
 					out.add(")");
 				}
 				out.add(" {\n");
-				for (stmt in body) {
-					out.add("\t");
-					out.add(printStmt(stmt));
-					out.add("\n");
-				}
+				out.add(printStmtList(body, 1));
 				out.add("}");
 				out.toString();
 			case GoRaw(code): code;
@@ -485,6 +450,14 @@ class GoASTPrinter {
 				var renderedArgs = [for (arg in args) printExpr(arg)].join(", ");
 				printExpr(callee) + "(" + renderedArgs + ")";
 		}
+	}
+
+	/** Render a condition without the redundant outer binary parentheses. */
+	static function printCondition(expr:GoExpr):String {
+		return switch (expr) {
+			case GoBinary(op, left, right): printExpr(left) + " " + op.token() + " " + printExpr(right);
+			case _: printExpr(expr);
+		};
 	}
 
 	static function assignmentToken(op:Null<GoAssignmentOperator>):String {
