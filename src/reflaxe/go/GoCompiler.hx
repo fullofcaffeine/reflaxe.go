@@ -6825,7 +6825,7 @@ class GoCompiler {
 			if (emittedParamType != null) {
 				loweredArg = adaptErasedFunctionCallArg(loweredArg, arg.t, emittedParamType);
 			}
-			loweredArg = normalizeExternCallArg(callee, loweredArg, paramType, returnType);
+			loweredArg = normalizeExternCallArg(callee, loweredArg, paramType);
 			loweredArgs.push(loweredArg);
 		}
 		var functionInfo = resolveFunctionInfo(callee);
@@ -7534,7 +7534,7 @@ class GoCompiler {
 						if (paramType != null) {
 							loweredArg = upcastIfNeeded(loweredArg, arg.t, paramType, arg);
 						}
-						loweredArg = normalizeExternCallArg(callee, loweredArg, paramType, returnType);
+						loweredArg = normalizeExternCallArg(callee, loweredArg, paramType);
 						loweredArgs.push(loweredArg);
 					}
 
@@ -9208,8 +9208,23 @@ class GoCompiler {
 		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [callExpr]);
 	}
 
-	function normalizeExternCallArg(callee:TypedExpr, argExpr:GoExpr, paramType:Null<Type>, returnType:Type):GoExpr {
-		if (paramType == null || (!isExternValueErrorCall(callee, returnType) && !isExternTupleReturnCall(callee, returnType))) {
+	/**
+		What: Converts Haxe-owned call arguments to the native shapes declared by
+		an imported Go extern.
+		Why: Haxe `String` is pointer-backed in generated code, while a non-nullable
+		native Go string parameter is a value. This applies to ordinary extern calls
+		as well as tuple and value/error calls; limiting conversion to special return
+		shapes made valid static `Void` externs fail Go type checking.
+		How: Normalize non-nullable strings at native imported extern boundaries. Keep
+		explicit `Null<String>` parameters and the staged `hxrt` ABI pointer-backed so
+		nil and runtime-owned string carriers remain observable.
+	**/
+	function normalizeExternCallArg(callee:TypedExpr, argExpr:GoExpr, paramType:Null<Type>):GoExpr {
+		if (paramType == null || !isGoImportExternCall(callee) || isHxrtImportExternCall(callee)) {
+			return argExpr;
+		}
+		var nullableInner = nullableInnerType(paramType);
+		if (nullableInner != null && isStringType(nullableInner)) {
 			return argExpr;
 		}
 		if (isStringType(paramType)) {
@@ -9329,6 +9344,21 @@ class GoCompiler {
 				isGoImportExternCall(inner);
 			case TCast(inner, _):
 				isGoImportExternCall(inner);
+			case _:
+				false;
+		};
+	}
+
+	function isHxrtImportExternCall(callee:TypedExpr):Bool {
+		return switch (callee.expr) {
+			case TField(_, FStatic(classRef, _)) | TField(_, FInstance(classRef, _, _)): var classType = classRef.get(); classType.isExtern && readMetadataString(classType.meta,
+					[GoMetadataName.GoImport]) == "hxrt";
+			case TMeta(_, inner):
+				isHxrtImportExternCall(inner);
+			case TParenthesis(inner):
+				isHxrtImportExternCall(inner);
+			case TCast(inner, _):
+				isHxrtImportExternCall(inner);
 			case _:
 				false;
 		};
