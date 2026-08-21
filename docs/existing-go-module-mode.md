@@ -100,6 +100,11 @@ uses it as an assertion and not as ownership permission.
 The optional `go_module` define becomes a module-path assertion. If present,
 it must equal the module path that the compiler reads from `go.mod`.
 
+Existing-module mode requires `gofmt` on `PATH` during Haxe compilation. The
+compiler formats each generated Go source before it computes ownership digests.
+If `gofmt` is missing or rejects a source, compilation stops before the output
+transaction starts. Caller-owned files and prior generated files stay unchanged.
+
 ## Validation before writes
 
 The compiler completes all project validation before its first output write.
