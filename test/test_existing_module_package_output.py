@@ -28,7 +28,7 @@ def write_module(module_root: Path) -> tuple[bytes, bytes]:
     (module_root / "go.mod").write_bytes(go_mod)
     (module_root / "go.sum").write_bytes(go_sum)
     (module_root / "Main.hx").write_text(
-        'class Main { static function main():Void { Sys.stderr().writeString(""); Sys.println("bridge ran"); } }\n',
+        '@:goNative class Main { static function main():Void { Sys.stderr().writeString(""); Sys.println("bridge ran"); } }\n',
         encoding="utf-8",
     )
     return go_mod, go_sum
@@ -183,7 +183,7 @@ def write_interrupted_transaction(
 
 @unittest.skipUnless(shutil.which("haxe") and shutil.which("go"), "requires Haxe and Go")
 class ExistingModulePackageOutputTest(unittest.TestCase):
-    def test_missing_gofmt_fails_before_the_output_transaction(self) -> None:
+    def test_gofmt_failure_stops_before_the_output_transaction(self) -> None:
         with tempfile.TemporaryDirectory(prefix="haxe-go-package-output-") as raw:
             module_root = Path(raw)
             go_mod, go_sum = write_module(module_root)
@@ -200,11 +200,14 @@ class ExistingModulePackageOutputTest(unittest.TestCase):
             )
             tool_dir = module_root / "tools"
             tool_dir.mkdir()
-            uname = shutil.which("uname")
-            self.assertIsNotNone(uname)
-            (tool_dir / "uname").symlink_to(uname)
+            formatter = tool_dir / "gofmt"
+            formatter.write_text(
+                "#!/bin/sh\nprintf 'forced formatter failure\\n' >&2\nexit 1\n",
+                encoding="utf-8",
+            )
+            formatter.chmod(0o755)
             environment = haxe_env()
-            environment["PATH"] = str(tool_dir)
+            environment["PATH"] = str(tool_dir) + os.pathsep + environment["PATH"]
 
             completed = run_compiler(
                 module_root, "cmd/tool", environment=environment
