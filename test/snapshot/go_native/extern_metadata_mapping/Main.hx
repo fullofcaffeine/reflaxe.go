@@ -4,6 +4,12 @@ extern class GoFmt {
 	public static function println(value:Int):Void;
 }
 
+@:go.import("os")
+extern class GoOS {
+	@:go.name("Setenv")
+	public static function setenv(name:String, value:String):Void;
+}
+
 @:go.import("time")
 @:go.name("Time")
 extern class GoTime {
@@ -32,6 +38,7 @@ class Main {
 		var statusOk = GoHttp.statusText(200) == "OK";
 
 		if (direct == viaReceiver && direct > 0 && statusOk) {
+			GoOS.setenv("HAXE_GO_EXTERN_STRING", "converted");
 			GoFmt.println(321);
 		} else {
 			Sys.println(-1);
