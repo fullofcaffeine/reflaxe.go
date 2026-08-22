@@ -266,6 +266,7 @@ class GoCompiler {
 	final requiredNativeSliceElementTypes:Map<String, Bool>;
 	final requiredNativeMapTypePairs:Map<String, NativeMapTypePair>;
 	final requiredNativeResultElementTypes:Map<String, Bool>;
+	var requiresStringValueErrorResultNormalization:Bool;
 	final externImportPaths:Map<String, Bool>;
 	final externImportPackages:Map<String, String>;
 	final usedExternClassPaths:Map<String, Bool>;
@@ -340,6 +341,7 @@ class GoCompiler {
 		requiredNativeSliceElementTypes = new Map<String, Bool>();
 		requiredNativeMapTypePairs = new Map<String, NativeMapTypePair>();
 		requiredNativeResultElementTypes = new Map<String, Bool>();
+		requiresStringValueErrorResultNormalization = false;
 		externImportPaths = new Map<String, Bool>();
 		externImportPackages = new Map<String, String>();
 		usedExternClassPaths = new Map<String, Bool>();
@@ -452,6 +454,7 @@ class GoCompiler {
 		resetRequiredNativeSliceElementTypes();
 		resetRequiredNativeMapTypePairs();
 		resetRequiredNativeResultElementTypes();
+		requiresStringValueErrorResultNormalization = false;
 		resetExternImportPaths();
 		buildStaticFunctionInfoTable(classes);
 		requiresTypeValueSupport = false;
@@ -2686,30 +2689,34 @@ class GoCompiler {
 	function lowerGoResultShimDecls():Array<GoDecl> {
 		var resultTypeName = GoNaming.typeSymbol(["go"], "Result");
 		var resultPointerType = "*" + resultTypeName;
+		var fromValueErrorBody = [
+			GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_go___Result"), [
+					GoExpr.GoNil,
+					GoExpr.GoCall(GoExpr.GoIdent("New_go___Error"), [
+						GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("err"), "Error"), [])])
+					])
+				]))
+			], null)
+		];
+		if (requiresStringValueErrorResultNormalization) {
+			// Native Go strings cross the extern boundary as values, while Haxe
+			// String uses the target's nil-capable pointer carrier. Normalize only
+			// programs with a Result<String> value/error boundary so unrelated
+			// Result users keep their existing generated output.
+			fromValueErrorBody.push(GoStmt.GoTypeSwitch(GoExpr.GoIdent("value"), "typed", [
+				{
+					typeName: GoType.builtin(GoBuiltinType.StringType),
+					body: [
+						GoStmt.GoAssign(GoExpr.GoIdent("value"), GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [GoExpr.GoIdent("typed")]))
+					]
+				}
+			], null));
+		}
+		fromValueErrorBody.push(GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_go___Result"), [GoExpr.GoIdent("value"), GoExpr.GoNil])));
 		var decls = [
-			GoDecl.GoFuncDecl("go__result_fromValueError", null, [{name: "value", typeName: "any"}, {name: "err", typeName: "error"}], [resultPointerType], [
-				GoStmt.GoIf(GoExpr.GoBinary("!=", GoExpr.GoIdent("err"), GoExpr.GoNil), [
-					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_go___Result"), [
-						GoExpr.GoNil,
-						GoExpr.GoCall(GoExpr.GoIdent("New_go___Error"), [
-							GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("err"), "Error"), [])])
-						])
-					]))
-				], null),
-				// Native Go strings cross the extern boundary as values, while Haxe
-				// String uses the target's nil-capable pointer carrier. Normalize the
-				// successful value before the erased Result stores it so typed unwrap
-				// observes the same representation as an ordinary extern call.
-				GoStmt.GoTypeSwitch(GoExpr.GoIdent("value"), "typed", [
-					{
-						typeName: GoType.builtin(GoBuiltinType.StringType),
-						body: [
-							GoStmt.GoAssign(GoExpr.GoIdent("value"), GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [GoExpr.GoIdent("typed")]))
-						]
-					}
-				], null),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_go___Result"), [GoExpr.GoIdent("value"), GoExpr.GoNil]))
-			])
+			GoDecl.GoFuncDecl("go__result_fromValueError", null, [{name: "value", typeName: "any"}, {name: "err", typeName: "error"}], [resultPointerType],
+				fromValueErrorBody)
 		];
 		return decls.concat(lowerTypedGoResultShimDecls());
 	}
@@ -6884,7 +6891,7 @@ class GoCompiler {
 		var callExpr:GoExpr = isGeneratedDynamicFunctionCall(callee) ? lowerNullGuardedDynamicFunctionCall(loweredCallee, loweredArgs,
 			callee.t) : GoExpr.GoCall(loweredCallee, loweredArgs);
 		if (isExternValueErrorCall(callee, returnType)) {
-			requireStdlibShimGroup("go_result");
+			requireExternValueErrorResultShim(returnType);
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoIdent("go__result_fromValueError"), [callExpr]),
 				isStringLike: false
@@ -7571,7 +7578,7 @@ class GoCompiler {
 
 					var callExpr = GoExpr.GoCall(GoExpr.GoSelector(loweredReceiver, externFieldName(field)), loweredArgs);
 					if (isExternValueErrorCall(callee, returnType)) {
-						requireStdlibShimGroup("go_result");
+						requireExternValueErrorResultShim(returnType);
 						callExpr = GoExpr.GoCall(GoExpr.GoIdent("go__result_fromValueError"), [callExpr]);
 						return {
 							expr: callExpr,
@@ -9345,6 +9352,15 @@ class GoCompiler {
 			case _:
 				false;
 		};
+	}
+
+	/** Register the shared value/error adapter and any result-carrier conversion its typed return requires. */
+	function requireExternValueErrorResultShim(returnType:Type):Void {
+		requireStdlibShimGroup("go_result");
+		var elementType = goResultElementType(returnType);
+		if (elementType != null && isStringType(elementType)) {
+			requiresStringValueErrorResultNormalization = true;
+		}
 	}
 
 	function isExternTupleReturnCall(callee:TypedExpr, returnType:Type):Bool {
