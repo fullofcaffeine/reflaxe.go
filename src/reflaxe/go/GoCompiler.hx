@@ -11322,6 +11322,38 @@ class GoCompiler {
 		};
 	}
 
+	/**
+		What: Lowers portable `Array.slice(start, end)` into a detached Array.
+		Why: Haxe permits negative and clamped bounds, while a raw Go slice would
+		both panic on those bounds and alias the source storage.
+		How: Delegate bound normalization and copying to the shared Array runtime.
+		Omitted ends use a typed fast path; explicit ends use the runtime's validated
+		`Null<Int>` ABI adapter. Native slice representations use sibling helpers and
+		are narrowed back into the portable return representation when required.
+	**/
+	function lowerArraySliceExpr(target:TypedExpr, args:Array<TypedExpr>, returnType:Type):LoweredExpr {
+		if (args.length < 1 || args.length > 2) {
+			Context.fatalError("Array.slice expects a start and optional end", target.pos);
+		}
+		final targetExpr = lowerExpr(target).expr;
+		final startExpr = lowerExpr(args[0]).expr;
+		final hasEnd = args.length == 2;
+		final endExpr = hasEnd ? lowerExpr(args[1]).expr : null;
+		if (usesSharedArrayCarrier(target)) {
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoSelector(targetExpr, hasEnd ? "SliceOptional" : "SliceFrom"), hasEnd ? [startExpr, endExpr] : [startExpr]),
+				isStringLike: false
+			};
+		}
+
+		var sliced = GoExpr.GoCall(GoExpr.GoIdent(hasEnd ? "hxrt.SliceValuesOptional" : "hxrt.SliceValuesFrom"),
+			hasEnd ? [targetExpr, startExpr, endExpr] : [targetExpr, startExpr]);
+		if (isHaxeArrayType(returnType)) {
+			sliced = GoExpr.GoCall(GoExpr.GoIdent("hxrt.ArrayFromValues"), [lowerTypedSliceToAnyByGoType(sliced, arrayElementGoType(target.t))]);
+		}
+		return {expr: sliced, isStringLike: false};
+	}
+
 	function lowerArrayInstanceCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
 		var methodCall = asArrayMethodCall(callee);
 		if (methodCall == null || !isArrayType(methodCall.target.t)) {
@@ -11413,6 +11445,8 @@ class GoCompiler {
 				};
 			case "shift" if (args.length == 0):
 				lowerArrayShiftExpr(methodCall.target, returnType);
+			case "slice":
+				lowerArraySliceExpr(methodCall.target, args, returnType);
 			case _:
 				null;
 		};
