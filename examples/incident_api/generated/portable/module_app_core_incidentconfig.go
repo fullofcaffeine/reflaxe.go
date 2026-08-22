@@ -36,13 +36,13 @@ func app__core__IncidentConfig_intField(raw any, name *string, fallback int) int
 		return fallback
 	}
 	var parsed any = Std_parseInt(hxrt.StdString(value))
-	var hx_if_61 int
+	var hx_if_1 int
 	if parsed == nil {
-		hx_if_61 = fallback
+		hx_if_1 = fallback
 	} else {
-		hx_if_61 = parsed.(int)
+		hx_if_1 = parsed.(int)
 	}
-	return hx_if_61
+	return hx_if_1
 }
 
 func app__core__IncidentConfig_load(path *string) *app__core__IncidentConfig {

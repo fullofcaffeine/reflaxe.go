@@ -86,9 +86,9 @@ func (self *haxe__io__BytesInput) readByte() int {
 		hxrt.Throw(New_haxe__io__Eof())
 	}
 	self.len = int(int32((self.len - 1)))
-	hx_post_21 := self.pos
+	hx_post_1 := self.pos
 	self.pos = int(int32((self.pos + 1)))
-	return self.b[hx_post_21]
+	return self.b[hx_post_1]
 }
 
 func (self *haxe__io__BytesInput) readBytes(bytes *haxe__io__Bytes, targetPos int, requested int) int {
@@ -104,9 +104,9 @@ func (self *haxe__io__BytesInput) readBytes(bytes *haxe__io__Bytes, targetPos in
 	_g := 0
 	_g1 := requested
 	for _g < _g1 {
-		hx_post_22 := _g
+		hx_post_2 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_22
+		index := hx_post_2
 		value := self.b[int(int32((hxrt.Int32Wrap(self.pos) + hxrt.Int32Wrap(index))))]
 		bytes.b[int(int32((hxrt.Int32Wrap(targetPos) + hxrt.Int32Wrap(index))))] = int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
 		bytes.__hx_rawValid = false

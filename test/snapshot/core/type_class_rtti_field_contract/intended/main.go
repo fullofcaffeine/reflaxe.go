@@ -22,22 +22,22 @@ func main() {
 	var v any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("fields.len="), fields.Len()))
 	hxrt.Println(v)
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("fields.has_rtti="), hxrt.StdString(Lambda_has(func() map[string]any {
-		hx_lambda_source_10 := fields
-		hx_lambda_wrapped_11 := map[string]any{}
-		hx_lambda_wrapped_11["iterator"] = func() map[string]any {
-			hx_lambda_index_14 := 0
-			hx_lambda_iterator_map_12 := map[string]any{}
-			hx_lambda_iterator_map_12["hasNext"] = func() bool {
-				return (hx_lambda_index_14 < hx_lambda_source_10.Len())
+		hx_lambda_source_1 := fields
+		hx_lambda_wrapped_2 := map[string]any{}
+		hx_lambda_wrapped_2["iterator"] = func() map[string]any {
+			hx_lambda_index_5 := 0
+			hx_lambda_iterator_map_3 := map[string]any{}
+			hx_lambda_iterator_map_3["hasNext"] = func() bool {
+				return (hx_lambda_index_5 < hx_lambda_source_1.Len())
 			}
-			hx_lambda_iterator_map_12["next"] = func() any {
-				hx_lambda_value_13 := hx_lambda_source_10.Get(hx_lambda_index_14)
-				hx_lambda_index_14 = (hx_lambda_index_14 + 1)
-				return hx_lambda_value_13
+			hx_lambda_iterator_map_3["next"] = func() any {
+				hx_lambda_value_4 := hx_lambda_source_1.Get(hx_lambda_index_5)
+				hx_lambda_index_5 = (hx_lambda_index_5 + 1)
+				return hx_lambda_value_4
 			}
-			return hx_lambda_iterator_map_12
+			return hx_lambda_iterator_map_3
 		}
-		return hx_lambda_wrapped_11
+		return hx_lambda_wrapped_2
 	}(), hxrt.StringFromLiteral("__rtti")))))
 	hxrt.Println(v_1)
 	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("raw.rtti.null="), hxrt.StdString(hxrt.AnyEqualsNull(Reflect_field(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Demo")}, hxrt.StringFromLiteral("__rtti"))))))

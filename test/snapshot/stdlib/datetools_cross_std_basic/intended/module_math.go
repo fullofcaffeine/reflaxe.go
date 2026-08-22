@@ -81,13 +81,13 @@ func Math_max(a float64, b float64) float64 {
 	if math.IsNaN(b) {
 		return b
 	}
-	var hx_if_17 float64
+	var hx_if_1 float64
 	if a < b {
-		hx_if_17 = b
+		hx_if_1 = b
 	} else {
-		hx_if_17 = a
+		hx_if_1 = a
 	}
-	return hx_if_17
+	return hx_if_1
 }
 
 func Math_min(a float64, b float64) float64 {
@@ -97,13 +97,13 @@ func Math_min(a float64, b float64) float64 {
 	if math.IsNaN(b) {
 		return b
 	}
-	var hx_if_18 float64
+	var hx_if_2 float64
 	if a < b {
-		hx_if_18 = a
+		hx_if_2 = a
 	} else {
-		hx_if_18 = b
+		hx_if_2 = b
 	}
-	return hx_if_18
+	return hx_if_2
 }
 
 func Math_pow(v float64, exp float64) float64 {

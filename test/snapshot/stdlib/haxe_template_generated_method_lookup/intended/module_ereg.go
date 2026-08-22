@@ -77,40 +77,40 @@ func (self *EReg) matchedRight() *string {
 func (self *EReg) matchedPos() map[string]any {
 	current := self.__hx_this.requireMatch()
 	start := current.Indices[0]
-	hx_obj_286 := map[string]any{}
-	hx_obj_286["pos"] = start
-	hx_obj_286["len"] = int(int32((hxrt.Int32Wrap(current.Indices[1]) - hxrt.Int32Wrap(start))))
-	return hx_obj_286
+	hx_obj_1 := map[string]any{}
+	hx_obj_1["pos"] = start
+	hx_obj_1["len"] = int(int32((hxrt.Int32Wrap(current.Indices[1]) - hxrt.Int32Wrap(start))))
+	return hx_obj_1
 }
 
 func (self *EReg) matchSub(s *string, pos int, len int) bool {
-	var hx_if_287 int
+	var hx_if_2 int
 	if pos < 0 {
-		hx_if_287 = 0
+		hx_if_2 = 0
 	} else {
-		hx_if_287 = pos
+		hx_if_2 = pos
 	}
-	start := hx_if_287
-	var hx_if_288 int
+	start := hx_if_2
+	var hx_if_3 int
 	if len < 0 {
-		hx_if_288 = hxrt.StringLengthStringPtr(s)
+		hx_if_3 = hxrt.StringLengthStringPtr(s)
 	} else {
-		hx_if_288 = int(int32((hxrt.Int32Wrap(start) + hxrt.Int32Wrap(len))))
+		hx_if_3 = int(int32((hxrt.Int32Wrap(start) + hxrt.Int32Wrap(len))))
 	}
-	limit := hx_if_288
+	limit := hx_if_3
 	if limit > hxrt.StringLengthStringPtr(s) {
 		limit = hxrt.StringLengthStringPtr(s)
 	}
 	if start > limit {
 		return false
 	}
-	var hx_if_289 *string
+	var hx_if_4 *string
 	if limit == hxrt.StringLengthStringPtr(s) {
-		hx_if_289 = s
+		hx_if_4 = s
 	} else {
-		hx_if_289 = hxrt.StringSubstrStringPtr(s, 0, limit, true)
+		hx_if_4 = hxrt.StringSubstrStringPtr(s, 0, limit, true)
 	}
-	searched := hx_if_289
+	searched := hx_if_4
 	found := hxrt.RegexFind(self.handle, searched, start)
 	if found == nil {
 		return false
@@ -253,30 +253,30 @@ func (self *EReg) expandReplacement(by *string, source *string, currentMatch *hx
 				index = int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(2))))
 				continue
 			}
-			var hx_switch_293 int
+			var hx_switch_8 int
 			switch *hxrt.StdString(next) {
 			case *hxrt.StdString(hxrt.StringFromLiteral("1")):
-				hx_switch_293 = 1
+				hx_switch_8 = 1
 			case *hxrt.StdString(hxrt.StringFromLiteral("2")):
-				hx_switch_293 = 2
+				hx_switch_8 = 2
 			case *hxrt.StdString(hxrt.StringFromLiteral("3")):
-				hx_switch_293 = 3
+				hx_switch_8 = 3
 			case *hxrt.StdString(hxrt.StringFromLiteral("4")):
-				hx_switch_293 = 4
+				hx_switch_8 = 4
 			case *hxrt.StdString(hxrt.StringFromLiteral("5")):
-				hx_switch_293 = 5
+				hx_switch_8 = 5
 			case *hxrt.StdString(hxrt.StringFromLiteral("6")):
-				hx_switch_293 = 6
+				hx_switch_8 = 6
 			case *hxrt.StdString(hxrt.StringFromLiteral("7")):
-				hx_switch_293 = 7
+				hx_switch_8 = 7
 			case *hxrt.StdString(hxrt.StringFromLiteral("8")):
-				hx_switch_293 = 8
+				hx_switch_8 = 8
 			case *hxrt.StdString(hxrt.StringFromLiteral("9")):
-				hx_switch_293 = 9
+				hx_switch_8 = 9
 			default:
-				hx_switch_293 = 0
+				hx_switch_8 = 0
 			}
-			group := hx_switch_293
+			group := hx_switch_8
 			if group != 0 {
 				offset := int(int32((hxrt.Int32Wrap(group) * hxrt.Int32Wrap(2))))
 				if int(int32((hxrt.Int32Wrap(offset) + hxrt.Int32Wrap(1)))) >= len(currentMatch.Indices) {
@@ -284,13 +284,13 @@ func (self *EReg) expandReplacement(by *string, source *string, currentMatch *hx
 				}
 				start := currentMatch.Indices[offset]
 				end := currentMatch.Indices[int(int32((hxrt.Int32Wrap(offset) + hxrt.Int32Wrap(1))))]
-				var hx_if_294 *string
+				var hx_if_9 *string
 				if (start < 0) || (end < start) {
-					hx_if_294 = nil
+					hx_if_9 = nil
 				} else {
-					hx_if_294 = hxrt.StringSubstrStringPtr(source, start, int(int32((hxrt.Int32Wrap(end) - hxrt.Int32Wrap(start)))), true)
+					hx_if_9 = hxrt.StringSubstrStringPtr(source, start, int(int32((hxrt.Int32Wrap(end) - hxrt.Int32Wrap(start)))), true)
 				}
-				value := hx_if_294
+				value := hx_if_9
 				if !hxrt.StringEqualStringPtr(value, nil) {
 					out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(value))
 				}

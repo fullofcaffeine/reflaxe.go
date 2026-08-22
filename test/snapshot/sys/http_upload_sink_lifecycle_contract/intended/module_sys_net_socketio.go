@@ -54,23 +54,23 @@ func (self *sys__net__SocketOutput) writeBytes(bytes *haxe__io__Bytes, pos int, 
 	_g := 0
 	_g1 := length
 	for _g < _g1 {
-		hx_post_110 := _g
+		hx_post_1 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_110
+		index := hx_post_1
 		values.Push(bytes.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index))))])
 	}
-	result := hxrt.SocketWriteValues(self.handle, func(hx_lambda_raw_112 []any) []int {
-		hx_lambda_out_113 := make([]int, 0, len(hx_lambda_raw_112))
-		for _, hx_lambda_item_114 := range hx_lambda_raw_112 {
-			hx_lambda_out_113 = append(hx_lambda_out_113, func(hx_value_115 any) int {
-				if hx_value_115 == nil {
-					var hx_zero_116 int
-					return hx_zero_116
+	result := hxrt.SocketWriteValues(self.handle, func(hx_lambda_raw_3 []any) []int {
+		hx_lambda_out_4 := make([]int, 0, len(hx_lambda_raw_3))
+		for _, hx_lambda_item_5 := range hx_lambda_raw_3 {
+			hx_lambda_out_4 = append(hx_lambda_out_4, func(hx_value_6 any) int {
+				if hx_value_6 == nil {
+					var hx_zero_7 int
+					return hx_zero_7
 				}
-				return hx_value_115.(int)
-			}(hx_lambda_item_114))
+				return hx_value_6.(int)
+			}(hx_lambda_item_5))
 		}
-		return hx_lambda_out_113
+		return hx_lambda_out_4
 	}(values.Values()))
 	sys__net__SocketOutput_translateWriteStatus(result)
 	return result.Count
@@ -152,9 +152,9 @@ func (self *sys__net__SocketInput) readBytes(bytes *haxe__io__Bytes, pos int, le
 	_g := 0
 	_g1 := result.Count
 	for _g < _g1 {
-		hx_post_117 := _g
+		hx_post_8 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_117
+		index := hx_post_8
 		value := result.Values[index]
 		bytes.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index))))] = int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
 		bytes.__hx_rawValid = false

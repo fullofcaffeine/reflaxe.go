@@ -11,12 +11,12 @@ func NonLaneWorker_produce() {
 		}
 		hx_fn(hx_arg_0, hx_arg_1)
 	}(haxe__Log_trace, (nonLaneResult == nil), func() map[string]any {
-		hx_obj_3 := map[string]any{}
-		hx_obj_3["fileName"] = hxrt.StringFromLiteral("NonLaneWorker.hx")
-		hx_obj_3["lineNumber"] = 9
-		hx_obj_3["className"] = hxrt.StringFromLiteral("NonLaneWorker")
-		hx_obj_3["methodName"] = hxrt.StringFromLiteral("produce")
-		return hx_obj_3
+		hx_obj_1 := map[string]any{}
+		hx_obj_1["fileName"] = hxrt.StringFromLiteral("NonLaneWorker.hx")
+		hx_obj_1["lineNumber"] = 9
+		hx_obj_1["className"] = hxrt.StringFromLiteral("NonLaneWorker")
+		hx_obj_1["methodName"] = hxrt.StringFromLiteral("produce")
+		return hx_obj_1
 	}())
 }
 

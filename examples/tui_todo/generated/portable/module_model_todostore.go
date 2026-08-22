@@ -30,8 +30,8 @@ func New_model__TodoStore() *model__TodoStore {
 func (self *model__TodoStore) add(title *string, priority int) *model__TodoItem {
 	item := New_model__TodoItem(self.nextId, title, priority)
 	self.nextId = int(int32((self.nextId + 1)))
-	hx_arr_70 := self.entries
-	hx_arr_70.Push(item)
+	hx_arr_1 := self.entries
+	hx_arr_1.Push(item)
 	return item
 }
 
@@ -49,8 +49,8 @@ func (self *model__TodoStore) addTag(id int, tag *string) bool {
 	if item == nil {
 		return false
 	}
-	hx_arr_71 := item.tags
-	hx_arr_71.Push(tag)
+	hx_arr_2 := item.tags
+	hx_arr_2.Push(tag)
 	return true
 }
 
@@ -67,12 +67,12 @@ func (self *model__TodoStore) openCount() int {
 	_g := 0
 	_g1 := self.entries
 	for _g < _g1.Len() {
-		item := func(hx_value_72 any) *model__TodoItem {
-			if hx_value_72 == nil {
-				var hx_zero_73 *model__TodoItem
-				return hx_zero_73
+		item := func(hx_value_3 any) *model__TodoItem {
+			if hx_value_3 == nil {
+				var hx_zero_4 *model__TodoItem
+				return hx_zero_4
 			}
-			return hx_value_72.(*model__TodoItem)
+			return hx_value_3.(*model__TodoItem)
 		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if !item.done {
@@ -87,12 +87,12 @@ func (self *model__TodoStore) doneCount() int {
 	_g := 0
 	_g1 := self.entries
 	for _g < _g1.Len() {
-		item := func(hx_value_74 any) *model__TodoItem {
-			if hx_value_74 == nil {
-				var hx_zero_75 *model__TodoItem
-				return hx_zero_75
+		item := func(hx_value_5 any) *model__TodoItem {
+			if hx_value_5 == nil {
+				var hx_zero_6 *model__TodoItem
+				return hx_zero_6
 			}
-			return hx_value_74.(*model__TodoItem)
+			return hx_value_5.(*model__TodoItem)
 		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if item.done {
@@ -106,12 +106,12 @@ func (self *model__TodoStore) findById(id int) *model__TodoItem {
 	_g := 0
 	_g1 := self.entries
 	for _g < _g1.Len() {
-		item := func(hx_value_76 any) *model__TodoItem {
-			if hx_value_76 == nil {
-				var hx_zero_77 *model__TodoItem
-				return hx_zero_77
+		item := func(hx_value_7 any) *model__TodoItem {
+			if hx_value_7 == nil {
+				var hx_zero_8 *model__TodoItem
+				return hx_zero_8
 			}
-			return hx_value_76.(*model__TodoItem)
+			return hx_value_7.(*model__TodoItem)
 		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if item.id == id {

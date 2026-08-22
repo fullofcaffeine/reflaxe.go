@@ -46,11 +46,11 @@ func (self *haxe__Serializer) toString() *string {
 }
 
 func (self *haxe__Serializer) serializeString(value *string) {
-	var known any = func(hx_value_233 any) any {
-		if hx_value_233 == nil {
+	var known any = func(hx_value_1 any) any {
+		if hx_value_1 == nil {
 			return nil
 		}
-		return hx_value_233.(int)
+		return hx_value_1.(int)
 	}(self.shash.__hx_this.get(value))
 	if known != nil {
 		_this := self.buf
@@ -60,9 +60,9 @@ func (self *haxe__Serializer) serializeString(value *string) {
 		return
 	}
 	self.shash.__hx_this.set(value, func() int {
-		hx_post_234 := self.scount
+		hx_post_2 := self.scount
 		self.scount = int(int32((self.scount + 1)))
-		return hx_post_234
+		return hx_post_2
 	}())
 	_this_2 := self.buf
 	_this_2.b = hxrt.StringConcatStringPtr(_this_2.b, hxrt.StringFromLiteral("y"))
@@ -80,9 +80,9 @@ func (self *haxe__Serializer) serializeRef(value any) bool {
 	_g := 0
 	_g1 := self.cache.Len()
 	for _g < _g1 {
-		hx_post_235 := _g
+		hx_post_3 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_235
+		index := hx_post_3
 		if hxrt.HaxeEqual(self.cache.Get(index), value) {
 			_this := self.buf
 			_this.b = hxrt.StringConcatStringPtr(_this.b, hxrt.StringFromLiteral("r"))
@@ -91,8 +91,8 @@ func (self *haxe__Serializer) serializeRef(value any) bool {
 			return true
 		}
 	}
-	hx_arr_236 := self.cache
-	hx_arr_236.Push(value)
+	hx_arr_4 := self.cache
+	hx_arr_4.Push(value)
 	return false
 }
 
@@ -100,12 +100,12 @@ func (self *haxe__Serializer) serializeFields(value any) {
 	_g := 0
 	_g1 := Reflect_fields(value)
 	for _g < _g1.Len() {
-		field := func(hx_value_237 any) *string {
-			if hx_value_237 == nil {
-				var hx_zero_238 *string
-				return hx_zero_238
+		field := func(hx_value_5 any) *string {
+			if hx_value_5 == nil {
+				var hx_zero_6 *string
+				return hx_zero_6
 			}
-			return hx_value_237.(*string)
+			return hx_value_5.(*string)
 		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		self.__hx_this.serializeString(field)
@@ -182,17 +182,17 @@ func (self *haxe__Serializer) serializeBytes(value *haxe__io__Bytes) {
 	index := 0
 	max := int(int32((hxrt.Int32Wrap(value.length) - hxrt.Int32Wrap(2))))
 	for index < max {
-		hx_post_239 := index
+		hx_post_7 := index
 		index = int(int32((index + 1)))
-		pos := hx_post_239
+		pos := hx_post_7
 		first := value.b[pos]
-		hx_post_240 := index
+		hx_post_8 := index
 		index = int(int32((index + 1)))
-		pos_1 := hx_post_240
+		pos_1 := hx_post_8
 		second := value.b[pos_1]
-		hx_post_241 := index
+		hx_post_9 := index
 		index = int(int32((index + 1)))
-		pos_2 := hx_post_241
+		pos_2 := hx_post_9
 		third := value.b[pos_2]
 		_this_3 := self.buf
 		c := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int(int32((hxrt.Int32Wrap(first) >> uint(2))))))
@@ -208,13 +208,13 @@ func (self *haxe__Serializer) serializeBytes(value *haxe__io__Bytes) {
 		_this_6.b = hxrt.StringConcatStringPtr(_this_6.b, hxrt.StringFromCharCode(c_3))
 	}
 	if index == max {
-		hx_post_242 := index
+		hx_post_10 := index
 		index = int(int32((index + 1)))
-		pos_3 := hx_post_242
+		pos_3 := hx_post_10
 		first_1 := value.b[pos_3]
-		hx_post_243 := index
+		hx_post_11 := index
 		index = int(int32((index + 1)))
-		pos_4 := hx_post_243
+		pos_4 := hx_post_11
 		second_1 := value.b[pos_4]
 		_this_7 := self.buf
 		c_4 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int(int32((hxrt.Int32Wrap(first_1) >> uint(2))))))
@@ -227,9 +227,9 @@ func (self *haxe__Serializer) serializeBytes(value *haxe__io__Bytes) {
 		_this_9.b = hxrt.StringConcatStringPtr(_this_9.b, hxrt.StringFromCharCode(c_6))
 	} else {
 		if index == int(int32((hxrt.Int32Wrap(max) + hxrt.Int32Wrap(1)))) {
-			hx_post_244 := index
+			hx_post_12 := index
 			index = int(int32((index + 1)))
-			pos_5 := hx_post_244
+			pos_5 := hx_post_12
 			first_2 := value.b[pos_5]
 			_this_10 := self.buf
 			c_7 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int(int32((hxrt.Int32Wrap(first_2) >> uint(2))))))
@@ -252,20 +252,20 @@ func (self *haxe__Serializer) serializeClass(value any, declaration any) {
 	}
 	switch *hxrt.StdString(className) {
 	case *hxrt.StdString(hxrt.StringFromLiteral("Array")):
-		self.__hx_this.serializeArray(func(hx_value_245 any) *hxrt.Array {
-			if hx_value_245 == nil {
-				var hx_zero_246 *hxrt.Array
-				return hx_zero_246
+		self.__hx_this.serializeArray(func(hx_value_13 any) *hxrt.Array {
+			if hx_value_13 == nil {
+				var hx_zero_14 *hxrt.Array
+				return hx_zero_14
 			}
-			return hx_value_245.(*hxrt.Array)
+			return hx_value_13.(*hxrt.Array)
 		}(value))
 	case *hxrt.StdString(hxrt.StringFromLiteral("Date")):
-		date := func(hx_value_247 any) *Date {
-			if hx_value_247 == nil {
-				var hx_zero_248 *Date
-				return hx_zero_248
+		date := func(hx_value_15 any) *Date {
+			if hx_value_15 == nil {
+				var hx_zero_16 *Date
+				return hx_zero_16
 			}
-			return hx_value_247.(*Date)
+			return hx_value_15.(*Date)
 		}(value)
 		_this := self.buf
 		_this.b = hxrt.StringConcatStringPtr(_this.b, hxrt.StringFromLiteral("v"))
@@ -275,35 +275,35 @@ func (self *haxe__Serializer) serializeClass(value any, declaration any) {
 	case *hxrt.StdString(hxrt.StringFromLiteral("haxe.ds.IntMap")):
 		_this_2 := self.buf
 		_this_2.b = hxrt.StringConcatStringPtr(_this_2.b, hxrt.StringFromLiteral("q"))
-		map_ := func(hx_value_249 any) *haxe__ds__IntMap {
-			if hx_value_249 == nil {
-				var hx_zero_250 *haxe__ds__IntMap
-				return hx_zero_250
+		map_ := func(hx_value_17 any) *haxe__ds__IntMap {
+			if hx_value_17 == nil {
+				var hx_zero_18 *haxe__ds__IntMap
+				return hx_zero_18
 			}
-			return hx_value_249.(*haxe__ds__IntMap)
+			return hx_value_17.(*haxe__ds__IntMap)
 		}(value)
-		key := func(hx_value_251 any) map[string]any {
-			if hx_value_251 == nil {
-				var hx_zero_252 map[string]any
-				return hx_zero_252
+		key := func(hx_value_19 any) map[string]any {
+			if hx_value_19 == nil {
+				var hx_zero_20 map[string]any
+				return hx_zero_20
 			}
-			return hx_value_251.(map[string]any)
+			return hx_value_19.(map[string]any)
 		}(map_.__hx_this.keys())
-		for func(hx_obj_253 map[string]any) func() bool {
-			hx_field_254 := hx_obj_253["hasNext"]
-			if hx_field_254 == nil {
-				var hx_zero_255 func() bool
-				return hx_zero_255
+		for func(hx_obj_21 map[string]any) func() bool {
+			hx_field_22 := hx_obj_21["hasNext"]
+			if hx_field_22 == nil {
+				var hx_zero_23 func() bool
+				return hx_zero_23
 			}
-			return hx_field_254.(func() bool)
+			return hx_field_22.(func() bool)
 		}(key)() {
-			key_1 := func(hx_obj_256 map[string]any) func() int {
-				hx_field_257 := hx_obj_256["next"]
-				if hx_field_257 == nil {
-					var hx_zero_258 func() int
-					return hx_zero_258
+			key_1 := func(hx_obj_24 map[string]any) func() int {
+				hx_field_25 := hx_obj_24["next"]
+				if hx_field_25 == nil {
+					var hx_zero_26 func() int
+					return hx_zero_26
 				}
-				return hx_field_257.(func() int)
+				return hx_field_25.(func() int)
 			}(key)()
 			_this_3 := self.buf
 			_this_3.b = hxrt.StringConcatStringPtr(_this_3.b, hxrt.StringFromLiteral(":"))
@@ -316,26 +316,26 @@ func (self *haxe__Serializer) serializeClass(value any, declaration any) {
 	case *hxrt.StdString(hxrt.StringFromLiteral("haxe.ds.List")):
 		_this_6 := self.buf
 		_this_6.b = hxrt.StringConcatStringPtr(_this_6.b, hxrt.StringFromLiteral("l"))
-		list := func(hx_value_259 any) *haxe__ds__List {
-			if hx_value_259 == nil {
-				var hx_zero_260 *haxe__ds__List
-				return hx_zero_260
+		list := func(hx_value_27 any) *haxe__ds__List {
+			if hx_value_27 == nil {
+				var hx_zero_28 *haxe__ds__List
+				return hx_zero_28
 			}
-			return hx_value_259.(*haxe__ds__List)
+			return hx_value_27.(*haxe__ds__List)
 		}(value)
-		item := func(hx_value_261 any) *haxe__ds___List__GoListIterator {
-			if hx_value_261 == nil {
-				var hx_zero_262 *haxe__ds___List__GoListIterator
-				return hx_zero_262
+		item := func(hx_value_29 any) *haxe__ds___List__GoListIterator {
+			if hx_value_29 == nil {
+				var hx_zero_30 *haxe__ds___List__GoListIterator
+				return hx_zero_30
 			}
-			return hx_value_261.(*haxe__ds___List__GoListIterator)
+			return hx_value_29.(*haxe__ds___List__GoListIterator)
 		}(list.__hx_this.iterator())
-		for func(hx_value_263 any) bool {
-			if hx_value_263 == nil {
-				var hx_zero_264 bool
-				return hx_zero_264
+		for func(hx_value_31 any) bool {
+			if hx_value_31 == nil {
+				var hx_zero_32 bool
+				return hx_zero_32
 			}
-			return hx_value_263.(bool)
+			return hx_value_31.(bool)
 		}(item.__hx_this.hasNext()) {
 			var item_1 any = item.__hx_this.next()
 			self.__hx_this.serialize(item_1)
@@ -345,35 +345,35 @@ func (self *haxe__Serializer) serializeClass(value any, declaration any) {
 	case *hxrt.StdString(hxrt.StringFromLiteral("haxe.ds.ObjectMap")):
 		_this_8 := self.buf
 		_this_8.b = hxrt.StringConcatStringPtr(_this_8.b, hxrt.StringFromLiteral("M"))
-		map__1 := func(hx_value_265 any) *haxe__ds__ObjectMap {
-			if hx_value_265 == nil {
-				var hx_zero_266 *haxe__ds__ObjectMap
-				return hx_zero_266
+		map__1 := func(hx_value_33 any) *haxe__ds__ObjectMap {
+			if hx_value_33 == nil {
+				var hx_zero_34 *haxe__ds__ObjectMap
+				return hx_zero_34
 			}
-			return hx_value_265.(*haxe__ds__ObjectMap)
+			return hx_value_33.(*haxe__ds__ObjectMap)
 		}(value)
-		key_2 := func(hx_value_267 any) map[string]any {
-			if hx_value_267 == nil {
-				var hx_zero_268 map[string]any
-				return hx_zero_268
+		key_2 := func(hx_value_35 any) map[string]any {
+			if hx_value_35 == nil {
+				var hx_zero_36 map[string]any
+				return hx_zero_36
 			}
-			return hx_value_267.(map[string]any)
+			return hx_value_35.(map[string]any)
 		}(map__1.__hx_this.keys())
-		for func(hx_obj_269 map[string]any) func() bool {
-			hx_field_270 := hx_obj_269["hasNext"]
-			if hx_field_270 == nil {
-				var hx_zero_271 func() bool
-				return hx_zero_271
+		for func(hx_obj_37 map[string]any) func() bool {
+			hx_field_38 := hx_obj_37["hasNext"]
+			if hx_field_38 == nil {
+				var hx_zero_39 func() bool
+				return hx_zero_39
 			}
-			return hx_field_270.(func() bool)
+			return hx_field_38.(func() bool)
 		}(key_2)() {
-			var key_3 any = func(hx_obj_272 map[string]any) func() any {
-				hx_field_273 := hx_obj_272["next"]
-				if hx_field_273 == nil {
-					var hx_zero_274 func() any
-					return hx_zero_274
+			var key_3 any = func(hx_obj_40 map[string]any) func() any {
+				hx_field_41 := hx_obj_40["next"]
+				if hx_field_41 == nil {
+					var hx_zero_42 func() any
+					return hx_zero_42
 				}
-				return hx_field_273.(func() any)
+				return hx_field_41.(func() any)
 			}(key_2)()
 			self.__hx_this.serialize(key_3)
 			self.__hx_this.serialize(map__1.__hx_this.get(key_3))
@@ -383,35 +383,35 @@ func (self *haxe__Serializer) serializeClass(value any, declaration any) {
 	case *hxrt.StdString(hxrt.StringFromLiteral("haxe.ds.StringMap")):
 		_this_10 := self.buf
 		_this_10.b = hxrt.StringConcatStringPtr(_this_10.b, hxrt.StringFromLiteral("b"))
-		map__2 := func(hx_value_275 any) *haxe__ds__StringMap {
-			if hx_value_275 == nil {
-				var hx_zero_276 *haxe__ds__StringMap
-				return hx_zero_276
+		map__2 := func(hx_value_43 any) *haxe__ds__StringMap {
+			if hx_value_43 == nil {
+				var hx_zero_44 *haxe__ds__StringMap
+				return hx_zero_44
 			}
-			return hx_value_275.(*haxe__ds__StringMap)
+			return hx_value_43.(*haxe__ds__StringMap)
 		}(value)
-		key_4 := func(hx_value_277 any) map[string]any {
-			if hx_value_277 == nil {
-				var hx_zero_278 map[string]any
-				return hx_zero_278
+		key_4 := func(hx_value_45 any) map[string]any {
+			if hx_value_45 == nil {
+				var hx_zero_46 map[string]any
+				return hx_zero_46
 			}
-			return hx_value_277.(map[string]any)
+			return hx_value_45.(map[string]any)
 		}(map__2.__hx_this.keys())
-		for func(hx_obj_279 map[string]any) func() bool {
-			hx_field_280 := hx_obj_279["hasNext"]
-			if hx_field_280 == nil {
-				var hx_zero_281 func() bool
-				return hx_zero_281
+		for func(hx_obj_47 map[string]any) func() bool {
+			hx_field_48 := hx_obj_47["hasNext"]
+			if hx_field_48 == nil {
+				var hx_zero_49 func() bool
+				return hx_zero_49
 			}
-			return hx_field_280.(func() bool)
+			return hx_field_48.(func() bool)
 		}(key_4)() {
-			key_5 := func(hx_obj_282 map[string]any) func() *string {
-				hx_field_283 := hx_obj_282["next"]
-				if hx_field_283 == nil {
-					var hx_zero_284 func() *string
-					return hx_zero_284
+			key_5 := func(hx_obj_50 map[string]any) func() *string {
+				hx_field_51 := hx_obj_50["next"]
+				if hx_field_51 == nil {
+					var hx_zero_52 func() *string
+					return hx_zero_52
 				}
-				return hx_field_283.(func() *string)
+				return hx_field_51.(func() *string)
 			}(key_4)()
 			self.__hx_this.serializeString(key_5)
 			self.__hx_this.serialize(map__2.__hx_this.get(key_5))
@@ -419,17 +419,17 @@ func (self *haxe__Serializer) serializeClass(value any, declaration any) {
 		_this_11 := self.buf
 		_this_11.b = hxrt.StringConcatStringPtr(_this_11.b, hxrt.StringFromLiteral("h"))
 	case *hxrt.StdString(hxrt.StringFromLiteral("haxe.io.Bytes")):
-		self.__hx_this.serializeBytes(func(hx_value_285 any) *haxe__io__Bytes {
-			if hx_value_285 == nil {
-				var hx_zero_286 *haxe__io__Bytes
-				return hx_zero_286
+		self.__hx_this.serializeBytes(func(hx_value_53 any) *haxe__io__Bytes {
+			if hx_value_53 == nil {
+				var hx_zero_54 *haxe__io__Bytes
+				return hx_zero_54
 			}
-			return hx_value_285.(*haxe__io__Bytes)
+			return hx_value_53.(*haxe__io__Bytes)
 		}(value))
 	default:
 		if self.useCache {
-			hx_arr_287 := self.cache
-			hx_arr_287.Pop()
+			hx_arr_55 := self.cache
+			hx_arr_55.Pop()
 		}
 		var hook any = Reflect_field(value, hxrt.StringFromLiteral("hxSerialize"))
 		if !hxrt.AnyEqualsNull(hook) {
@@ -437,8 +437,8 @@ func (self *haxe__Serializer) serializeClass(value any, declaration any) {
 			_this_12.b = hxrt.StringConcatStringPtr(_this_12.b, hxrt.StringFromLiteral("C"))
 			self.__hx_this.serializeString(className)
 			if self.useCache {
-				hx_arr_288 := self.cache
-				hx_arr_288.Push(value)
+				hx_arr_56 := self.cache
+				hx_arr_56.Push(value)
 			}
 			Reflect_callMethod(value, hook, hxrt.NewArray(self))
 			_this_13 := self.buf
@@ -448,8 +448,8 @@ func (self *haxe__Serializer) serializeClass(value any, declaration any) {
 			_this_14.b = hxrt.StringConcatStringPtr(_this_14.b, hxrt.StringFromLiteral("c"))
 			self.__hx_this.serializeString(className)
 			if self.useCache {
-				hx_arr_289 := self.cache
-				hx_arr_289.Push(value)
+				hx_arr_57 := self.cache
+				hx_arr_57.Push(value)
 			}
 			self.__hx_this.serializeFields(value)
 		}
@@ -461,17 +461,17 @@ func (self *haxe__Serializer) serializeEnum(value any, declaration any) {
 		if self.__hx_this.serializeRef(value) {
 			return
 		}
-		hx_arr_290 := self.cache
-		hx_arr_290.Pop()
+		hx_arr_58 := self.cache
+		hx_arr_58.Pop()
 	}
 	_this := self.buf
-	var hx_if_291 *string
+	var hx_if_59 *string
 	if self.useEnumIndex {
-		hx_if_291 = hxrt.StringFromLiteral("j")
+		hx_if_59 = hxrt.StringFromLiteral("j")
 	} else {
-		hx_if_291 = hxrt.StringFromLiteral("w")
+		hx_if_59 = hxrt.StringFromLiteral("w")
 	}
-	x := hx_if_291
+	x := hx_if_59
 	_this.b = hxrt.StringConcatStringPtr(_this.b, hxrt.StdString(x))
 	self.__hx_this.serializeString(Type_getEnumName(declaration))
 	if self.useEnumIndex {
@@ -496,8 +496,8 @@ func (self *haxe__Serializer) serializeEnum(value any, declaration any) {
 		self.__hx_this.serialize(parameter)
 	}
 	if self.useCache {
-		hx_arr_292 := self.cache
-		hx_arr_292.Push(value)
+		hx_arr_60 := self.cache
+		hx_arr_60.Push(value)
 	}
 }
 
@@ -516,12 +516,12 @@ func (self *haxe__Serializer) serialize(value any) {
 		if self.useCache && self.__hx_this.serializeRef(value) {
 			return
 		}
-		self.__hx_this.serializeBytes(func(hx_value_293 any) *haxe__io__Bytes {
-			if hx_value_293 == nil {
-				var hx_zero_294 *haxe__io__Bytes
-				return hx_zero_294
+		self.__hx_this.serializeBytes(func(hx_value_61 any) *haxe__io__Bytes {
+			if hx_value_61 == nil {
+				var hx_zero_62 *haxe__io__Bytes
+				return hx_zero_62
 			}
-			return hx_value_293.(*haxe__io__Bytes)
+			return hx_value_61.(*haxe__io__Bytes)
 		}(value))
 		return
 	}
@@ -542,12 +542,12 @@ func (self *haxe__Serializer) serialize(value any) {
 			_this_3.b = hxrt.StringConcatStringPtr(_this_3.b, hxrt.StdString(integer))
 		}
 	case 2:
-		number := func(hx_value_295 any) float64 {
-			if hx_value_295 == nil {
-				var hx_zero_296 float64
-				return hx_zero_296
+		number := func(hx_value_63 any) float64 {
+			if hx_value_63 == nil {
+				var hx_zero_64 float64
+				return hx_zero_64
 			}
-			return hx_value_295.(float64)
+			return hx_value_63.(float64)
 		}(value)
 		if math.IsNaN(number) {
 			_this_4 := self.buf
@@ -555,13 +555,13 @@ func (self *haxe__Serializer) serialize(value any) {
 		} else {
 			if !(!math.IsInf(number, 0) && !math.IsNaN(number)) {
 				_this_5 := self.buf
-				var hx_if_297 *string
+				var hx_if_65 *string
 				if number < 0 {
-					hx_if_297 = hxrt.StringFromLiteral("m")
+					hx_if_65 = hxrt.StringFromLiteral("m")
 				} else {
-					hx_if_297 = hxrt.StringFromLiteral("p")
+					hx_if_65 = hxrt.StringFromLiteral("p")
 				}
-				_this_5.b = hxrt.StringConcatStringPtr(_this_5.b, hx_if_297)
+				_this_5.b = hxrt.StringConcatStringPtr(_this_5.b, hx_if_65)
 			} else {
 				_this_6 := self.buf
 				_this_6.b = hxrt.StringConcatStringPtr(_this_6.b, hxrt.StringFromLiteral("d"))
@@ -570,21 +570,21 @@ func (self *haxe__Serializer) serialize(value any) {
 			}
 		}
 	case 3:
-		boolean := func(hx_value_298 any) bool {
-			if hx_value_298 == nil {
-				var hx_zero_299 bool
-				return hx_zero_299
+		boolean := func(hx_value_66 any) bool {
+			if hx_value_66 == nil {
+				var hx_zero_67 bool
+				return hx_zero_67
 			}
-			return hx_value_298.(bool)
+			return hx_value_66.(bool)
 		}(value)
 		_this_8 := self.buf
-		var hx_if_300 *string
+		var hx_if_68 *string
 		if boolean {
-			hx_if_300 = hxrt.StringFromLiteral("t")
+			hx_if_68 = hxrt.StringFromLiteral("t")
 		} else {
-			hx_if_300 = hxrt.StringFromLiteral("f")
+			hx_if_68 = hxrt.StringFromLiteral("f")
 		}
-		_this_8.b = hxrt.StringConcatStringPtr(_this_8.b, hx_if_300)
+		_this_8.b = hxrt.StringConcatStringPtr(_this_8.b, hx_if_68)
 	case 4:
 		if func(hx_value any) bool {
 			switch hx_value.(type) {

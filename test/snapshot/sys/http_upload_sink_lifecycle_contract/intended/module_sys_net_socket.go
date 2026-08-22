@@ -120,9 +120,9 @@ func sys__net__Socket_pick(source *hxrt.Array, indexes []int) *hxrt.Array {
 	_g := 0
 	_g1 := len(indexes)
 	for _g < _g1 {
-		hx_post_118 := _g
+		hx_post_1 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_118
+		index := hx_post_1
 		sourceIndex := indexes[index]
 		if (sourceIndex >= 0) && (sourceIndex < source.Len()) {
 			selected.Push(source.Get(sourceIndex))
@@ -133,15 +133,15 @@ func sys__net__Socket_pick(source *hxrt.Array, indexes []int) *hxrt.Array {
 
 func sys__net__Socket_publicAddress(address *hxrt.SocketAddress) map[string]any {
 	if address == nil {
-		hx_obj_120 := map[string]any{}
-		hx_obj_120["host"] = sys__net__Host_fromIPv4(0)
-		hx_obj_120["port"] = 0
-		return hx_obj_120
+		hx_obj_3 := map[string]any{}
+		hx_obj_3["host"] = sys__net__Host_fromIPv4(0)
+		hx_obj_3["port"] = 0
+		return hx_obj_3
 	}
-	hx_obj_121 := map[string]any{}
-	hx_obj_121["host"] = sys__net__Host_fromIPv4(address.Host)
-	hx_obj_121["port"] = address.Port
-	return hx_obj_121
+	hx_obj_4 := map[string]any{}
+	hx_obj_4["host"] = sys__net__Host_fromIPv4(address.Host)
+	hx_obj_4["port"] = address.Port
+	return hx_obj_4
 }
 
 func sys__net__Socket_select_(read *hxrt.Array, write *hxrt.Array, others *hxrt.Array, timeout any) map[string]any {
@@ -158,98 +158,98 @@ func sys__net__Socket_select_(read *hxrt.Array, write *hxrt.Array, others *hxrt.
 		_g := hxrt.NewArray()
 		_g1 := 0
 		for _g1 < read.Len() {
-			socket := func(hx_value_122 any) *sys__net__Socket {
-				if hx_value_122 == nil {
-					var hx_zero_123 *sys__net__Socket
-					return hx_zero_123
+			socket := func(hx_value_5 any) *sys__net__Socket {
+				if hx_value_5 == nil {
+					var hx_zero_6 *sys__net__Socket
+					return hx_zero_6
 				}
-				return hx_value_122.(*sys__net__Socket)
+				return hx_value_5.(*sys__net__Socket)
 			}(read.Get(_g1))
 			_g1 = int(int32((_g1 + 1)))
 			_g.Push(socket.handle)
 		}
-		return func(hx_lambda_raw_125 []any) []*hxrt.SocketHandle {
-			hx_lambda_out_126 := make([]*hxrt.SocketHandle, 0, len(hx_lambda_raw_125))
-			for _, hx_lambda_item_127 := range hx_lambda_raw_125 {
-				hx_lambda_out_126 = append(hx_lambda_out_126, func(hx_value_128 any) *hxrt.SocketHandle {
-					if hx_value_128 == nil {
-						var hx_zero_129 *hxrt.SocketHandle
-						return hx_zero_129
+		return func(hx_lambda_raw_8 []any) []*hxrt.SocketHandle {
+			hx_lambda_out_9 := make([]*hxrt.SocketHandle, 0, len(hx_lambda_raw_8))
+			for _, hx_lambda_item_10 := range hx_lambda_raw_8 {
+				hx_lambda_out_9 = append(hx_lambda_out_9, func(hx_value_11 any) *hxrt.SocketHandle {
+					if hx_value_11 == nil {
+						var hx_zero_12 *hxrt.SocketHandle
+						return hx_zero_12
 					}
-					return hx_value_128.(*hxrt.SocketHandle)
-				}(hx_lambda_item_127))
+					return hx_value_11.(*hxrt.SocketHandle)
+				}(hx_lambda_item_10))
 			}
-			return hx_lambda_out_126
+			return hx_lambda_out_9
 		}(_g.Values())
 	}()
 	writeHandles := func() []*hxrt.SocketHandle {
 		_g_1 := hxrt.NewArray()
 		_g1_1 := 0
 		for _g1_1 < write.Len() {
-			socket_1 := func(hx_value_130 any) *sys__net__Socket {
-				if hx_value_130 == nil {
-					var hx_zero_131 *sys__net__Socket
-					return hx_zero_131
+			socket_1 := func(hx_value_13 any) *sys__net__Socket {
+				if hx_value_13 == nil {
+					var hx_zero_14 *sys__net__Socket
+					return hx_zero_14
 				}
-				return hx_value_130.(*sys__net__Socket)
+				return hx_value_13.(*sys__net__Socket)
 			}(write.Get(_g1_1))
 			_g1_1 = int(int32((_g1_1 + 1)))
 			_g_1.Push(socket_1.handle)
 		}
-		return func(hx_lambda_raw_133 []any) []*hxrt.SocketHandle {
-			hx_lambda_out_134 := make([]*hxrt.SocketHandle, 0, len(hx_lambda_raw_133))
-			for _, hx_lambda_item_135 := range hx_lambda_raw_133 {
-				hx_lambda_out_134 = append(hx_lambda_out_134, func(hx_value_136 any) *hxrt.SocketHandle {
-					if hx_value_136 == nil {
-						var hx_zero_137 *hxrt.SocketHandle
-						return hx_zero_137
+		return func(hx_lambda_raw_16 []any) []*hxrt.SocketHandle {
+			hx_lambda_out_17 := make([]*hxrt.SocketHandle, 0, len(hx_lambda_raw_16))
+			for _, hx_lambda_item_18 := range hx_lambda_raw_16 {
+				hx_lambda_out_17 = append(hx_lambda_out_17, func(hx_value_19 any) *hxrt.SocketHandle {
+					if hx_value_19 == nil {
+						var hx_zero_20 *hxrt.SocketHandle
+						return hx_zero_20
 					}
-					return hx_value_136.(*hxrt.SocketHandle)
-				}(hx_lambda_item_135))
+					return hx_value_19.(*hxrt.SocketHandle)
+				}(hx_lambda_item_18))
 			}
-			return hx_lambda_out_134
+			return hx_lambda_out_17
 		}(_g_1.Values())
 	}()
 	otherHandles := func() []*hxrt.SocketHandle {
 		_g_2 := hxrt.NewArray()
 		_g1_2 := 0
 		for _g1_2 < others.Len() {
-			socket_2 := func(hx_value_138 any) *sys__net__Socket {
-				if hx_value_138 == nil {
-					var hx_zero_139 *sys__net__Socket
-					return hx_zero_139
+			socket_2 := func(hx_value_21 any) *sys__net__Socket {
+				if hx_value_21 == nil {
+					var hx_zero_22 *sys__net__Socket
+					return hx_zero_22
 				}
-				return hx_value_138.(*sys__net__Socket)
+				return hx_value_21.(*sys__net__Socket)
 			}(others.Get(_g1_2))
 			_g1_2 = int(int32((_g1_2 + 1)))
 			_g_2.Push(socket_2.handle)
 		}
-		return func(hx_lambda_raw_141 []any) []*hxrt.SocketHandle {
-			hx_lambda_out_142 := make([]*hxrt.SocketHandle, 0, len(hx_lambda_raw_141))
-			for _, hx_lambda_item_143 := range hx_lambda_raw_141 {
-				hx_lambda_out_142 = append(hx_lambda_out_142, func(hx_value_144 any) *hxrt.SocketHandle {
-					if hx_value_144 == nil {
-						var hx_zero_145 *hxrt.SocketHandle
-						return hx_zero_145
+		return func(hx_lambda_raw_24 []any) []*hxrt.SocketHandle {
+			hx_lambda_out_25 := make([]*hxrt.SocketHandle, 0, len(hx_lambda_raw_24))
+			for _, hx_lambda_item_26 := range hx_lambda_raw_24 {
+				hx_lambda_out_25 = append(hx_lambda_out_25, func(hx_value_27 any) *hxrt.SocketHandle {
+					if hx_value_27 == nil {
+						var hx_zero_28 *hxrt.SocketHandle
+						return hx_zero_28
 					}
-					return hx_value_144.(*hxrt.SocketHandle)
-				}(hx_lambda_item_143))
+					return hx_value_27.(*hxrt.SocketHandle)
+				}(hx_lambda_item_26))
 			}
-			return hx_lambda_out_142
+			return hx_lambda_out_25
 		}(_g_2.Values())
 	}()
 	result := hxrt.SocketSelect(readHandles, writeHandles, otherHandles, func() float64 {
-		var hx_if_146 float64
+		var hx_if_29 float64
 		if timeout == nil {
-			hx_if_146 = 0.0
+			hx_if_29 = 0.0
 		} else {
-			hx_if_146 = timeout.(float64)
+			hx_if_29 = timeout.(float64)
 		}
-		return hx_if_146
+		return hx_if_29
 	}(), (timeout != nil))
-	hx_obj_147 := map[string]any{}
-	hx_obj_147["read"] = sys__net__Socket_pick(read, result.Read)
-	hx_obj_147["write"] = sys__net__Socket_pick(write, result.Write)
-	hx_obj_147["others"] = sys__net__Socket_pick(others, result.Others)
-	return hx_obj_147
+	hx_obj_30 := map[string]any{}
+	hx_obj_30["read"] = sys__net__Socket_pick(read, result.Read)
+	hx_obj_30["write"] = sys__net__Socket_pick(write, result.Write)
+	hx_obj_30["others"] = sys__net__Socket_pick(others, result.Others)
+	return hx_obj_30
 }

@@ -7,37 +7,37 @@ func haxe__Log_formatOutput(v any, infos map[string]any) *string {
 	if infos == nil {
 		return str
 	}
-	pstr := hxrt.StringConcatAny(hxrt.StringConcatStringPtr(func(hx_obj_7 map[string]any) *string {
-		hx_field_8 := hx_obj_7["fileName"]
-		if hx_field_8 == nil {
-			var hx_zero_9 *string
-			return hx_zero_9
+	pstr := hxrt.StringConcatAny(hxrt.StringConcatStringPtr(func(hx_obj_1 map[string]any) *string {
+		hx_field_2 := hx_obj_1["fileName"]
+		if hx_field_2 == nil {
+			var hx_zero_3 *string
+			return hx_zero_3
 		}
-		return hx_field_8.(*string)
-	}(infos), hxrt.StringFromLiteral(":")), func(hx_obj_10 map[string]any) int {
-		hx_field_11 := hx_obj_10["lineNumber"]
+		return hx_field_2.(*string)
+	}(infos), hxrt.StringFromLiteral(":")), func(hx_obj_4 map[string]any) int {
+		hx_field_5 := hx_obj_4["lineNumber"]
+		if hx_field_5 == nil {
+			var hx_zero_6 int
+			return hx_zero_6
+		}
+		return hx_field_5.(int)
+	}(infos))
+	if func(hx_obj_10 map[string]any) *hxrt.Array {
+		hx_field_11 := hx_obj_10["customParams"]
 		if hx_field_11 == nil {
-			var hx_zero_12 int
+			var hx_zero_12 *hxrt.Array
 			return hx_zero_12
 		}
-		return hx_field_11.(int)
-	}(infos))
-	if func(hx_obj_16 map[string]any) *hxrt.Array {
-		hx_field_17 := hx_obj_16["customParams"]
-		if hx_field_17 == nil {
-			var hx_zero_18 *hxrt.Array
-			return hx_zero_18
-		}
-		return hx_field_17.(*hxrt.Array)
+		return hx_field_11.(*hxrt.Array)
 	}(infos) != nil {
 		_g := 0
-		_g1 := func(hx_obj_13 map[string]any) *hxrt.Array {
-			hx_field_14 := hx_obj_13["customParams"]
-			if hx_field_14 == nil {
-				var hx_zero_15 *hxrt.Array
-				return hx_zero_15
+		_g1 := func(hx_obj_7 map[string]any) *hxrt.Array {
+			hx_field_8 := hx_obj_7["customParams"]
+			if hx_field_8 == nil {
+				var hx_zero_9 *hxrt.Array
+				return hx_zero_9
 			}
-			return hx_field_14.(*hxrt.Array)
+			return hx_field_8.(*hxrt.Array)
 		}(infos)
 		for _g < _g1.Len() {
 			var v_1 any = _g1.Get(_g)

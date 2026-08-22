@@ -33,13 +33,13 @@ func (self *app__core__Incident) toJson() *string {
 }
 
 func app__core__Incident_boolJson(value bool) *string {
-	var hx_if_46 *string
+	var hx_if_1 *string
 	if value {
-		hx_if_46 = hxrt.StringFromLiteral("true")
+		hx_if_1 = hxrt.StringFromLiteral("true")
 	} else {
-		hx_if_46 = hxrt.StringFromLiteral("false")
+		hx_if_1 = hxrt.StringFromLiteral("false")
 	}
-	return hx_if_46
+	return hx_if_1
 }
 
 func app__core__Incident_jsonEscape(value *string) *string {

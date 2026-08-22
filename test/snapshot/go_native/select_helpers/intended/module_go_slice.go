@@ -29,8 +29,8 @@ func (self *go___Slice) get_length() int {
 
 func (self *go___Slice) push(value any) {
 	self.data = func() []any {
-		hx_native_slice_23 := self.data
-		return append(hx_native_slice_23, value)
+		hx_native_slice_1 := self.data
+		return append(hx_native_slice_1, value)
 	}()
 }
 

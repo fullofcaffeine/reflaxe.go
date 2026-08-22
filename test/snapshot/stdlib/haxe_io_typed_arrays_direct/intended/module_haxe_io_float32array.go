@@ -15,13 +15,13 @@ func haxe__io___Float32Array__Float32Array_Impl___new(elements int) *haxe__io__A
 }
 
 func haxe__io___Float32Array__Float32Array_Impl__fromArray(a *hxrt.Array, pos int, length any) *haxe__io__ArrayBufferViewImpl {
-	var hx_if_35 int
+	var hx_if_1 int
 	if length == nil {
-		hx_if_35 = int(int32((hxrt.Int32Wrap(a.Len()) - hxrt.Int32Wrap(pos))))
+		hx_if_1 = int(int32((hxrt.Int32Wrap(a.Len()) - hxrt.Int32Wrap(pos))))
 	} else {
-		hx_if_35 = length.(int)
+		hx_if_1 = length.(int)
 	}
-	resolvedLength := hx_if_35
+	resolvedLength := hx_if_1
 	if ((pos < 0) || (resolvedLength < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(resolvedLength)))) > a.Len()) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
 	}
@@ -35,15 +35,15 @@ func haxe__io___Float32Array__Float32Array_Impl__fromArray(a *hxrt.Array, pos in
 	_g := 0
 	_g1 := resolvedLength
 	for _g < _g1 {
-		hx_post_36 := _g
+		hx_post_2 := _g
 		_g = int(int32((_g + 1)))
-		idx := hx_post_36
-		value := func(hx_value_37 any) float64 {
-			if hx_value_37 == nil {
-				var hx_zero_38 float64
-				return hx_zero_38
+		idx := hx_post_2
+		value := func(hx_value_3 any) float64 {
+			if hx_value_3 == nil {
+				var hx_zero_4 float64
+				return hx_zero_4
 			}
-			return hx_value_37.(float64)
+			return hx_value_3.(float64)
 		}(a.Get(int(int32((hxrt.Int32Wrap(idx) + hxrt.Int32Wrap(pos))))))
 		if (idx >= 0) && (idx < int(int32((hxrt.Int32Wrap(out.byteLength) >> uint(2))))) {
 			_this := out.bytes
@@ -65,13 +65,13 @@ func haxe__io___Float32Array__Float32Array_Impl__fromArray(a *hxrt.Array, pos in
 }
 
 func haxe__io___Float32Array__Float32Array_Impl__fromBytes(bytes *haxe__io__Bytes, bytePos int, length any) *haxe__io__ArrayBufferViewImpl {
-	var hx_if_39 any
+	var hx_if_5 any
 	if length == nil {
-		hx_if_39 = nil
+		hx_if_5 = nil
 	} else {
-		hx_if_39 = int(int32((hxrt.Int32Wrap(length.(int)) << uint(2))))
+		hx_if_5 = int(int32((hxrt.Int32Wrap(length.(int)) << uint(2))))
 	}
-	var resolvedLength any = hx_if_39
+	var resolvedLength any = hx_if_5
 	return haxe__io___Float32Array__Float32Array_Impl__fromData(func() *haxe__io__ArrayBufferViewImpl {
 		this1 := haxe__io___ArrayBufferView__ArrayBufferView_Impl__fromBytes(bytes, bytePos, resolvedLength)
 		return this1
@@ -123,31 +123,31 @@ func haxe__io___Float32Array__Float32Array_Impl__set(this1 *haxe__io__ArrayBuffe
 }
 
 func haxe__io___Float32Array__Float32Array_Impl__sub(this1 *haxe__io__ArrayBufferViewImpl, begin int, length any) *haxe__io__ArrayBufferViewImpl {
-	var hx_if_40 any
+	var hx_if_6 any
 	if length == nil {
-		hx_if_40 = nil
+		hx_if_6 = nil
 	} else {
-		hx_if_40 = int(int32((hxrt.Int32Wrap(length.(int)) << uint(2))))
+		hx_if_6 = int(int32((hxrt.Int32Wrap(length.(int)) << uint(2))))
 	}
-	var scaledLength any = hx_if_40
+	var scaledLength any = hx_if_6
 	return haxe__io___Float32Array__Float32Array_Impl__fromData(this1.__hx_this.sub(int(int32((hxrt.Int32Wrap(begin) << uint(2)))), scaledLength))
 }
 
 func haxe__io___Float32Array__Float32Array_Impl__subarray(this1 *haxe__io__ArrayBufferViewImpl, begin any, end any) *haxe__io__ArrayBufferViewImpl {
-	var hx_if_41 any
+	var hx_if_7 any
 	if begin == nil {
-		hx_if_41 = nil
+		hx_if_7 = nil
 	} else {
-		hx_if_41 = int(int32((hxrt.Int32Wrap(begin.(int)) << uint(2))))
+		hx_if_7 = int(int32((hxrt.Int32Wrap(begin.(int)) << uint(2))))
 	}
-	var scaledBegin any = hx_if_41
-	var hx_if_42 any
+	var scaledBegin any = hx_if_7
+	var hx_if_8 any
 	if end == nil {
-		hx_if_42 = nil
+		hx_if_8 = nil
 	} else {
-		hx_if_42 = int(int32((hxrt.Int32Wrap(end.(int)) << uint(2))))
+		hx_if_8 = int(int32((hxrt.Int32Wrap(end.(int)) << uint(2))))
 	}
-	var scaledEnd any = hx_if_42
+	var scaledEnd any = hx_if_8
 	return haxe__io___Float32Array__Float32Array_Impl__fromData(this1.__hx_this.subarray(scaledBegin, scaledEnd))
 }
 

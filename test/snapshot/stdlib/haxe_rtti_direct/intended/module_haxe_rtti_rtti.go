@@ -16,8 +16,8 @@ func haxe__rtti__Rtti_getRtti(c any) map[string]any {
 	} else {
 		t := infos
 		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Enum mismatch: expected TClassDecl but found "), hxrt.StdString(t)))
-		var hx_throw_zero_671 map[string]any
-		return hx_throw_zero_671
+		var hx_throw_zero_1 map[string]any
+		return hx_throw_zero_1
 	}
 }
 
@@ -25,12 +25,12 @@ func haxe__rtti__Rtti_hasRtti(c any) bool {
 	_g := 0
 	_g1 := Type_getClassFields(c)
 	for _g < _g1.Len() {
-		fieldName := func(hx_value_672 any) *string {
-			if hx_value_672 == nil {
-				var hx_zero_673 *string
-				return hx_zero_673
+		fieldName := func(hx_value_2 any) *string {
+			if hx_value_2 == nil {
+				var hx_zero_3 *string
+				return hx_zero_3
 			}
-			return hx_value_672.(*string)
+			return hx_value_2.(*string)
 		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if hxrt.StringEqualStringPtr(fieldName, hxrt.StringFromLiteral("__rtti")) {

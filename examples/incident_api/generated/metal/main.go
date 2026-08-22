@@ -11,22 +11,22 @@ type hxrt__TypeEnumValue struct {
 }
 
 func argValue(name *string, fallback *string) *string {
-	args := hxrt.ArrayFromValues(func(hx_sort_src_36 []*string) []any {
-		hx_sort_out_38 := make([]any, 0, len(hx_sort_src_36))
-		for _, hx_sort_item_37 := range hx_sort_src_36 {
-			hx_sort_out_38 = append(hx_sort_out_38, hx_sort_item_37)
+	args := hxrt.ArrayFromValues(func(hx_sort_src_1 []*string) []any {
+		hx_sort_out_3 := make([]any, 0, len(hx_sort_src_1))
+		for _, hx_sort_item_2 := range hx_sort_src_1 {
+			hx_sort_out_3 = append(hx_sort_out_3, hx_sort_item_2)
 		}
-		return hx_sort_out_38
+		return hx_sort_out_3
 	}(hxrt.SysArgs()))
 	i := 0
 	for i < int(int32((hxrt.Int32Wrap(args.Len()) - hxrt.Int32Wrap(1)))) {
 		if hxrt.StringEqualAny(args.Get(i), name) {
-			return func(hx_value_39 any) *string {
-				if hx_value_39 == nil {
-					var hx_zero_40 *string
-					return hx_zero_40
+			return func(hx_value_4 any) *string {
+				if hx_value_4 == nil {
+					var hx_zero_5 *string
+					return hx_zero_5
 				}
-				return hx_value_39.(*string)
+				return hx_value_4.(*string)
 			}(args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))))
 		}
 		i = int(int32((i + 1)))
@@ -36,20 +36,20 @@ func argValue(name *string, fallback *string) *string {
 
 func hasArg(name *string) bool {
 	_g := 0
-	_g1 := hxrt.ArrayFromValues(func(hx_sort_src_41 []*string) []any {
-		hx_sort_out_43 := make([]any, 0, len(hx_sort_src_41))
-		for _, hx_sort_item_42 := range hx_sort_src_41 {
-			hx_sort_out_43 = append(hx_sort_out_43, hx_sort_item_42)
+	_g1 := hxrt.ArrayFromValues(func(hx_sort_src_6 []*string) []any {
+		hx_sort_out_8 := make([]any, 0, len(hx_sort_src_6))
+		for _, hx_sort_item_7 := range hx_sort_src_6 {
+			hx_sort_out_8 = append(hx_sort_out_8, hx_sort_item_7)
 		}
-		return hx_sort_out_43
+		return hx_sort_out_8
 	}(hxrt.SysArgs()))
 	for _g < _g1.Len() {
-		arg := func(hx_value_44 any) *string {
-			if hx_value_44 == nil {
-				var hx_zero_45 *string
-				return hx_zero_45
+		arg := func(hx_value_9 any) *string {
+			if hx_value_9 == nil {
+				var hx_zero_10 *string
+				return hx_zero_10
 			}
-			return hx_value_44.(*string)
+			return hx_value_9.(*string)
 		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if hxrt.StringEqualStringPtr(arg, name) {

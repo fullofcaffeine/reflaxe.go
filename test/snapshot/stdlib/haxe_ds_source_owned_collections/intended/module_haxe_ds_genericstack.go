@@ -28,13 +28,13 @@ func (self *haxe__ds__GenericStack) add(item any) {
 }
 
 func (self *haxe__ds__GenericStack) first() any {
-	var hx_if_16 any
+	var hx_if_1 any
 	if self.head == nil {
-		hx_if_16 = nil
+		hx_if_1 = nil
 	} else {
-		hx_if_16 = self.head.elt
+		hx_if_1 = self.head.elt
 	}
-	return hx_if_16
+	return hx_if_1
 }
 
 func (self *haxe__ds__GenericStack) pop() any {
@@ -70,16 +70,16 @@ func (self *haxe__ds__GenericStack) remove(v any) bool {
 
 func (self *haxe__ds__GenericStack) iterator() map[string]any {
 	current := self.head
-	hx_obj_17 := map[string]any{}
-	hx_obj_17["hasNext"] = func() bool {
+	hx_obj_2 := map[string]any{}
+	hx_obj_2["hasNext"] = func() bool {
 		return (current != nil)
 	}
-	hx_obj_17["next"] = func() any {
+	hx_obj_2["next"] = func() any {
 		cell := current
 		current = cell.next
 		return cell.elt
 	}
-	return hx_obj_17
+	return hx_obj_2
 }
 
 func (self *haxe__ds__GenericStack) toString() *string {

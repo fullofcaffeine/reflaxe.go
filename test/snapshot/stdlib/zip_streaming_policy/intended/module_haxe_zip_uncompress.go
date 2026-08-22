@@ -33,19 +33,19 @@ func (self *haxe__zip__Uncompress) execute(src *haxe__io__Bytes, srcPos int, dst
 	haxe__zip__Uncompress_validatePosition(dstPos, dst.length)
 	bufferSize := int(int32((hxrt.Int32Wrap(dst.length) - hxrt.Int32Wrap(dstPos))))
 	if bufferSize == 0 {
-		hx_obj_41 := map[string]any{}
-		hx_obj_41["done"] = false
-		hx_obj_41["read"] = 0
-		hx_obj_41["write"] = 0
-		return hx_obj_41
+		hx_obj_1 := map[string]any{}
+		hx_obj_1["done"] = false
+		hx_obj_1["read"] = 0
+		hx_obj_1["write"] = 0
+		return hx_obj_1
 	}
 	step := hxrt.ZipInflateExecute(self.handle, haxe__zip__Uncompress_toValuesFrom(src, srcPos), bufferSize, self.flushMode)
 	write := haxe__zip__Uncompress_writeValues(dst, dstPos, step.Values)
-	hx_obj_42 := map[string]any{}
-	hx_obj_42["done"] = step.Done
-	hx_obj_42["read"] = step.Read
-	hx_obj_42["write"] = write
-	return hx_obj_42
+	hx_obj_2 := map[string]any{}
+	hx_obj_2["done"] = step.Done
+	hx_obj_2["read"] = step.Read
+	hx_obj_2["write"] = write
+	return hx_obj_2
 }
 
 func (self *haxe__zip__Uncompress) setFlushMode(f *haxe__zip__FlushMode) {
@@ -68,28 +68,28 @@ func (self *haxe__zip__Uncompress) ensureOpen() {
 }
 
 func haxe__zip__Uncompress_flushModeCode(mode *haxe__zip__FlushMode) int {
-	var hx_switch_43 int
+	var hx_switch_3 int
 	switch mode.tag {
 	case 0:
-		hx_switch_43 = hxrt.ZipFlushNo
+		hx_switch_3 = hxrt.ZipFlushNo
 	case 1:
-		hx_switch_43 = hxrt.ZipFlushSync
+		hx_switch_3 = hxrt.ZipFlushSync
 	case 2:
-		hx_switch_43 = func() int {
+		hx_switch_3 = func() int {
 			hxrt.Throw(hxrt.StringFromLiteral("haxe.zip.FlushMode.FULL is not supported by Go's standard inflater"))
-			var hx_throw_zero_44 int
-			return hx_throw_zero_44
+			var hx_throw_zero_4 int
+			return hx_throw_zero_4
 		}()
 	case 3:
-		hx_switch_43 = hxrt.ZipFlushFinish
+		hx_switch_3 = hxrt.ZipFlushFinish
 	case 4:
-		hx_switch_43 = func() int {
+		hx_switch_3 = func() int {
 			hxrt.Throw(hxrt.StringFromLiteral("haxe.zip.FlushMode.BLOCK is not supported by Go's standard inflater"))
-			var hx_throw_zero_45 int
-			return hx_throw_zero_45
+			var hx_throw_zero_5 int
+			return hx_throw_zero_5
 		}()
 	}
-	return hx_switch_43
+	return hx_switch_3
 }
 
 func haxe__zip__Uncompress_fromValues(values []int) *haxe__io__Bytes {
@@ -97,9 +97,9 @@ func haxe__zip__Uncompress_fromValues(values []int) *haxe__io__Bytes {
 	_g := 0
 	_g1 := len(values)
 	for _g < _g1 {
-		hx_post_46 := _g
+		hx_post_6 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_46
+		index := hx_post_6
 		bytes.b[index] = int(int32((hxrt.Int32Wrap(values[index]) & hxrt.Int32Wrap(255))))
 		bytes.__hx_rawValid = false
 	}
@@ -107,13 +107,13 @@ func haxe__zip__Uncompress_fromValues(values []int) *haxe__io__Bytes {
 }
 
 func haxe__zip__Uncompress_run(src *haxe__io__Bytes, bufsize any) *haxe__io__Bytes {
-	var hx_if_47 any
+	var hx_if_7 any
 	if bufsize == nil {
-		hx_if_47 = 65536
+		hx_if_7 = 65536
 	} else {
-		hx_if_47 = bufsize.(int)
+		hx_if_7 = bufsize.(int)
 	}
-	var resolvedBufferSize any = hx_if_47
+	var resolvedBufferSize any = hx_if_7
 	if hxrt.IntFromNullableAny(resolvedBufferSize) <= 0 {
 		hxrt.Throw(hxrt.StringConcatAny(hxrt.StringFromLiteral("Invalid zlib buffer size: "), resolvedBufferSize))
 	}
@@ -129,23 +129,23 @@ func haxe__zip__Uncompress_toValuesFrom(bytes *haxe__io__Bytes, position int) []
 	_g := position
 	_g1 := bytes.length
 	for _g < _g1 {
-		hx_post_48 := _g
+		hx_post_8 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_48
+		index := hx_post_8
 		values.Push(bytes.b[index])
 	}
-	return func(hx_lambda_raw_50 []any) []int {
-		hx_lambda_out_51 := make([]int, 0, len(hx_lambda_raw_50))
-		for _, hx_lambda_item_52 := range hx_lambda_raw_50 {
-			hx_lambda_out_51 = append(hx_lambda_out_51, func(hx_value_53 any) int {
-				if hx_value_53 == nil {
-					var hx_zero_54 int
-					return hx_zero_54
+	return func(hx_lambda_raw_10 []any) []int {
+		hx_lambda_out_11 := make([]int, 0, len(hx_lambda_raw_10))
+		for _, hx_lambda_item_12 := range hx_lambda_raw_10 {
+			hx_lambda_out_11 = append(hx_lambda_out_11, func(hx_value_13 any) int {
+				if hx_value_13 == nil {
+					var hx_zero_14 int
+					return hx_zero_14
 				}
-				return hx_value_53.(int)
-			}(hx_lambda_item_52))
+				return hx_value_13.(int)
+			}(hx_lambda_item_12))
 		}
-		return hx_lambda_out_51
+		return hx_lambda_out_11
 	}(values.Values())
 }
 
@@ -159,9 +159,9 @@ func haxe__zip__Uncompress_writeValues(destination *haxe__io__Bytes, position in
 	_g := 0
 	_g1 := len(values)
 	for _g < _g1 {
-		hx_post_55 := _g
+		hx_post_15 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_55
+		index := hx_post_15
 		destination.b[int(int32((hxrt.Int32Wrap(position) + hxrt.Int32Wrap(index))))] = int(int32((hxrt.Int32Wrap(values[index]) & hxrt.Int32Wrap(255))))
 		destination.__hx_rawValid = false
 	}
