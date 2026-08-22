@@ -19,7 +19,9 @@ package reflaxe.go.compiler;
 enum abstract GoHxrtFeatureId(String) to String {
 	var HxrtCore = "core";
 	var HxrtArray = "array";
+	var HxrtArraySort = "array_sort";
 	var HxrtString = "string";
+	var HxrtStringCompare = "string_compare";
 	var HxrtEquality = "equality";
 	var HxrtPrint = "print";
 	var HxrtException = "exception";
@@ -72,7 +74,9 @@ enum abstract GoHxrtFeatureId(String) to String {
 class GoHxrtFeatureAnalyzer {
 	public static inline final FEATURE_CORE:GoHxrtFeatureId = GoHxrtFeatureId.HxrtCore;
 	public static inline final FEATURE_ARRAY:GoHxrtFeatureId = GoHxrtFeatureId.HxrtArray;
+	public static inline final FEATURE_ARRAY_SORT:GoHxrtFeatureId = GoHxrtFeatureId.HxrtArraySort;
 	public static inline final FEATURE_STRING:GoHxrtFeatureId = GoHxrtFeatureId.HxrtString;
+	public static inline final FEATURE_STRING_COMPARE:GoHxrtFeatureId = GoHxrtFeatureId.HxrtStringCompare;
 	public static inline final FEATURE_EQUALITY:GoHxrtFeatureId = GoHxrtFeatureId.HxrtEquality;
 	public static inline final FEATURE_PRINT:GoHxrtFeatureId = GoHxrtFeatureId.HxrtPrint;
 	public static inline final FEATURE_EXCEPTION:GoHxrtFeatureId = GoHxrtFeatureId.HxrtException;
@@ -107,7 +111,9 @@ class GoHxrtFeatureAnalyzer {
 	static final FEATURE_ORDER:Array<String> = [
 		FEATURE_CORE,
 		FEATURE_ARRAY,
+		FEATURE_ARRAY_SORT,
 		FEATURE_STRING,
+		FEATURE_STRING_COMPARE,
 		FEATURE_EQUALITY,
 		FEATURE_PRINT,
 		FEATURE_EXCEPTION,
@@ -413,8 +419,12 @@ class GoHxrtFeatureAnalyzer {
 		return switch (feature) {
 			case FEATURE_ARRAY:
 				[FEATURE_CORE];
+			case FEATURE_ARRAY_SORT:
+				[FEATURE_ARRAY];
 			case FEATURE_STRING:
 				[FEATURE_CORE];
+			case FEATURE_STRING_COMPARE:
+				[FEATURE_STRING];
 			case FEATURE_EQUALITY:
 				[FEATURE_STRING];
 			case FEATURE_PRINT:
@@ -480,8 +490,12 @@ class GoHxrtFeatureAnalyzer {
 				["hxrt.go", "core.go"];
 			case FEATURE_ARRAY:
 				["array.go"];
+			case FEATURE_ARRAY_SORT:
+				["array_sort.go"];
 			case FEATURE_STRING:
 				["string.go"];
+			case FEATURE_STRING_COMPARE:
+				["string_compare.go"];
 			case FEATURE_EQUALITY:
 				["equality.go"];
 			case FEATURE_PRINT:
