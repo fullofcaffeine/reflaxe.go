@@ -171,7 +171,7 @@ the third lock. None of those results is substituted for another.
 
 ## Portfolio guardrail
 
-The current active inventory is 316 snapshot owners, 156 portable semantic-diff
+The current active inventory is 319 snapshot owners, 156 portable semantic-diff
 owners, one active profile/lane semantic-diff owner, and 13 executable example
 profile owners. The strict curated stdlib sweep has 55 module owners and the
 full portable-eligible inventory has 175. The separately pinned official target

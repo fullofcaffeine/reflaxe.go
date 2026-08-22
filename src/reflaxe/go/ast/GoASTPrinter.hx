@@ -512,16 +512,36 @@ class GoASTPrinter {
 		return [for (type in types) type.render()].join(", ");
 	}
 
+	/**
+		Escape one value for a Go interpreted string literal.
+
+		Why: Go rejects a literal NUL byte in source, even though NUL is valid in a
+		Haxe string. Other control bytes are legal but make generated code opaque.
+
+		What: Escape Go syntax characters, the C0 control range, and DEL while
+		leaving ordinary Unicode text readable.
+
+		How: Protect existing backslashes first, then replace each original control
+		character with a fixed-width or named Go escape.
+	**/
 	static function escapeString(value:String):String {
-		return value.split("\\")
-			.join("\\\\")
-			.split("\"")
-			.join("\\\"")
-			.split("\n")
-			.join("\\n")
-			.split("\r")
-			.join("\\r")
-			.split("\t")
-			.join("\\t");
+		var escaped = StringTools.replace(value, "\\", "\\\\");
+		escaped = StringTools.replace(escaped, "\"", "\\\"");
+
+		for (code in 0...32) {
+			final replacement = switch (code) {
+				case 7: "\\a";
+				case 8: "\\b";
+				case 9: "\\t";
+				case 10: "\\n";
+				case 11: "\\v";
+				case 12: "\\f";
+				case 13: "\\r";
+				case _: "\\x" + StringTools.hex(code, 2).toLowerCase();
+			};
+			escaped = StringTools.replace(escaped, String.fromCharCode(code), replacement);
+		}
+
+		return StringTools.replace(escaped, String.fromCharCode(127), "\\x7f");
 	}
 }
