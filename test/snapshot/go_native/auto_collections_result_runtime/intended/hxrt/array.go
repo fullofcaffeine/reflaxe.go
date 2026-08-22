@@ -132,6 +132,81 @@ func (array *Array) Copy() *Array {
 	return ArrayFromValues(array.values)
 }
 
+// SliceFrom returns a detached Array from start through the current end.
+func (array *Array) SliceFrom(start int) *Array {
+	return array.Slice(start, len(array.values))
+}
+
+// Slice returns a detached Array using Haxe's clamped and negative bounds.
+func (array *Array) Slice(start, end int) *Array {
+	first, last := arraySliceBounds(len(array.values), start, end)
+	return ArrayFromValues(array.values[first:last])
+}
+
+// SliceOptional accepts the existing Haxe Null<Int> ABI for an explicit end.
+// Optional primitive values reach this target boundary only as nil or int; the
+// adapter validates that invariant immediately, then returns to typed bounds.
+func (array *Array) SliceOptional(start int, end any) *Array {
+	return array.Slice(start, optionalArraySliceEnd(len(array.values), end))
+}
+
+// SliceValuesFrom applies SliceFrom to a native Go slice.
+func SliceValuesFrom[T any](values []T, start int) []T {
+	return SliceValues(values, start, len(values))
+}
+
+// SliceValues applies the same Haxe Array.slice contract to a native Go slice.
+// It always copies so later mutations cannot alias the source Array value.
+func SliceValues[T any](values []T, start, end int) []T {
+	first, last := arraySliceBounds(len(values), start, end)
+	result := make([]T, last-first)
+	copy(result, values[first:last])
+	return result
+}
+
+// SliceValuesOptional applies SliceOptional to a native Go slice.
+func SliceValuesOptional[T any](values []T, start int, end any) []T {
+	return SliceValues(values, start, optionalArraySliceEnd(len(values), end))
+}
+
+func optionalArraySliceEnd(length int, end any) int {
+	if end == nil {
+		return length
+	}
+	value, ok := end.(int)
+	if !ok {
+		panic("hxrt: Array.slice end must be nil or int")
+	}
+	return value
+}
+
+func arraySliceBounds(length, start, end int) (int, int) {
+	if start < 0 {
+		start += length
+	}
+	if start < 0 {
+		start = 0
+	}
+	if start > length {
+		start = length
+	}
+
+	last := end
+	if last < 0 {
+		last += length
+	}
+	if last < 0 {
+		last = 0
+	}
+	if last > length {
+		last = length
+	}
+	if last < start {
+		last = start
+	}
+	return start, last
+}
+
 // Values exposes the live element slice to narrow compiler/runtime bridges such
 // as StringJoinAny. Callers may read or replace existing slots but must use Array
 // methods for length changes so aliases keep one authoritative header.
