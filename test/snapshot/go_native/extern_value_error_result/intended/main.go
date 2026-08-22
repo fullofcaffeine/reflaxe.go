@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/url"
 	"snapshot/hxrt"
 	"strconv"
 )
@@ -56,11 +57,24 @@ func main() {
 		return hx_value_11.(*string)
 	}(err.error()), nil))))
 	hxrt.Println(v_5)
+	text := go__result_fromValueError(url.QueryUnescape(*hxrt.StdString(hxrt.StringFromLiteral("hello+world"))))
+	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("text.unwrap="), func(hx_value_13 any) *string {
+		if hx_value_13 == nil {
+			var hx_zero_14 *string
+			return hx_zero_14
+		}
+		return hx_value_13.(*string)
+	}(text.unwrap())))
+	hxrt.Println(v_6)
 }
 
 func go__result_fromValueError(value any, err error) *go___Result {
 	if err != nil {
 		return New_go___Result(nil, New_go___Error(hxrt.StringFromLiteral(err.Error())))
+	}
+	switch typed := value.(type) {
+	case string:
+		value = hxrt.StdString(typed)
 	}
 	return New_go___Result(value, nil)
 }
