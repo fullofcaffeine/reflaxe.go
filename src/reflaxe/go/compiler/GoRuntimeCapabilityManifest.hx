@@ -278,7 +278,9 @@ class GoRuntimeCapabilityManifest {
 		return switch (feature) {
 			case GoHxrtFeatureAnalyzer.FEATURE_CORE: GoHxrtFeatureId.HxrtCore;
 			case GoHxrtFeatureAnalyzer.FEATURE_ARRAY: GoHxrtFeatureId.HxrtArray;
+			case GoHxrtFeatureAnalyzer.FEATURE_ARRAY_SORT: GoHxrtFeatureId.HxrtArraySort;
 			case GoHxrtFeatureAnalyzer.FEATURE_STRING: GoHxrtFeatureId.HxrtString;
+			case GoHxrtFeatureAnalyzer.FEATURE_STRING_COMPARE: GoHxrtFeatureId.HxrtStringCompare;
 			case GoHxrtFeatureAnalyzer.FEATURE_EQUALITY: GoHxrtFeatureId.HxrtEquality;
 			case GoHxrtFeatureAnalyzer.FEATURE_PRINT: GoHxrtFeatureId.HxrtPrint;
 			case GoHxrtFeatureAnalyzer.FEATURE_EXCEPTION: GoHxrtFeatureId.HxrtException;

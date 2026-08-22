@@ -1,6 +1,9 @@
 package hxrt
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestArraySharesLengthChangingMutations(t *testing.T) {
 	array := NewArray(1, 2)
@@ -69,6 +72,17 @@ func TestArrayCopyHasDistinctIdentity(t *testing.T) {
 	copy.Push("b")
 	if array.Len() != 1 || copy.Len() != 2 {
 		t.Fatalf("copy mutation leaked: source=%#v copy=%#v", array.Values(), copy.Values())
+	}
+}
+
+func TestArraySortMutatesSharedIdentity(t *testing.T) {
+	array := NewArray("beta", "alpha", "gamma")
+	alias := array
+	ArraySort(array, func(left, right any) int {
+		return strings.Compare(left.(string), right.(string))
+	})
+	if got, want := alias.Values(), []any{"alpha", "beta", "gamma"}; !equalArrayValues(got, want) {
+		t.Fatalf("Sort() through alias = %#v, want %#v", got, want)
 	}
 }
 

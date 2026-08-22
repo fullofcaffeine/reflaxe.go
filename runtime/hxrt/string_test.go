@@ -23,6 +23,23 @@ func TestStringEqualStringPtrDistinguishesNullFromLiteral(t *testing.T) {
 	}
 }
 
+func TestStringCompareStringPtrOrdersValuesAndNull(t *testing.T) {
+	alpha := "alpha"
+	beta := "beta"
+	if StringCompareStringPtr(&alpha, &beta) >= 0 {
+		t.Fatal("alpha must sort before beta")
+	}
+	if StringCompareStringPtr(&beta, &alpha) <= 0 {
+		t.Fatal("beta must sort after alpha")
+	}
+	if StringCompareStringPtr(&alpha, &alpha) != 0 {
+		t.Fatal("equal string values must compare equally")
+	}
+	if StringCompareStringPtr(nil, &alpha) >= 0 || StringCompareStringPtr(&alpha, nil) <= 0 || StringCompareStringPtr(nil, nil) != 0 {
+		t.Fatal("null string ordering must be deterministic and distinct")
+	}
+}
+
 func TestStringIndexOfStringPtrUsesLogicalRuneIndexes(t *testing.T) {
 	value := "a😀bé😀"
 	needle := "😀"

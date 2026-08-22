@@ -670,11 +670,30 @@ class GoCompiler {
 			decls: decls
 		};
 		var transformed = GoASTTransformer.transform(file, compilationContext);
+		noteTransformedRuntimeFeatures(transformed.decls);
 		var filtered = filterImportsByUsage(transformed);
 		return {
 			relativePath: relativePath,
 			contents: GoASTPrinter.printFile(filtered)
 		};
+	}
+
+	function noteTransformedRuntimeFeatures(decls:Array<GoDecl>):Void {
+		if (declsUseRuntimeSymbol(decls, "hxrt.ArraySort")) {
+			requireGeneratedRuntimeFeature(GoHxrtFeatureAnalyzer.FEATURE_ARRAY_SORT, "lowered_go_ast:hxrt.ArraySort");
+		}
+		if (declsUseRuntimeSymbol(decls, "hxrt.StringCompareStringPtr")) {
+			requireGeneratedRuntimeFeature(GoHxrtFeatureAnalyzer.FEATURE_STRING_COMPARE, "lowered_go_ast:hxrt.StringCompareStringPtr");
+		}
+	}
+
+	function declsUseRuntimeSymbol(decls:Array<GoDecl>, symbol:String):Bool {
+		for (decl in decls) {
+			if (declUsesImportAlias(decl, symbol)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	function filterImportsByUsage(file:GoFile):GoFile {
@@ -9609,6 +9628,14 @@ class GoCompiler {
 							[leftLowered.expr, rightLowered.expr])),
 					isStringLike: false
 				};
+			case OpLt if (typedStringOps):
+				lowerOrderedStringComparison("<", leftLowered.expr, rightLowered.expr);
+			case OpLte if (typedStringOps):
+				lowerOrderedStringComparison("<=", leftLowered.expr, rightLowered.expr);
+			case OpGt if (typedStringOps):
+				lowerOrderedStringComparison(">", leftLowered.expr, rightLowered.expr);
+			case OpGte if (typedStringOps):
+				lowerOrderedStringComparison(">=", leftLowered.expr, rightLowered.expr);
 			case OpEq if (impossiblePrimitiveNullComparison):
 				{
 					expr: GoExpr.GoBoolLiteral(false),
@@ -9710,6 +9737,13 @@ class GoCompiler {
 					expr: GoExpr.GoBinary(binopSymbol(op), leftExprForOperator, rightExprForOperator),
 					isStringLike: isStringType(resultType)
 				};
+		};
+	}
+
+	function lowerOrderedStringComparison(comparisonOperator:String, left:GoExpr, right:GoExpr):LoweredExpr {
+		return {
+			expr: GoExpr.GoBinary(comparisonOperator, GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringCompareStringPtr"), [left, right]), GoExpr.GoIntLiteral(0)),
+			isStringLike: false
 		};
 	}
 
@@ -11013,6 +11047,22 @@ class GoCompiler {
 		return GoHxrtFeatureAnalyzer.expandWithReasons(features, reasons);
 	}
 
+	function requireGeneratedRuntimeFeature(feature:String, source:String):Void {
+		if (compilationContext.inferredHxrtFeatures.indexOf(feature) < 0) {
+			compilationContext.inferredHxrtFeatures.push(feature);
+		}
+		for (reason in compilationContext.inferredHxrtFeatureReasons) {
+			if (reason.feature == feature && reason.sourceKind == "compiler_surface" && reason.source == source) {
+				return;
+			}
+		}
+		compilationContext.inferredHxrtFeatureReasons.push({
+			feature: feature,
+			sourceKind: "compiler_surface",
+			source: source
+		});
+	}
+
 	function resetExternImportPaths():Void {
 		for (path in externImportPaths.keys()) {
 			externImportPaths.remove(path);
@@ -11375,6 +11425,14 @@ class GoCompiler {
 				}
 				{
 					expr: copied,
+					isStringLike: false
+				};
+			case "sort" if (args.length == 1 && usesSharedArrayCarrier(methodCall.target)):
+				{
+					expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ArraySort"), [
+						lowerExpr(methodCall.target).expr,
+						lowerTypedComparatorToAny(lowerExpr(args[0]).expr, methodCall.target.t)
+					]),
 					isStringLike: false
 				};
 			case "join":
