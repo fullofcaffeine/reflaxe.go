@@ -36,12 +36,12 @@ func (self *app__runtime__CoreRuntime) dispatch(requests *hxrt.Array, workerCoun
 	responses := hxrt.NewArray()
 	_g := 0
 	for _g < requests.Len() {
-		request := func(hx_value_110 any) *app__core__FluxRequest {
-			if hx_value_110 == nil {
-				var hx_zero_111 *app__core__FluxRequest
-				return hx_zero_111
+		request := func(hx_value_1 any) *app__core__FluxRequest {
+			if hx_value_1 == nil {
+				var hx_zero_2 *app__core__FluxRequest
+				return hx_zero_2
 			}
-			return hx_value_110.(*app__core__FluxRequest)
+			return hx_value_1.(*app__core__FluxRequest)
 		}(requests.Get(_g))
 		_g = int(int32((_g + 1)))
 		responses.Push(app__core__FluxCodec_proxy(request, 50))
@@ -54,12 +54,12 @@ func (self *app__runtime__CoreRuntime) stageScore(responses *hxrt.Array, retryCo
 	errorCount := 0
 	_g := 0
 	for _g < responses.Len() {
-		response := func(hx_value_113 any) *app__core__FluxProxyResponse {
-			if hx_value_113 == nil {
-				var hx_zero_114 *app__core__FluxProxyResponse
-				return hx_zero_114
+		response := func(hx_value_4 any) *app__core__FluxProxyResponse {
+			if hx_value_4 == nil {
+				var hx_zero_5 *app__core__FluxProxyResponse
+				return hx_zero_5
 			}
-			return hx_value_113.(*app__core__FluxProxyResponse)
+			return hx_value_4.(*app__core__FluxProxyResponse)
 		}(responses.Get(_g))
 		_g = int(int32((_g + 1)))
 		if response.success {

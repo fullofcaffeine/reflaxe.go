@@ -63,9 +63,9 @@ func (self *sys__io__FileInput) readBytes(bytes *haxe__io__Bytes, pos int, lengt
 	_g := 0
 	_g1 := len(values)
 	for _g < _g1 {
-		hx_post_24 := _g
+		hx_post_1 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_24
+		index := hx_post_1
 		bytes.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index))))] = int(int32((hxrt.Int32Wrap(values[index]) & hxrt.Int32Wrap(255))))
 		bytes.__hx_rawValid = false
 	}

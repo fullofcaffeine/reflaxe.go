@@ -19,12 +19,12 @@ func InteractiveCli_nextId(requests *hxrt.Array) int {
 	next := 1
 	_g := 0
 	for _g < requests.Len() {
-		request := func(hx_value_5 any) *app__core__FluxRequest {
-			if hx_value_5 == nil {
-				var hx_zero_6 *app__core__FluxRequest
-				return hx_zero_6
+		request := func(hx_value_1 any) *app__core__FluxRequest {
+			if hx_value_1 == nil {
+				var hx_zero_2 *app__core__FluxRequest
+				return hx_zero_2
 			}
-			return hx_value_5.(*app__core__FluxRequest)
+			return hx_value_1.(*app__core__FluxRequest)
 		}(requests.Get(_g))
 		_g = int(int32((_g + 1)))
 		if request.id >= next {
@@ -81,12 +81,12 @@ func InteractiveCli_printUsage(runtime app__runtime__FluxRuntime) {
 
 func InteractiveCli_run(runtime app__runtime__FluxRuntime) {
 	requests := Harness_baselineRequests()
-	args := hxrt.ArrayFromValues(func(hx_sort_src_7 []*string) []any {
-		hx_sort_out_9 := make([]any, 0, len(hx_sort_src_7))
-		for _, hx_sort_item_8 := range hx_sort_src_7 {
-			hx_sort_out_9 = append(hx_sort_out_9, hx_sort_item_8)
+	args := hxrt.ArrayFromValues(func(hx_sort_src_3 []*string) []any {
+		hx_sort_out_5 := make([]any, 0, len(hx_sort_src_3))
+		for _, hx_sort_item_4 := range hx_sort_src_3 {
+			hx_sort_out_5 = append(hx_sort_out_5, hx_sort_item_4)
 		}
-		return hx_sort_out_9
+		return hx_sort_out_5
 	}(hxrt.SysArgs()))
 	if args.Len() == 0 {
 		InteractiveCli_printUsage(runtime)
@@ -94,12 +94,12 @@ func InteractiveCli_run(runtime app__runtime__FluxRuntime) {
 	}
 	i := 0
 	for i < args.Len() {
-		cmd := func(hx_value_10 any) *string {
-			if hx_value_10 == nil {
-				var hx_zero_11 *string
-				return hx_zero_11
+		cmd := func(hx_value_6 any) *string {
+			if hx_value_6 == nil {
+				var hx_zero_7 *string
+				return hx_zero_7
 			}
-			return hx_value_10.(*string)
+			return hx_value_6.(*string)
 		}(args.Get(i))
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("help")) {
 			InteractiveCli_printHelp(runtime)
@@ -139,30 +139,30 @@ func InteractiveCli_run(runtime app__runtime__FluxRuntime) {
 				InteractiveCli_failUsage(hxrt.StringFromLiteral("ingest requires <route_token> <latency_ms> <status_code>"))
 				return
 			}
-			route := InteractiveCli_decodeToken(func(hx_value_12 any) *string {
-				if hx_value_12 == nil {
-					var hx_zero_13 *string
-					return hx_zero_13
+			route := InteractiveCli_decodeToken(func(hx_value_8 any) *string {
+				if hx_value_8 == nil {
+					var hx_zero_9 *string
+					return hx_zero_9
 				}
-				return hx_value_12.(*string)
+				return hx_value_8.(*string)
 			}(args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1)))))))
-			latency := InteractiveCli_parsePositiveInt(func(hx_value_14 any) *string {
-				if hx_value_14 == nil {
-					var hx_zero_15 *string
-					return hx_zero_15
+			latency := InteractiveCli_parsePositiveInt(func(hx_value_10 any) *string {
+				if hx_value_10 == nil {
+					var hx_zero_11 *string
+					return hx_zero_11
 				}
-				return hx_value_14.(*string)
+				return hx_value_10.(*string)
 			}(args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2)))))))
 			if latency < 0 {
 				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid latency_ms: "), args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2)))))))
 				return
 			}
-			status := InteractiveCli_parsePositiveInt(func(hx_value_18 any) *string {
-				if hx_value_18 == nil {
-					var hx_zero_19 *string
-					return hx_zero_19
+			status := InteractiveCli_parsePositiveInt(func(hx_value_14 any) *string {
+				if hx_value_14 == nil {
+					var hx_zero_15 *string
+					return hx_zero_15
 				}
-				return hx_value_18.(*string)
+				return hx_value_14.(*string)
 			}(args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3)))))))
 			if (status < 100) || (status > 599) {
 				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid status_code: "), args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3)))))))

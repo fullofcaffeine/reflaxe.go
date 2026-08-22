@@ -39,103 +39,103 @@ func (self *haxe__ds__HashMap) get(k interface{ hashCode() int }) any {
 }
 
 func (self *haxe__ds__HashMap) exists(k interface{ hashCode() int }) bool {
+	return func(hx_value_1 any) bool {
+		if hx_value_1 == nil {
+			var hx_zero_2 bool
+			return hx_zero_2
+		}
+		return hx_value_1.(bool)
+	}(self.valuesByHash.__hx_this.exists(k.hashCode()))
+}
+
+func (self *haxe__ds__HashMap) remove(k interface{ hashCode() int }) bool {
+	hash := k.hashCode()
+	func(hx_value_3 any) bool {
+		if hx_value_3 == nil {
+			var hx_zero_4 bool
+			return hx_zero_4
+		}
+		return hx_value_3.(bool)
+	}(self.valuesByHash.__hx_this.remove(hash))
 	return func(hx_value_5 any) bool {
 		if hx_value_5 == nil {
 			var hx_zero_6 bool
 			return hx_zero_6
 		}
 		return hx_value_5.(bool)
-	}(self.valuesByHash.__hx_this.exists(k.hashCode()))
-}
-
-func (self *haxe__ds__HashMap) remove(k interface{ hashCode() int }) bool {
-	hash := k.hashCode()
-	func(hx_value_7 any) bool {
-		if hx_value_7 == nil {
-			var hx_zero_8 bool
-			return hx_zero_8
-		}
-		return hx_value_7.(bool)
-	}(self.valuesByHash.__hx_this.remove(hash))
-	return func(hx_value_9 any) bool {
-		if hx_value_9 == nil {
-			var hx_zero_10 bool
-			return hx_zero_10
-		}
-		return hx_value_9.(bool)
 	}(self.keysByHash.__hx_this.remove(hash))
 }
 
 func (self *haxe__ds__HashMap) keys() map[string]any {
 	_gthis := self
-	hashes := func(hx_value_11 any) map[string]any {
-		if hx_value_11 == nil {
-			var hx_zero_12 map[string]any
-			return hx_zero_12
+	hashes := func(hx_value_7 any) map[string]any {
+		if hx_value_7 == nil {
+			var hx_zero_8 map[string]any
+			return hx_zero_8
 		}
-		return hx_value_11.(map[string]any)
+		return hx_value_7.(map[string]any)
 	}(self.keysByHash.__hx_this.keys())
-	hx_obj_13 := map[string]any{}
-	hx_obj_13["hasNext"] = func() bool {
-		return func(hx_obj_14 map[string]any) func() bool {
-			hx_field_15 := hx_obj_14["hasNext"]
-			if hx_field_15 == nil {
-				var hx_zero_16 func() bool
-				return hx_zero_16
+	hx_obj_9 := map[string]any{}
+	hx_obj_9["hasNext"] = func() bool {
+		return func(hx_obj_10 map[string]any) func() bool {
+			hx_field_11 := hx_obj_10["hasNext"]
+			if hx_field_11 == nil {
+				var hx_zero_12 func() bool
+				return hx_zero_12
 			}
-			return hx_field_15.(func() bool)
+			return hx_field_11.(func() bool)
 		}(hashes)()
 	}
-	hx_obj_13["next"] = func() interface{ hashCode() int } {
-		return func(hx_value_20 any) interface{ hashCode() int } {
-			if hx_value_20 == nil {
-				var hx_zero_21 interface{ hashCode() int }
-				return hx_zero_21
+	hx_obj_9["next"] = func() interface{ hashCode() int } {
+		return func(hx_value_16 any) interface{ hashCode() int } {
+			if hx_value_16 == nil {
+				var hx_zero_17 interface{ hashCode() int }
+				return hx_zero_17
 			}
-			return hx_value_20.(interface{ hashCode() int })
-		}(_gthis.keysByHash.__hx_this.get(func(hx_obj_17 map[string]any) func() int {
-			hx_field_18 := hx_obj_17["next"]
-			if hx_field_18 == nil {
-				var hx_zero_19 func() int
-				return hx_zero_19
+			return hx_value_16.(interface{ hashCode() int })
+		}(_gthis.keysByHash.__hx_this.get(func(hx_obj_13 map[string]any) func() int {
+			hx_field_14 := hx_obj_13["next"]
+			if hx_field_14 == nil {
+				var hx_zero_15 func() int
+				return hx_zero_15
 			}
-			return hx_field_18.(func() int)
+			return hx_field_14.(func() int)
 		}(hashes)()))
 	}
-	return hx_obj_13
+	return hx_obj_9
 }
 
 func (self *haxe__ds__HashMap) iterator() map[string]any {
 	_gthis := self
-	hashes := func(hx_value_22 any) map[string]any {
-		if hx_value_22 == nil {
-			var hx_zero_23 map[string]any
-			return hx_zero_23
+	hashes := func(hx_value_18 any) map[string]any {
+		if hx_value_18 == nil {
+			var hx_zero_19 map[string]any
+			return hx_zero_19
 		}
-		return hx_value_22.(map[string]any)
+		return hx_value_18.(map[string]any)
 	}(self.valuesByHash.__hx_this.keys())
-	hx_obj_24 := map[string]any{}
-	hx_obj_24["hasNext"] = func() bool {
-		return func(hx_obj_25 map[string]any) func() bool {
-			hx_field_26 := hx_obj_25["hasNext"]
-			if hx_field_26 == nil {
-				var hx_zero_27 func() bool
-				return hx_zero_27
+	hx_obj_20 := map[string]any{}
+	hx_obj_20["hasNext"] = func() bool {
+		return func(hx_obj_21 map[string]any) func() bool {
+			hx_field_22 := hx_obj_21["hasNext"]
+			if hx_field_22 == nil {
+				var hx_zero_23 func() bool
+				return hx_zero_23
 			}
-			return hx_field_26.(func() bool)
+			return hx_field_22.(func() bool)
 		}(hashes)()
 	}
-	hx_obj_24["next"] = func() any {
-		return _gthis.valuesByHash.__hx_this.get(func(hx_obj_28 map[string]any) func() int {
-			hx_field_29 := hx_obj_28["next"]
-			if hx_field_29 == nil {
-				var hx_zero_30 func() int
-				return hx_zero_30
+	hx_obj_20["next"] = func() any {
+		return _gthis.valuesByHash.__hx_this.get(func(hx_obj_24 map[string]any) func() int {
+			hx_field_25 := hx_obj_24["next"]
+			if hx_field_25 == nil {
+				var hx_zero_26 func() int
+				return hx_zero_26
 			}
-			return hx_field_29.(func() int)
+			return hx_field_25.(func() int)
 		}(hashes)())
 	}
-	return hx_obj_24
+	return hx_obj_20
 }
 
 func (self *haxe__ds__HashMap) keyValueIterator() *haxe__iterators__HashMapKeyValueIterator {
@@ -144,35 +144,35 @@ func (self *haxe__ds__HashMap) keyValueIterator() *haxe__iterators__HashMapKeyVa
 
 func (self *haxe__ds__HashMap) copy() *haxe__ds__HashMap {
 	copied := New_haxe__ds__HashMap()
-	hash := func(hx_value_31 any) map[string]any {
-		if hx_value_31 == nil {
-			var hx_zero_32 map[string]any
-			return hx_zero_32
+	hash := func(hx_value_27 any) map[string]any {
+		if hx_value_27 == nil {
+			var hx_zero_28 map[string]any
+			return hx_zero_28
 		}
-		return hx_value_31.(map[string]any)
+		return hx_value_27.(map[string]any)
 	}(self.keysByHash.__hx_this.keys())
-	for func(hx_obj_33 map[string]any) func() bool {
-		hx_field_34 := hx_obj_33["hasNext"]
-		if hx_field_34 == nil {
-			var hx_zero_35 func() bool
-			return hx_zero_35
+	for func(hx_obj_29 map[string]any) func() bool {
+		hx_field_30 := hx_obj_29["hasNext"]
+		if hx_field_30 == nil {
+			var hx_zero_31 func() bool
+			return hx_zero_31
 		}
-		return hx_field_34.(func() bool)
+		return hx_field_30.(func() bool)
 	}(hash)() {
-		hash_1 := func(hx_obj_36 map[string]any) func() int {
-			hx_field_37 := hx_obj_36["next"]
-			if hx_field_37 == nil {
-				var hx_zero_38 func() int
-				return hx_zero_38
+		hash_1 := func(hx_obj_32 map[string]any) func() int {
+			hx_field_33 := hx_obj_32["next"]
+			if hx_field_33 == nil {
+				var hx_zero_34 func() int
+				return hx_zero_34
 			}
-			return hx_field_37.(func() int)
+			return hx_field_33.(func() int)
 		}(hash)()
-		copied.keysByHash.__hx_this.set(hash_1, func(hx_value_39 any) interface{ hashCode() int } {
-			if hx_value_39 == nil {
-				var hx_zero_40 interface{ hashCode() int }
-				return hx_zero_40
+		copied.keysByHash.__hx_this.set(hash_1, func(hx_value_35 any) interface{ hashCode() int } {
+			if hx_value_35 == nil {
+				var hx_zero_36 interface{ hashCode() int }
+				return hx_zero_36
 			}
-			return hx_value_39.(interface{ hashCode() int })
+			return hx_value_35.(interface{ hashCode() int })
 		}(self.keysByHash.__hx_this.get(hash_1)))
 		copied.valuesByHash.__hx_this.set(hash_1, self.valuesByHash.__hx_this.get(hash_1))
 	}
@@ -187,12 +187,12 @@ func (self *haxe__ds__HashMap) clear() {
 }
 
 func haxe__ds__HashMap_hashOf(key map[string]any) int {
-	return func(hx_obj_41 map[string]any) func() int {
-		hx_field_42 := hx_obj_41["hashCode"]
-		if hx_field_42 == nil {
-			var hx_zero_43 func() int
-			return hx_zero_43
+	return func(hx_obj_37 map[string]any) func() int {
+		hx_field_38 := hx_obj_37["hashCode"]
+		if hx_field_38 == nil {
+			var hx_zero_39 func() int
+			return hx_zero_39
 		}
-		return hx_field_42.(func() int)
+		return hx_field_38.(func() int)
 	}(key)()
 }

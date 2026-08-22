@@ -9,38 +9,38 @@ func _UnicodeString__UnicodeString_Impl___new(value *string) any {
 }
 
 func _UnicodeString__UnicodeString_Impl__addString(a any, b *string) any {
-	return hxrt.StringConcatStringPtr(func(hx_value_57 any) *string {
-		if hx_value_57 == nil {
-			var hx_zero_58 *string
-			return hx_zero_58
+	return hxrt.StringConcatStringPtr(func(hx_value_1 any) *string {
+		if hx_value_1 == nil {
+			var hx_zero_2 *string
+			return hx_zero_2
 		}
-		return hx_value_57.(*string)
+		return hx_value_1.(*string)
 	}(a), b)
 }
 
 func _UnicodeString__UnicodeString_Impl__addUnicode(a any, b any) any {
-	return hxrt.StringConcatStringPtr(func(hx_value_59 any) *string {
-		if hx_value_59 == nil {
-			var hx_zero_60 *string
-			return hx_zero_60
+	return hxrt.StringConcatStringPtr(func(hx_value_3 any) *string {
+		if hx_value_3 == nil {
+			var hx_zero_4 *string
+			return hx_zero_4
 		}
-		return hx_value_59.(*string)
-	}(a), func(hx_value_61 any) *string {
-		if hx_value_61 == nil {
-			var hx_zero_62 *string
-			return hx_zero_62
+		return hx_value_3.(*string)
+	}(a), func(hx_value_5 any) *string {
+		if hx_value_5 == nil {
+			var hx_zero_6 *string
+			return hx_zero_6
 		}
-		return hx_value_61.(*string)
+		return hx_value_5.(*string)
 	}(b))
 }
 
 func _UnicodeString__UnicodeString_Impl__charAt(this1 *string, index int) *string {
-	if (index < 0) || (index >= hxrt.StringLengthStringPtr(func(hx_value_63 any) *string {
-		if hx_value_63 == nil {
-			var hx_zero_64 *string
-			return hx_zero_64
+	if (index < 0) || (index >= hxrt.StringLengthStringPtr(func(hx_value_7 any) *string {
+		if hx_value_7 == nil {
+			var hx_zero_8 *string
+			return hx_zero_8
 		}
-		return hx_value_63.(*string)
+		return hx_value_7.(*string)
 	}(this1))) {
 		return hxrt.StringFromLiteral("")
 	}
@@ -48,12 +48,12 @@ func _UnicodeString__UnicodeString_Impl__charAt(this1 *string, index int) *strin
 }
 
 func _UnicodeString__UnicodeString_Impl__charCodeAt(this1 *string, index int) any {
-	if (index < 0) || (index >= hxrt.StringLengthStringPtr(func(hx_value_65 any) *string {
-		if hx_value_65 == nil {
-			var hx_zero_66 *string
-			return hx_zero_66
+	if (index < 0) || (index >= hxrt.StringLengthStringPtr(func(hx_value_9 any) *string {
+		if hx_value_9 == nil {
+			var hx_zero_10 *string
+			return hx_zero_10
 		}
-		return hx_value_65.(*string)
+		return hx_value_9.(*string)
 	}(this1))) {
 		return nil
 	}
@@ -65,13 +65,13 @@ func _UnicodeString__UnicodeString_Impl__compare(a any, b any) int {
 	right := hxrt.StdString(b)
 	leftLength := hxrt.StringLengthStringPtr(left)
 	rightLength := hxrt.StringLengthStringPtr(right)
-	var hx_if_67 int
+	var hx_if_11 int
 	if leftLength < rightLength {
-		hx_if_67 = leftLength
+		hx_if_11 = leftLength
 	} else {
-		hx_if_67 = rightLength
+		hx_if_11 = rightLength
 	}
-	limit := hx_if_67
+	limit := hx_if_11
 	index := 0
 	for index < limit {
 		leftCode := hxrt.StringCharCodeAtStringPtr(left, index)
@@ -84,34 +84,34 @@ func _UnicodeString__UnicodeString_Impl__compare(a any, b any) int {
 		}
 		index = int(int32((index + 1)))
 	}
-	var hx_if_69 int
+	var hx_if_13 int
 	if leftLength < rightLength {
-		hx_if_69 = -1
+		hx_if_13 = -1
 	} else {
-		var hx_if_68 int
+		var hx_if_12 int
 		if leftLength > rightLength {
-			hx_if_68 = 1
+			hx_if_12 = 1
 		} else {
-			hx_if_68 = 0
+			hx_if_12 = 0
 		}
-		hx_if_69 = hx_if_68
+		hx_if_13 = hx_if_12
 	}
-	return hx_if_69
+	return hx_if_13
 }
 
 func _UnicodeString__UnicodeString_Impl__equal(a any, b any) bool {
-	return hxrt.StringEqualStringPtr(func(hx_value_70 any) *string {
-		if hx_value_70 == nil {
-			var hx_zero_71 *string
-			return hx_zero_71
+	return hxrt.StringEqualStringPtr(func(hx_value_14 any) *string {
+		if hx_value_14 == nil {
+			var hx_zero_15 *string
+			return hx_zero_15
 		}
-		return hx_value_70.(*string)
-	}(a), func(hx_value_72 any) *string {
-		if hx_value_72 == nil {
-			var hx_zero_73 *string
-			return hx_zero_73
+		return hx_value_14.(*string)
+	}(a), func(hx_value_16 any) *string {
+		if hx_value_16 == nil {
+			var hx_zero_17 *string
+			return hx_zero_17
 		}
-		return hx_value_72.(*string)
+		return hx_value_16.(*string)
 	}(b))
 }
 
@@ -128,20 +128,20 @@ func _UnicodeString__UnicodeString_Impl__greaterThanOrEqual(a any, b any) bool {
 }
 
 func _UnicodeString__UnicodeString_Impl__indexOf(this1 *string, str *string, startIndex any) int {
-	total := hxrt.StringLengthStringPtr(func(hx_value_74 any) *string {
-		if hx_value_74 == nil {
-			var hx_zero_75 *string
-			return hx_zero_75
+	total := hxrt.StringLengthStringPtr(func(hx_value_18 any) *string {
+		if hx_value_18 == nil {
+			var hx_zero_19 *string
+			return hx_zero_19
 		}
-		return hx_value_74.(*string)
+		return hx_value_18.(*string)
 	}(this1))
-	var hx_if_76 int
+	var hx_if_20 int
 	if startIndex == nil {
-		hx_if_76 = 0
+		hx_if_20 = 0
 	} else {
-		hx_if_76 = startIndex.(int)
+		hx_if_20 = startIndex.(int)
 	}
-	start := hx_if_76
+	start := hx_if_20
 	if start < 0 {
 		start = int(int32((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(start))))
 		if start < 0 {
@@ -178,20 +178,20 @@ func _UnicodeString__UnicodeString_Impl__keyValueIterator(this1 *string) *haxe__
 }
 
 func _UnicodeString__UnicodeString_Impl__lastIndexOf(this1 *string, str *string, startIndex any) int {
-	total := hxrt.StringLengthStringPtr(func(hx_value_77 any) *string {
-		if hx_value_77 == nil {
-			var hx_zero_78 *string
-			return hx_zero_78
+	total := hxrt.StringLengthStringPtr(func(hx_value_21 any) *string {
+		if hx_value_21 == nil {
+			var hx_zero_22 *string
+			return hx_zero_22
 		}
-		return hx_value_77.(*string)
+		return hx_value_21.(*string)
 	}(this1))
-	var hx_if_79 int
+	var hx_if_23 int
 	if startIndex == nil {
-		hx_if_79 = total
+		hx_if_23 = total
 	} else {
-		hx_if_79 = startIndex.(int)
+		hx_if_23 = startIndex.(int)
 	}
-	start := hx_if_79
+	start := hx_if_23
 	if start < 0 {
 		return -1
 	}
@@ -241,28 +241,28 @@ func _UnicodeString__UnicodeString_Impl__matchesAt(this1 *string, str *string, n
 }
 
 func _UnicodeString__UnicodeString_Impl__notEqual(a any, b any) bool {
-	return !hxrt.StringEqualStringPtr(func(hx_value_80 any) *string {
-		if hx_value_80 == nil {
-			var hx_zero_81 *string
-			return hx_zero_81
+	return !hxrt.StringEqualStringPtr(func(hx_value_24 any) *string {
+		if hx_value_24 == nil {
+			var hx_zero_25 *string
+			return hx_zero_25
 		}
-		return hx_value_80.(*string)
-	}(a), func(hx_value_82 any) *string {
-		if hx_value_82 == nil {
-			var hx_zero_83 *string
-			return hx_zero_83
+		return hx_value_24.(*string)
+	}(a), func(hx_value_26 any) *string {
+		if hx_value_26 == nil {
+			var hx_zero_27 *string
+			return hx_zero_27
 		}
-		return hx_value_82.(*string)
+		return hx_value_26.(*string)
 	}(b))
 }
 
 func _UnicodeString__UnicodeString_Impl__substr(this1 *string, pos int, len any) *string {
-	total := hxrt.StringLengthStringPtr(func(hx_value_84 any) *string {
-		if hx_value_84 == nil {
-			var hx_zero_85 *string
-			return hx_zero_85
+	total := hxrt.StringLengthStringPtr(func(hx_value_28 any) *string {
+		if hx_value_28 == nil {
+			var hx_zero_29 *string
+			return hx_zero_29
 		}
-		return hx_value_84.(*string)
+		return hx_value_28.(*string)
 	}(this1))
 	start := pos
 	if start < 0 {
@@ -276,13 +276,13 @@ func _UnicodeString__UnicodeString_Impl__substr(this1 *string, pos int, len any)
 	}
 	end := total
 	if len != nil {
-		var hx_if_86 int
+		var hx_if_30 int
 		if len.(int) < 0 {
-			hx_if_86 = int(int32((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(len.(int)))))
+			hx_if_30 = int(int32((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(len.(int)))))
 		} else {
-			hx_if_86 = int(int32((hxrt.Int32Wrap(start) + hxrt.Int32Wrap(len.(int)))))
+			hx_if_30 = int(int32((hxrt.Int32Wrap(start) + hxrt.Int32Wrap(len.(int)))))
 		}
-		end = hx_if_86
+		end = hx_if_30
 		if end > total {
 			end = total
 		}
@@ -294,29 +294,29 @@ func _UnicodeString__UnicodeString_Impl__substr(this1 *string, pos int, len any)
 }
 
 func _UnicodeString__UnicodeString_Impl__substring(this1 *string, startIndex int, endIndex any) *string {
-	total := hxrt.StringLengthStringPtr(func(hx_value_87 any) *string {
-		if hx_value_87 == nil {
-			var hx_zero_88 *string
-			return hx_zero_88
+	total := hxrt.StringLengthStringPtr(func(hx_value_31 any) *string {
+		if hx_value_31 == nil {
+			var hx_zero_32 *string
+			return hx_zero_32
 		}
-		return hx_value_87.(*string)
+		return hx_value_31.(*string)
 	}(this1))
-	var hx_if_89 int
+	var hx_if_33 int
 	if startIndex < 0 {
-		hx_if_89 = 0
+		hx_if_33 = 0
 	} else {
-		hx_if_89 = startIndex
+		hx_if_33 = startIndex
 	}
-	start := hx_if_89
+	start := hx_if_33
 	end := total
 	if endIndex != nil {
-		var hx_if_90 int
+		var hx_if_34 int
 		if endIndex.(int) < 0 {
-			hx_if_90 = 0
+			hx_if_34 = 0
 		} else {
-			hx_if_90 = endIndex.(int)
+			hx_if_34 = endIndex.(int)
 		}
-		end = hx_if_90
+		end = hx_if_34
 		if start == end {
 			return hxrt.StringFromLiteral("")
 		}
@@ -342,9 +342,9 @@ func _UnicodeString__UnicodeString_Impl__validate(bytes *haxe__io__Bytes, encodi
 		pos := 0
 		max := bytes.length
 		for pos < max {
-			hx_post_91 := pos
+			hx_post_35 := pos
 			pos = int(int32((pos + 1)))
-			pos_1 := hx_post_91
+			pos_1 := hx_post_35
 			c := data[pos_1]
 			if c < 128 {
 			} else {
@@ -355,9 +355,9 @@ func _UnicodeString__UnicodeString_Impl__validate(bytes *haxe__io__Bytes, encodi
 						if int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(1)))) > max {
 							return false
 						}
-						hx_post_92 := pos
+						hx_post_36 := pos
 						pos = int(int32((pos + 1)))
-						pos_2 := hx_post_92
+						pos_2 := hx_post_36
 						c2 := data[pos_2]
 						if (c2 < 128) || (c2 > 191) {
 							return false
@@ -367,9 +367,9 @@ func _UnicodeString__UnicodeString_Impl__validate(bytes *haxe__io__Bytes, encodi
 							if int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(2)))) > max {
 								return false
 							}
-							hx_post_93 := pos
+							hx_post_37 := pos
 							pos = int(int32((pos + 1)))
-							pos_3 := hx_post_93
+							pos_3 := hx_post_37
 							c2_1 := data[pos_3]
 							if c == 224 {
 								if (c2_1 < 160) || (c2_1 > 191) {
@@ -380,9 +380,9 @@ func _UnicodeString__UnicodeString_Impl__validate(bytes *haxe__io__Bytes, encodi
 									return false
 								}
 							}
-							hx_post_94 := pos
+							hx_post_38 := pos
 							pos = int(int32((pos + 1)))
-							pos_4 := hx_post_94
+							pos_4 := hx_post_38
 							c3 := data[pos_4]
 							if (c3 < 128) || (c3 > 191) {
 								return false
@@ -398,9 +398,9 @@ func _UnicodeString__UnicodeString_Impl__validate(bytes *haxe__io__Bytes, encodi
 								if int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(3)))) > max {
 									return false
 								}
-								hx_post_95 := pos
+								hx_post_39 := pos
 								pos = int(int32((pos + 1)))
-								pos_5 := hx_post_95
+								pos_5 := hx_post_39
 								c2_2 := data[pos_5]
 								if c == 240 {
 									if (c2_2 < 144) || (c2_2 > 191) {
@@ -417,16 +417,16 @@ func _UnicodeString__UnicodeString_Impl__validate(bytes *haxe__io__Bytes, encodi
 										}
 									}
 								}
-								hx_post_96 := pos
+								hx_post_40 := pos
 								pos = int(int32((pos + 1)))
-								pos_6 := hx_post_96
+								pos_6 := hx_post_40
 								c3_1 := data[pos_6]
 								if (c3_1 < 128) || (c3_1 > 191) {
 									return false
 								}
-								hx_post_97 := pos
+								hx_post_41 := pos
 								pos = int(int32((pos + 1)))
-								pos_7 := hx_post_97
+								pos_7 := hx_post_41
 								c4 := data[pos_7]
 								if (c4 < 128) || (c4 > 191) {
 									return false

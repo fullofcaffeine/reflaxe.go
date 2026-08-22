@@ -40,12 +40,12 @@ func (self *app__TodoApp) addMany(titles *hxrt.Array, priority int) int {
 	added := 0
 	_g := 0
 	for _g < titles.Len() {
-		title := func(hx_value_62 any) *string {
-			if hx_value_62 == nil {
-				var hx_zero_63 *string
-				return hx_zero_63
+		title := func(hx_value_1 any) *string {
+			if hx_value_1 == nil {
+				var hx_zero_2 *string
+				return hx_zero_2
 			}
-			return hx_value_62.(*string)
+			return hx_value_1.(*string)
 		}(titles.Get(_g))
 		_g = int(int32((_g + 1)))
 		self.add(title, priority)
@@ -89,12 +89,12 @@ func (self *app__TodoApp) buildRuntimeMetrics() *profile__TodoRuntimeMetrics {
 	p1 := 0
 	_g := 0
 	for _g < items.Len() {
-		item := func(hx_value_64 any) *model__TodoItem {
-			if hx_value_64 == nil {
-				var hx_zero_65 *model__TodoItem
-				return hx_zero_65
+		item := func(hx_value_3 any) *model__TodoItem {
+			if hx_value_3 == nil {
+				var hx_zero_4 *model__TodoItem
+				return hx_zero_4
 			}
-			return hx_value_64.(*model__TodoItem)
+			return hx_value_3.(*model__TodoItem)
 		}(items.Get(_g))
 		_g = int(int32((_g + 1)))
 		if item.done {
@@ -112,12 +112,12 @@ func (self *app__TodoApp) render() *string {
 	items := self.store.list()
 	_g := 0
 	for _g < items.Len() {
-		item := func(hx_value_66 any) *model__TodoItem {
-			if hx_value_66 == nil {
-				var hx_zero_67 *model__TodoItem
-				return hx_zero_67
+		item := func(hx_value_5 any) *model__TodoItem {
+			if hx_value_5 == nil {
+				var hx_zero_6 *model__TodoItem
+				return hx_zero_6
 			}
-			return hx_value_66.(*model__TodoItem)
+			return hx_value_5.(*model__TodoItem)
 		}(items.Get(_g))
 		_g = int(int32((_g + 1)))
 		state := hxrt.StringFromLiteral("[ ]")
@@ -143,12 +143,12 @@ func app__TodoApp_joinStringList(values *hxrt.Array, separator *string) *string 
 	first := true
 	_g := 0
 	for _g < values.Len() {
-		value := func(hx_value_68 any) *string {
-			if hx_value_68 == nil {
-				var hx_zero_69 *string
-				return hx_zero_69
+		value := func(hx_value_7 any) *string {
+			if hx_value_7 == nil {
+				var hx_zero_8 *string
+				return hx_zero_8
 			}
-			return hx_value_68.(*string)
+			return hx_value_7.(*string)
 		}(values.Get(_g))
 		_g = int(int32((_g + 1)))
 		if !first {

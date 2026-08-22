@@ -67,13 +67,13 @@ func (self *haxe__io__BufferInput) readBytes(bytes *haxe__io__Bytes, targetPos i
 	if self.available == 0 {
 		self.__hx_this.refill()
 	}
-	var hx_if_74 int
+	var hx_if_1 int
 	if len > self.available {
-		hx_if_74 = self.available
+		hx_if_1 = self.available
 	} else {
-		hx_if_74 = len
+		hx_if_1 = len
 	}
-	size := hx_if_74
+	size := hx_if_1
 	bytes.__hx_this.blit(targetPos, self.buf, self.pos, size)
 	self.pos = int(int32((hxrt.Int32Wrap(self.pos) + hxrt.Int32Wrap(size))))
 	self.available = int(int32((hxrt.Int32Wrap(self.available) - hxrt.Int32Wrap(size))))

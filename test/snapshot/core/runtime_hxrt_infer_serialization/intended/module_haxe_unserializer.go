@@ -38,14 +38,14 @@ func New_haxe__Unserializer(buf *string) *haxe__Unserializer {
 	self.cache = hxrt.NewArray()
 	current := haxe__Unserializer_DEFAULT_RESOLVER
 	if current == nil {
-		hx_obj_160 := map[string]any{}
-		hx_obj_160["resolveClass"] = func(name *string) any {
+		hx_obj_1 := map[string]any{}
+		hx_obj_1["resolveClass"] = func(name *string) any {
 			return Type_resolveClass(name)
 		}
-		hx_obj_160["resolveEnum"] = func(name *string) any {
+		hx_obj_1["resolveEnum"] = func(name *string) any {
 			return Type_resolveEnum(name)
 		}
-		current = hx_obj_160
+		current = hx_obj_1
 		haxe__Unserializer_DEFAULT_RESOLVER = current
 	}
 	self.resolver = current
@@ -53,13 +53,13 @@ func New_haxe__Unserializer(buf *string) *haxe__Unserializer {
 }
 
 func (self *haxe__Unserializer) setResolver(value any) {
-	var hx_if_161 any
+	var hx_if_2 any
 	if hxrt.AnyEqualsNull(value) {
-		hx_if_161 = haxe__Unserializer_NULL_RESOLVER
+		hx_if_2 = haxe__Unserializer_NULL_RESOLVER
 	} else {
-		hx_if_161 = value
+		hx_if_2 = value
 	}
-	self.resolver = hx_if_161
+	self.resolver = hx_if_2
 }
 
 func (self *haxe__Unserializer) getResolver() any {
@@ -69,13 +69,13 @@ func (self *haxe__Unserializer) getResolver() any {
 func (self *haxe__Unserializer) get(index int) int {
 	s := self.buf
 	var c any = hxrt.StringCharCodeAtAnyStringPtr(s, index)
-	var hx_if_162 int
+	var hx_if_3 int
 	if c == nil {
-		hx_if_162 = -1
+		hx_if_3 = -1
 	} else {
-		hx_if_162 = c.(int)
+		hx_if_3 = c.(int)
 	}
-	return hx_if_162
+	return hx_if_3
 }
 
 func (self *haxe__Unserializer) readDigits() int {
@@ -86,13 +86,13 @@ func (self *haxe__Unserializer) readDigits() int {
 		index := self.pos
 		s := self.buf
 		var c any = hxrt.StringCharCodeAtAnyStringPtr(s, index)
-		var hx_if_163 int
+		var hx_if_4 int
 		if c == nil {
-			hx_if_163 = -1
+			hx_if_4 = -1
 		} else {
-			hx_if_163 = c.(int)
+			hx_if_4 = c.(int)
 		}
-		code := hx_if_163
+		code := hx_if_4
 		if code == -1 {
 			break
 		}
@@ -110,13 +110,13 @@ func (self *haxe__Unserializer) readDigits() int {
 		value = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) * hxrt.Int32Wrap(10))))) + hxrt.Int32Wrap(code))))) - hxrt.Int32Wrap(48))))
 		self.pos = int(int32((self.pos + 1)))
 	}
-	var hx_if_164 int
+	var hx_if_5 int
 	if negative {
-		hx_if_164 = int(int32(-int32(value)))
+		hx_if_5 = int(int32(-int32(value)))
 	} else {
-		hx_if_164 = value
+		hx_if_5 = value
 	}
-	return hx_if_164
+	return hx_if_5
 }
 
 func (self *haxe__Unserializer) readFloat() float64 {
@@ -125,13 +125,13 @@ func (self *haxe__Unserializer) readFloat() float64 {
 		index := self.pos
 		s := self.buf
 		var c any = hxrt.StringCharCodeAtAnyStringPtr(s, index)
-		var hx_if_165 int
+		var hx_if_6 int
 		if c == nil {
-			hx_if_165 = -1
+			hx_if_6 = -1
 		} else {
-			hx_if_165 = c.(int)
+			hx_if_6 = c.(int)
 		}
-		code := hx_if_165
+		code := hx_if_6
 		if code == -1 {
 			break
 		}
@@ -153,13 +153,13 @@ func (self *haxe__Unserializer) unserializeObject(target any) {
 			index := self.pos
 			s := self.buf
 			var c any = hxrt.StringCharCodeAtAnyStringPtr(s, index)
-			var hx_if_166 int
+			var hx_if_7 int
 			if c == nil {
-				hx_if_166 = -1
+				hx_if_7 = -1
 			} else {
-				hx_if_166 = c.(int)
+				hx_if_7 = c.(int)
 			}
-			return hx_if_166
+			return hx_if_7
 		}() == 103 {
 			break
 		}
@@ -176,12 +176,12 @@ func (self *haxe__Unserializer) unserializeObject(target any) {
 		}(any(key)) {
 			hxrt.Throw(hxrt.StringFromLiteral("Invalid object key"))
 		}
-		Reflect_setField(target, hxrt.StdString(func(hx_value_167 any) *string {
-			if hx_value_167 == nil {
-				var hx_zero_168 *string
-				return hx_zero_168
+		Reflect_setField(target, hxrt.StdString(func(hx_value_8 any) *string {
+			if hx_value_8 == nil {
+				var hx_zero_9 *string
+				return hx_zero_9
 			}
-			return hx_value_167.(*string)
+			return hx_value_8.(*string)
 		}(key)), self.__hx_this.unserialize())
 	}
 	self.pos = int(int32((self.pos + 1)))
@@ -189,40 +189,40 @@ func (self *haxe__Unserializer) unserializeObject(target any) {
 
 func (self *haxe__Unserializer) resolveClass(name *string) any {
 	var method any = Reflect_field(self.resolver, hxrt.StringFromLiteral("resolveClass"))
-	var hx_if_169 any
+	var hx_if_10 any
 	if hxrt.AnyEqualsNull(method) {
-		hx_if_169 = nil
+		hx_if_10 = nil
 	} else {
-		hx_if_169 = Reflect_callMethod(self.resolver, method, hxrt.NewArray(name))
+		hx_if_10 = Reflect_callMethod(self.resolver, method, hxrt.NewArray(name))
 	}
-	return hx_if_169
+	return hx_if_10
 }
 
 func (self *haxe__Unserializer) resolveEnum(name *string) any {
 	var method any = Reflect_field(self.resolver, hxrt.StringFromLiteral("resolveEnum"))
-	var hx_if_170 any
+	var hx_if_11 any
 	if hxrt.AnyEqualsNull(method) {
-		hx_if_170 = nil
+		hx_if_11 = nil
 	} else {
-		hx_if_170 = Reflect_callMethod(self.resolver, method, hxrt.NewArray(name))
+		hx_if_11 = Reflect_callMethod(self.resolver, method, hxrt.NewArray(name))
 	}
-	return hx_if_170
+	return hx_if_11
 }
 
 func (self *haxe__Unserializer) unserializeEnum(declaration any, tag *string) any {
 	if func() int {
-		hx_post_171 := self.pos
+		hx_post_12 := self.pos
 		self.pos = int(int32((self.pos + 1)))
-		index := hx_post_171
+		index := hx_post_12
 		s := self.buf
 		var c any = hxrt.StringCharCodeAtAnyStringPtr(s, index)
-		var hx_if_172 int
+		var hx_if_13 int
 		if c == nil {
-			hx_if_172 = -1
+			hx_if_13 = -1
 		} else {
-			hx_if_172 = c.(int)
+			hx_if_13 = c.(int)
 		}
-		return hx_if_172
+		return hx_if_13
 	}() != 58 {
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid enum format"))
 	}
@@ -232,9 +232,9 @@ func (self *haxe__Unserializer) unserializeEnum(declaration any, tag *string) an
 	}
 	arguments := hxrt.NewArray()
 	for func() int {
-		hx_post_173 := count
+		hx_post_14 := count
 		count = int(int32((count - 1)))
-		return hx_post_173
+		return hx_post_14
 	}() > 0 {
 		arguments.Push(self.__hx_this.unserialize())
 	}
@@ -244,13 +244,13 @@ func (self *haxe__Unserializer) unserializeEnum(declaration any, tag *string) an
 func (self *haxe__Unserializer) decodeBytes(encoded *string) *haxe__io__Bytes {
 	rest := int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(encoded)) & hxrt.Int32Wrap(3))))
 	size := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(encoded)) >> uint(2))))) * hxrt.Int32Wrap(3))))) + hxrt.Int32Wrap(func() int {
-		var hx_if_175 int
+		var hx_if_16 int
 		if rest >= 2 {
-			hx_if_175 = int(int32((hxrt.Int32Wrap(rest) - hxrt.Int32Wrap(1))))
+			hx_if_16 = int(int32((hxrt.Int32Wrap(rest) - hxrt.Int32Wrap(1))))
 		} else {
-			hx_if_175 = 0
+			hx_if_16 = 0
 		}
-		return hx_if_175
+		return hx_if_16
 	}()))))
 	bytes := haxe__io__Bytes_alloc(size)
 	index := 0
@@ -258,66 +258,66 @@ func (self *haxe__Unserializer) decodeBytes(encoded *string) *haxe__io__Bytes {
 	complete := int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(encoded)) - hxrt.Int32Wrap(rest))))
 	for index < complete {
 		first := self.__hx_this.base64Value(hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(encoded, func() int {
-			hx_post_176 := index
+			hx_post_17 := index
 			index = int(int32((index + 1)))
-			return hx_post_176
+			return hx_post_17
 		}())))
 		second := self.__hx_this.base64Value(hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(encoded, func() int {
-			hx_post_177 := index
+			hx_post_18 := index
 			index = int(int32((index + 1)))
-			return hx_post_177
+			return hx_post_18
 		}())))
 		third := self.__hx_this.base64Value(hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(encoded, func() int {
-			hx_post_178 := index
+			hx_post_19 := index
 			index = int(int32((index + 1)))
-			return hx_post_178
+			return hx_post_19
 		}())))
 		fourth := self.__hx_this.base64Value(hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(encoded, func() int {
-			hx_post_179 := index
+			hx_post_20 := index
 			index = int(int32((index + 1)))
-			return hx_post_179
+			return hx_post_20
 		}())))
-		hx_post_180 := output
+		hx_post_21 := output
 		output = int(int32((output + 1)))
-		pos := hx_post_180
+		pos := hx_post_21
 		bytes.b[pos] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(first) << uint(2))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second) >> uint(4))))))))) & hxrt.Int32Wrap(255))))
 		bytes.__hx_rawValid = false
-		hx_post_181 := output
+		hx_post_22 := output
 		output = int(int32((output + 1)))
-		pos_1 := hx_post_181
+		pos_1 := hx_post_22
 		bytes.b[pos_1] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second) << uint(4))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(third) >> uint(2))))))))) & hxrt.Int32Wrap(255))))
 		bytes.__hx_rawValid = false
-		hx_post_182 := output
+		hx_post_23 := output
 		output = int(int32((output + 1)))
-		pos_2 := hx_post_182
+		pos_2 := hx_post_23
 		bytes.b[pos_2] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(third) << uint(6))))) | hxrt.Int32Wrap(fourth))))) & hxrt.Int32Wrap(255))))
 		bytes.__hx_rawValid = false
 	}
 	if rest >= 2 {
 		first_1 := self.__hx_this.base64Value(hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(encoded, func() int {
-			hx_post_183 := index
+			hx_post_24 := index
 			index = int(int32((index + 1)))
-			return hx_post_183
+			return hx_post_24
 		}())))
 		second_1 := self.__hx_this.base64Value(hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(encoded, func() int {
-			hx_post_184 := index
+			hx_post_25 := index
 			index = int(int32((index + 1)))
-			return hx_post_184
+			return hx_post_25
 		}())))
-		hx_post_185 := output
+		hx_post_26 := output
 		output = int(int32((output + 1)))
-		pos_3 := hx_post_185
+		pos_3 := hx_post_26
 		bytes.b[pos_3] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(first_1) << uint(2))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second_1) >> uint(4))))))))) & hxrt.Int32Wrap(255))))
 		bytes.__hx_rawValid = false
 		if rest == 3 {
 			third_1 := self.__hx_this.base64Value(hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(encoded, func() int {
-				hx_post_186 := index
+				hx_post_27 := index
 				index = int(int32((index + 1)))
-				return hx_post_186
+				return hx_post_27
 			}())))
-			hx_post_187 := output
+			hx_post_28 := output
 			output = int(int32((output + 1)))
-			pos_4 := hx_post_187
+			pos_4 := hx_post_28
 			bytes.b[pos_4] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second_1) << uint(4))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(third_1) >> uint(2))))))))) & hxrt.Int32Wrap(255))))
 			bytes.__hx_rawValid = false
 		}
@@ -329,9 +329,9 @@ func (self *haxe__Unserializer) base64Value(code int) int {
 	_g := 0
 	_g1 := hxrt.StringLengthStringPtr(haxe__Unserializer_BASE64)
 	for _g < _g1 {
-		hx_post_188 := _g
+		hx_post_29 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_188
+		index := hx_post_29
 		if hxrt.StringCharCodeAtAnyStringPtr(haxe__Unserializer_BASE64, index) == code {
 			return index
 		}
@@ -340,18 +340,18 @@ func (self *haxe__Unserializer) base64Value(code int) int {
 }
 
 func (self *haxe__Unserializer) unserialize() any {
-	hx_post_189 := self.pos
+	hx_post_30 := self.pos
 	self.pos = int(int32((self.pos + 1)))
-	index := hx_post_189
+	index := hx_post_30
 	s := self.buf
 	var c any = hxrt.StringCharCodeAtAnyStringPtr(s, index)
-	var hx_if_190 int
+	var hx_if_31 int
 	if c == nil {
-		hx_if_190 = -1
+		hx_if_31 = -1
 	} else {
-		hx_if_190 = c.(int)
+		hx_if_31 = c.(int)
 	}
-	_g := hx_if_190
+	_g := hx_if_31
 	switch _g {
 	case 65:
 		name := hxrt.StdString(self.__hx_this.unserialize())
@@ -374,45 +374,45 @@ func (self *haxe__Unserializer) unserialize() any {
 			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Class not found "), name_2))
 		}
 		var object any = Type_createEmptyInstance(declaration_2)
-		hx_arr_191 := self.cache
-		hx_arr_191.Push(object)
+		hx_arr_32 := self.cache
+		hx_arr_32.Push(object)
 		var hook any = Reflect_field(object, hxrt.StringFromLiteral("hxUnserialize"))
 		if hxrt.AnyEqualsNull(hook) {
 			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Class "), name_2), hxrt.StringFromLiteral(" has no hxUnserialize hook")))
 		}
 		Reflect_callMethod(object, hook, hxrt.NewArray(self))
 		if func() int {
-			hx_post_192 := self.pos
+			hx_post_33 := self.pos
 			self.pos = int(int32((self.pos + 1)))
-			index_1 := hx_post_192
+			index_1 := hx_post_33
 			s_1 := self.buf
 			var c_1 any = hxrt.StringCharCodeAtAnyStringPtr(s_1, index_1)
-			var hx_if_193 int
+			var hx_if_34 int
 			if c_1 == nil {
-				hx_if_193 = -1
+				hx_if_34 = -1
 			} else {
-				hx_if_193 = c_1.(int)
+				hx_if_34 = c_1.(int)
 			}
-			return hx_if_193
+			return hx_if_34
 		}() != 103 {
 			hxrt.Throw(hxrt.StringFromLiteral("Invalid custom data"))
 		}
 		return object
 	case 77:
 		map_ := New_haxe__ds__ObjectMap()
-		hx_arr_194 := self.cache
-		hx_arr_194.Push(map_)
+		hx_arr_35 := self.cache
+		hx_arr_35.Push(map_)
 		for func() int {
 			index_2 := self.pos
 			s_2 := self.buf
 			var c_2 any = hxrt.StringCharCodeAtAnyStringPtr(s_2, index_2)
-			var hx_if_195 int
+			var hx_if_36 int
 			if c_2 == nil {
-				hx_if_195 = -1
+				hx_if_36 = -1
 			} else {
-				hx_if_195 = c_2.(int)
+				hx_if_36 = c_2.(int)
 			}
-			return hx_if_195
+			return hx_if_36
 		}() != 104 {
 			map_.__hx_this.set(self.__hx_this.unserialize(), self.__hx_this.unserialize())
 		}
@@ -426,30 +426,30 @@ func (self *haxe__Unserializer) unserialize() any {
 		return self.scache.Get(index_3)
 	case 97:
 		array := hxrt.NewArray()
-		hx_arr_196 := self.cache
-		hx_arr_196.Push(array)
-	hx_loop_198:
+		hx_arr_37 := self.cache
+		hx_arr_37.Push(array)
+	hx_loop_39:
 		for true {
 			index_4 := self.pos
 			s_3 := self.buf
 			var c_3 any = hxrt.StringCharCodeAtAnyStringPtr(s_3, index_4)
-			var hx_if_197 int
+			var hx_if_38 int
 			if c_3 == nil {
-				hx_if_197 = -1
+				hx_if_38 = -1
 			} else {
-				hx_if_197 = c_3.(int)
+				hx_if_38 = c_3.(int)
 			}
-			code := hx_if_197
+			code := hx_if_38
 			if code == 104 {
 				self.pos = int(int32((self.pos + 1)))
-				break hx_loop_198
+				break hx_loop_39
 			}
 			if code == 117 {
 				self.pos = int(int32((self.pos + 1)))
 				count := self.__hx_this.readDigits()
-				hx_array_target_199 := array
-				hx_array_index_200 := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(array.Len()) + hxrt.Int32Wrap(count))))) - hxrt.Int32Wrap(1))))
-				hx_array_target_199.Set(hx_array_index_200, nil)
+				hx_array_target_40 := array
+				hx_array_index_41 := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(array.Len()) + hxrt.Int32Wrap(count))))) - hxrt.Int32Wrap(1))))
+				hx_array_target_40.Set(hx_array_index_41, nil)
 			} else {
 				array.Push(self.__hx_this.unserialize())
 			}
@@ -457,19 +457,19 @@ func (self *haxe__Unserializer) unserialize() any {
 		return array
 	case 98:
 		map__1 := New_haxe__ds__StringMap()
-		hx_arr_202 := self.cache
-		hx_arr_202.Push(map__1)
+		hx_arr_43 := self.cache
+		hx_arr_43.Push(map__1)
 		for func() int {
 			index_5 := self.pos
 			s_4 := self.buf
 			var c_4 any = hxrt.StringCharCodeAtAnyStringPtr(s_4, index_5)
-			var hx_if_203 int
+			var hx_if_44 int
 			if c_4 == nil {
-				hx_if_203 = -1
+				hx_if_44 = -1
 			} else {
-				hx_if_203 = c_4.(int)
+				hx_if_44 = c_4.(int)
 			}
-			return hx_if_203
+			return hx_if_44
 		}() != 104 {
 			key := hxrt.StdString(self.__hx_this.unserialize())
 			map__1.__hx_this.set(key, self.__hx_this.unserialize())
@@ -483,8 +483,8 @@ func (self *haxe__Unserializer) unserialize() any {
 			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Class not found "), name_3))
 		}
 		var object_1 any = Type_createEmptyInstance(declaration_3)
-		hx_arr_204 := self.cache
-		hx_arr_204.Push(object_1)
+		hx_arr_45 := self.cache
+		hx_arr_45.Push(object_1)
 		self.__hx_this.unserializeObject(object_1)
 		return object_1
 	case 100:
@@ -501,37 +501,37 @@ func (self *haxe__Unserializer) unserialize() any {
 		}
 		self.pos = int(int32((self.pos + 1)))
 		index_6 := self.__hx_this.readDigits()
-		tag := func(hx_value_205 any) *string {
-			if hx_value_205 == nil {
-				var hx_zero_206 *string
-				return hx_zero_206
+		tag := func(hx_value_46 any) *string {
+			if hx_value_46 == nil {
+				var hx_zero_47 *string
+				return hx_zero_47
 			}
-			return hx_value_205.(*string)
+			return hx_value_46.(*string)
 		}(Type_getEnumConstructs(declaration_4).Get(index_6))
 		if hxrt.StringEqualStringPtr(tag, nil) {
 			hxrt.Throw(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Unknown enum index "), name_4), hxrt.StringFromLiteral("@")), index_6))
 		}
 		var value any = self.__hx_this.unserializeEnum(declaration_4, tag)
-		hx_arr_207 := self.cache
-		hx_arr_207.Push(value)
+		hx_arr_48 := self.cache
+		hx_arr_48.Push(value)
 		return value
 	case 107:
 		return Math_NaN
 	case 108:
 		list := New_haxe__ds__List()
-		hx_arr_208 := self.cache
-		hx_arr_208.Push(list)
+		hx_arr_49 := self.cache
+		hx_arr_49.Push(list)
 		for func() int {
 			index_7 := self.pos
 			s_5 := self.buf
 			var c_5 any = hxrt.StringCharCodeAtAnyStringPtr(s_5, index_7)
-			var hx_if_209 int
+			var hx_if_50 int
 			if c_5 == nil {
-				hx_if_209 = -1
+				hx_if_50 = -1
 			} else {
-				hx_if_209 = c_5.(int)
+				hx_if_50 = c_5.(int)
 			}
-			return hx_if_209
+			return hx_if_50
 		}() != 104 {
 			list.__hx_this.add(self.__hx_this.unserialize())
 		}
@@ -542,44 +542,44 @@ func (self *haxe__Unserializer) unserialize() any {
 	case 110:
 		return nil
 	case 111:
-		hx_obj_210 := map[string]any{}
-		var object_2 any = hx_obj_210
-		hx_arr_211 := self.cache
-		hx_arr_211.Push(object_2)
+		hx_obj_51 := map[string]any{}
+		var object_2 any = hx_obj_51
+		hx_arr_52 := self.cache
+		hx_arr_52.Push(object_2)
 		self.__hx_this.unserializeObject(object_2)
 		return object_2
 	case 112:
 		return Math_POSITIVE_INFINITY
 	case 113:
 		map__2 := New_haxe__ds__IntMap()
-		hx_arr_212 := self.cache
-		hx_arr_212.Push(map__2)
-		hx_post_213 := self.pos
+		hx_arr_53 := self.cache
+		hx_arr_53.Push(map__2)
+		hx_post_54 := self.pos
 		self.pos = int(int32((self.pos + 1)))
-		index_8 := hx_post_213
+		index_8 := hx_post_54
 		s_6 := self.buf
 		var c_6 any = hxrt.StringCharCodeAtAnyStringPtr(s_6, index_8)
-		var hx_if_214 int
+		var hx_if_55 int
 		if c_6 == nil {
-			hx_if_214 = -1
+			hx_if_55 = -1
 		} else {
-			hx_if_214 = c_6.(int)
+			hx_if_55 = c_6.(int)
 		}
-		code_1 := hx_if_214
+		code_1 := hx_if_55
 		for code_1 == 58 {
 			map__2.__hx_this.set(self.__hx_this.readDigits(), self.__hx_this.unserialize())
-			hx_post_215 := self.pos
+			hx_post_56 := self.pos
 			self.pos = int(int32((self.pos + 1)))
-			index_9 := hx_post_215
+			index_9 := hx_post_56
 			s_7 := self.buf
 			var c_7 any = hxrt.StringCharCodeAtAnyStringPtr(s_7, index_9)
-			var hx_if_216 int
+			var hx_if_57 int
 			if c_7 == nil {
-				hx_if_216 = -1
+				hx_if_57 = -1
 			} else {
-				hx_if_216 = c_7.(int)
+				hx_if_57 = c_7.(int)
 			}
-			code_1 = hx_if_216
+			code_1 = hx_if_57
 		}
 		if code_1 != 104 {
 			hxrt.Throw(hxrt.StringFromLiteral("Invalid IntMap format"))
@@ -594,25 +594,25 @@ func (self *haxe__Unserializer) unserialize() any {
 	case 115:
 		bytesLength := self.__hx_this.readDigits()
 		if (func() int {
-			hx_post_217 := self.pos
+			hx_post_58 := self.pos
 			self.pos = int(int32((self.pos + 1)))
-			index_11 := hx_post_217
+			index_11 := hx_post_58
 			s_8 := self.buf
 			var c_8 any = hxrt.StringCharCodeAtAnyStringPtr(s_8, index_11)
-			var hx_if_218 int
+			var hx_if_59 int
 			if c_8 == nil {
-				hx_if_218 = -1
+				hx_if_59 = -1
 			} else {
-				hx_if_218 = c_8.(int)
+				hx_if_59 = c_8.(int)
 			}
-			return hx_if_218
+			return hx_if_59
 		}() != 58) || (int(int32((hxrt.Int32Wrap(self.length) - hxrt.Int32Wrap(self.pos)))) < bytesLength) {
 			hxrt.Throw(hxrt.StringFromLiteral("Invalid bytes length"))
 		}
 		bytes := self.__hx_this.decodeBytes(hxrt.StringSubstrStringPtr(self.buf, self.pos, bytesLength, true))
 		self.pos = int(int32((hxrt.Int32Wrap(self.pos) + hxrt.Int32Wrap(bytesLength))))
-		hx_arr_219 := self.cache
-		hx_arr_219.Push(bytes)
+		hx_arr_60 := self.cache
+		hx_arr_60.Push(bytes)
 		return bytes
 	case 116:
 		return true
@@ -624,8 +624,8 @@ func (self *haxe__Unserializer) unserialize() any {
 		} else {
 			date = Date_fromTime(self.__hx_this.readFloat())
 		}
-		hx_arr_220 := self.cache
-		hx_arr_220.Push(date)
+		hx_arr_61 := self.cache
+		hx_arr_61.Push(date)
 		return date
 	case 119:
 		name_5 := hxrt.StdString(self.__hx_this.unserialize())
@@ -634,33 +634,33 @@ func (self *haxe__Unserializer) unserialize() any {
 			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Enum not found "), name_5))
 		}
 		var value_1 any = self.__hx_this.unserializeEnum(declaration_5, hxrt.StdString(self.__hx_this.unserialize()))
-		hx_arr_221 := self.cache
-		hx_arr_221.Push(value_1)
+		hx_arr_62 := self.cache
+		hx_arr_62.Push(value_1)
 		return value_1
 	case 120:
 		hxrt.Throw(self.__hx_this.unserialize())
 	case 121:
 		stringLength := self.__hx_this.readDigits()
 		if (func() int {
-			hx_post_222 := self.pos
+			hx_post_63 := self.pos
 			self.pos = int(int32((self.pos + 1)))
-			index_12 := hx_post_222
+			index_12 := hx_post_63
 			s_9 := self.buf
 			var c_9 any = hxrt.StringCharCodeAtAnyStringPtr(s_9, index_12)
-			var hx_if_223 int
+			var hx_if_64 int
 			if c_9 == nil {
-				hx_if_223 = -1
+				hx_if_64 = -1
 			} else {
-				hx_if_223 = c_9.(int)
+				hx_if_64 = c_9.(int)
 			}
-			return hx_if_223
+			return hx_if_64
 		}() != 58) || (int(int32((hxrt.Int32Wrap(self.length) - hxrt.Int32Wrap(self.pos)))) < stringLength) {
 			hxrt.Throw(hxrt.StringFromLiteral("Invalid string length"))
 		}
 		value_2 := StringTools_urlDecode(hxrt.StringSubstrStringPtr(self.buf, self.pos, stringLength, true))
 		self.pos = int(int32((hxrt.Int32Wrap(self.pos) + hxrt.Int32Wrap(stringLength))))
-		hx_arr_224 := self.scache
-		hx_arr_224.Push(value_2)
+		hx_arr_65 := self.scache
+		hx_arr_65.Push(value_2)
 		return value_2
 	case 122:
 		return 0
@@ -668,60 +668,60 @@ func (self *haxe__Unserializer) unserialize() any {
 	}
 	self.pos = int(int32((self.pos - 1)))
 	hxrt.Throw(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Invalid char "), hxrt.StringCharAtStringPtr(self.buf, self.pos)), hxrt.StringFromLiteral(" at position ")), self.pos))
-	var hx_throw_zero_225 any
-	return hx_throw_zero_225
+	var hx_throw_zero_66 any
+	return hx_throw_zero_66
 }
 
 func (self *haxe__Unserializer) isLegacyDate() bool {
 	index := self.pos
 	s := self.buf
 	var c any = hxrt.StringCharCodeAtAnyStringPtr(s, index)
-	var hx_if_226 int
+	var hx_if_67 int
 	if c == nil {
-		hx_if_226 = -1
+		hx_if_67 = -1
 	} else {
-		hx_if_226 = c.(int)
+		hx_if_67 = c.(int)
 	}
-	code := hx_if_226
+	code := hx_if_67
 	if (code < 48) || (code > 57) {
 		return false
 	}
 	index_1 := int(int32((hxrt.Int32Wrap(self.pos) + hxrt.Int32Wrap(1))))
 	s_1 := self.buf
 	var c_1 any = hxrt.StringCharCodeAtAnyStringPtr(s_1, index_1)
-	var hx_if_227 int
+	var hx_if_68 int
 	if c_1 == nil {
-		hx_if_227 = -1
+		hx_if_68 = -1
 	} else {
-		hx_if_227 = c_1.(int)
+		hx_if_68 = c_1.(int)
 	}
-	code_1 := hx_if_227
+	code_1 := hx_if_68
 	if (code_1 < 48) || (code_1 > 57) {
 		return false
 	}
 	index_2 := int(int32((hxrt.Int32Wrap(self.pos) + hxrt.Int32Wrap(2))))
 	s_2 := self.buf
 	var c_2 any = hxrt.StringCharCodeAtAnyStringPtr(s_2, index_2)
-	var hx_if_228 int
+	var hx_if_69 int
 	if c_2 == nil {
-		hx_if_228 = -1
+		hx_if_69 = -1
 	} else {
-		hx_if_228 = c_2.(int)
+		hx_if_69 = c_2.(int)
 	}
-	code_2 := hx_if_228
+	code_2 := hx_if_69
 	if (code_2 < 48) || (code_2 > 57) {
 		return false
 	}
 	index_3 := int(int32((hxrt.Int32Wrap(self.pos) + hxrt.Int32Wrap(3))))
 	s_3 := self.buf
 	var c_3 any = hxrt.StringCharCodeAtAnyStringPtr(s_3, index_3)
-	var hx_if_229 int
+	var hx_if_70 int
 	if c_3 == nil {
-		hx_if_229 = -1
+		hx_if_70 = -1
 	} else {
-		hx_if_229 = c_3.(int)
+		hx_if_70 = c_3.(int)
 	}
-	code_3 := hx_if_229
+	code_3 := hx_if_70
 	if (code_3 < 48) || (code_3 > 57) {
 		return false
 	}
@@ -729,38 +729,38 @@ func (self *haxe__Unserializer) isLegacyDate() bool {
 		index_4 := int(int32((hxrt.Int32Wrap(self.pos) + hxrt.Int32Wrap(4))))
 		s_4 := self.buf
 		var c_4 any = hxrt.StringCharCodeAtAnyStringPtr(s_4, index_4)
-		var hx_if_230 int
+		var hx_if_71 int
 		if c_4 == nil {
-			hx_if_230 = -1
+			hx_if_71 = -1
 		} else {
-			hx_if_230 = c_4.(int)
+			hx_if_71 = c_4.(int)
 		}
-		return hx_if_230
+		return hx_if_71
 	}() == 45)
 }
 
 var haxe__Unserializer_BASE64 *string = hxrt.StringFromLiteral("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789%:")
 
 var haxe__Unserializer_DEFAULT_RESOLVER map[string]any = func() map[string]any {
-	hx_obj_231 := map[string]any{}
-	hx_obj_231["resolveClass"] = func(name *string) any {
+	hx_obj_72 := map[string]any{}
+	hx_obj_72["resolveClass"] = func(name *string) any {
 		return Type_resolveClass(name)
 	}
-	hx_obj_231["resolveEnum"] = func(name *string) any {
+	hx_obj_72["resolveEnum"] = func(name *string) any {
 		return Type_resolveEnum(name)
 	}
-	return hx_obj_231
+	return hx_obj_72
 }()
 
 var haxe__Unserializer_NULL_RESOLVER map[string]any = func() map[string]any {
-	hx_obj_232 := map[string]any{}
-	hx_obj_232["resolveClass"] = func(_name *string) any {
+	hx_obj_73 := map[string]any{}
+	hx_obj_73["resolveClass"] = func(_name *string) any {
 		return nil
 	}
-	hx_obj_232["resolveEnum"] = func(_name *string) any {
+	hx_obj_73["resolveEnum"] = func(_name *string) any {
 		return nil
 	}
-	return hx_obj_232
+	return hx_obj_73
 }()
 
 func haxe__Unserializer_run(value *string) any {

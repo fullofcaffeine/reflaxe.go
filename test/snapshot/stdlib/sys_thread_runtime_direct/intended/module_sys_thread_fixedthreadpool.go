@@ -32,9 +32,9 @@ func New_sys__thread__FixedThreadPool(threadsCount int) *sys__thread__FixedThrea
 	_g := 0
 	_g1 := threadsCount
 	for _g < _g1 {
-		hx_post_23 := _g
+		hx_post_1 := _g
 		_g = int(int32((_g + 1)))
-		hx_tmp := hx_post_23
+		hx_tmp := hx_post_1
 		_ = hx_tmp
 		workers.Push(New_sys__thread__FixedThreadPoolWorker(self.queue))
 	}
@@ -77,12 +77,12 @@ func (self *sys__thread__FixedThreadPool) shutdown() {
 	_g := 0
 	_g1 := self.pool
 	for _g < _g1.Len() {
-		hx_tmp := func(hx_value_25 any) *sys__thread__FixedThreadPoolWorker {
-			if hx_value_25 == nil {
-				var hx_zero_26 *sys__thread__FixedThreadPoolWorker
-				return hx_zero_26
+		hx_tmp := func(hx_value_3 any) *sys__thread__FixedThreadPoolWorker {
+			if hx_value_3 == nil {
+				var hx_zero_4 *sys__thread__FixedThreadPoolWorker
+				return hx_zero_4
 			}
-			return hx_value_25.(*sys__thread__FixedThreadPoolWorker)
+			return hx_value_3.(*sys__thread__FixedThreadPoolWorker)
 		}(_g1.Get(_g))
 		_ = hx_tmp
 		_g = int(int32((_g + 1)))

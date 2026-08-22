@@ -19,7 +19,7 @@ func Std_digitValue(code int, hexadecimal bool) int {
 }
 
 func Std_downcast(value any, c any) any {
-	var hx_if_202 any
+	var hx_if_1 any
 	if func(hx_value any, hx_type any) bool {
 		switch hx_type_marker := hx_type.(type) {
 		case *hxrt__TypeClassValue:
@@ -514,16 +514,16 @@ func Std_downcast(value any, c any) any {
 			return false
 		}
 	}(any(value), any(c)) {
-		hx_if_202 = value
+		hx_if_1 = value
 	} else {
-		hx_if_202 = nil
+		hx_if_1 = nil
 	}
-	return hx_if_202
+	return hx_if_1
 }
 
 func Std_instance(value any, c any) any {
 	return func() any {
-		var hx_if_203 any
+		var hx_if_2 any
 		if func(hx_value any, hx_type any) bool {
 			switch hx_type_marker := hx_type.(type) {
 			case *hxrt__TypeClassValue:
@@ -1018,11 +1018,11 @@ func Std_instance(value any, c any) any {
 				return false
 			}
 		}(any(value), any(c)) {
-			hx_if_203 = value
+			hx_if_2 = value
 		} else {
-			hx_if_203 = nil
+			hx_if_2 = nil
 		}
-		return hx_if_203
+		return hx_if_2
 	}()
 }
 
@@ -1629,25 +1629,25 @@ func Std_parseInt(x *string) any {
 		sawNonZero := false
 		for index < length {
 			code_1 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(x, index))
-			var hx_if_206 int
+			var hx_if_5 int
 			if (code_1 >= 48) && (code_1 <= 57) {
-				hx_if_206 = int(int32((hxrt.Int32Wrap(code_1) - hxrt.Int32Wrap(48))))
+				hx_if_5 = int(int32((hxrt.Int32Wrap(code_1) - hxrt.Int32Wrap(48))))
 			} else {
-				var hx_if_205 int
+				var hx_if_4 int
 				if (code_1 >= 97) && (code_1 <= 102) {
-					hx_if_205 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code_1) - hxrt.Int32Wrap(97))))) + hxrt.Int32Wrap(10))))
+					hx_if_4 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code_1) - hxrt.Int32Wrap(97))))) + hxrt.Int32Wrap(10))))
 				} else {
-					var hx_if_204 int
+					var hx_if_3 int
 					if (code_1 >= 65) && (code_1 <= 70) {
-						hx_if_204 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code_1) - hxrt.Int32Wrap(65))))) + hxrt.Int32Wrap(10))))
+						hx_if_3 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code_1) - hxrt.Int32Wrap(65))))) + hxrt.Int32Wrap(10))))
 					} else {
-						hx_if_204 = -1
+						hx_if_3 = -1
 					}
-					hx_if_205 = hx_if_204
+					hx_if_4 = hx_if_3
 				}
-				hx_if_206 = hx_if_205
+				hx_if_5 = hx_if_4
 			}
-			digit := hx_if_206
+			digit := hx_if_5
 			if digit < 0 {
 				break
 			}
@@ -1664,34 +1664,34 @@ func Std_parseInt(x *string) any {
 		if index == digitStart {
 			return nil
 		}
-		var hx_if_207 any
+		var hx_if_6 any
 		if negative {
-			hx_if_207 = int(int32(-int32(value)))
+			hx_if_6 = int(int32(-int32(value)))
 		} else {
-			hx_if_207 = value
+			hx_if_6 = value
 		}
-		return hx_if_207
+		return hx_if_6
 	}
 	result := 0
 	for index < length {
 		code_2 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(x, index))
-		var hx_if_208 int
+		var hx_if_7 int
 		if (code_2 >= 48) && (code_2 <= 57) {
-			hx_if_208 = int(int32((hxrt.Int32Wrap(code_2) - hxrt.Int32Wrap(48))))
+			hx_if_7 = int(int32((hxrt.Int32Wrap(code_2) - hxrt.Int32Wrap(48))))
 		} else {
-			hx_if_208 = -1
+			hx_if_7 = -1
 		}
-		digit_1 := hx_if_208
+		digit_1 := hx_if_7
 		if digit_1 < 0 {
 			break
 		}
-		var hx_if_209 int
+		var hx_if_8 int
 		if negative {
-			hx_if_209 = 8
+			hx_if_8 = 8
 		} else {
-			hx_if_209 = 7
+			hx_if_8 = 7
 		}
-		lastAllowedDigit := hx_if_209
+		lastAllowedDigit := hx_if_8
 		if (result < -214748364) || ((result == -214748364) && (digit_1 > lastAllowedDigit)) {
 			return nil
 		}
@@ -1701,21 +1701,21 @@ func Std_parseInt(x *string) any {
 	if index == digitStart {
 		return nil
 	}
-	var hx_if_210 any
+	var hx_if_9 any
 	if negative {
-		hx_if_210 = result
+		hx_if_9 = result
 	} else {
-		hx_if_210 = int(int32(-int32(result)))
+		hx_if_9 = int(int32(-int32(result)))
 	}
-	return hx_if_210
+	return hx_if_9
 }
 
 func Std_random(x int) int {
-	var hx_if_211 int
+	var hx_if_10 int
 	if x <= 1 {
-		hx_if_211 = 0
+		hx_if_10 = 0
 	} else {
-		hx_if_211 = rand.Intn(x)
+		hx_if_10 = rand.Intn(x)
 	}
-	return hx_if_211
+	return hx_if_10
 }

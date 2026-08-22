@@ -40,13 +40,13 @@ func (self *sys__ssl__Certificate) issuer(field *string) *string {
 
 func (self *sys__ssl__Certificate) next() *sys__ssl__Certificate {
 	nextHandle := hxrt.SslCertNext(self.handle)
-	var hx_if_44 *sys__ssl__Certificate
+	var hx_if_1 *sys__ssl__Certificate
 	if nextHandle == nil {
-		hx_if_44 = nil
+		hx_if_1 = nil
 	} else {
-		hx_if_44 = New_sys__ssl__Certificate(nextHandle)
+		hx_if_1 = New_sys__ssl__Certificate(nextHandle)
 	}
-	return hx_if_44
+	return hx_if_1
 }
 
 func (self *sys__ssl__Certificate) add(pem *string) {
@@ -58,23 +58,23 @@ func (self *sys__ssl__Certificate) addDER(der *haxe__io__Bytes) {
 	_g := 0
 	_g1 := der.length
 	for _g < _g1 {
-		hx_post_45 := _g
+		hx_post_2 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_45
+		index := hx_post_2
 		values.Push(der.b[index])
 	}
-	hxrt.SslCertAddDERValues(self.handle, func(hx_lambda_raw_47 []any) []int {
-		hx_lambda_out_48 := make([]int, 0, len(hx_lambda_raw_47))
-		for _, hx_lambda_item_49 := range hx_lambda_raw_47 {
-			hx_lambda_out_48 = append(hx_lambda_out_48, func(hx_value_50 any) int {
-				if hx_value_50 == nil {
-					var hx_zero_51 int
-					return hx_zero_51
+	hxrt.SslCertAddDERValues(self.handle, func(hx_lambda_raw_4 []any) []int {
+		hx_lambda_out_5 := make([]int, 0, len(hx_lambda_raw_4))
+		for _, hx_lambda_item_6 := range hx_lambda_raw_4 {
+			hx_lambda_out_5 = append(hx_lambda_out_5, func(hx_value_7 any) int {
+				if hx_value_7 == nil {
+					var hx_zero_8 int
+					return hx_zero_8
 				}
-				return hx_value_50.(int)
-			}(hx_lambda_item_49))
+				return hx_value_7.(int)
+			}(hx_lambda_item_6))
 		}
-		return hx_lambda_out_48
+		return hx_lambda_out_5
 	}(values.Values()))
 }
 
@@ -83,12 +83,12 @@ func (self *sys__ssl__Certificate) get_commonName() *string {
 }
 
 func (self *sys__ssl__Certificate) get_altNames() *hxrt.Array {
-	return hxrt.ArrayFromValues(func(hx_sort_src_52 []*string) []any {
-		hx_sort_out_54 := make([]any, 0, len(hx_sort_src_52))
-		for _, hx_sort_item_53 := range hx_sort_src_52 {
-			hx_sort_out_54 = append(hx_sort_out_54, hx_sort_item_53)
+	return hxrt.ArrayFromValues(func(hx_sort_src_9 []*string) []any {
+		hx_sort_out_11 := make([]any, 0, len(hx_sort_src_9))
+		for _, hx_sort_item_10 := range hx_sort_src_9 {
+			hx_sort_out_11 = append(hx_sort_out_11, hx_sort_item_10)
 		}
-		return hx_sort_out_54
+		return hx_sort_out_11
 	}(hxrt.SslCertAltNames(self.handle)))
 }
 

@@ -23,12 +23,12 @@ func New_haxe__ds__WeakMap() *haxe__ds__WeakMap {
 	self := &haxe__ds__WeakMap{}
 	self.__hx_this = self
 	hxrt.Throw(New_haxe__exceptions__NotImplementedException(hxrt.StringFromLiteral("Not implemented for this platform"), nil, func() map[string]any {
-		hx_obj_17 := map[string]any{}
-		hx_obj_17["fileName"] = hxrt.StringFromLiteral("haxe/ds/WeakMap.hx")
-		hx_obj_17["lineNumber"] = 39
-		hx_obj_17["className"] = hxrt.StringFromLiteral("haxe.ds.WeakMap")
-		hx_obj_17["methodName"] = hxrt.StringFromLiteral("new")
-		return hx_obj_17
+		hx_obj_1 := map[string]any{}
+		hx_obj_1["fileName"] = hxrt.StringFromLiteral("haxe/ds/WeakMap.hx")
+		hx_obj_1["lineNumber"] = 39
+		hx_obj_1["className"] = hxrt.StringFromLiteral("haxe.ds.WeakMap")
+		hx_obj_1["methodName"] = hxrt.StringFromLiteral("new")
+		return hx_obj_1
 	}()))
 	return self
 }

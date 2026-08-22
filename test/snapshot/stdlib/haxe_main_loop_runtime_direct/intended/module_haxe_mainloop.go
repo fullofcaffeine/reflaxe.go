@@ -7,12 +7,12 @@ func haxe__MainLoop___remove(event *haxe__MainEvent) {
 	_g := 0
 	_g1 := haxe__MainLoop_pending
 	for _g < _g1.Len() {
-		candidate := func(hx_value_5 any) *haxe__MainEvent {
-			if hx_value_5 == nil {
-				var hx_zero_6 *haxe__MainEvent
-				return hx_zero_6
+		candidate := func(hx_value_1 any) *haxe__MainEvent {
+			if hx_value_1 == nil {
+				var hx_zero_2 *haxe__MainEvent
+				return hx_zero_2
 			}
-			return hx_value_5.(*haxe__MainEvent)
+			return hx_value_1.(*haxe__MainEvent)
 		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if candidate != event {
@@ -27,8 +27,8 @@ func haxe__MainLoop_add(f func(), priority int) *haxe__MainEvent {
 		hxrt.Throw(hxrt.StringFromLiteral("Event function is null"))
 	}
 	event := New_haxe__MainEvent(f, priority)
-	hx_arr_8 := haxe__MainLoop_pending
-	hx_arr_8.Push(event)
+	hx_arr_4 := haxe__MainLoop_pending
+	hx_arr_4.Push(event)
 	event.__hx_this.delayNow()
 	return event
 }
@@ -45,12 +45,12 @@ func haxe__MainLoop_hasEvents() bool {
 	_g := 0
 	_g1 := haxe__MainLoop_pending
 	for _g < _g1.Len() {
-		event := func(hx_value_9 any) *haxe__MainEvent {
-			if hx_value_9 == nil {
-				var hx_zero_10 *haxe__MainEvent
-				return hx_zero_10
+		event := func(hx_value_5 any) *haxe__MainEvent {
+			if hx_value_5 == nil {
+				var hx_zero_6 *haxe__MainEvent
+				return hx_zero_6
 			}
-			return hx_value_9.(*haxe__MainEvent)
+			return hx_value_5.(*haxe__MainEvent)
 		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if event.isBlocking {

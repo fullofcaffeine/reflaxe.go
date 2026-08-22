@@ -90,9 +90,9 @@ func (self *sys__thread__ElasticThreadPool) shutdown() {
 	_g := 0
 	_g1 := self.liveWorkers
 	for _g < _g1 {
-		hx_post_33 := _g
+		hx_post_1 := _g
 		_g = int(int32((_g + 1)))
-		hx_tmp := hx_post_33
+		hx_tmp := hx_post_1
 		_ = hx_tmp
 		self.available.__hx_this.release()
 	}
@@ -104,12 +104,12 @@ func (self *sys__thread__ElasticThreadPool) startWorkerLocked() {
 	_g := 0
 	_g1 := self.pool
 	for _g < _g1.Len() {
-		worker := func(hx_value_34 any) *sys__thread__ElasticThreadPoolWorker {
-			if hx_value_34 == nil {
-				var hx_zero_35 *sys__thread__ElasticThreadPoolWorker
-				return hx_zero_35
+		worker := func(hx_value_2 any) *sys__thread__ElasticThreadPoolWorker {
+			if hx_value_2 == nil {
+				var hx_zero_3 *sys__thread__ElasticThreadPoolWorker
+				return hx_zero_3
 			}
-			return hx_value_34.(*sys__thread__ElasticThreadPoolWorker)
+			return hx_value_2.(*sys__thread__ElasticThreadPoolWorker)
 		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if worker.dead {
@@ -119,8 +119,8 @@ func (self *sys__thread__ElasticThreadPool) startWorkerLocked() {
 	}
 	if selected == nil {
 		selected = New_sys__thread__ElasticThreadPoolWorker(self, self.available, self.threadTimeout)
-		hx_arr_36 := self.pool
-		hx_arr_36.Push(selected)
+		hx_arr_4 := self.pool
+		hx_arr_4.Push(selected)
 	}
 	self.liveWorkers = int(int32((self.liveWorkers + 1)))
 	selected.__hx_this.start()
@@ -133,12 +133,12 @@ func (self *sys__thread__ElasticThreadPool) workerResolveWait(worker *sys__threa
 		hasToken = self.available.__hx_this.wait(0)
 	}
 	if hasToken {
-		nextTask := func(hx_value_37 any) func() {
-			if hx_value_37 == nil {
-				var hx_zero_38 func()
-				return hx_zero_38
+		nextTask := func(hx_value_5 any) func() {
+			if hx_value_5 == nil {
+				var hx_zero_6 func()
+				return hx_zero_6
 			}
-			return hx_value_37.(func())
+			return hx_value_5.(func())
 		}(self.queue.__hx_this.pop(false))
 		if nextTask != nil {
 			worker.task = nextTask

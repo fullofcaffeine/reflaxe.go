@@ -15,13 +15,13 @@ var haxe__io___ArrayBufferView__ArrayBufferView_Impl__byteLength int
 var haxe__io___ArrayBufferView__ArrayBufferView_Impl__byteOffset int
 
 func haxe__io___ArrayBufferView__ArrayBufferView_Impl__fromBytes(bytes *haxe__io__Bytes, pos int, length any) *haxe__io__ArrayBufferViewImpl {
-	var hx_if_43 int
+	var hx_if_1 int
 	if length == nil {
-		hx_if_43 = int(int32((hxrt.Int32Wrap(bytes.length) - hxrt.Int32Wrap(pos))))
+		hx_if_1 = int(int32((hxrt.Int32Wrap(bytes.length) - hxrt.Int32Wrap(pos))))
 	} else {
-		hx_if_43 = length.(int)
+		hx_if_1 = length.(int)
 	}
-	resolvedLength := hx_if_43
+	resolvedLength := hx_if_1
 	if ((pos < 0) || (resolvedLength < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(resolvedLength)))) > bytes.length) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
 	}
@@ -81,13 +81,13 @@ func New_haxe__io__ArrayBufferViewImpl(bytes *haxe__io__Bytes, pos int, length i
 }
 
 func (self *haxe__io__ArrayBufferViewImpl) sub(begin int, length any) *haxe__io__ArrayBufferViewImpl {
-	var hx_if_54 int
+	var hx_if_2 int
 	if length == nil {
-		hx_if_54 = int(int32((hxrt.Int32Wrap(self.byteLength) - hxrt.Int32Wrap(begin))))
+		hx_if_2 = int(int32((hxrt.Int32Wrap(self.byteLength) - hxrt.Int32Wrap(begin))))
 	} else {
-		hx_if_54 = length.(int)
+		hx_if_2 = length.(int)
 	}
-	resolvedLength := hx_if_54
+	resolvedLength := hx_if_2
 	if ((begin < 0) || (resolvedLength < 0)) || (int(int32((hxrt.Int32Wrap(begin) + hxrt.Int32Wrap(resolvedLength)))) > self.byteLength) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
 	}
@@ -95,19 +95,19 @@ func (self *haxe__io__ArrayBufferViewImpl) sub(begin int, length any) *haxe__io_
 }
 
 func (self *haxe__io__ArrayBufferViewImpl) subarray(begin any, end any) *haxe__io__ArrayBufferViewImpl {
-	var hx_if_55 int
+	var hx_if_3 int
 	if begin == nil {
-		hx_if_55 = 0
+		hx_if_3 = 0
 	} else {
-		hx_if_55 = begin.(int)
+		hx_if_3 = begin.(int)
 	}
-	resolvedBegin := hx_if_55
-	var hx_if_56 int
+	resolvedBegin := hx_if_3
+	var hx_if_4 int
 	if end == nil {
-		hx_if_56 = int(int32((hxrt.Int32Wrap(self.byteLength) - hxrt.Int32Wrap(resolvedBegin))))
+		hx_if_4 = int(int32((hxrt.Int32Wrap(self.byteLength) - hxrt.Int32Wrap(resolvedBegin))))
 	} else {
-		hx_if_56 = end.(int)
+		hx_if_4 = end.(int)
 	}
-	resolvedEnd := hx_if_56
+	resolvedEnd := hx_if_4
 	return self.__hx_this.sub(resolvedBegin, int(int32((hxrt.Int32Wrap(resolvedEnd) - hxrt.Int32Wrap(resolvedBegin)))))
 }

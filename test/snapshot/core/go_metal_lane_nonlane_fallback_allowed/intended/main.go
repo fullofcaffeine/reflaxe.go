@@ -16,12 +16,12 @@ func main() {
 		}
 		hx_fn(hx_arg_0, hx_arg_1)
 	}(haxe__Log_trace, hxrt.StringFromLiteral("ok"), func() map[string]any {
-		hx_obj_2 := map[string]any{}
-		hx_obj_2["fileName"] = hxrt.StringFromLiteral("Main.hx")
-		hx_obj_2["lineNumber"] = 5
-		hx_obj_2["className"] = hxrt.StringFromLiteral("Main")
-		hx_obj_2["methodName"] = hxrt.StringFromLiteral("main")
-		return hx_obj_2
+		hx_obj_1 := map[string]any{}
+		hx_obj_1["fileName"] = hxrt.StringFromLiteral("Main.hx")
+		hx_obj_1["lineNumber"] = 5
+		hx_obj_1["className"] = hxrt.StringFromLiteral("Main")
+		hx_obj_1["methodName"] = hxrt.StringFromLiteral("main")
+		return hx_obj_1
 	}())
 }
 

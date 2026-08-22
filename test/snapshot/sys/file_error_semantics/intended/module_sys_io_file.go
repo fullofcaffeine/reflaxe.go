@@ -16,9 +16,9 @@ func sys__io__File_getBytes(path *string) *haxe__io__Bytes {
 	_g := 0
 	_g1 := len(values)
 	for _g < _g1 {
-		hx_post_25 := _g
+		hx_post_1 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_25
+		index := hx_post_1
 		bytes.b[index] = int(int32((hxrt.Int32Wrap(values[index]) & hxrt.Int32Wrap(255))))
 		bytes.__hx_rawValid = false
 	}
@@ -38,23 +38,23 @@ func sys__io__File_saveBytes(path *string, bytes *haxe__io__Bytes) {
 	_g := 0
 	_g1 := bytes.length
 	for _g < _g1 {
-		hx_post_26 := _g
+		hx_post_2 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_26
+		index := hx_post_2
 		values.Push(bytes.b[index])
 	}
-	hxrt.FileWriteByteValues(path, func(hx_lambda_raw_28 []any) []int {
-		hx_lambda_out_29 := make([]int, 0, len(hx_lambda_raw_28))
-		for _, hx_lambda_item_30 := range hx_lambda_raw_28 {
-			hx_lambda_out_29 = append(hx_lambda_out_29, func(hx_value_31 any) int {
-				if hx_value_31 == nil {
-					var hx_zero_32 int
-					return hx_zero_32
+	hxrt.FileWriteByteValues(path, func(hx_lambda_raw_4 []any) []int {
+		hx_lambda_out_5 := make([]int, 0, len(hx_lambda_raw_4))
+		for _, hx_lambda_item_6 := range hx_lambda_raw_4 {
+			hx_lambda_out_5 = append(hx_lambda_out_5, func(hx_value_7 any) int {
+				if hx_value_7 == nil {
+					var hx_zero_8 int
+					return hx_zero_8
 				}
-				return hx_value_31.(int)
-			}(hx_lambda_item_30))
+				return hx_value_7.(int)
+			}(hx_lambda_item_6))
 		}
-		return hx_lambda_out_29
+		return hx_lambda_out_5
 	}(values.Values()))
 }
 

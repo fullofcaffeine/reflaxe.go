@@ -67,34 +67,34 @@ func New_haxe__Template(str *string) *haxe__Template {
 	cursor := New_haxe___Template__TokenCursor(self.__hx_this.parseTokens(str))
 	self.expr = self.__hx_this.parseBlock(cursor)
 	if cursor.index < cursor.tokens.Len() {
-		token := func(hx_value_15 any) map[string]any {
-			if hx_value_15 == nil {
-				var hx_zero_16 map[string]any
-				return hx_zero_16
+		token := func(hx_value_1 any) map[string]any {
+			if hx_value_1 == nil {
+				var hx_zero_2 map[string]any
+				return hx_zero_2
 			}
-			return hx_value_15.(map[string]any)
+			return hx_value_1.(map[string]any)
 		}(cursor.tokens.Get(cursor.index))
-		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Unexpected '"), hxrt.StdString(func(hx_obj_17 map[string]any) bool {
-			hx_field_18 := hx_obj_17["s"]
-			if hx_field_18 == nil {
-				var hx_zero_19 bool
-				return hx_zero_19
+		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Unexpected '"), hxrt.StdString(func(hx_obj_3 map[string]any) bool {
+			hx_field_4 := hx_obj_3["s"]
+			if hx_field_4 == nil {
+				var hx_zero_5 bool
+				return hx_zero_5
 			}
-			return hx_field_18.(bool)
+			return hx_field_4.(bool)
 		}(token))), hxrt.StringFromLiteral("'")))
 	}
 	return self
 }
 
 func (self *haxe__Template) execute(context any, macros any) *string {
-	var hx_if_21 any
+	var hx_if_7 any
 	if hxrt.AnyEqualsNull(macros) {
-		hx_obj_20 := map[string]any{}
-		hx_if_21 = hx_obj_20
+		hx_obj_6 := map[string]any{}
+		hx_if_7 = hx_obj_6
 	} else {
-		hx_if_21 = macros
+		hx_if_7 = macros
 	}
-	self.macros = hx_if_21
+	self.macros = hx_if_7
 	self.context = context
 	self.stack = hxrt.NewArray()
 	self.output = hxrt.StringFromLiteral("")
@@ -129,71 +129,71 @@ func (self *haxe__Template) parseTokens(data *string) *hxrt.Array {
 	tokens := hxrt.NewArray()
 	for haxe__Template_splitter.__hx_this.match(data) {
 		p := haxe__Template_splitter.__hx_this.matchedPos()
-		if func(hx_obj_27 map[string]any) int {
+		if func(hx_obj_13 map[string]any) int {
+			hx_field_14 := hx_obj_13["pos"]
+			if hx_field_14 == nil {
+				var hx_zero_15 int
+				return hx_zero_15
+			}
+			return hx_field_14.(int)
+		}(p) > 0 {
+			hx_obj_9 := map[string]any{}
+			hx_obj_9["p"] = hxrt.StringSubstrStringPtr(data, 0, func(hx_obj_10 map[string]any) int {
+				hx_field_11 := hx_obj_10["pos"]
+				if hx_field_11 == nil {
+					var hx_zero_12 int
+					return hx_zero_12
+				}
+				return hx_field_11.(int)
+			}(p), true)
+			hx_obj_9["s"] = true
+			hx_obj_9["l"] = nil
+			tokens.Push(hx_obj_9)
+		}
+		if hxrt.StringCharCodeAtAnyStringPtr(data, func(hx_obj_24 map[string]any) int {
+			hx_field_25 := hx_obj_24["pos"]
+			if hx_field_25 == nil {
+				var hx_zero_26 int
+				return hx_zero_26
+			}
+			return hx_field_25.(int)
+		}(p)) == 58 {
+			hx_obj_17 := map[string]any{}
+			hx_obj_17["p"] = hxrt.StringSubstrStringPtr(data, int(int32((hxrt.Int32Wrap(func(hx_obj_18 map[string]any) int {
+				hx_field_19 := hx_obj_18["pos"]
+				if hx_field_19 == nil {
+					var hx_zero_20 int
+					return hx_zero_20
+				}
+				return hx_field_19.(int)
+			}(p)) + hxrt.Int32Wrap(2)))), int(int32((hxrt.Int32Wrap(func(hx_obj_21 map[string]any) int {
+				hx_field_22 := hx_obj_21["len"]
+				if hx_field_22 == nil {
+					var hx_zero_23 int
+					return hx_zero_23
+				}
+				return hx_field_22.(int)
+			}(p)) - hxrt.Int32Wrap(4)))), true)
+			hx_obj_17["s"] = false
+			hx_obj_17["l"] = nil
+			tokens.Push(hx_obj_17)
+			data = haxe__Template_splitter.__hx_this.matchedRight()
+			continue
+		}
+		parp := int(int32((hxrt.Int32Wrap(func(hx_obj_27 map[string]any) int {
 			hx_field_28 := hx_obj_27["pos"]
 			if hx_field_28 == nil {
 				var hx_zero_29 int
 				return hx_zero_29
 			}
 			return hx_field_28.(int)
-		}(p) > 0 {
-			hx_obj_23 := map[string]any{}
-			hx_obj_23["p"] = hxrt.StringSubstrStringPtr(data, 0, func(hx_obj_24 map[string]any) int {
-				hx_field_25 := hx_obj_24["pos"]
-				if hx_field_25 == nil {
-					var hx_zero_26 int
-					return hx_zero_26
-				}
-				return hx_field_25.(int)
-			}(p), true)
-			hx_obj_23["s"] = true
-			hx_obj_23["l"] = nil
-			tokens.Push(hx_obj_23)
-		}
-		if hxrt.StringCharCodeAtAnyStringPtr(data, func(hx_obj_38 map[string]any) int {
-			hx_field_39 := hx_obj_38["pos"]
-			if hx_field_39 == nil {
-				var hx_zero_40 int
-				return hx_zero_40
+		}(p)) + hxrt.Int32Wrap(func(hx_obj_30 map[string]any) int {
+			hx_field_31 := hx_obj_30["len"]
+			if hx_field_31 == nil {
+				var hx_zero_32 int
+				return hx_zero_32
 			}
-			return hx_field_39.(int)
-		}(p)) == 58 {
-			hx_obj_31 := map[string]any{}
-			hx_obj_31["p"] = hxrt.StringSubstrStringPtr(data, int(int32((hxrt.Int32Wrap(func(hx_obj_32 map[string]any) int {
-				hx_field_33 := hx_obj_32["pos"]
-				if hx_field_33 == nil {
-					var hx_zero_34 int
-					return hx_zero_34
-				}
-				return hx_field_33.(int)
-			}(p)) + hxrt.Int32Wrap(2)))), int(int32((hxrt.Int32Wrap(func(hx_obj_35 map[string]any) int {
-				hx_field_36 := hx_obj_35["len"]
-				if hx_field_36 == nil {
-					var hx_zero_37 int
-					return hx_zero_37
-				}
-				return hx_field_36.(int)
-			}(p)) - hxrt.Int32Wrap(4)))), true)
-			hx_obj_31["s"] = false
-			hx_obj_31["l"] = nil
-			tokens.Push(hx_obj_31)
-			data = haxe__Template_splitter.__hx_this.matchedRight()
-			continue
-		}
-		parp := int(int32((hxrt.Int32Wrap(func(hx_obj_41 map[string]any) int {
-			hx_field_42 := hx_obj_41["pos"]
-			if hx_field_42 == nil {
-				var hx_zero_43 int
-				return hx_zero_43
-			}
-			return hx_field_42.(int)
-		}(p)) + hxrt.Int32Wrap(func(hx_obj_44 map[string]any) int {
-			hx_field_45 := hx_obj_44["len"]
-			if hx_field_45 == nil {
-				var hx_zero_46 int
-				return hx_zero_46
-			}
-			return hx_field_45.(int)
+			return hx_field_31.(int)
 		}(p)))))
 		npar := 1
 		params := hxrt.NewArray()
@@ -224,19 +224,19 @@ func (self *haxe__Template) parseTokens(data *string) *hxrt.Array {
 			}
 		}
 		params.Push(part)
-		hx_obj_50 := map[string]any{}
-		hx_obj_50["p"] = haxe__Template_splitter.__hx_this.matched(2)
-		hx_obj_50["s"] = false
-		hx_obj_50["l"] = params
-		tokens.Push(hx_obj_50)
+		hx_obj_36 := map[string]any{}
+		hx_obj_36["p"] = haxe__Template_splitter.__hx_this.matched(2)
+		hx_obj_36["s"] = false
+		hx_obj_36["l"] = params
+		tokens.Push(hx_obj_36)
 		data = hxrt.StringSubstrStringPtr(data, parp, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(data)) - hxrt.Int32Wrap(parp)))), true)
 	}
 	if hxrt.StringLengthStringPtr(data) > 0 {
-		hx_obj_52 := map[string]any{}
-		hx_obj_52["p"] = data
-		hx_obj_52["s"] = true
-		hx_obj_52["l"] = nil
-		tokens.Push(hx_obj_52)
+		hx_obj_38 := map[string]any{}
+		hx_obj_38["p"] = data
+		hx_obj_38["s"] = true
+		hx_obj_38["l"] = nil
+		tokens.Push(hx_obj_38)
 	}
 	return tokens
 }
@@ -244,120 +244,120 @@ func (self *haxe__Template) parseTokens(data *string) *hxrt.Array {
 func (self *haxe__Template) parseBlock(cursor *haxe___Template__TokenCursor) *haxe___Template__TemplateExpr {
 	items := hxrt.NewArray()
 	for cursor.index < cursor.tokens.Len() {
-		t := func(hx_value_53 any) map[string]any {
-			if hx_value_53 == nil {
-				var hx_zero_54 map[string]any
-				return hx_zero_54
+		t := func(hx_value_39 any) map[string]any {
+			if hx_value_39 == nil {
+				var hx_zero_40 map[string]any
+				return hx_zero_40
 			}
-			return hx_value_53.(map[string]any)
+			return hx_value_39.(map[string]any)
 		}(cursor.tokens.Get(cursor.index))
-		if !func(hx_obj_55 map[string]any) bool {
-			hx_field_56 := hx_obj_55["s"]
-			if hx_field_56 == nil {
-				var hx_zero_57 bool
-				return hx_zero_57
+		if !func(hx_obj_41 map[string]any) bool {
+			hx_field_42 := hx_obj_41["s"]
+			if hx_field_42 == nil {
+				var hx_zero_43 bool
+				return hx_zero_43
 			}
-			return hx_field_56.(bool)
-		}(t) && ((hxrt.StringEqualStringPtr(func(hx_obj_58 map[string]any) *string {
-			hx_field_59 := hx_obj_58["p"]
-			if hx_field_59 == nil {
-				var hx_zero_60 *string
-				return hx_zero_60
+			return hx_field_42.(bool)
+		}(t) && ((hxrt.StringEqualStringPtr(func(hx_obj_44 map[string]any) *string {
+			hx_field_45 := hx_obj_44["p"]
+			if hx_field_45 == nil {
+				var hx_zero_46 *string
+				return hx_zero_46
 			}
-			return hx_field_59.(*string)
-		}(t), hxrt.StringFromLiteral("end")) || hxrt.StringEqualStringPtr(func(hx_obj_61 map[string]any) *string {
-			hx_field_62 := hx_obj_61["p"]
-			if hx_field_62 == nil {
-				var hx_zero_63 *string
-				return hx_zero_63
+			return hx_field_45.(*string)
+		}(t), hxrt.StringFromLiteral("end")) || hxrt.StringEqualStringPtr(func(hx_obj_47 map[string]any) *string {
+			hx_field_48 := hx_obj_47["p"]
+			if hx_field_48 == nil {
+				var hx_zero_49 *string
+				return hx_zero_49
 			}
-			return hx_field_62.(*string)
-		}(t), hxrt.StringFromLiteral("else"))) || hxrt.StringEqualStringPtr(hxrt.StringSubstrStringPtr(func(hx_obj_64 map[string]any) *string {
-			hx_field_65 := hx_obj_64["p"]
-			if hx_field_65 == nil {
-				var hx_zero_66 *string
-				return hx_zero_66
+			return hx_field_48.(*string)
+		}(t), hxrt.StringFromLiteral("else"))) || hxrt.StringEqualStringPtr(hxrt.StringSubstrStringPtr(func(hx_obj_50 map[string]any) *string {
+			hx_field_51 := hx_obj_50["p"]
+			if hx_field_51 == nil {
+				var hx_zero_52 *string
+				return hx_zero_52
 			}
-			return hx_field_65.(*string)
+			return hx_field_51.(*string)
 		}(t), 0, 7, true), hxrt.StringFromLiteral("elseif "))) {
 			break
 		}
 		items.Push(self.__hx_this.parse(cursor))
 	}
 	if items.Len() == 1 {
-		return func(hx_value_68 any) *haxe___Template__TemplateExpr {
-			if hx_value_68 == nil {
-				var hx_zero_69 *haxe___Template__TemplateExpr
-				return hx_zero_69
+		return func(hx_value_54 any) *haxe___Template__TemplateExpr {
+			if hx_value_54 == nil {
+				var hx_zero_55 *haxe___Template__TemplateExpr
+				return hx_zero_55
 			}
-			return hx_value_68.(*haxe___Template__TemplateExpr)
+			return hx_value_54.(*haxe___Template__TemplateExpr)
 		}(items.Get(0))
 	}
 	return haxe___Template__TemplateExpr_OpBlock(items)
 }
 
 func (self *haxe__Template) parse(cursor *haxe___Template__TokenCursor) *haxe___Template__TemplateExpr {
-	var hx_if_73 map[string]any
+	var hx_if_59 map[string]any
 	if cursor.index >= cursor.tokens.Len() {
-		hx_if_73 = nil
+		hx_if_59 = nil
 	} else {
-		hx_post_70 := cursor.index
+		hx_post_56 := cursor.index
 		cursor.index = int(int32((cursor.index + 1)))
-		hx_if_73 = func(hx_value_71 any) map[string]any {
-			if hx_value_71 == nil {
-				var hx_zero_72 map[string]any
-				return hx_zero_72
+		hx_if_59 = func(hx_value_57 any) map[string]any {
+			if hx_value_57 == nil {
+				var hx_zero_58 map[string]any
+				return hx_zero_58
 			}
-			return hx_value_71.(map[string]any)
-		}(cursor.tokens.Get(hx_post_70))
+			return hx_value_57.(map[string]any)
+		}(cursor.tokens.Get(hx_post_56))
 	}
-	t := hx_if_73
+	t := hx_if_59
 	if t == nil {
 		hxrt.Throw(hxrt.StringFromLiteral("Unexpected <eof>"))
 	}
-	p := func(hx_obj_74 map[string]any) *string {
-		hx_field_75 := hx_obj_74["p"]
-		if hx_field_75 == nil {
-			var hx_zero_76 *string
-			return hx_zero_76
+	p := func(hx_obj_60 map[string]any) *string {
+		hx_field_61 := hx_obj_60["p"]
+		if hx_field_61 == nil {
+			var hx_zero_62 *string
+			return hx_zero_62
 		}
-		return hx_field_75.(*string)
+		return hx_field_61.(*string)
 	}(t)
-	if func(hx_obj_77 map[string]any) bool {
-		hx_field_78 := hx_obj_77["s"]
-		if hx_field_78 == nil {
-			var hx_zero_79 bool
-			return hx_zero_79
+	if func(hx_obj_63 map[string]any) bool {
+		hx_field_64 := hx_obj_63["s"]
+		if hx_field_64 == nil {
+			var hx_zero_65 bool
+			return hx_zero_65
 		}
-		return hx_field_78.(bool)
+		return hx_field_64.(bool)
 	}(t) {
 		return haxe___Template__TemplateExpr_OpStr(p)
 	}
-	if func(hx_obj_86 map[string]any) *hxrt.Array {
-		hx_field_87 := hx_obj_86["l"]
-		if hx_field_87 == nil {
-			var hx_zero_88 *hxrt.Array
-			return hx_zero_88
+	if func(hx_obj_72 map[string]any) *hxrt.Array {
+		hx_field_73 := hx_obj_72["l"]
+		if hx_field_73 == nil {
+			var hx_zero_74 *hxrt.Array
+			return hx_zero_74
 		}
-		return hx_field_87.(*hxrt.Array)
+		return hx_field_73.(*hxrt.Array)
 	}(t) != nil {
 		parsedParams := hxrt.NewArray()
 		_g := 0
-		_g1 := func(hx_obj_80 map[string]any) *hxrt.Array {
-			hx_field_81 := hx_obj_80["l"]
-			if hx_field_81 == nil {
-				var hx_zero_82 *hxrt.Array
-				return hx_zero_82
+		_g1 := func(hx_obj_66 map[string]any) *hxrt.Array {
+			hx_field_67 := hx_obj_66["l"]
+			if hx_field_67 == nil {
+				var hx_zero_68 *hxrt.Array
+				return hx_zero_68
 			}
-			return hx_field_81.(*hxrt.Array)
+			return hx_field_67.(*hxrt.Array)
 		}(t)
 		for _g < _g1.Len() {
-			param := func(hx_value_83 any) *string {
-				if hx_value_83 == nil {
-					var hx_zero_84 *string
-					return hx_zero_84
+			param := func(hx_value_69 any) *string {
+				if hx_value_69 == nil {
+					var hx_zero_70 *string
+					return hx_zero_70
 				}
-				return hx_value_83.(*string)
+				return hx_value_69.(*string)
 			}(_g1.Get(_g))
 			_g = int(int32((_g + 1)))
 			parsedParams.Push(self.__hx_this.parseBlock(New_haxe___Template__TokenCursor(self.__hx_this.parseTokens(param))))
@@ -369,97 +369,97 @@ func (self *haxe__Template) parse(cursor *haxe___Template__TokenCursor) *haxe___
 		p = hxrt.StringSubstrStringPtr(p, pos, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(p)) - hxrt.Int32Wrap(pos)))), true)
 		e := self.__hx_this.parseExpr(p)
 		eif := self.__hx_this.parseBlock(cursor)
-		var hx_if_91 map[string]any
+		var hx_if_77 map[string]any
 		if cursor.index < cursor.tokens.Len() {
-			hx_if_91 = func(hx_value_89 any) map[string]any {
-				if hx_value_89 == nil {
-					var hx_zero_90 map[string]any
-					return hx_zero_90
+			hx_if_77 = func(hx_value_75 any) map[string]any {
+				if hx_value_75 == nil {
+					var hx_zero_76 map[string]any
+					return hx_zero_76
 				}
-				return hx_value_89.(map[string]any)
+				return hx_value_75.(map[string]any)
 			}(cursor.tokens.Get(cursor.index))
 		} else {
-			hx_if_91 = nil
+			hx_if_77 = nil
 		}
-		nextToken := hx_if_91
+		nextToken := hx_if_77
 		if nextToken == nil {
 			hxrt.Throw(hxrt.StringFromLiteral("Unclosed 'if'"))
 		}
 		var eelse *haxe___Template__TemplateExpr = nil
-		if hxrt.StringEqualStringPtr(func(hx_obj_110 map[string]any) *string {
-			hx_field_111 := hx_obj_110["p"]
-			if hx_field_111 == nil {
-				var hx_zero_112 *string
-				return hx_zero_112
+		if hxrt.StringEqualStringPtr(func(hx_obj_96 map[string]any) *string {
+			hx_field_97 := hx_obj_96["p"]
+			if hx_field_97 == nil {
+				var hx_zero_98 *string
+				return hx_zero_98
 			}
-			return hx_field_111.(*string)
+			return hx_field_97.(*string)
 		}(nextToken), hxrt.StringFromLiteral("end")) {
 			if cursor.index >= cursor.tokens.Len() {
 			} else {
 				cursor.tokens.Get(func() int {
-					hx_post_92 := cursor.index
+					hx_post_78 := cursor.index
 					cursor.index = int(int32((cursor.index + 1)))
-					return hx_post_92
+					return hx_post_78
 				}())
 			}
 		} else {
-			if hxrt.StringEqualStringPtr(func(hx_obj_107 map[string]any) *string {
-				hx_field_108 := hx_obj_107["p"]
-				if hx_field_108 == nil {
-					var hx_zero_109 *string
-					return hx_zero_109
+			if hxrt.StringEqualStringPtr(func(hx_obj_93 map[string]any) *string {
+				hx_field_94 := hx_obj_93["p"]
+				if hx_field_94 == nil {
+					var hx_zero_95 *string
+					return hx_zero_95
 				}
-				return hx_field_108.(*string)
+				return hx_field_94.(*string)
 			}(nextToken), hxrt.StringFromLiteral("else")) {
 				if cursor.index >= cursor.tokens.Len() {
 				} else {
 					cursor.tokens.Get(func() int {
-						hx_post_93 := cursor.index
+						hx_post_79 := cursor.index
 						cursor.index = int(int32((cursor.index + 1)))
-						return hx_post_93
+						return hx_post_79
 					}())
 				}
 				eelse = self.__hx_this.parseBlock(cursor)
-				var hx_if_97 map[string]any
+				var hx_if_83 map[string]any
 				if cursor.index >= cursor.tokens.Len() {
-					hx_if_97 = nil
+					hx_if_83 = nil
 				} else {
-					hx_post_94 := cursor.index
+					hx_post_80 := cursor.index
 					cursor.index = int(int32((cursor.index + 1)))
-					hx_if_97 = func(hx_value_95 any) map[string]any {
-						if hx_value_95 == nil {
-							var hx_zero_96 map[string]any
-							return hx_zero_96
+					hx_if_83 = func(hx_value_81 any) map[string]any {
+						if hx_value_81 == nil {
+							var hx_zero_82 map[string]any
+							return hx_zero_82
 						}
-						return hx_value_95.(map[string]any)
-					}(cursor.tokens.Get(hx_post_94))
+						return hx_value_81.(map[string]any)
+					}(cursor.tokens.Get(hx_post_80))
 				}
-				endToken := hx_if_97
-				if (endToken == nil) || !hxrt.StringEqualStringPtr(func(hx_obj_98 map[string]any) *string {
-					hx_field_99 := hx_obj_98["p"]
-					if hx_field_99 == nil {
-						var hx_zero_100 *string
-						return hx_zero_100
+				endToken := hx_if_83
+				if (endToken == nil) || !hxrt.StringEqualStringPtr(func(hx_obj_84 map[string]any) *string {
+					hx_field_85 := hx_obj_84["p"]
+					if hx_field_85 == nil {
+						var hx_zero_86 *string
+						return hx_zero_86
 					}
-					return hx_field_99.(*string)
+					return hx_field_85.(*string)
 				}(endToken), hxrt.StringFromLiteral("end")) {
 					hxrt.Throw(hxrt.StringFromLiteral("Unclosed 'else'"))
 				}
 			} else {
-				nextToken["p"] = hxrt.StringSubstrStringPtr(func(hx_obj_101 map[string]any) *string {
-					hx_field_102 := hx_obj_101["p"]
-					if hx_field_102 == nil {
-						var hx_zero_103 *string
-						return hx_zero_103
+				nextToken["p"] = hxrt.StringSubstrStringPtr(func(hx_obj_87 map[string]any) *string {
+					hx_field_88 := hx_obj_87["p"]
+					if hx_field_88 == nil {
+						var hx_zero_89 *string
+						return hx_zero_89
 					}
-					return hx_field_102.(*string)
-				}(nextToken), 4, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(func(hx_obj_104 map[string]any) *string {
-					hx_field_105 := hx_obj_104["p"]
-					if hx_field_105 == nil {
-						var hx_zero_106 *string
-						return hx_zero_106
+					return hx_field_88.(*string)
+				}(nextToken), 4, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(func(hx_obj_90 map[string]any) *string {
+					hx_field_91 := hx_obj_90["p"]
+					if hx_field_91 == nil {
+						var hx_zero_92 *string
+						return hx_zero_92
 					}
-					return hx_field_105.(*string)
+					return hx_field_91.(*string)
 				}(nextToken))) - hxrt.Int32Wrap(4)))), true)
 				eelse = self.__hx_this.parse(cursor)
 			}
@@ -471,28 +471,28 @@ func (self *haxe__Template) parse(cursor *haxe___Template__TokenCursor) *haxe___
 		p = hxrt.StringSubstrStringPtr(p, pos, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(p)) - hxrt.Int32Wrap(pos)))), true)
 		e_1 := self.__hx_this.parseExpr(p)
 		efor := self.__hx_this.parseBlock(cursor)
-		var hx_if_116 map[string]any
+		var hx_if_102 map[string]any
 		if cursor.index >= cursor.tokens.Len() {
-			hx_if_116 = nil
+			hx_if_102 = nil
 		} else {
-			hx_post_113 := cursor.index
+			hx_post_99 := cursor.index
 			cursor.index = int(int32((cursor.index + 1)))
-			hx_if_116 = func(hx_value_114 any) map[string]any {
-				if hx_value_114 == nil {
-					var hx_zero_115 map[string]any
-					return hx_zero_115
+			hx_if_102 = func(hx_value_100 any) map[string]any {
+				if hx_value_100 == nil {
+					var hx_zero_101 map[string]any
+					return hx_zero_101
 				}
-				return hx_value_114.(map[string]any)
-			}(cursor.tokens.Get(hx_post_113))
+				return hx_value_100.(map[string]any)
+			}(cursor.tokens.Get(hx_post_99))
 		}
-		endToken_1 := hx_if_116
-		if (endToken_1 == nil) || !hxrt.StringEqualStringPtr(func(hx_obj_117 map[string]any) *string {
-			hx_field_118 := hx_obj_117["p"]
-			if hx_field_118 == nil {
-				var hx_zero_119 *string
-				return hx_zero_119
+		endToken_1 := hx_if_102
+		if (endToken_1 == nil) || !hxrt.StringEqualStringPtr(func(hx_obj_103 map[string]any) *string {
+			hx_field_104 := hx_obj_103["p"]
+			if hx_field_104 == nil {
+				var hx_zero_105 *string
+				return hx_zero_105
 			}
-			return hx_field_118.(*string)
+			return hx_field_104.(*string)
 		}(endToken_1), hxrt.StringFromLiteral("end")) {
 			hxrt.Throw(hxrt.StringFromLiteral("Unclosed 'foreach'"))
 		}
@@ -509,31 +509,31 @@ func (self *haxe__Template) parseExpr(data *string) func() any {
 	expr := data
 	for haxe__Template_expr_splitter.__hx_this.match(data) {
 		p := haxe__Template_expr_splitter.__hx_this.matchedPos()
-		if func(hx_obj_125 map[string]any) int {
-			hx_field_126 := hx_obj_125["pos"]
-			if hx_field_126 == nil {
-				var hx_zero_127 int
-				return hx_zero_127
+		if func(hx_obj_111 map[string]any) int {
+			hx_field_112 := hx_obj_111["pos"]
+			if hx_field_112 == nil {
+				var hx_zero_113 int
+				return hx_zero_113
 			}
-			return hx_field_126.(int)
+			return hx_field_112.(int)
 		}(p) != 0 {
-			hx_obj_121 := map[string]any{}
-			hx_obj_121["p"] = hxrt.StringSubstrStringPtr(data, 0, func(hx_obj_122 map[string]any) int {
-				hx_field_123 := hx_obj_122["pos"]
-				if hx_field_123 == nil {
-					var hx_zero_124 int
-					return hx_zero_124
+			hx_obj_107 := map[string]any{}
+			hx_obj_107["p"] = hxrt.StringSubstrStringPtr(data, 0, func(hx_obj_108 map[string]any) int {
+				hx_field_109 := hx_obj_108["pos"]
+				if hx_field_109 == nil {
+					var hx_zero_110 int
+					return hx_zero_110
 				}
-				return hx_field_123.(int)
+				return hx_field_109.(int)
 			}(p), true)
-			hx_obj_121["s"] = true
-			tokens.Push(hx_obj_121)
+			hx_obj_107["s"] = true
+			tokens.Push(hx_obj_107)
 		}
 		token := haxe__Template_expr_splitter.__hx_this.matched(0)
-		hx_obj_129 := map[string]any{}
-		hx_obj_129["p"] = token
-		hx_obj_129["s"] = StringTools_contains(token, hxrt.StringFromLiteral("\""))
-		tokens.Push(hx_obj_129)
+		hx_obj_115 := map[string]any{}
+		hx_obj_115["p"] = token
+		hx_obj_115["s"] = StringTools_contains(token, hxrt.StringFromLiteral("\""))
+		tokens.Push(hx_obj_115)
 		data = haxe__Template_expr_splitter.__hx_this.matchedRight()
 	}
 	if hxrt.StringLengthStringPtr(data) != 0 {
@@ -553,10 +553,10 @@ func (self *haxe__Template) parseExpr(data *string) func() any {
 			c := _g_value
 			if c == 32 {
 			} else {
-				hx_obj_131 := map[string]any{}
-				hx_obj_131["p"] = hxrt.StringSubstrStringPtr(data, i, 0, false)
-				hx_obj_131["s"] = true
-				tokens.Push(hx_obj_131)
+				hx_obj_117 := map[string]any{}
+				hx_obj_117["p"] = hxrt.StringSubstrStringPtr(data, i, 0, false)
+				hx_obj_117["s"] = true
+				tokens.Push(hx_obj_117)
 				break
 			}
 		}
@@ -566,45 +566,45 @@ func (self *haxe__Template) parseExpr(data *string) func() any {
 	hxrt.TryCatch(func() {
 		built = self.__hx_this.makeExpr(cursor)
 		if cursor.index < cursor.tokens.Len() {
-			hxrt.Throw(func(hx_obj_136 map[string]any) *string {
-				hx_field_137 := hx_obj_136["p"]
-				if hx_field_137 == nil {
-					var hx_zero_138 *string
-					return hx_zero_138
+			hxrt.Throw(func(hx_obj_122 map[string]any) *string {
+				hx_field_123 := hx_obj_122["p"]
+				if hx_field_123 == nil {
+					var hx_zero_124 *string
+					return hx_zero_124
 				}
-				return hx_field_137.(*string)
-			}(func(hx_value_134 any) map[string]any {
-				if hx_value_134 == nil {
-					var hx_zero_135 map[string]any
-					return hx_zero_135
+				return hx_field_123.(*string)
+			}(func(hx_value_120 any) map[string]any {
+				if hx_value_120 == nil {
+					var hx_zero_121 map[string]any
+					return hx_zero_121
 				}
-				return hx_value_134.(map[string]any)
+				return hx_value_120.(map[string]any)
 			}(cursor.tokens.Get(cursor.index))))
 		}
-	}, func(hx_caught_132 any) {
-		switch hx_typed_133 := hx_caught_132.(type) {
+	}, func(hx_caught_118 any) {
+		switch hx_typed_119 := hx_caught_118.(type) {
 		case *string:
-			s := hx_typed_133
+			s := hx_typed_119
 			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Unexpected '"), s), hxrt.StringFromLiteral("' in ")), expr))
 		default:
-			hxrt.Throw(hx_caught_132)
+			hxrt.Throw(hx_caught_118)
 		}
 	})
 	me := self
 	_ = me
 	wrapped := func() any {
-		hx_try_return_139 := false
-		var hx_try_value_140 any
+		hx_try_return_125 := false
+		var hx_try_value_126 any
 		hxrt.TryCatch(func() {
-			hx_try_value_140 = built()
-			hx_try_return_139 = true
+			hx_try_value_126 = built()
+			hx_try_return_125 = true
 			return
-		}, func(hx_caught_141 any) {
-			exc := hx_caught_141
+		}, func(hx_caught_127 any) {
+			exc := hx_caught_127
 			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Error : "), hxrt.StdString(exc)), hxrt.StringFromLiteral(" in ")), expr))
 		})
-		if hx_try_return_139 {
-			return hx_try_value_140
+		if hx_try_return_125 {
+			return hx_try_value_126
 		}
 		return nil
 	}
@@ -643,82 +643,82 @@ func (self *haxe__Template) makeConst(v *string) func() any {
 }
 
 func (self *haxe__Template) makePath(e func() any, cursor *haxe___Template__ExprCursor) func() any {
-	var hx_if_145 map[string]any
+	var hx_if_131 map[string]any
 	if cursor.index < cursor.tokens.Len() {
-		hx_if_145 = func(hx_value_143 any) map[string]any {
-			if hx_value_143 == nil {
-				var hx_zero_144 map[string]any
-				return hx_zero_144
+		hx_if_131 = func(hx_value_129 any) map[string]any {
+			if hx_value_129 == nil {
+				var hx_zero_130 map[string]any
+				return hx_zero_130
 			}
-			return hx_value_143.(map[string]any)
+			return hx_value_129.(map[string]any)
 		}(cursor.tokens.Get(cursor.index))
 	} else {
-		hx_if_145 = nil
+		hx_if_131 = nil
 	}
-	token := hx_if_145
-	if (token == nil) || !hxrt.StringEqualStringPtr(func(hx_obj_146 map[string]any) *string {
-		hx_field_147 := hx_obj_146["p"]
-		if hx_field_147 == nil {
-			var hx_zero_148 *string
-			return hx_zero_148
+	token := hx_if_131
+	if (token == nil) || !hxrt.StringEqualStringPtr(func(hx_obj_132 map[string]any) *string {
+		hx_field_133 := hx_obj_132["p"]
+		if hx_field_133 == nil {
+			var hx_zero_134 *string
+			return hx_zero_134
 		}
-		return hx_field_147.(*string)
+		return hx_field_133.(*string)
 	}(token), hxrt.StringFromLiteral(".")) {
 		return e
 	}
 	if cursor.index >= cursor.tokens.Len() {
 	} else {
 		cursor.tokens.Get(func() int {
-			hx_post_149 := cursor.index
+			hx_post_135 := cursor.index
 			cursor.index = int(int32((cursor.index + 1)))
-			return hx_post_149
+			return hx_post_135
 		}())
 	}
-	var hx_if_153 map[string]any
+	var hx_if_139 map[string]any
 	if cursor.index >= cursor.tokens.Len() {
-		hx_if_153 = nil
+		hx_if_139 = nil
 	} else {
-		hx_post_150 := cursor.index
+		hx_post_136 := cursor.index
 		cursor.index = int(int32((cursor.index + 1)))
-		hx_if_153 = func(hx_value_151 any) map[string]any {
-			if hx_value_151 == nil {
-				var hx_zero_152 map[string]any
-				return hx_zero_152
+		hx_if_139 = func(hx_value_137 any) map[string]any {
+			if hx_value_137 == nil {
+				var hx_zero_138 map[string]any
+				return hx_zero_138
 			}
-			return hx_value_151.(map[string]any)
-		}(cursor.tokens.Get(hx_post_150))
+			return hx_value_137.(map[string]any)
+		}(cursor.tokens.Get(hx_post_136))
 	}
-	field := hx_if_153
-	if (field == nil) || !func(hx_obj_158 map[string]any) bool {
-		hx_field_159 := hx_obj_158["s"]
-		if hx_field_159 == nil {
-			var hx_zero_160 bool
-			return hx_zero_160
+	field := hx_if_139
+	if (field == nil) || !func(hx_obj_144 map[string]any) bool {
+		hx_field_145 := hx_obj_144["s"]
+		if hx_field_145 == nil {
+			var hx_zero_146 bool
+			return hx_zero_146
 		}
-		return hx_field_159.(bool)
+		return hx_field_145.(bool)
 	}(field) {
-		var hx_if_157 *string
+		var hx_if_143 *string
 		if field == nil {
-			hx_if_157 = hxrt.StringFromLiteral("<eof>")
+			hx_if_143 = hxrt.StringFromLiteral("<eof>")
 		} else {
-			hx_if_157 = func(hx_obj_154 map[string]any) *string {
-				hx_field_155 := hx_obj_154["p"]
-				if hx_field_155 == nil {
-					var hx_zero_156 *string
-					return hx_zero_156
+			hx_if_143 = func(hx_obj_140 map[string]any) *string {
+				hx_field_141 := hx_obj_140["p"]
+				if hx_field_141 == nil {
+					var hx_zero_142 *string
+					return hx_zero_142
 				}
-				return hx_field_155.(*string)
+				return hx_field_141.(*string)
 			}(field)
 		}
-		hxrt.Throw(hx_if_157)
+		hxrt.Throw(hx_if_143)
 	}
-	name := haxe__Template_trimExprToken(func(hx_obj_161 map[string]any) *string {
-		hx_field_162 := hx_obj_161["p"]
-		if hx_field_162 == nil {
-			var hx_zero_163 *string
-			return hx_zero_163
+	name := haxe__Template_trimExprToken(func(hx_obj_147 map[string]any) *string {
+		hx_field_148 := hx_obj_147["p"]
+		if hx_field_148 == nil {
+			var hx_zero_149 *string
+			return hx_zero_149
 		}
-		return hx_field_162.(*string)
+		return hx_field_148.(*string)
 	}(field))
 	return self.__hx_this.makePath(func() any {
 		return Reflect_field(e(), name)
@@ -731,19 +731,19 @@ func (self *haxe__Template) makeExpr(cursor *haxe___Template__ExprCursor) func()
 
 func (self *haxe__Template) skipSpaces(cursor *haxe___Template__ExprCursor) {
 	for cursor.index < cursor.tokens.Len() {
-		if !haxe__Template_isSpaceOnly(func(hx_obj_166 map[string]any) *string {
-			hx_field_167 := hx_obj_166["p"]
-			if hx_field_167 == nil {
-				var hx_zero_168 *string
-				return hx_zero_168
+		if !haxe__Template_isSpaceOnly(func(hx_obj_152 map[string]any) *string {
+			hx_field_153 := hx_obj_152["p"]
+			if hx_field_153 == nil {
+				var hx_zero_154 *string
+				return hx_zero_154
 			}
-			return hx_field_167.(*string)
-		}(func(hx_value_164 any) map[string]any {
-			if hx_value_164 == nil {
-				var hx_zero_165 map[string]any
-				return hx_zero_165
+			return hx_field_153.(*string)
+		}(func(hx_value_150 any) map[string]any {
+			if hx_value_150 == nil {
+				var hx_zero_151 map[string]any
+				return hx_zero_151
 			}
-			return hx_value_164.(map[string]any)
+			return hx_value_150.(map[string]any)
 		}(cursor.tokens.Get(cursor.index)))) {
 			return
 		}
@@ -753,49 +753,49 @@ func (self *haxe__Template) skipSpaces(cursor *haxe___Template__ExprCursor) {
 
 func (self *haxe__Template) makeExpr2(cursor *haxe___Template__ExprCursor) func() any {
 	self.__hx_this.skipSpaces(cursor)
-	var hx_if_172 map[string]any
+	var hx_if_158 map[string]any
 	if cursor.index >= cursor.tokens.Len() {
-		hx_if_172 = nil
+		hx_if_158 = nil
 	} else {
-		hx_post_169 := cursor.index
+		hx_post_155 := cursor.index
 		cursor.index = int(int32((cursor.index + 1)))
-		hx_if_172 = func(hx_value_170 any) map[string]any {
-			if hx_value_170 == nil {
-				var hx_zero_171 map[string]any
-				return hx_zero_171
+		hx_if_158 = func(hx_value_156 any) map[string]any {
+			if hx_value_156 == nil {
+				var hx_zero_157 map[string]any
+				return hx_zero_157
 			}
-			return hx_value_170.(map[string]any)
-		}(cursor.tokens.Get(hx_post_169))
+			return hx_value_156.(map[string]any)
+		}(cursor.tokens.Get(hx_post_155))
 	}
-	token := hx_if_172
+	token := hx_if_158
 	self.__hx_this.skipSpaces(cursor)
 	if token == nil {
 		hxrt.Throw(hxrt.StringFromLiteral("<eof>"))
 	}
-	if func(hx_obj_176 map[string]any) bool {
-		hx_field_177 := hx_obj_176["s"]
-		if hx_field_177 == nil {
-			var hx_zero_178 bool
-			return hx_zero_178
+	if func(hx_obj_162 map[string]any) bool {
+		hx_field_163 := hx_obj_162["s"]
+		if hx_field_163 == nil {
+			var hx_zero_164 bool
+			return hx_zero_164
 		}
-		return hx_field_177.(bool)
+		return hx_field_163.(bool)
 	}(token) {
-		return self.__hx_this.makeConst(func(hx_obj_173 map[string]any) *string {
-			hx_field_174 := hx_obj_173["p"]
-			if hx_field_174 == nil {
-				var hx_zero_175 *string
-				return hx_zero_175
+		return self.__hx_this.makeConst(func(hx_obj_159 map[string]any) *string {
+			hx_field_160 := hx_obj_159["p"]
+			if hx_field_160 == nil {
+				var hx_zero_161 *string
+				return hx_zero_161
 			}
-			return hx_field_174.(*string)
+			return hx_field_160.(*string)
 		}(token))
 	}
-	_g := func(hx_obj_179 map[string]any) *string {
-		hx_field_180 := hx_obj_179["p"]
-		if hx_field_180 == nil {
-			var hx_zero_181 *string
-			return hx_zero_181
+	_g := func(hx_obj_165 map[string]any) *string {
+		hx_field_166 := hx_obj_165["p"]
+		if hx_field_166 == nil {
+			var hx_zero_167 *string
+			return hx_zero_167
 		}
-		return hx_field_180.(*string)
+		return hx_field_166.(*string)
 	}(token)
 	switch *hxrt.StdString(_g) {
 	case *hxrt.StdString(hxrt.StringFromLiteral("!")):
@@ -807,6 +807,57 @@ func (self *haxe__Template) makeExpr2(cursor *haxe___Template__ExprCursor) func(
 	case *hxrt.StdString(hxrt.StringFromLiteral("(")):
 		self.__hx_this.skipSpaces(cursor)
 		e1 := self.__hx_this.makeExpr(cursor)
+		self.__hx_this.skipSpaces(cursor)
+		var hx_if_171 map[string]any
+		if cursor.index >= cursor.tokens.Len() {
+			hx_if_171 = nil
+		} else {
+			hx_post_168 := cursor.index
+			cursor.index = int(int32((cursor.index + 1)))
+			hx_if_171 = func(hx_value_169 any) map[string]any {
+				if hx_value_169 == nil {
+					var hx_zero_170 map[string]any
+					return hx_zero_170
+				}
+				return hx_value_169.(map[string]any)
+			}(cursor.tokens.Get(hx_post_168))
+		}
+		op := hx_if_171
+		if (op == nil) || func(hx_obj_176 map[string]any) bool {
+			hx_field_177 := hx_obj_176["s"]
+			if hx_field_177 == nil {
+				var hx_zero_178 bool
+				return hx_zero_178
+			}
+			return hx_field_177.(bool)
+		}(op) {
+			var hx_if_175 *string
+			if op == nil {
+				hx_if_175 = hxrt.StringFromLiteral("<eof>")
+			} else {
+				hx_if_175 = func(hx_obj_172 map[string]any) *string {
+					hx_field_173 := hx_obj_172["p"]
+					if hx_field_173 == nil {
+						var hx_zero_174 *string
+						return hx_zero_174
+					}
+					return hx_field_173.(*string)
+				}(op)
+			}
+			hxrt.Throw(hx_if_175)
+		}
+		if hxrt.StringEqualStringPtr(func(hx_obj_179 map[string]any) *string {
+			hx_field_180 := hx_obj_179["p"]
+			if hx_field_180 == nil {
+				var hx_zero_181 *string
+				return hx_zero_181
+			}
+			return hx_field_180.(*string)
+		}(op), hxrt.StringFromLiteral(")")) {
+			return e1
+		}
+		self.__hx_this.skipSpaces(cursor)
+		e2 := self.__hx_this.makeExpr(cursor)
 		self.__hx_this.skipSpaces(cursor)
 		var hx_if_185 map[string]any
 		if cursor.index >= cursor.tokens.Len() {
@@ -822,17 +873,18 @@ func (self *haxe__Template) makeExpr2(cursor *haxe___Template__ExprCursor) func(
 				return hx_value_183.(map[string]any)
 			}(cursor.tokens.Get(hx_post_182))
 		}
-		op := hx_if_185
-		if (op == nil) || func(hx_obj_190 map[string]any) bool {
-			hx_field_191 := hx_obj_190["s"]
+		close := hx_if_185
+		self.__hx_this.skipSpaces(cursor)
+		if (close == nil) || !hxrt.StringEqualStringPtr(func(hx_obj_190 map[string]any) *string {
+			hx_field_191 := hx_obj_190["p"]
 			if hx_field_191 == nil {
-				var hx_zero_192 bool
+				var hx_zero_192 *string
 				return hx_zero_192
 			}
-			return hx_field_191.(bool)
-		}(op) {
+			return hx_field_191.(*string)
+		}(close), hxrt.StringFromLiteral(")")) {
 			var hx_if_189 *string
-			if op == nil {
+			if close == nil {
 				hx_if_189 = hxrt.StringFromLiteral("<eof>")
 			} else {
 				hx_if_189 = func(hx_obj_186 map[string]any) *string {
@@ -842,157 +894,105 @@ func (self *haxe__Template) makeExpr2(cursor *haxe___Template__ExprCursor) func(
 						return hx_zero_188
 					}
 					return hx_field_187.(*string)
-				}(op)
+				}(close)
 			}
 			hxrt.Throw(hx_if_189)
 		}
-		if hxrt.StringEqualStringPtr(func(hx_obj_193 map[string]any) *string {
+		_g_1 := func(hx_obj_193 map[string]any) *string {
 			hx_field_194 := hx_obj_193["p"]
 			if hx_field_194 == nil {
 				var hx_zero_195 *string
 				return hx_zero_195
 			}
 			return hx_field_194.(*string)
-		}(op), hxrt.StringFromLiteral(")")) {
-			return e1
-		}
-		self.__hx_this.skipSpaces(cursor)
-		e2 := self.__hx_this.makeExpr(cursor)
-		self.__hx_this.skipSpaces(cursor)
-		var hx_if_199 map[string]any
-		if cursor.index >= cursor.tokens.Len() {
-			hx_if_199 = nil
-		} else {
-			hx_post_196 := cursor.index
-			cursor.index = int(int32((cursor.index + 1)))
-			hx_if_199 = func(hx_value_197 any) map[string]any {
-				if hx_value_197 == nil {
-					var hx_zero_198 map[string]any
-					return hx_zero_198
-				}
-				return hx_value_197.(map[string]any)
-			}(cursor.tokens.Get(hx_post_196))
-		}
-		close := hx_if_199
-		self.__hx_this.skipSpaces(cursor)
-		if (close == nil) || !hxrt.StringEqualStringPtr(func(hx_obj_204 map[string]any) *string {
-			hx_field_205 := hx_obj_204["p"]
-			if hx_field_205 == nil {
-				var hx_zero_206 *string
-				return hx_zero_206
-			}
-			return hx_field_205.(*string)
-		}(close), hxrt.StringFromLiteral(")")) {
-			var hx_if_203 *string
-			if close == nil {
-				hx_if_203 = hxrt.StringFromLiteral("<eof>")
-			} else {
-				hx_if_203 = func(hx_obj_200 map[string]any) *string {
-					hx_field_201 := hx_obj_200["p"]
-					if hx_field_201 == nil {
-						var hx_zero_202 *string
-						return hx_zero_202
-					}
-					return hx_field_201.(*string)
-				}(close)
-			}
-			hxrt.Throw(hx_if_203)
-		}
-		_g_1 := func(hx_obj_207 map[string]any) *string {
-			hx_field_208 := hx_obj_207["p"]
-			if hx_field_208 == nil {
-				var hx_zero_209 *string
-				return hx_zero_209
-			}
-			return hx_field_208.(*string)
 		}(op)
-		var hx_switch_210 func() any
+		var hx_switch_196 func() any
 		switch *hxrt.StdString(_g_1) {
 		case *hxrt.StdString(hxrt.StringFromLiteral("!=")):
-			hx_switch_210 = func() any {
+			hx_switch_196 = func() any {
 				return !hxrt.HaxeEqual(e1(), e2())
 			}
 		case *hxrt.StdString(hxrt.StringFromLiteral("&&")):
-			hx_switch_210 = func() any {
+			hx_switch_196 = func() any {
 				return (haxe__Template_valueAsBool(e1()) && haxe__Template_valueAsBool(e2()))
 			}
 		case *hxrt.StdString(hxrt.StringFromLiteral("*")):
-			hx_switch_210 = func() any {
+			hx_switch_196 = func() any {
 				var left any = e1()
 				var right any = e2()
 				return (haxe__Template_valueAsFloat(left) * haxe__Template_valueAsFloat(right))
 			}
 		case *hxrt.StdString(hxrt.StringFromLiteral("+")):
-			hx_switch_210 = func() any {
+			hx_switch_196 = func() any {
 				return haxe__Template_addValues(e1(), e2())
 			}
 		case *hxrt.StdString(hxrt.StringFromLiteral("-")):
-			hx_switch_210 = func() any {
+			hx_switch_196 = func() any {
 				var left any = e1()
 				var right any = e2()
 				return (haxe__Template_valueAsFloat(left) - haxe__Template_valueAsFloat(right))
 			}
 		case *hxrt.StdString(hxrt.StringFromLiteral("/")):
-			hx_switch_210 = func() any {
+			hx_switch_196 = func() any {
 				var left any = e1()
 				var right any = e2()
 				return (haxe__Template_valueAsFloat(left) / haxe__Template_valueAsFloat(right))
 			}
 		case *hxrt.StdString(hxrt.StringFromLiteral("<")):
-			hx_switch_210 = func() any {
+			hx_switch_196 = func() any {
 				return (haxe__Template_compareValues(e1(), e2()) < 0)
 			}
 		case *hxrt.StdString(hxrt.StringFromLiteral("<=")):
-			hx_switch_210 = func() any {
+			hx_switch_196 = func() any {
 				return (haxe__Template_compareValues(e1(), e2()) <= 0)
 			}
 		case *hxrt.StdString(hxrt.StringFromLiteral("==")):
-			hx_switch_210 = func() any {
+			hx_switch_196 = func() any {
 				return hxrt.HaxeEqual(e1(), e2())
 			}
 		case *hxrt.StdString(hxrt.StringFromLiteral(">")):
-			hx_switch_210 = func() any {
+			hx_switch_196 = func() any {
 				return (haxe__Template_compareValues(e1(), e2()) > 0)
 			}
 		case *hxrt.StdString(hxrt.StringFromLiteral(">=")):
-			hx_switch_210 = func() any {
+			hx_switch_196 = func() any {
 				return (haxe__Template_compareValues(e1(), e2()) >= 0)
 			}
 		case *hxrt.StdString(hxrt.StringFromLiteral("||")):
-			hx_switch_210 = func() any {
+			hx_switch_196 = func() any {
 				return (haxe__Template_valueAsBool(e1()) || haxe__Template_valueAsBool(e2()))
 			}
 		default:
-			hx_switch_210 = func() func() any {
-				hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Unknown operation "), func(hx_obj_211 map[string]any) *string {
-					hx_field_212 := hx_obj_211["p"]
-					if hx_field_212 == nil {
-						var hx_zero_213 *string
-						return hx_zero_213
+			hx_switch_196 = func() func() any {
+				hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Unknown operation "), func(hx_obj_197 map[string]any) *string {
+					hx_field_198 := hx_obj_197["p"]
+					if hx_field_198 == nil {
+						var hx_zero_199 *string
+						return hx_zero_199
 					}
-					return hx_field_212.(*string)
+					return hx_field_198.(*string)
 				}(op)))
-				var hx_throw_zero_214 func() any
-				return hx_throw_zero_214
+				var hx_throw_zero_200 func() any
+				return hx_throw_zero_200
 			}()
 		}
-		return hx_switch_210
+		return hx_switch_196
 	case *hxrt.StdString(hxrt.StringFromLiteral("-")):
 		inner_1 := self.__hx_this.makeExpr(cursor)
 		return func() any {
 			return -haxe__Template_valueAsFloat(inner_1())
 		}
 	default:
-		hxrt.Throw(func(hx_obj_215 map[string]any) *string {
-			hx_field_216 := hx_obj_215["p"]
-			if hx_field_216 == nil {
-				var hx_zero_217 *string
-				return hx_zero_217
+		hxrt.Throw(func(hx_obj_201 map[string]any) *string {
+			hx_field_202 := hx_obj_201["p"]
+			if hx_field_202 == nil {
+				var hx_zero_203 *string
+				return hx_zero_203
 			}
-			return hx_field_216.(*string)
+			return hx_field_202.(*string)
 		}(token))
-		var hx_throw_zero_218 func() any
-		return hx_throw_zero_218
+		var hx_throw_zero_204 func() any
+		return hx_throw_zero_204
 	}
 }
 
@@ -1030,12 +1030,12 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 		items := _g_4
 		_g_5 := 0
 		for _g_5 < items.Len() {
-			item := func(hx_value_219 any) *haxe___Template__TemplateExpr {
-				if hx_value_219 == nil {
-					var hx_zero_220 *haxe___Template__TemplateExpr
-					return hx_zero_220
+			item := func(hx_value_205 any) *haxe___Template__TemplateExpr {
+				if hx_value_205 == nil {
+					var hx_zero_206 *haxe___Template__TemplateExpr
+					return hx_zero_206
 				}
-				return hx_value_219.(*haxe___Template__TemplateExpr)
+				return hx_value_205.(*haxe___Template__TemplateExpr)
 			}(items.Get(_g_5))
 			_g_5 = int(int32((_g_5 + 1)))
 			self.__hx_this.run(item)
@@ -1048,8 +1048,8 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 		var value_1 any = expr_2()
 		arrayValues := hxrt.TemplateArrayValues(value_1)
 		if arrayValues != nil {
-			hx_arr_221 := self.stack
-			hx_arr_221.Push(self.context)
+			hx_arr_207 := self.stack
+			hx_arr_207.Push(self.context)
 			_g_7 := 0
 			for _g_7 < len(arrayValues) {
 				var ctx any = arrayValues[_g_7]
@@ -1071,16 +1071,16 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 				hxrt.Throw(nil)
 			}
 			iterator = candidate
-		}, func(hx_caught_222 any) {
-			hx_tmp := hx_caught_222
+		}, func(hx_caught_208 any) {
+			hx_tmp := hx_caught_208
 			_ = hx_tmp
 			hxrt.TryCatch(func() {
 				if hxrt.AnyEqualsNull(value_1) || !Reflect_hasField(value_1, hxrt.StringFromLiteral("hasNext")) {
 					hxrt.Throw(nil)
 				}
 				iterator = value_1
-			}, func(hx_caught_224 any) {
-				hx_tmp_1 := hx_caught_224
+			}, func(hx_caught_210 any) {
+				hx_tmp_1 := hx_caught_210
 				_ = hx_tmp_1
 				hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Cannot iter on "), hxrt.StdString(value_1)))
 			})
@@ -1090,8 +1090,8 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 		if hxrt.AnyEqualsNull(hasNext) || hxrt.AnyEqualsNull(next) {
 			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Cannot iter on "), hxrt.StdString(value_1)))
 		}
-		hx_arr_226 := self.stack
-		hx_arr_226.Push(self.context)
+		hx_arr_212 := self.stack
+		hx_arr_212.Push(self.context)
 		for hxrt.HaxeEqual(hxrt.TemplateCall(hasNext, []any{}), true) {
 			self.context = hxrt.TemplateCall(next, []any{})
 			self.__hx_this.run(loop)
@@ -1107,12 +1107,12 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 		callArgs.Push(self.resolve)
 		_g_9 := 0
 		for _g_9 < params.Len() {
-			param := func(hx_value_228 any) *haxe___Template__TemplateExpr {
-				if hx_value_228 == nil {
-					var hx_zero_229 *haxe___Template__TemplateExpr
-					return hx_zero_229
+			param := func(hx_value_214 any) *haxe___Template__TemplateExpr {
+				if hx_value_214 == nil {
+					var hx_zero_215 *haxe___Template__TemplateExpr
+					return hx_zero_215
 				}
-				return hx_value_228.(*haxe___Template__TemplateExpr)
+				return hx_value_214.(*haxe___Template__TemplateExpr)
 			}(params.Get(_g_9))
 			_g_9 = int(int32((_g_9 + 1)))
 			if param.tag == 0 {
@@ -1129,17 +1129,17 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 		}
 		hxrt.TryCatch(func() {
 			self.output = hxrt.StringConcatStringPtr(self.output, hxrt.StdString(hxrt.TemplateCall(fn, callArgs.ValuesCopy())))
-		}, func(hx_caught_232 any) {
-			err := hx_caught_232
-			var hx_try_234 *string
+		}, func(hx_caught_218 any) {
+			err := hx_caught_218
+			var hx_try_220 *string
 			hxrt.TryCatch(func() {
-				hx_try_234 = haxe__Template_joinDynamicArgs(callArgs)
-			}, func(hx_caught_235 any) {
-				hx_tmp_2 := hx_caught_235
+				hx_try_220 = haxe__Template_joinDynamicArgs(callArgs)
+			}, func(hx_caught_221 any) {
+				hx_tmp_2 := hx_caught_221
 				_ = hx_tmp_2
-				hx_try_234 = hxrt.StringFromLiteral("???")
+				hx_try_220 = hxrt.StringFromLiteral("???")
 			})
-			argsText := hx_try_234
+			argsText := hx_try_220
 			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Macro call "), name), hxrt.StringFromLiteral("(")), argsText), hxrt.StringFromLiteral(") failed (")), hxrt.StdString(err)), hxrt.StringFromLiteral(")")))
 		})
 	}
@@ -1152,9 +1152,9 @@ func (self *haxe__Template) popStackValue() any {
 	_g := 0
 	_g1 := lastIndex
 	for _g < _g1 {
-		hx_post_237 := _g
+		hx_post_223 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_237
+		index := hx_post_223
 		remaining.Push(self.stack.Get(index))
 	}
 	self.stack = remaining
@@ -1308,19 +1308,19 @@ func haxe__Template_compareValues(left any, right any) int {
 	if leftNumeric && rightNumeric {
 		leftFloat := haxe__Template_valueAsFloat(left)
 		rightFloat := haxe__Template_valueAsFloat(right)
-		var hx_if_240 int
+		var hx_if_226 int
 		if leftFloat < rightFloat {
-			hx_if_240 = -1
+			hx_if_226 = -1
 		} else {
-			var hx_if_239 int
+			var hx_if_225 int
 			if leftFloat > rightFloat {
-				hx_if_239 = 1
+				hx_if_225 = 1
 			} else {
-				hx_if_239 = 0
+				hx_if_225 = 0
 			}
-			hx_if_240 = hx_if_239
+			hx_if_226 = hx_if_225
 		}
-		return hx_if_240
+		return hx_if_226
 	}
 	return Reflect_compare(hxrt.StdString(left), hxrt.StdString(right))
 }
@@ -1338,8 +1338,8 @@ var haxe__Template_expr_splitter *EReg = New_EReg(hxrt.StringFromLiteral("(\\(|\
 var haxe__Template_expr_trim *EReg = New_EReg(hxrt.StringFromLiteral("^[ ]*([^ ]+)[ ]*$"), hxrt.StringFromLiteral(""))
 
 var haxe__Template_globals any = any(func() map[string]any {
-	hx_obj_241 := map[string]any{}
-	return hx_obj_241
+	hx_obj_227 := map[string]any{}
+	return hx_obj_227
 }())
 
 func haxe__Template_isSpaceOnly(value *string) bool {
@@ -1349,9 +1349,9 @@ func haxe__Template_isSpaceOnly(value *string) bool {
 	_g_s = value
 	for _g_offset < hxrt.StringLengthStringPtr(_g_s) {
 		code := hxrt.StringCharCodeAtStringPtr(_g_s, func() int {
-			hx_post_242 := _g_offset
+			hx_post_228 := _g_offset
 			_g_offset = int(int32((_g_offset + 1)))
-			return hx_post_242
+			return hx_post_228
 		}())
 		if code != 32 {
 			return false
@@ -1365,9 +1365,9 @@ func haxe__Template_joinDynamicArgs(values *hxrt.Array) *string {
 	_g := 0
 	_g1 := values.Len()
 	for _g < _g1 {
-		hx_post_243 := _g
+		hx_post_229 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_243
+		index := hx_post_229
 		if index > 0 {
 			out = hxrt.StringConcatStringPtr(out, hxrt.StringFromLiteral(","))
 		}
@@ -1388,9 +1388,9 @@ func haxe__Template_kwdEnd(value *string, keyword *string) int {
 		_g_s = s
 		for _g_offset < hxrt.StringLengthStringPtr(_g_s) {
 			code := hxrt.StringCharCodeAtStringPtr(_g_s, func() int {
-				hx_post_244 := _g_offset
+				hx_post_230 := _g_offset
 				_g_offset = int(int32((_g_offset + 1)))
-				return hx_post_244
+				return hx_post_230
 			}())
 			if code == 32 {
 				pos = int(int32((pos + 1)))
@@ -1465,13 +1465,13 @@ func haxe__Template_parseFloatLiteral(value *string) float64 {
 				index = int(int32((index + 1)))
 			}
 			for exponent > 0 {
-				var hx_if_245 float64
+				var hx_if_231 float64
 				if exponentSign < 0 {
-					hx_if_245 = (result / 10.0)
+					hx_if_231 = (result / 10.0)
 				} else {
-					hx_if_245 = (result * 10.0)
+					hx_if_231 = (result * 10.0)
 				}
-				result = hx_if_245
+				result = hx_if_231
 				exponent = int(int32((exponent - 1)))
 			}
 		}
@@ -1491,65 +1491,65 @@ func haxe__Template_parseIntLiteral(value *string) int {
 }
 
 func haxe__Template_peekExprToken(cursor *haxe___Template__ExprCursor) map[string]any {
-	var hx_if_248 map[string]any
+	var hx_if_234 map[string]any
 	if cursor.index < cursor.tokens.Len() {
-		hx_if_248 = func(hx_value_246 any) map[string]any {
-			if hx_value_246 == nil {
-				var hx_zero_247 map[string]any
-				return hx_zero_247
+		hx_if_234 = func(hx_value_232 any) map[string]any {
+			if hx_value_232 == nil {
+				var hx_zero_233 map[string]any
+				return hx_zero_233
 			}
-			return hx_value_246.(map[string]any)
+			return hx_value_232.(map[string]any)
 		}(cursor.tokens.Get(cursor.index))
 	} else {
-		hx_if_248 = nil
+		hx_if_234 = nil
 	}
-	return hx_if_248
+	return hx_if_234
 }
 
 func haxe__Template_peekToken(cursor *haxe___Template__TokenCursor) map[string]any {
-	var hx_if_251 map[string]any
+	var hx_if_237 map[string]any
 	if cursor.index < cursor.tokens.Len() {
-		hx_if_251 = func(hx_value_249 any) map[string]any {
-			if hx_value_249 == nil {
-				var hx_zero_250 map[string]any
-				return hx_zero_250
+		hx_if_237 = func(hx_value_235 any) map[string]any {
+			if hx_value_235 == nil {
+				var hx_zero_236 map[string]any
+				return hx_zero_236
 			}
-			return hx_value_249.(map[string]any)
+			return hx_value_235.(map[string]any)
 		}(cursor.tokens.Get(cursor.index))
 	} else {
-		hx_if_251 = nil
+		hx_if_237 = nil
 	}
-	return hx_if_251
+	return hx_if_237
 }
 
 func haxe__Template_popExprToken(cursor *haxe___Template__ExprCursor) map[string]any {
 	if cursor.index >= cursor.tokens.Len() {
 		return nil
 	}
-	hx_post_252 := cursor.index
+	hx_post_238 := cursor.index
 	cursor.index = int(int32((cursor.index + 1)))
-	return func(hx_value_253 any) map[string]any {
-		if hx_value_253 == nil {
-			var hx_zero_254 map[string]any
-			return hx_zero_254
+	return func(hx_value_239 any) map[string]any {
+		if hx_value_239 == nil {
+			var hx_zero_240 map[string]any
+			return hx_zero_240
 		}
-		return hx_value_253.(map[string]any)
-	}(cursor.tokens.Get(hx_post_252))
+		return hx_value_239.(map[string]any)
+	}(cursor.tokens.Get(hx_post_238))
 }
 
 func haxe__Template_popToken(cursor *haxe___Template__TokenCursor) map[string]any {
 	if cursor.index >= cursor.tokens.Len() {
 		return nil
 	}
-	hx_post_255 := cursor.index
+	hx_post_241 := cursor.index
 	cursor.index = int(int32((cursor.index + 1)))
-	return func(hx_value_256 any) map[string]any {
-		if hx_value_256 == nil {
-			var hx_zero_257 map[string]any
-			return hx_zero_257
+	return func(hx_value_242 any) map[string]any {
+		if hx_value_242 == nil {
+			var hx_zero_243 map[string]any
+			return hx_zero_243
 		}
-		return hx_value_256.(map[string]any)
-	}(cursor.tokens.Get(hx_post_255))
+		return hx_value_242.(map[string]any)
+	}(cursor.tokens.Get(hx_post_241))
 }
 
 var haxe__Template_splitter *EReg = New_EReg(hxrt.StringFromLiteral("(::[A-Za-z0-9_ ()&|!+=/><*.\"-]+::|\\$\\$([A-Za-z0-9_-]+)\\()"), hxrt.StringFromLiteral(""))
@@ -1627,12 +1627,12 @@ func haxe__Template_valueAsFloat(value any) float64 {
 			return false
 		}
 	}(any(value)) {
-		return func(hx_value_258 any) float64 {
-			if hx_value_258 == nil {
-				var hx_zero_259 float64
-				return hx_zero_259
+		return func(hx_value_244 any) float64 {
+			if hx_value_244 == nil {
+				var hx_zero_245 float64
+				return hx_zero_245
 			}
-			return hx_value_258.(float64)
+			return hx_value_244.(float64)
 		}(value)
 	}
 	if func(hx_value any) bool {
@@ -1645,17 +1645,17 @@ func haxe__Template_valueAsFloat(value any) float64 {
 			return false
 		}
 	}(any(value)) {
-		return haxe__Template_parseFloatLiteral(hxrt.StdString(func(hx_value_260 any) *string {
-			if hx_value_260 == nil {
-				var hx_zero_261 *string
-				return hx_zero_261
+		return haxe__Template_parseFloatLiteral(hxrt.StdString(func(hx_value_246 any) *string {
+			if hx_value_246 == nil {
+				var hx_zero_247 *string
+				return hx_zero_247
 			}
-			return hx_value_260.(*string)
+			return hx_value_246.(*string)
 		}(value)))
 	}
 	hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Expected numeric expression value, got "), hxrt.StdString(value)))
-	var hx_throw_zero_262 float64
-	return hx_throw_zero_262
+	var hx_throw_zero_248 float64
+	return hx_throw_zero_248
 }
 
 type haxe___Template__TemplateExpr struct {

@@ -3,43 +3,43 @@ package main
 import "snapshot/hxrt"
 
 func Sys_args() *hxrt.Array {
-	return hxrt.ArrayFromValues(func(hx_sort_src_6 []*string) []any {
-		hx_sort_out_8 := make([]any, 0, len(hx_sort_src_6))
-		for _, hx_sort_item_7 := range hx_sort_src_6 {
-			hx_sort_out_8 = append(hx_sort_out_8, hx_sort_item_7)
+	return hxrt.ArrayFromValues(func(hx_sort_src_1 []*string) []any {
+		hx_sort_out_3 := make([]any, 0, len(hx_sort_src_1))
+		for _, hx_sort_item_2 := range hx_sort_src_1 {
+			hx_sort_out_3 = append(hx_sort_out_3, hx_sort_item_2)
 		}
-		return hx_sort_out_8
+		return hx_sort_out_3
 	}(hxrt.SysArgs()))
 }
 
 func Sys_command(cmd *string, args *hxrt.Array) int {
 	return hxrt.SysCommand(cmd, func() []*string {
-		var hx_if_14 []*string
+		var hx_if_9 []*string
 		if args == nil {
-			hx_if_14 = nil
+			hx_if_9 = nil
 		} else {
-			hx_if_14 = func(hx_lambda_raw_9 []any) []*string {
-				hx_lambda_out_10 := make([]*string, 0, len(hx_lambda_raw_9))
-				for _, hx_lambda_item_11 := range hx_lambda_raw_9 {
-					hx_lambda_out_10 = append(hx_lambda_out_10, func(hx_value_12 any) *string {
-						if hx_value_12 == nil {
-							var hx_zero_13 *string
-							return hx_zero_13
+			hx_if_9 = func(hx_lambda_raw_4 []any) []*string {
+				hx_lambda_out_5 := make([]*string, 0, len(hx_lambda_raw_4))
+				for _, hx_lambda_item_6 := range hx_lambda_raw_4 {
+					hx_lambda_out_5 = append(hx_lambda_out_5, func(hx_value_7 any) *string {
+						if hx_value_7 == nil {
+							var hx_zero_8 *string
+							return hx_zero_8
 						}
-						return hx_value_12.(*string)
-					}(hx_lambda_item_11))
+						return hx_value_7.(*string)
+					}(hx_lambda_item_6))
 				}
-				return hx_lambda_out_10
+				return hx_lambda_out_5
 			}(args.Values())
 		}
-		return hx_if_14
+		return hx_if_9
 	}())
 }
 
 func Sys_cpuTime() float64 {
 	hxrt.Throw(hxrt.StringFromLiteral("Sys.cpuTime is unsupported on haxe.go: process CPU time is not implemented"))
-	var hx_throw_zero_15 float64
-	return hx_throw_zero_15
+	var hx_throw_zero_10 float64
+	return hx_throw_zero_10
 }
 
 func Sys_environment() *haxe__ds__StringMap {

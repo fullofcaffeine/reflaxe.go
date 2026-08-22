@@ -66,9 +66,9 @@ func (self *sys__io___Process__ProcessOutput) readBytes(bytes *haxe__io__Bytes, 
 	_g := 0
 	_g1 := len(values)
 	for _g < _g1 {
-		hx_post_9 := _g
+		hx_post_1 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_9
+		index := hx_post_1
 		bytes.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index))))] = int(int32((hxrt.Int32Wrap(values[index]) & hxrt.Int32Wrap(255))))
 		bytes.__hx_rawValid = false
 	}
@@ -136,23 +136,23 @@ func (self *sys__io___Process__ProcessInput) writeBytes(bytes *haxe__io__Bytes, 
 	_g := 0
 	_g1 := length
 	for _g < _g1 {
-		hx_post_10 := _g
+		hx_post_2 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_10
+		index := hx_post_2
 		values.Push(bytes.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index))))])
 	}
-	if (self.handle == nil) || !hxrt.ProcessInputWriteValues(self.handle, func(hx_lambda_raw_12 []any) []int {
-		hx_lambda_out_13 := make([]int, 0, len(hx_lambda_raw_12))
-		for _, hx_lambda_item_14 := range hx_lambda_raw_12 {
-			hx_lambda_out_13 = append(hx_lambda_out_13, func(hx_value_15 any) int {
-				if hx_value_15 == nil {
-					var hx_zero_16 int
-					return hx_zero_16
+	if (self.handle == nil) || !hxrt.ProcessInputWriteValues(self.handle, func(hx_lambda_raw_4 []any) []int {
+		hx_lambda_out_5 := make([]int, 0, len(hx_lambda_raw_4))
+		for _, hx_lambda_item_6 := range hx_lambda_raw_4 {
+			hx_lambda_out_5 = append(hx_lambda_out_5, func(hx_value_7 any) int {
+				if hx_value_7 == nil {
+					var hx_zero_8 int
+					return hx_zero_8
 				}
-				return hx_value_15.(int)
-			}(hx_lambda_item_14))
+				return hx_value_7.(int)
+			}(hx_lambda_item_6))
 		}
-		return hx_lambda_out_13
+		return hx_lambda_out_5
 	}(values.Values())) {
 		hxrt.Throw(New_haxe__io__Eof())
 	}
@@ -196,25 +196,25 @@ func New_sys__io__Process(cmd *string, args *hxrt.Array, detached bool) *sys__io
 		hxrt.Throw(hxrt.StringFromLiteral("Detached process is not supported on this platform"))
 	}
 	self.handle = hxrt.ProcessCreate(cmd, func() []*string {
-		var hx_if_22 []*string
+		var hx_if_14 []*string
 		if args == nil {
-			hx_if_22 = nil
+			hx_if_14 = nil
 		} else {
-			hx_if_22 = func(hx_lambda_raw_17 []any) []*string {
-				hx_lambda_out_18 := make([]*string, 0, len(hx_lambda_raw_17))
-				for _, hx_lambda_item_19 := range hx_lambda_raw_17 {
-					hx_lambda_out_18 = append(hx_lambda_out_18, func(hx_value_20 any) *string {
-						if hx_value_20 == nil {
-							var hx_zero_21 *string
-							return hx_zero_21
+			hx_if_14 = func(hx_lambda_raw_9 []any) []*string {
+				hx_lambda_out_10 := make([]*string, 0, len(hx_lambda_raw_9))
+				for _, hx_lambda_item_11 := range hx_lambda_raw_9 {
+					hx_lambda_out_10 = append(hx_lambda_out_10, func(hx_value_12 any) *string {
+						if hx_value_12 == nil {
+							var hx_zero_13 *string
+							return hx_zero_13
 						}
-						return hx_value_20.(*string)
-					}(hx_lambda_item_19))
+						return hx_value_12.(*string)
+					}(hx_lambda_item_11))
 				}
-				return hx_lambda_out_18
+				return hx_lambda_out_10
 			}(args.Values())
 		}
-		return hx_if_22
+		return hx_if_14
 	}())
 	self.stdout = New_sys__io___Process__ProcessOutput(hxrt.ProcessStdout(self.handle)).haxe__io__Input
 	self.stderr = New_sys__io___Process__ProcessOutput(hxrt.ProcessStderr(self.handle)).haxe__io__Input
@@ -228,13 +228,13 @@ func (self *sys__io__Process) getPid() int {
 
 func (self *sys__io__Process) exitCode(block bool) any {
 	status := hxrt.ProcessExitStatusValue(self.__hx_this.requireHandle(), block)
-	var hx_if_23 any
+	var hx_if_15 any
 	if status.Available {
-		hx_if_23 = status.Code
+		hx_if_15 = status.Code
 	} else {
-		hx_if_23 = nil
+		hx_if_15 = nil
 	}
-	return hx_if_23
+	return hx_if_15
 }
 
 func (self *sys__io__Process) close() {

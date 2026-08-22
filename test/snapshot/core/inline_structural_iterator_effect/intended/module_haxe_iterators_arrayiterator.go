@@ -26,7 +26,7 @@ func (self *haxe__iterators__ArrayIterator) hasNext() bool {
 }
 
 func (self *haxe__iterators__ArrayIterator) next() any {
-	hx_post_34 := self.current
+	hx_post_1 := self.current
 	self.current = int(int32((self.current + 1)))
-	return self.array.Get(hx_post_34)
+	return self.array.Get(hx_post_1)
 }
