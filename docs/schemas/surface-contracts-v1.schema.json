@@ -126,9 +126,7 @@
       "enum": [
         "core",
         "array",
-        "array_sort",
         "string",
-        "string_compare",
         "equality",
         "print",
         "exception",
