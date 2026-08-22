@@ -7,6 +7,13 @@ extern class StrconvPkg {
 	static function atoi(value:String):Result<Int>;
 }
 
+@:go.import("net/url")
+extern class URLPkg {
+	@:go.name("QueryUnescape")
+	@:go.valueError
+	static function queryUnescape(value:String):Result<String>;
+}
+
 class Main {
 	static function main() {
 		var ok = StrconvPkg.atoi("42");
@@ -18,5 +25,8 @@ class Main {
 		Sys.println("err.isOk=" + err.isOk());
 		Sys.println("err.isErr=" + err.isErr());
 		Sys.println("err.hasError=" + (err.error() != null));
+
+		var text = URLPkg.queryUnescape("hello+world");
+		Sys.println("text.unwrap=" + text.unwrap());
 	}
 }

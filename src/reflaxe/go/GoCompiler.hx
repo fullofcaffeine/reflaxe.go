@@ -2696,6 +2696,18 @@ class GoCompiler {
 						])
 					]))
 				], null),
+				// Native Go strings cross the extern boundary as values, while Haxe
+				// String uses the target's nil-capable pointer carrier. Normalize the
+				// successful value before the erased Result stores it so typed unwrap
+				// observes the same representation as an ordinary extern call.
+				GoStmt.GoTypeSwitch(GoExpr.GoIdent("value"), "typed", [
+					{
+						typeName: GoType.builtin(GoBuiltinType.StringType),
+						body: [
+							GoStmt.GoAssign(GoExpr.GoIdent("value"), GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [GoExpr.GoIdent("typed")]))
+						]
+					}
+				], null),
 				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_go___Result"), [GoExpr.GoIdent("value"), GoExpr.GoNil]))
 			])
 		];
