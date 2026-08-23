@@ -7,6 +7,7 @@ import haxe.macro.Expr.Binop;
 import haxe.macro.Expr.Unop;
 import haxe.macro.PositionTools;
 import haxe.macro.Type;
+import haxe.macro.TypeTools;
 import reflaxe.go.analyze.GoProfileContractAnalyzer;
 import reflaxe.go.compiler.GoAutoLoweringMode;
 import reflaxe.go.compiler.GoCompilerDefine;
@@ -2994,26 +2995,64 @@ class GoCompiler {
 	function lowerInterfaceDecls(classType:ClassType):Array<GoDecl> {
 		var methods = new Array<GoInterfaceMethod>();
 		var seen = new Map<String, Bool>();
-		for (field in classType.fields.get()) {
-			switch (field.kind) {
-				case FMethod(_):
-					if (field.name == "new") {
-						continue;
-					}
-					var method = lowerInterfaceMethod(classType, field);
-					if (method != null && !seen.exists(method.name)) {
-						seen.set(method.name, true);
-						methods.push(method);
-					}
-				case _:
+		var visited = new Map<String, Bool>();
+
+		/**
+			What: Collect the complete Haxe interface method set before emitting one Go
+			interface declaration.
+
+			Why: Haxe interface inheritance is nominal, while the generated Go interface
+			is structural. Emitting only `classType.fields` drops inherited methods and
+			makes otherwise valid calls fail during `go test`.
+
+			How: Walk parents first, substitute each edge's type arguments into the
+			parent fields, guard repeated diamond visits by nominal interface identity,
+			and deduplicate the final Go selector names.
+		**/
+		function collect(interfaceType:ClassType, appliedParams:Null<Array<Type>>):Void {
+			var interfaceName = fullClassName(interfaceType);
+			if (visited.exists(interfaceName)) {
+				return;
+			}
+			visited.set(interfaceName, true);
+
+			function collectParent(entry:{t:Ref<ClassType>, params:Array<Type>}):Void {
+				var parentParams = entry.params;
+				if (appliedParams != null) {
+					parentParams = [
+						for (param in entry.params) TypeTools.applyTypeParameters(param, interfaceType.params, appliedParams)
+					];
+				}
+				collect(entry.t.get(), parentParams);
+			}
+			for (entry in interfaceType.interfaces) {
+				collectParent(entry);
+			}
+
+			for (field in interfaceType.fields.get()) {
+				switch (field.kind) {
+					case FMethod(_):
+						if (field.name == "new") {
+							continue;
+						}
+						var fieldType = appliedParams == null ? field.type : TypeTools.applyTypeParameters(field.type, interfaceType.params, appliedParams);
+						var method = lowerInterfaceMethod(interfaceType, field, fieldType);
+						if (method != null && !seen.exists(method.name)) {
+							seen.set(method.name, true);
+							methods.push(method);
+						}
+					case _:
+				}
 			}
 		}
+
+		collect(classType, null);
 		return [GoDecl.GoInterfaceDecl(classTypeName(classType), methods)];
 	}
 
-	function lowerInterfaceMethod(classType:ClassType, field:ClassField):Null<GoInterfaceMethod> {
+	function lowerInterfaceMethod(classType:ClassType, field:ClassField, declaredType:Type):Null<GoInterfaceMethod> {
 		var methodName = interfaceFieldName(classType, field);
-		var followed = Context.follow(field.type);
+		var followed = Context.follow(declaredType);
 		return switch (followed) {
 			case TFun(args, returnType):
 				{
@@ -3028,7 +3067,7 @@ class GoCompiler {
 				} else {
 					{
 						name: methodName,
-						params: lowerFunctionParams(methodFunc, typedFunctionArgs(field.type)),
+						params: lowerFunctionParams(methodFunc, typedFunctionArgs(declaredType)),
 						results: lowerFunctionResults(methodFunc.t)
 					};
 				}
