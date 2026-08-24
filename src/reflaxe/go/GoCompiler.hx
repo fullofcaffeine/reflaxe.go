@@ -6618,6 +6618,13 @@ class GoCompiler {
 							noteExternImportPath(classType, externPackage);
 						}
 						selector = externFieldName(resolved);
+						var adapted = lowerImportedExternMethodValue(loweredTarget, classType, resolved, selector);
+						if (adapted != null) {
+							return {
+								expr: adapted,
+								isStringLike: false
+							};
+						}
 					}
 				}
 				{
@@ -6630,6 +6637,71 @@ class GoCompiler {
 					isStringLike: false
 				};
 		};
+	}
+
+	/**
+		What: Adapts an imported Go instance method value to its Haxe function ABI.
+		Why: Direct extern calls normalize Haxe's pointer-backed strings at the native
+		boundary, but a raw Go method value retains `func(string)` or a `string` result
+		and cannot be called through Haxe's `func(*string)` carrier.
+		How: Capture the native method value once, then return a typed Haxe-facing
+		closure that applies the same narrow string argument and result conversions as
+		an ordinary imported extern call.
+	**/
+	function lowerImportedExternMethodValue(target:GoExpr, classType:ClassType, field:ClassField, selector:String):Null<GoExpr> {
+		var importPath = externClassImportPath(classType);
+		if (importPath == null || readMetadataString(classType.meta, [GoMetadataName.GoImport]) == "hxrt") {
+			return null;
+		}
+
+		return switch (Context.follow(field.type)) {
+			case TFun(args, returnType):
+				var needsAdapter = importedExternMethodValueNeedsStringAdapter(returnType);
+				for (arg in args) {
+					if (importedExternMethodValueNeedsStringAdapter(arg.t)) {
+						needsAdapter = true;
+					}
+				}
+				if (!needsAdapter) {
+					return null;
+				}
+
+				var methodName = freshTempName("hx_extern_method");
+				var params = new Array<GoParam>();
+				var callArgs = new Array<GoExpr>();
+				for (arg in args) {
+					var argName = freshTempName("hx_extern_arg");
+					params.push({name: argName, typeName: functionParameterStorageGoType(arg)});
+					callArgs.push(normalizeImportedExternMethodValueArg(GoExpr.GoIdent(argName), arg.t));
+				}
+
+				var call = GoExpr.GoCall(GoExpr.GoIdent(methodName), callArgs);
+				var innerBody = if (isVoidType(returnType)) {
+					[GoStmt.GoExprStmt(call)];
+				} else {
+					[GoStmt.GoReturn(normalizeImportedExternMethodValueResult(call, returnType))];
+				};
+				var wrapper = GoExpr.GoFuncLiteral(params, lowerFunctionResults(returnType), innerBody);
+				GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(field.type)], [
+					GoStmt.GoVarDecl(methodName, null, GoExpr.GoSelector(target, selector), true),
+					GoStmt.GoReturn(wrapper)
+				]), []);
+			case _:
+				null;
+		};
+	}
+
+	function importedExternMethodValueNeedsStringAdapter(type:Type):Bool {
+		var nullableInner = nullableInnerType(type);
+		return isStringType(type) && !(nullableInner != null && isStringType(nullableInner));
+	}
+
+	function normalizeImportedExternMethodValueArg(value:GoExpr, type:Type):GoExpr {
+		return importedExternMethodValueNeedsStringAdapter(type) ? GoExpr.GoUnary("*", GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [value])) : value;
+	}
+
+	function normalizeImportedExternMethodValueResult(value:GoExpr, type:Type):GoExpr {
+		return importedExternMethodValueNeedsStringAdapter(type) ? GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [value]) : value;
 	}
 
 	function lowerAnonymousFieldRead(targetExpr:GoExpr, fieldName:String, fieldType:Type):GoExpr {
