@@ -4,7 +4,10 @@ package goextern.time;
 
 @:go.import("time")
 @:go.name("Time")
+@:go.struct
 extern class Time {
+	public function new();
+
 	@:go.name("Add")
 	public function add(d:Duration):Time;
 
@@ -15,7 +18,7 @@ extern class Time {
 	public function after(u:Time):Bool;
 
 	@:go.name("AppendFormat")
-	public function appendFormat(b:Array<Int>, layout:String):Array<Int>;
+	public function appendFormat(b:go.NativeSlice<Int>, layout:String):go.NativeSlice<Int>;
 
 	@:go.name("Before")
 	public function before(u:Time):Bool;
@@ -44,7 +47,7 @@ extern class Time {
 	public function goString():String;
 
 	@:go.name("GobDecode")
-	public function gobDecode(data:Array<Int>):go.Error;
+	public function gobDecode(data:go.NativeSlice<Int>):go.Error;
 
 	@:go.tupleReturn
 	@:go.name("GobEncode")
@@ -124,13 +127,13 @@ extern class Time {
 	public function unixNano():Int;
 
 	@:go.name("UnmarshalBinary")
-	public function unmarshalBinary(data:Array<Int>):go.Error;
+	public function unmarshalBinary(data:go.NativeSlice<Int>):go.Error;
 
 	@:go.name("UnmarshalJSON")
-	public function unmarshalJSON(data:Array<Int>):go.Error;
+	public function unmarshalJSON(data:go.NativeSlice<Int>):go.Error;
 
 	@:go.name("UnmarshalText")
-	public function unmarshalText(data:Array<Int>):go.Error;
+	public function unmarshalText(data:go.NativeSlice<Int>):go.Error;
 
 	@:go.name("Weekday")
 	public function weekday():Weekday;

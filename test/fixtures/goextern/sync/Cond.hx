@@ -4,7 +4,13 @@ package goextern.sync;
 
 @:go.import("sync")
 @:go.name("Cond")
+@:go.struct
 extern class Cond {
+	public function new();
+
+	@:go.name("L")
+	public var l:Locker;
+
 	@:go.name("Broadcast")
 	public function broadcast():Void;
 

@@ -58,10 +58,12 @@ Examples:
 ## What It Emits
 
 - One extern class per exported named type in the package.
+- Exported fields on named structs when their types preserve the exact Go ABI.
 - One package static extern class (`<PkgName>Pkg`) for exported package-level functions.
 - Metadata for compiler lowering:
   - `@:go.import("<path>")`
   - `@:go.name("<symbol>")`
+  - `@:go.struct` (on concrete Go structs with zero-value construction)
   - `@:go.valueError` (when the extern returns Go `(T,error)` and the Haxe return type is `go.Result<T>`)
 
 ## Determinism Contract
@@ -94,8 +96,22 @@ The generator intentionally starts conservative:
 - slices -> `go.NativeSlice<T>`
 - fixed-size Go arrays -> `Dynamic` (`fixed_array`) until their length-bearing ABI has a typed facade
 - map with string keys -> `haxe.DynamicAccess<T>`
+- exported fields on named structs -> writable Haxe fields with exact `@:go.name` selectors
 - supported multi-return signatures -> generated tuple carrier classes
 - unsupported/complex boundaries -> `Dynamic`
+
+Generated named structs have a zero-argument constructor. `haxe.go` lowers it
+to an addressed Go composite literal such as `&image.Point{}`. This creates the
+ordinary Go zero value; it does not call or invent a package constructor.
+
+Only exported, non-embedded fields whose complete type maps to the same Go ABI
+are emitted. The current exact set includes `bool`, `int`, `float64`, `string`,
+safe native slices, same-package named interfaces, and pointers to supported
+same-package named values. Unexported fields stay private to Go. Embedded fields,
+maps, width-changing scalars, pointer shapes without a named carrier, named Go
+values that Haxe would represent as pointers, and other unsupported fields are
+omitted and recorded in the fallback report. This prevents an extern from
+claiming a field type that does not match the Go ABI.
 
 Generated tuple carrier pattern:
 
@@ -141,7 +157,7 @@ Terms:
 | `func Name(...) (A, B)` where both values map cleanly | Emits a generated tuple carrier such as `NameResult`, plus `@:go.tupleReturn`. | Use the generated carrier directly. Example evidence: `test/snapshot/go_native/extern_tuple_return`. |
 | `func Name(...) (A, B, C...)` where every value maps cleanly | Emits a generated tuple carrier with one field per Go result value. | Use the generated carrier directly, or write a smaller facade if a domain-specific name is clearer. |
 | any multi-return signature containing unsupported result types | Emits `Dynamic` for that method. | Add a typed facade wrapper. Do not pretend the generated `Dynamic` value is portable or fully typed. |
-| callbacks, channels, generics, unsafe pointers, structs from another package | Usually emits `Dynamic` at the boundary. | Wrap the API behind a smaller typed facade first, then expose that facade to Haxe. |
+| callbacks, channels, generics, unsafe pointers, named values from another package | Usually emits `Dynamic` at the boundary. | Generate the dependency package too when possible, or wrap the API behind a smaller typed facade. |
 
 Generated tuple carriers are intentionally simple. They are good when the Go
 result names are already meaningful, such as `name` and `offset`. A hand-written
@@ -181,10 +197,12 @@ The report is deterministic JSON:
 Field meanings:
 
 - `package`: the Go package being generated.
-- `symbol`: the Go function or method that contains the fallback.
-- `position`: where the fallback happened, such as `param:w` or `result:1`.
+- `symbol`: the Go function, method, or struct field that contains the fallback.
+- `position`: where the fallback happened, such as `param:w`, `result:1`, or `field:Created`.
 - `goType`: the original Go type at that boundary.
-- `reason`: why `goextern` used `Dynamic`.
+- `reason`: why `goextern` could not preserve an exact typed boundary. For
+  callable signatures this usually means `Dynamic`; unsupported struct fields
+  are omitted instead.
 
 Common reason codes:
 
@@ -197,6 +215,12 @@ Common reason codes:
 - `channel`: the boundary is a Go channel.
 - `type_parameter`: the boundary uses a Go generic type parameter.
 - `unsafe_pointer`: the boundary uses `unsafe.Pointer`.
+- `embedded_field`: the exported field is embedded and is not emitted as a direct writable selector.
+- `scalar_field_abi`: the scalar width or signedness does not match the Haxe carrier.
+- `pointer_field_abi`: the pointer does not have a matching named Haxe carrier.
+- `slice_element_abi`: the native slice element would change representation.
+- `map_field_abi`: no exact native map field carrier is available yet.
+- `named_value_field_abi`: a named Go value would be pointer-backed as a Haxe extern class.
 
 How to use this report:
 

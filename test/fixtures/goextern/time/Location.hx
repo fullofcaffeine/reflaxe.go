@@ -4,7 +4,10 @@ package goextern.time;
 
 @:go.import("time")
 @:go.name("Location")
+@:go.struct
 extern class Location {
+	public function new();
+
 	@:go.name("String")
 	public function string():String;
 }

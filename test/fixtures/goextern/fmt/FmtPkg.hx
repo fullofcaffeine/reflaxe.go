@@ -5,13 +5,13 @@ package goextern.fmt;
 @:go.import("fmt")
 extern class FmtPkg {
 	@:go.name("Append")
-	public static function append(b:Array<Int>, a:haxe.Rest<Dynamic>):Array<Int>;
+	public static function append(b:go.NativeSlice<Int>, a:haxe.Rest<Dynamic>):go.NativeSlice<Int>;
 
 	@:go.name("Appendf")
-	public static function appendf(b:Array<Int>, format:String, a:haxe.Rest<Dynamic>):Array<Int>;
+	public static function appendf(b:go.NativeSlice<Int>, format:String, a:haxe.Rest<Dynamic>):go.NativeSlice<Int>;
 
 	@:go.name("Appendln")
-	public static function appendln(b:Array<Int>, a:haxe.Rest<Dynamic>):Array<Int>;
+	public static function appendln(b:go.NativeSlice<Int>, a:haxe.Rest<Dynamic>):go.NativeSlice<Int>;
 
 	@:go.name("Errorf")
 	public static function errorf(format:String, a:haxe.Rest<Dynamic>):go.Error;

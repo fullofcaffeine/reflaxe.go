@@ -4,7 +4,10 @@ package goextern.sync;
 
 @:go.import("sync")
 @:go.name("Map")
+@:go.struct
 extern class Map {
+	public function new();
+
 	@:go.name("Clear")
 	public function clear():Void;
 

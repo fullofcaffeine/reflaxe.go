@@ -4,7 +4,10 @@ package goextern.time;
 
 @:go.import("time")
 @:go.name("Timer")
+@:go.struct
 extern class Timer {
+	public function new();
+
 	@:go.name("Reset")
 	public function reset(d:Duration):Bool;
 

@@ -42,9 +42,17 @@ type declaration struct {
 	ClassName       string
 	GoTypeName      string
 	Interface       bool
+	Struct          bool
 	PackageClass    bool
+	Fields          []fieldDecl
 	StaticMethods   []methodDecl
 	InstanceMethods []methodDecl
+}
+
+type fieldDecl struct {
+	GoName   string
+	HaxeName string
+	Type     string
 }
 
 type methodDecl struct {
@@ -383,16 +391,138 @@ func asNamedType(typeName *types.TypeName) *types.Named {
 func buildTypeDeclaration(named *types.Named, ctx mappingContext, usedCarrierNames map[string]bool) (declaration, []tupleCarrierDecl, []DynamicFallback) {
 	goName := named.Obj().Name()
 	_, isInterface := named.Underlying().(*types.Interface)
+	structType, isStruct := named.Underlying().(*types.Struct)
+	fields, fieldFallbacks := collectStructFields(goName, structType, ctx)
 	methods, carriers, fallbacks := collectMethods(named, false, ctx, goName, usedCarrierNames)
+	fallbacks = append(fallbacks, fieldFallbacks...)
 
 	return declaration{
 		ClassName:       goName,
 		GoTypeName:      goName,
 		Interface:       isInterface,
+		Struct:          isStruct,
 		PackageClass:    false,
+		Fields:          fields,
 		StaticMethods:   nil,
 		InstanceMethods: methods,
-	}, carriers, fallbacks
+	}, carriers, sortedDynamicFallbacks(fallbacks)
+}
+
+func collectStructFields(ownerName string, structType *types.Struct, ctx mappingContext) ([]fieldDecl, []DynamicFallback) {
+	if structType == nil {
+		return nil, nil
+	}
+
+	fields := make([]fieldDecl, 0, structType.NumFields())
+	fallbacks := make([]DynamicFallback, 0)
+	usedNames := make(map[string]int)
+	for index := 0; index < structType.NumFields(); index++ {
+		field := structType.Field(index)
+		if field == nil || !field.Exported() {
+			continue
+		}
+
+		symbol := ownerName + "." + field.Name()
+		position := "field:" + field.Name()
+		if field.Embedded() {
+			fallbacks = append(fallbacks, newDynamicFallback(ctx, symbol, position, field.Type(), "embedded_field"))
+			continue
+		}
+
+		fieldType, reason := mapStructFieldTypeWithReason(field.Type(), ctx)
+		if containsDynamicType(fieldType) {
+			fallbacks = append(fallbacks, newDynamicFallback(ctx, symbol, position, field.Type(), reason))
+			continue
+		}
+
+		fields = append(fields, fieldDecl{
+			GoName:   field.Name(),
+			HaxeName: sanitizeParamName(lowerCamel(field.Name()), index, usedNames),
+			Type:     fieldType,
+		})
+	}
+
+	sort.Slice(fields, func(i, j int) bool {
+		return fields[i].GoName < fields[j].GoName
+	})
+	return fields, sortedDynamicFallbacks(fallbacks)
+}
+
+func mapStructFieldTypeWithReason(t types.Type, ctx mappingContext) (string, string) {
+	if t == nil {
+		return "Dynamic", "nil_type"
+	}
+
+	switch fieldType := types.Unalias(t).(type) {
+	case *types.Basic:
+		switch fieldType.Kind() {
+		case types.Bool, types.Int, types.String, types.Float64:
+			return mapBasicTypeWithReason(fieldType)
+		default:
+			return "Dynamic", "scalar_field_abi"
+		}
+	case *types.Pointer:
+		named, ok := types.Unalias(fieldType.Elem()).(*types.Named)
+		if !ok {
+			return "Dynamic", "pointer_field_abi"
+		}
+		if _, isInterface := named.Underlying().(*types.Interface); isInterface {
+			return "Dynamic", "pointer_field_abi"
+		}
+		return mapTypeWithReason(fieldType, ctx)
+	case *types.Slice:
+		elementType, reason := mapNativeSliceFieldElementWithReason(fieldType.Elem(), ctx)
+		if reason != "" {
+			return "Dynamic", reason
+		}
+		return "go.NativeSlice<" + elementType + ">", ""
+	case *types.Map:
+		return "Dynamic", "map_field_abi"
+	case *types.Named:
+		mapped, reason := mapTypeWithReason(fieldType, ctx)
+		if reason != "" {
+			return "Dynamic", reason
+		}
+		if _, isInterface := fieldType.Underlying().(*types.Interface); isInterface {
+			return mapped, ""
+		}
+		return "Dynamic", "named_value_field_abi"
+	default:
+		_, reason := mapTypeWithReason(fieldType, ctx)
+		return "Dynamic", reason
+	}
+}
+
+func mapNativeSliceFieldElementWithReason(t types.Type, ctx mappingContext) (string, string) {
+	switch elementType := types.Unalias(t).(type) {
+	case *types.Basic:
+		switch elementType.Kind() {
+		case types.Bool, types.Int, types.Float64:
+			return mapBasicTypeWithReason(elementType)
+		default:
+			return "Dynamic", "slice_element_abi"
+		}
+	case *types.Pointer:
+		named, ok := types.Unalias(elementType.Elem()).(*types.Named)
+		if !ok {
+			return "Dynamic", "slice_element_abi"
+		}
+		if _, isInterface := named.Underlying().(*types.Interface); isInterface {
+			return "Dynamic", "slice_element_abi"
+		}
+		return mapTypeWithReason(elementType, ctx)
+	case *types.Named:
+		mapped, reason := mapTypeWithReason(elementType, ctx)
+		if reason != "" {
+			return "Dynamic", reason
+		}
+		if _, isInterface := elementType.Underlying().(*types.Interface); isInterface {
+			return mapped, ""
+		}
+		return "Dynamic", "slice_element_abi"
+	default:
+		return "Dynamic", "slice_element_abi"
+	}
 }
 
 func buildPackageDeclaration(pkg *types.Package, classOverride string, funcs []*types.Func, exportedTypes map[string]bool, ctx mappingContext, usedCarrierNames map[string]bool) (declaration, []tupleCarrierDecl, []DynamicFallback) {
@@ -837,6 +967,9 @@ func renderDeclaration(haxePackage string, goImportPath string, decl declaration
 		b.WriteString(decl.GoTypeName)
 		b.WriteString("\")\n")
 	}
+	if decl.Struct {
+		b.WriteString("@:go.struct\n")
+	}
 
 	allMethods := make([]methodDecl, 0, len(decl.StaticMethods)+len(decl.InstanceMethods))
 	allMethods = append(allMethods, decl.StaticMethods...)
@@ -854,15 +987,34 @@ func renderDeclaration(haxePackage string, goImportPath string, decl declaration
 	} else {
 		b.WriteString("extern class ")
 		b.WriteString(decl.ClassName)
-		if len(allMethods) == 0 {
+		if !decl.Struct && len(decl.Fields) == 0 && len(allMethods) == 0 {
 			b.WriteString(" {}\n")
 			return b.String()
 		}
 		b.WriteString(" {\n")
 	}
 
-	for idx, method := range allMethods {
-		if idx > 0 {
+	wroteMember := false
+	if decl.Struct {
+		b.WriteString("\tpublic function new();\n")
+		wroteMember = true
+	}
+	for _, field := range decl.Fields {
+		if wroteMember {
+			b.WriteString("\n")
+		}
+		b.WriteString("\t@:go.name(\"")
+		b.WriteString(field.GoName)
+		b.WriteString("\")\n")
+		b.WriteString("\tpublic var ")
+		b.WriteString(field.HaxeName)
+		b.WriteString(":")
+		b.WriteString(field.Type)
+		b.WriteString(";\n")
+		wroteMember = true
+	}
+	for _, method := range allMethods {
+		if wroteMember {
 			b.WriteString("\n")
 		}
 		if method.TupleReturn {
@@ -889,6 +1041,7 @@ func renderDeclaration(haxePackage string, goImportPath string, decl declaration
 		b.WriteString("):")
 		b.WriteString(method.ReturnType)
 		b.WriteString(";\n")
+		wroteMember = true
 	}
 
 	b.WriteString("}\n")

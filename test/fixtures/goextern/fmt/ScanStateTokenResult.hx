@@ -8,10 +8,10 @@ package goextern.fmt;
 	How: haxe.go lowers the matching `@:go.tupleReturn` extern call into this carrier.
 **/
 class ScanStateTokenResult {
-	public var token(default, null):Array<Int>;
+	public var token(default, null):go.NativeSlice<Int>;
 	public var err(default, null):Null<go.Error>;
 
-	public function new(token:Array<Int>, err:Null<go.Error>) {
+	public function new(token:go.NativeSlice<Int>, err:Null<go.Error>) {
 		this.token = token;
 		this.err = err;
 	}

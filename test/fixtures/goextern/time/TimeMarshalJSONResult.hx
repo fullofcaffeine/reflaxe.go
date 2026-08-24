@@ -8,10 +8,10 @@ package goextern.time;
 	How: haxe.go lowers the matching `@:go.tupleReturn` extern call into this carrier.
 **/
 class TimeMarshalJSONResult {
-	public var value1(default, null):Array<Int>;
+	public var value1(default, null):go.NativeSlice<Int>;
 	public var value2(default, null):Null<go.Error>;
 
-	public function new(value1:Array<Int>, value2:Null<go.Error>) {
+	public function new(value1:go.NativeSlice<Int>, value2:Null<go.Error>) {
 		this.value1 = value1;
 		this.value2 = value2;
 	}
