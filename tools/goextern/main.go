@@ -21,6 +21,7 @@ import (
 
 type Config struct {
 	GoImportPath      string
+	WorkingDirectory  string
 	OutputRoot        string
 	HaxePackagePrefix string
 	PackageClassName  string
@@ -145,6 +146,7 @@ func run(args []string, stdout io.Writer, stderr io.Writer) error {
 	fs.SetOutput(stderr)
 
 	goImportPath := fs.String("package", "", "Go import path to introspect (required)")
+	workingDirectory := fs.String("dir", "", "Go module directory used to resolve the package (default: current directory)")
 	outRoot := fs.String("out", "gen/goextern", "Output root directory")
 	haxePackagePrefix := fs.String("haxe-package", "goextern", "Root Haxe package prefix")
 	packageClassName := fs.String("package-class", "", "Override package static extern class name")
@@ -157,6 +159,7 @@ func run(args []string, stdout io.Writer, stderr io.Writer) error {
 
 	cfg := Config{
 		GoImportPath:      strings.TrimSpace(*goImportPath),
+		WorkingDirectory:  strings.TrimSpace(*workingDirectory),
 		OutputRoot:        strings.TrimSpace(*outRoot),
 		HaxePackagePrefix: strings.TrimSpace(*haxePackagePrefix),
 		PackageClassName:  strings.TrimSpace(*packageClassName),
@@ -202,7 +205,7 @@ func BuildEmission(cfg Config) (*Emission, error) {
 		cfg.OutputRoot = "gen/goextern"
 	}
 
-	pkg, err := loadPackage(cfg.GoImportPath)
+	pkg, err := loadPackage(cfg.GoImportPath, cfg.WorkingDirectory)
 	if err != nil {
 		return nil, err
 	}
@@ -251,13 +254,14 @@ func BuildEmission(cfg Config) (*Emission, error) {
 	}, nil
 }
 
-func loadPackage(goImportPath string) (*packages.Package, error) {
+func loadPackage(goImportPath string, workingDirectory string) (*packages.Package, error) {
 	cfg := &packages.Config{
 		Mode: packages.NeedName |
 			packages.NeedTypes |
 			packages.NeedImports |
 			packages.NeedDeps |
 			packages.NeedModule,
+		Dir: strings.TrimSpace(workingDirectory),
 	}
 
 	pkgs, err := packages.Load(cfg, goImportPath)

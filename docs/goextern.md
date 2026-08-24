@@ -23,6 +23,12 @@ Custom output root and Haxe package prefix:
 npm run dev:goextern -- --package context --out gen/goextern --haxe-package goextern
 ```
 
+Resolve a package from another Go module without changing that module:
+
+```bash
+npm run dev:goextern -- --package example.com/app/api --dir ../app
+```
+
 Print generated files without writing to disk:
 
 ```bash
@@ -73,7 +79,9 @@ For deterministic/offline bootstrap, this repository currently vendors a minimal
 
 `tools/goextern/third_party/golang.org/x/tools/go/packages`
 
-This keeps the call surface stable while M3.5 lands fixture and CI drift gates.
+The compatibility layer asks the selected Go toolchain for read-only export data.
+It honors the caller's module directory, so local module packages and their typed
+dependencies can be inspected without editing `go.mod` or creating `go.sum`.
 
 ## Current Type-Mapping Scope
 
