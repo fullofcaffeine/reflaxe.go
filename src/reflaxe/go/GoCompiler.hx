@@ -3020,7 +3020,8 @@ class GoCompiler {
 				var parentParams = entry.params;
 				if (appliedParams != null) {
 					parentParams = [
-						for (param in entry.params) TypeTools.applyTypeParameters(param, interfaceType.params, appliedParams)
+						for (param in entry.params)
+							TypeTools.applyTypeParameters(param, interfaceType.params, appliedParams)
 					];
 				}
 				collect(entry.t.get(), parentParams);
@@ -6602,14 +6603,25 @@ class GoCompiler {
 					expr: dynamicExpr,
 					isStringLike: false
 				};
-			case FClosure(_, field):
+			case FClosure(classRef, field):
 				var resolved = field.get();
 				var loweredTarget = lowerExpr(target).expr;
 				if (isSharedArrayElementExpr(target)) {
 					loweredTarget = coerceStoredArrayElementExpr(loweredTarget, target.t);
 				}
+				var selector = normalizeIdent(resolved.name);
+				if (classRef != null) {
+					var classType = classRef.c.get();
+					if (classType.isExtern) {
+						var externPackage = externClassPackageName(classType);
+						if (externPackage != null) {
+							noteExternImportPath(classType, externPackage);
+						}
+						selector = externFieldName(resolved);
+					}
+				}
 				{
-					expr: GoExpr.GoSelector(loweredTarget, normalizeIdent(resolved.name)),
+					expr: GoExpr.GoSelector(loweredTarget, selector),
 					isStringLike: isStringType(resolved.type)
 				};
 			case FEnum(enumRef, field):
@@ -11475,6 +11487,110 @@ class GoCompiler {
 		return {expr: sliced, isStringLike: false};
 	}
 
+	/**
+		What: Lowers portable `Array.concat(other)` into a detached shared carrier.
+		Why: A raw selector has no Go implementation, and reusing either operand's
+		storage would violate Haxe's non-mutating concat contract.
+		How: Evaluate both operands once in source order, copy the receiver, then append
+		the other carrier's stored values to that new identity.
+	**/
+	function lowerArrayConcatExpr(target:TypedExpr, args:Array<TypedExpr>):Null<LoweredExpr> {
+		if (args.length != 1) {
+			Context.fatalError("Array.concat expects exactly one Array", target.pos);
+		}
+		if (!usesSharedArrayCarrier(target) || !usesSharedArrayCarrier(args[0])) {
+			return null;
+		}
+
+		var loweredTarget = lowerExprWithPrefix(target);
+		var loweredOther = lowerExprWithPrefix(args[0]);
+		var targetName = freshTempName("hx_concat_target");
+		var otherName = freshTempName("hx_concat_other");
+		var resultName = freshTempName("hx_concat_result");
+		var itemName = freshTempName("hx_concat_item");
+		var body = loweredTarget.prefix.concat([GoStmt.GoVarDecl(targetName, "*hxrt.Array", loweredTarget.expr, true)]).concat(loweredOther.prefix).concat([
+			GoStmt.GoVarDecl(otherName, "*hxrt.Array", loweredOther.expr, true),
+			GoStmt.GoVarDecl(resultName, "*hxrt.Array", GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent(targetName), "Copy"), []), true),
+			GoStmt.GoRangeStmt(null, itemName, GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent(otherName), "Values"), []), true, [
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent(resultName), "Push"), [GoExpr.GoIdent(itemName)]))
+			]),
+			GoStmt.GoReturn(GoExpr.GoIdent(resultName))
+		]);
+		return {
+			expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["*hxrt.Array"], body), []),
+			isStringLike: false
+		};
+	}
+
+	/**
+		What: Lowers portable `Array.indexOf(value, fromIndex)` with Haxe equality.
+		Why: The shared carrier exposes representation primitives only; Go has no
+		matching method, and native equality is incorrect for Haxe strings and erased
+		values.
+		How: Evaluate receiver and arguments once, normalize negative starts relative
+		to the current length, then scan typed elements with the common Array equality
+		lowering.
+	**/
+	function lowerArrayIndexOfExpr(target:TypedExpr, args:Array<TypedExpr>):Null<LoweredExpr> {
+		if (args.length < 1 || args.length > 2) {
+			Context.fatalError("Array.indexOf expects a value and optional start index", target.pos);
+		}
+		if (!usesSharedArrayCarrier(target)) {
+			return null;
+		}
+		var elementType = arrayElementType(target.t);
+		if (elementType == null) {
+			return null;
+		}
+
+		var loweredTarget = lowerExprWithPrefix(target);
+		var loweredValue = lowerExprWithPrefix(args[0]);
+		var targetName = freshTempName("hx_indexof_target");
+		var valueName = freshTempName("hx_indexof_value");
+		var startInputName = freshTempName("hx_indexof_start_input");
+		var startName = freshTempName("hx_indexof_start");
+		var lengthName = freshTempName("hx_indexof_length");
+		var indexName = freshTempName("hx_indexof_index");
+		var elementName = freshTempName("hx_indexof_element");
+		var elementGoType = valueStorageGoType(elementType);
+		var startExpr:GoExpr = GoExpr.GoIntLiteral(0);
+		var startPrefix = new Array<GoStmt>();
+		if (args.length == 2) {
+			var loweredStart = lowerExprWithPrefix(args[1]);
+			startPrefix = loweredStart.prefix;
+			startExpr = loweredStart.expr;
+		}
+		var indexExpr = GoExpr.GoIdent(indexName);
+		var storedElement = coerceStoredArrayElementExpr(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent(targetName), "Get"), [indexExpr]), elementType);
+		var equal = lowerArrayElementEqualityExpr(GoExpr.GoIdent(elementName), GoExpr.GoIdent(valueName), elementType, elementGoType);
+		var body = loweredTarget.prefix.concat([GoStmt.GoVarDecl(targetName, "*hxrt.Array", loweredTarget.expr, true)])
+			.concat(loweredValue.prefix)
+			.concat([GoStmt.GoVarDecl(valueName, elementGoType, loweredValue.expr, true)])
+			.concat(startPrefix)
+			.concat([
+				GoStmt.GoVarDecl(startInputName, "any", startExpr, false),
+				GoStmt.GoVarDecl(startName, "int", GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [GoExpr.GoIdent(startInputName)]), true),
+				GoStmt.GoVarDecl(lengthName, "int", GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent(targetName), "Len"), []), true),
+				GoStmt.GoIf(GoExpr.GoBinary("<", GoExpr.GoIdent(startName), GoExpr.GoIntLiteral(0)), [
+					GoStmt.GoAssign(GoExpr.GoIdent(startName), GoExpr.GoBinary("+", GoExpr.GoIdent(lengthName), GoExpr.GoIdent(startName)))
+				],
+					null),
+				GoStmt.GoIf(GoExpr.GoBinary("<", GoExpr.GoIdent(startName), GoExpr.GoIntLiteral(0)),
+					[GoStmt.GoAssign(GoExpr.GoIdent(startName), GoExpr.GoIntLiteral(0))], null),
+				GoStmt.GoVarDecl(indexName, "int", GoExpr.GoIdent(startName), true),
+				GoStmt.GoWhile(GoExpr.GoBinary("<", indexExpr, GoExpr.GoIdent(lengthName)), [
+					GoStmt.GoVarDecl(elementName, elementGoType, storedElement, true),
+					GoStmt.GoIf(equal, [GoStmt.GoReturn(indexExpr)], null),
+					GoStmt.GoAssign(indexExpr, GoExpr.GoBinary("+", indexExpr, GoExpr.GoIntLiteral(1)))
+				]),
+				GoStmt.GoReturn(GoExpr.GoIntLiteral(-1))
+			]);
+		return {
+			expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["int"], body), []),
+			isStringLike: false
+		};
+	}
+
 	function lowerArrayInstanceCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
 		var methodCall = asArrayMethodCall(callee);
 		if (methodCall == null || !isArrayType(methodCall.target.t)) {
@@ -11482,6 +11598,10 @@ class GoCompiler {
 		}
 
 		return switch (methodCall.methodName) {
+			case "concat":
+				lowerArrayConcatExpr(methodCall.target, args);
+			case "indexOf":
+				lowerArrayIndexOfExpr(methodCall.target, args);
 			case "remove":
 				lowerArrayRemoveExpr(methodCall.target, args);
 			case "insert":
