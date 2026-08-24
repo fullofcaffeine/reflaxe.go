@@ -69,6 +69,66 @@ func TestBuildEmissionFmtIsDeterministic(t *testing.T) {
 	}
 }
 
+func TestBuildEmissionLoadsPackageFromCallerModuleWithoutMutation(t *testing.T) {
+	moduleDir := t.TempDir()
+	writeTestFile(t, filepath.Join(moduleDir, "go.mod"), "module example.com/goexternfixture\n\ngo 1.22\n")
+	writeTestFile(t, filepath.Join(moduleDir, "model", "record.go"), `package model
+
+type Record struct {
+	ID string
+}
+`)
+	writeTestFile(t, filepath.Join(moduleDir, "api", "api.go"), `package api
+
+import "example.com/goexternfixture/model"
+
+func Find(id string) model.Record {
+	return model.Record{ID: id}
+}
+`)
+
+	goModBefore, err := os.ReadFile(filepath.Join(moduleDir, "go.mod"))
+	if err != nil {
+		t.Fatalf("read fixture go.mod: %v", err)
+	}
+
+	emission, err := BuildEmission(Config{
+		GoImportPath:      "example.com/goexternfixture/api",
+		WorkingDirectory:  moduleDir,
+		OutputRoot:        t.TempDir(),
+		HaxePackagePrefix: "goextern",
+	})
+	if err != nil {
+		t.Fatalf("BuildEmission failed for caller-owned module package: %v", err)
+	}
+
+	apiFile := fileContentsByName(t, emission, "ApiPkg.hx")
+	if !strings.Contains(apiFile, "@:go.name(\"Find\")") {
+		t.Fatalf("ApiPkg.hx missing Find symbol mapping:\n%s", apiFile)
+	}
+	if !strings.Contains(apiFile, "public static function find(id:String):Dynamic;") {
+		t.Fatalf("ApiPkg.hx must preserve the honest external named-type fallback:\n%s", apiFile)
+	}
+	if len(emission.DynamicFallbacks) != 1 {
+		t.Fatalf("expected one cross-package fallback, got %+v", emission.DynamicFallbacks)
+	}
+	fallback := emission.DynamicFallbacks[0]
+	if fallback.GoType != "example.com/goexternfixture/model.Record" || fallback.Reason != "external_named_type" {
+		t.Fatalf("unexpected cross-package fallback: %+v", fallback)
+	}
+
+	goModAfter, err := os.ReadFile(filepath.Join(moduleDir, "go.mod"))
+	if err != nil {
+		t.Fatalf("read fixture go.mod after inspection: %v", err)
+	}
+	if string(goModAfter) != string(goModBefore) {
+		t.Fatalf("goextern changed the caller's go.mod")
+	}
+	if exists(filepath.Join(moduleDir, "go.sum")) {
+		t.Fatalf("goextern created go.sum while inspecting a local-only module")
+	}
+}
+
 func TestBuildEmissionFmtMultiReturnBoundary(t *testing.T) {
 	cfg := Config{
 		GoImportPath:      "fmt",
@@ -410,4 +470,15 @@ func fileContentsByName(t *testing.T, emission *Emission, fileName string) strin
 func exists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
+}
+
+func writeTestFile(t *testing.T, path string, contents string) {
+	t.Helper()
+
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatalf("create fixture directory: %v", err)
+	}
+	if err := os.WriteFile(path, []byte(contents), 0o644); err != nil {
+		t.Fatalf("write fixture file: %v", err)
+	}
 }
