@@ -4,7 +4,10 @@ package goextern.sync;
 
 @:go.import("sync")
 @:go.name("WaitGroup")
+@:go.struct
 extern class WaitGroup {
+	public function new();
+
 	@:go.name("Add")
 	public function add(delta:Int):Void;
 

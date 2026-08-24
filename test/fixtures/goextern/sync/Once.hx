@@ -4,7 +4,10 @@ package goextern.sync;
 
 @:go.import("sync")
 @:go.name("Once")
+@:go.struct
 extern class Once {
+	public function new();
+
 	@:go.name("Do")
 	public function do_(f:Dynamic):Void;
 }

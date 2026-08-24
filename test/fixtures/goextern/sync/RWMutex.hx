@@ -4,7 +4,10 @@ package goextern.sync;
 
 @:go.import("sync")
 @:go.name("RWMutex")
+@:go.struct
 extern class RWMutex {
+	public function new();
+
 	@:go.name("Lock")
 	public function lock():Void;
 

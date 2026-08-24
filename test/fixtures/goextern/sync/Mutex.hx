@@ -4,7 +4,10 @@ package goextern.sync;
 
 @:go.import("sync")
 @:go.name("Mutex")
+@:go.struct
 extern class Mutex {
+	public function new();
+
 	@:go.name("Lock")
 	public function lock():Void;
 

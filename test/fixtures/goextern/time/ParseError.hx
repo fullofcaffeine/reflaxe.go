@@ -4,7 +4,25 @@ package goextern.time;
 
 @:go.import("time")
 @:go.name("ParseError")
+@:go.struct
 extern class ParseError {
+	public function new();
+
+	@:go.name("Layout")
+	public var layout:String;
+
+	@:go.name("LayoutElem")
+	public var layoutElem:String;
+
+	@:go.name("Message")
+	public var message:String;
+
+	@:go.name("Value")
+	public var value:String;
+
+	@:go.name("ValueElem")
+	public var valueElem:String;
+
 	@:go.name("Error")
 	public function error():String;
 }

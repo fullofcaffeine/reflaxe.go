@@ -4,7 +4,10 @@ package goextern.sync;
 
 @:go.import("sync")
 @:go.name("Pool")
+@:go.struct
 extern class Pool {
+	public function new();
+
 	@:go.name("Get")
 	public function get():Dynamic;
 

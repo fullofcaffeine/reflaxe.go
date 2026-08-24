@@ -129,6 +129,89 @@ func Find(id string) model.Record {
 	}
 }
 
+func TestBuildEmissionExportsSupportedStructFieldsAndReportsSkippedFields(t *testing.T) {
+	moduleDir := t.TempDir()
+	writeTestFile(t, filepath.Join(moduleDir, "go.mod"), "module example.com/goexternstructfixture\n\ngo 1.22\n")
+	writeTestFile(t, filepath.Join(moduleDir, "model", "record.go"), `package model
+
+import "time"
+
+type Related struct {
+	Label string
+}
+
+type Record struct {
+	ID       string
+	Count    int
+	Active   bool
+	Values   []int
+	Lookup   map[string]int
+	Link     *Related
+	Optional *int
+	Related
+	Inline   struct{ X int }
+	Created  time.Time
+	private  string
+}
+`)
+
+	emission, err := BuildEmission(Config{
+		GoImportPath:      "example.com/goexternstructfixture/model",
+		WorkingDirectory:  moduleDir,
+		OutputRoot:        t.TempDir(),
+		HaxePackagePrefix: "goextern",
+	})
+	if err != nil {
+		t.Fatalf("BuildEmission failed for struct fixture: %v", err)
+	}
+
+	record := fileContentsByName(t, emission, "Record.hx")
+	related := fileContentsByName(t, emission, "Related.hx")
+	if !strings.Contains(related, "@:go.struct") || !strings.Contains(related, "@:go.name(\"Label\")\n\tpublic var label:String;") {
+		t.Fatalf("Related.hx must expose its exact string field and zero-value contract:\n%s", related)
+	}
+	for _, snippet := range []string{
+		"@:go.struct",
+		"public function new();",
+		"@:go.name(\"ID\")\n\tpublic var id:String;",
+		"@:go.name(\"Count\")\n\tpublic var count:Int;",
+		"@:go.name(\"Active\")\n\tpublic var active:Bool;",
+		"@:go.name(\"Values\")\n\tpublic var values:go.NativeSlice<Int>;",
+		"@:go.name(\"Link\")\n\tpublic var link:Related;",
+	} {
+		if !strings.Contains(record, snippet) {
+			t.Fatalf("Record.hx missing generated struct contract %q\n%s", snippet, record)
+		}
+	}
+	for _, forbidden := range []string{"var related", "var inline", "var created", "var lookup", "var optional", "private", "dynamic"} {
+		if strings.Contains(strings.ToLower(record), forbidden) {
+			t.Fatalf("Record.hx must not expose unsupported or unexported field %q\n%s", forbidden, record)
+		}
+	}
+
+	wantFallbacks := map[string]string{
+		"Record.Related":  "embedded_field",
+		"Record.Inline":   "struct",
+		"Record.Created":  "external_named_type",
+		"Record.Lookup":   "map_field_abi",
+		"Record.Optional": "pointer_field_abi",
+	}
+	if len(emission.DynamicFallbacks) != len(wantFallbacks) {
+		t.Fatalf("unexpected struct-field fallback count: got %+v", emission.DynamicFallbacks)
+	}
+	for _, fallback := range emission.DynamicFallbacks {
+		if wantReason, ok := wantFallbacks[fallback.Symbol]; ok {
+			if fallback.Position != "field:"+strings.TrimPrefix(fallback.Symbol, "Record.") || fallback.Reason != wantReason {
+				t.Fatalf("unexpected struct-field fallback: %+v", fallback)
+			}
+			delete(wantFallbacks, fallback.Symbol)
+		}
+	}
+	if len(wantFallbacks) != 0 {
+		t.Fatalf("missing struct-field fallbacks: %+v (all: %+v)", wantFallbacks, emission.DynamicFallbacks)
+	}
+}
+
 func TestBuildEmissionFmtMultiReturnBoundary(t *testing.T) {
 	cfg := Config{
 		GoImportPath:      "fmt",

@@ -7,7 +7,7 @@ package goextern.fmt;
 extern interface ScanState {
 	@:go.tupleReturn
 	@:go.name("Read")
-	public function read(buf:Array<Int>):ScanStateReadResult;
+	public function read(buf:go.NativeSlice<Int>):ScanStateReadResult;
 
 	@:go.tupleReturn
 	@:go.name("ReadRune")

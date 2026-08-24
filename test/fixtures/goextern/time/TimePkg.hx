@@ -22,7 +22,7 @@ extern class TimePkg {
 
 	@:go.tupleReturn
 	@:go.name("LoadLocationFromTZData")
-	public static function loadLocationFromTZData(name:String, data:Array<Int>):LoadLocationFromTZDataResult;
+	public static function loadLocationFromTZData(name:String, data:go.NativeSlice<Int>):LoadLocationFromTZDataResult;
 
 	@:go.name("NewTicker")
 	public static function newTicker(d:Duration):Ticker;

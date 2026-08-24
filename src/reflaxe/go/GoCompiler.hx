@@ -50,6 +50,7 @@ import reflaxe.go.ast.GoBinaryOperator;
 import reflaxe.go.ast.GoBuiltinType;
 import reflaxe.go.ast.GoCompositeElement;
 import reflaxe.go.ast.GoImportPath;
+import reflaxe.go.ast.GoPackageName;
 import reflaxe.go.ast.GoSimpleStmt;
 import reflaxe.go.ast.GoType;
 import reflaxe.go.ast.GoUnaryOperator;
@@ -3758,11 +3759,12 @@ class GoCompiler {
 							indexedArrayAssign;
 						} else {
 							var loweredRight = lowerStoredExprWithExpectedType(right, assignmentStorageType(left));
-							var lengthAssignStmts = lowerArrayLengthAssign(left, loweredRight.expr);
+							var assignmentValue = normalizeImportedExternFieldAssignment(left, loweredRight.expr);
+							var lengthAssignStmts = lowerArrayLengthAssign(left, assignmentValue);
 							var assignStmts = if (lengthAssignStmts != null) {
 								lengthAssignStmts;
 							} else {
-								[GoStmt.GoAssign(lowerLValue(left), loweredRight.expr)];
+								[GoStmt.GoAssign(lowerLValue(left), assignmentValue)];
 							};
 							if (loweredRight.prefix.length > 0) {
 								loweredRight.prefix.concat(assignStmts);
@@ -3785,8 +3787,9 @@ class GoCompiler {
 								rightExpr = coerceStoredArrayElementExpr(rightExpr, left.t);
 							}
 							var targetExpr = lowerLValue(left);
-							var assignExpr = lowerAssignOpExpr(assignOp, targetExpr, rightExpr, left.t, right.t, expr.pos, stringAppendFromSharedArray);
-							var assignStmt = GoStmt.GoAssign(targetExpr, assignExpr);
+							var leftValueExpr = normalizeImportedExternFieldAssignmentResult(left, targetExpr);
+							var assignExpr = lowerAssignOpExpr(assignOp, leftValueExpr, rightExpr, left.t, right.t, expr.pos, stringAppendFromSharedArray);
+							var assignStmt = GoStmt.GoAssign(targetExpr, normalizeImportedExternFieldAssignment(left, assignExpr));
 							if (loweredRight.prefix.length > 0) {
 								loweredRight.prefix.concat([assignStmt]);
 							} else {
@@ -5651,6 +5654,13 @@ class GoCompiler {
 				GoExpr.GoIndex(lowerExpr(target).expr, lowerExpr(index).expr);
 			case TField(target, access):
 				switch (access) {
+					case FInstance(classRef, _, field) if (isImportedGoExternClass(classRef.get())):
+						var classType = classRef.get();
+						var packageName = externClassPackageName(classType);
+						if (packageName != null) {
+							noteExternImportPath(classType, packageName);
+						}
+						GoExpr.GoSelector(lowerExpr(target).expr, externFieldName(field.get()));
 					case FAnon(field) if (isAnonymousObjectType(target.t)):
 						GoExpr.GoIndex(lowerExpr(target).expr, GoExpr.GoStringLiteral(field.get().name));
 					case FDynamic(name) if (isAnonymousObjectType(target.t)):
@@ -5817,7 +5827,15 @@ class GoCompiler {
 						loweredArgs.push(lowerConstructorArg(classType, defaultValue, i));
 					}
 				}
-				if (isHaxeValueExceptionClass(classType)) {
+				if (isNativeGoStructExtern(classType)) {
+					if (loweredArgs.length != 0) {
+						Context.fatalError("Native Go struct zero-value construction does not accept arguments", expr.pos);
+					}
+					{
+						expr: GoExpr.GoUnary(GoUnaryOperator.AddressOf, GoExpr.GoCompositeLiteral(nativeGoStructType(classType), [])),
+						isStringLike: false
+					};
+				} else if (isHaxeValueExceptionClass(classType)) {
 					while (loweredArgs.length < 3) {
 						loweredArgs.push(GoExpr.GoNil);
 					}
@@ -5950,10 +5968,11 @@ class GoCompiler {
 						} else {
 							var targetExpr = lowerLValue(left);
 							var loweredRight = lowerStoredExprWithExpectedType(right, assignmentStorageType(left));
-							var rightExpr = loweredRight.expr;
+							var rightExpr = normalizeImportedExternFieldAssignment(left, loweredRight.expr);
+							var resultExpr = normalizeImportedExternFieldAssignmentResult(left, targetExpr);
 							{
 								expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(left.t)],
-									loweredRight.prefix.concat([GoStmt.GoAssign(targetExpr, rightExpr), GoStmt.GoReturn(targetExpr)])),
+									loweredRight.prefix.concat([GoStmt.GoAssign(targetExpr, rightExpr), GoStmt.GoReturn(resultExpr)])),
 									[]),
 								isStringLike: isStringType(left.t)
 							};
@@ -5973,10 +5992,13 @@ class GoCompiler {
 							if (!stringAppendFromSharedArray && isSharedArrayElementExpr(right)) {
 								rightExpr = coerceStoredArrayElementExpr(rightExpr, left.t);
 							}
-							var assignExpr = lowerAssignOpExpr(assignOp, targetExpr, rightExpr, left.t, right.t, expr.pos, stringAppendFromSharedArray);
+							var leftValueExpr = normalizeImportedExternFieldAssignmentResult(left, targetExpr);
+							var assignExpr = lowerAssignOpExpr(assignOp, leftValueExpr, rightExpr, left.t, right.t, expr.pos, stringAppendFromSharedArray);
+							var storageExpr = normalizeImportedExternFieldAssignment(left, assignExpr);
+							var resultExpr = normalizeImportedExternFieldAssignmentResult(left, targetExpr);
 							{
 								expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(left.t)],
-									loweredRight.prefix.concat([GoStmt.GoAssign(targetExpr, assignExpr), GoStmt.GoReturn(targetExpr)])),
+									loweredRight.prefix.concat([GoStmt.GoAssign(targetExpr, storageExpr), GoStmt.GoReturn(resultExpr)])),
 									[]),
 								isStringLike: isStringType(left.t)
 							};
@@ -6524,7 +6546,7 @@ class GoCompiler {
 						noteExternImportPath(classType, externPackage);
 					}
 					{
-						expr: GoExpr.GoSelector(loweredTarget, externFieldName(resolved)),
+						expr: normalizeImportedExternFieldRead(classType, resolved.type, GoExpr.GoSelector(loweredTarget, externFieldName(resolved))),
 						isStringLike: isStringType(resolved.type)
 					};
 				} else if (shouldUseVirtualDispatch(classType, resolved, target.t)) {
@@ -9374,6 +9396,70 @@ class GoCompiler {
 	}
 
 	/**
+		What: Converts an imported Go string field read to Haxe's string carrier.
+		Why: Go stores `string` by value, while haxe.go represents `String` as `*string`.
+		How: Apply the same `hxrt.StdString` boundary used for imported call results.
+	**/
+	function normalizeImportedExternFieldRead(classType:ClassType, fieldType:Type, fieldExpr:GoExpr):GoExpr {
+		if (!isImportedGoExternClass(classType) || isHxrtExternClass(classType) || !isStringType(fieldType)) {
+			return fieldExpr;
+		}
+		var nullableInner = nullableInnerType(fieldType);
+		if (nullableInner != null && isStringType(nullableInner)) {
+			return fieldExpr;
+		}
+		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [fieldExpr]);
+	}
+
+	/**
+		What: Converts a Haxe string before assignment to an imported Go field.
+		Why: The writable selector expects a Go `string` value, not Haxe's `*string` carrier.
+		How: Dereference the normalized runtime string only at this typed native boundary.
+	**/
+	function normalizeImportedExternFieldAssignment(target:TypedExpr, valueExpr:GoExpr):GoExpr {
+		return switch (target.expr) {
+			case TField(_, FInstance(classRef, _, fieldRef)):
+				var classType = classRef.get();
+				var fieldType = fieldRef.get().type;
+				if (!isImportedGoExternClass(classType) || isHxrtExternClass(classType) || !isStringType(fieldType)) {
+					valueExpr;
+				} else {
+					var nullableInner = nullableInnerType(fieldType);
+					nullableInner != null
+					&& isStringType(nullableInner) ? valueExpr : GoExpr.GoUnary("*", GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [valueExpr]));
+				}
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
+				normalizeImportedExternFieldAssignment(inner, valueExpr);
+			case _:
+				valueExpr;
+		};
+	}
+
+	/**
+		What: Converts the value returned by an imported extern field assignment.
+		Why: The Go selector keeps its native type after the write, but Haxe observes its carrier type.
+		How: Reuse the field-read boundary before returning from the assignment expression.
+	**/
+	function normalizeImportedExternFieldAssignmentResult(target:TypedExpr, fieldExpr:GoExpr):GoExpr {
+		return switch (target.expr) {
+			case TField(_, FInstance(classRef, _, fieldRef)):
+				normalizeImportedExternFieldRead(classRef.get(), fieldRef.get().type, fieldExpr);
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
+				normalizeImportedExternFieldAssignmentResult(inner, fieldExpr);
+			case _:
+				fieldExpr;
+		};
+	}
+
+	function isImportedGoExternClass(classType:ClassType):Bool {
+		return classType.isExtern && externClassImportPath(classType) != null;
+	}
+
+	function isHxrtExternClass(classType:ClassType):Bool {
+		return readMetadataString(classType.meta, [GoMetadataName.GoImport]) == "hxrt";
+	}
+
+	/**
 		What: Converts Haxe-owned call arguments to the native shapes declared by
 		an imported Go extern.
 		Why: Haxe `String` is pointer-backed in generated code, while a non-nullable
@@ -11800,6 +11886,26 @@ class GoCompiler {
 
 	function hasExternReceiverMeta(field:ClassField):Bool {
 		return hasMetadata(field.meta, [GoMetadataName.GoReceiver]);
+	}
+
+	/**
+		What: Identifies an extern that represents a concrete Go struct.
+		Why: Go struct zero values use composite literals, not Haxe constructor symbols.
+		How: Require both an extern class and the explicit metadata emitted by goextern.
+	**/
+	function isNativeGoStructExtern(classType:ClassType):Bool {
+		return classType.isExtern && hasMetadata(classType.meta, [GoMetadataName.GoStruct]);
+	}
+
+	/** Builds the qualified structured-AST type used by a native zero-value literal. */
+	function nativeGoStructType(classType:ClassType):GoType {
+		var packageName = externClassPackageName(classType);
+		if (packageName == null) {
+			Context.fatalError("Native Go struct extern requires @:go.import metadata", classType.pos);
+			return GoType.named(externClassTypeName(classType));
+		}
+		noteExternImportPath(classType, packageName);
+		return GoType.qualified(GoPackageName.named(packageName), externClassTypeName(classType));
 	}
 
 	function hasExternValueErrorMeta(field:ClassField):Bool {
