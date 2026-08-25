@@ -148,6 +148,7 @@ func Alias(seed int) *ItemAlias {
 	return &model.Item{Value: seed, Detail: &detail.Detail{}}
 }
 func Value(seed int) detail.Detail { return detail.Detail{Bonus: seed} }
+func RoundTrip(value detail.Detail) (result detail.Detail, err error) { return value, nil }
 func Lookup(ctx contract.Context, seed int) (item *model.Item, err error) {
 	return &model.Item{Value: seed, Detail: &detail.Detail{Bonus: 1}}, ctx.Err()
 }
@@ -201,8 +202,9 @@ class Main {
 		final listed = ApiPkg.list(context, 20);
 		final alias:ItemAlias = ApiPkg.alias(0);
 		final value = ApiPkg.value(0);
+		final roundTrip = ApiPkg.roundTrip(value);
 		final first = listed.page.items[0];
-		if (lookup.err == null && listed.err == null && alias.value == 0) {
+		if (lookup.err == null && listed.err == null && roundTrip.err == null && roundTrip.result.bonus == value.bonus && alias.value == 0) {
 			GoFmt.println(lookup.item.value + lookup.item.detail.bonus + first.value + first.detail.bonus + value.bonus);
 		} else {
 			GoFmt.println(-1);
@@ -232,7 +234,7 @@ class Main {
                 path.read_text(encoding="utf-8")
                 for path in sorted(module_root.glob("haxego_generated_*.go"))
             )
-            for snippet in ["api.Background()", "api.Lookup(", "api.List(", "api.Value(", ".Items[", ".Detail.Bonus"]:
+            for snippet in ["api.Background()", "api.Lookup(", "api.List(", "api.Value(", "api.RoundTrip(*", ".Items[", ".Detail.Bonus"]:
                 self.assertIn(snippet, generated)
 
             for command in (

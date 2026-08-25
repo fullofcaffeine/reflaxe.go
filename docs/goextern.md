@@ -74,7 +74,16 @@ path when you use the default output and package prefix.
   - `@:go.package("<name>")`
   - `@:go.name("<symbol>")`
   - `@:go.struct` (on concrete Go structs with zero-value construction)
+  - `@:go.valueArgs("0,2")` (zero-based parameters passed as Go struct values)
+  - `@:go.valueReturn` (one Go struct value returned through a pointer-backed Haxe extern)
+  - `@:go.tupleValueResults("0")` (tuple results returned as Go struct values)
   - `@:go.valueError` (when the extern returns Go `(T,error)` and the Haxe return type is `go.Result<T>`)
+
+Haxe keeps a concrete Go struct extern pointer-backed so code can mutate its
+fields. The value-ABI metadata entries are generated implementation details:
+the compiler dereferences only the named value parameters and takes the address
+of only the named single or tuple results. Do not add them to pointer parameters
+or pointer results.
 
 ## Determinism Contract
 

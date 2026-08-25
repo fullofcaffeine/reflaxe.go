@@ -67,12 +67,15 @@ type fieldDecl struct {
 }
 
 type methodDecl struct {
-	GoName      string
-	HaxeName    string
-	Params      []paramDecl
-	ReturnType  string
-	Static      bool
-	TupleReturn bool
+	GoName            string
+	HaxeName          string
+	Params            []paramDecl
+	ReturnType        string
+	Static            bool
+	TupleReturn       bool
+	ValueArgs         []int
+	ValueReturn       bool
+	TupleValueResults []int
 }
 
 type paramDecl struct {
@@ -571,6 +574,7 @@ func collectMethods(named *types.Named, static bool, ctx mappingContext, ownerNa
 
 func signatureToMethod(goName string, sig *types.Signature, static bool, ctx mappingContext, ownerName string, usedCarrierNames map[string]bool) (methodDecl, *tupleCarrierDecl, []DynamicFallback) {
 	params := make([]paramDecl, 0, sig.Params().Len())
+	valueArgs := make([]int, 0)
 	usedNames := make(map[string]int)
 	fallbacks := make([]DynamicFallback, 0)
 	symbol := goName
@@ -605,11 +609,16 @@ func signatureToMethod(goName string, sig *types.Signature, static bool, ctx map
 			Name: sanitizeParamName(rawName, i, usedNames),
 			Type: paramType,
 		})
+		if isStructValueType(param.Type()) {
+			valueArgs = append(valueArgs, i)
+		}
 	}
 
 	returnType := "Void"
 	var carrier *tupleCarrierDecl
 	tupleReturn := false
+	valueReturn := false
+	tupleValueResults := make([]int, 0)
 	switch sig.Results().Len() {
 	case 0:
 		returnType = "Void"
@@ -620,11 +629,17 @@ func signatureToMethod(goName string, sig *types.Signature, static bool, ctx map
 		if containsDynamicType(returnType) {
 			fallbacks = append(fallbacks, newDynamicFallback(ctx, symbol, resultPosition(result, 0), result.Type(), reason))
 		}
+		valueReturn = isStructValueType(result.Type())
 	default:
 		if generatedCarrier, ok := buildTupleCarrier(goName, sig.Results(), ctx, ownerName, usedCarrierNames); ok {
 			returnType = generatedCarrier.ClassName
 			carrier = &generatedCarrier
 			tupleReturn = true
+			for i := 0; i < sig.Results().Len(); i++ {
+				if isStructValueType(sig.Results().At(i).Type()) {
+					tupleValueResults = append(tupleValueResults, i)
+				}
+			}
 		} else {
 			returnType = "Dynamic"
 			for i := 0; i < sig.Results().Len(); i++ {
@@ -643,13 +658,30 @@ func signatureToMethod(goName string, sig *types.Signature, static bool, ctx map
 	}
 
 	return methodDecl{
-		GoName:      goName,
-		HaxeName:    haxeName,
-		Params:      params,
-		ReturnType:  returnType,
-		Static:      static,
-		TupleReturn: tupleReturn,
+		GoName:            goName,
+		HaxeName:          haxeName,
+		Params:            params,
+		ReturnType:        returnType,
+		Static:            static,
+		TupleReturn:       tupleReturn,
+		ValueArgs:         valueArgs,
+		ValueReturn:       valueReturn,
+		TupleValueResults: tupleValueResults,
 	}, carrier, fallbacks
+}
+
+// isStructValueType distinguishes a Go struct value from a pointer to the
+// same named struct. Both map to one mutable Haxe extern class, so goextern
+// records where the compiler must adapt that pointer-backed representation.
+func isStructValueType(t types.Type) bool {
+	if t == nil {
+		return false
+	}
+	if _, ok := types.Unalias(t).(*types.Pointer); ok {
+		return false
+	}
+	_, ok := types.Unalias(t).Underlying().(*types.Struct)
+	return ok
 }
 
 func buildTupleCarrier(goName string, results *types.Tuple, ctx mappingContext, ownerName string, usedCarrierNames map[string]bool) (tupleCarrierDecl, bool) {
@@ -1036,6 +1068,19 @@ func renderDeclaration(haxePackage string, goImportPath string, goPackageName st
 		if method.TupleReturn {
 			b.WriteString("\t@:go.tupleReturn\n")
 		}
+		if len(method.ValueArgs) > 0 {
+			b.WriteString("\t@:go.valueArgs(\"")
+			b.WriteString(indexList(method.ValueArgs))
+			b.WriteString("\")\n")
+		}
+		if method.ValueReturn {
+			b.WriteString("\t@:go.valueReturn\n")
+		}
+		if len(method.TupleValueResults) > 0 {
+			b.WriteString("\t@:go.tupleValueResults(\"")
+			b.WriteString(indexList(method.TupleValueResults))
+			b.WriteString("\")\n")
+		}
 		b.WriteString("\t@:go.name(\"")
 		b.WriteString(method.GoName)
 		b.WriteString("\")\n")
@@ -1062,6 +1107,14 @@ func renderDeclaration(haxePackage string, goImportPath string, goPackageName st
 
 	b.WriteString("}\n")
 	return b.String()
+}
+
+func indexList(indexes []int) string {
+	parts := make([]string, len(indexes))
+	for i, index := range indexes {
+		parts[i] = strconv.Itoa(index)
+	}
+	return strings.Join(parts, ",")
 }
 
 func renderTupleCarrier(haxePackage string, carrier tupleCarrierDecl) string {
