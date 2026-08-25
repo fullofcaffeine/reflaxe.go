@@ -31,6 +31,9 @@ enum abstract GoMetadataName(String) to String {
 	var GoValueErrorAlias = "go.value_error";
 	var GoTupleReturn = "go.tupleReturn";
 	var GoTupleReturnAlias = "go.tuple_return";
+	var GoValueArgs = "go.valueArgs";
+	var GoValueReturn = "go.valueReturn";
+	var GoTupleValueResults = "go.tupleValueResults";
 
 	/** Returns whether Haxe's normalized or colon-prefixed metadata name matches. */
 	public inline function matches(actual:String):Bool {

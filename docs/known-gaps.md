@@ -138,7 +138,7 @@ current honest contract remains snapshot/runtime evidence.
 
 ## Interop caveats
 
-- Typed extern metadata (`@:go.import`, `@:go.name`, `@:go.receiver`, `@:go.struct`) is supported, but advanced Go shapes may still require façade wrappers.
+- Typed extern metadata (`@:go.import`, `@:go.name`, `@:go.receiver`, `@:go.struct`) is supported. Generated bindings also preserve concrete struct value parameters and single or tuple struct results while keeping the Haxe view mutable and pointer-backed. Advanced Go shapes may still require façade wrappers.
 - Supported named Go structs expose exact exported fields and `&Type{}` zero values. Unsupported field ABI shapes are omitted and reported instead of being typed inaccurately.
 - Single `(T, error)` extern surfaces can use `@:go.valueError` + `go.Result<T>`, and supported multi-return APIs can use generated tuple carriers. Complex callback/generic/unsafe shapes may still need façade wrappers.
 - Keep strict policy enabled in production (`reflaxe_go_strict` / `reflaxe_go_strict_examples`) to avoid drifting into raw app-side `__go__`.

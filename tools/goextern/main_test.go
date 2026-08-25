@@ -142,6 +142,54 @@ func Find(id string) *model.Record {
 	}
 }
 
+func TestBuildEmissionPreservesStructValueABI(t *testing.T) {
+	moduleDir := t.TempDir()
+	writeTestFile(t, filepath.Join(moduleDir, "go.mod"), "module example.com/valueabi\n\ngo 1.22\n")
+	writeTestFile(t, filepath.Join(moduleDir, "api", "api.go"), `package api
+
+type Value struct { Number int }
+
+func Accept(value Value) Value { return value }
+func AcceptPointer(value *Value) *Value { return value }
+func Pair(value Value) (Value, error) { return value, nil }
+`)
+
+	emission, err := BuildEmission(Config{
+		GoImportPath:      "example.com/valueabi/api",
+		WorkingDirectory:  moduleDir,
+		OutputRoot:        t.TempDir(),
+		HaxePackagePrefix: "goextern",
+	})
+	if err != nil {
+		t.Fatalf("BuildEmission failed for value ABI fixture: %v", err)
+	}
+
+	apiFile := fileContentsByName(t, emission, "ApiPkg.hx")
+	for _, snippet := range []string{
+		"@:go.valueArgs(\"0\")\n\t@:go.valueReturn\n\t@:go.name(\"Accept\")",
+		"@:go.tupleReturn\n\t@:go.valueArgs(\"0\")\n\t@:go.tupleValueResults(\"0\")\n\t@:go.name(\"Pair\")",
+	} {
+		if !strings.Contains(apiFile, snippet) {
+			t.Fatalf("ApiPkg.hx missing struct value ABI contract %q:\n%s", snippet, apiFile)
+		}
+	}
+	pointerMethod := ""
+	for _, block := range strings.Split(apiFile, "\n\n") {
+		if strings.Contains(block, "@:go.name(\"AcceptPointer\")") {
+			pointerMethod = block
+			break
+		}
+	}
+	if pointerMethod == "" {
+		t.Fatalf("ApiPkg.hx missing AcceptPointer declaration:\n%s", apiFile)
+	}
+	for _, metadata := range []string{"@:go.valueArgs", "@:go.valueReturn", "@:go.tupleValueResults"} {
+		if strings.Contains(pointerMethod, metadata) {
+			t.Fatalf("pointer parameters and results must not use %s adaptation:\n%s", metadata, pointerMethod)
+		}
+	}
+}
+
 func TestBuildEmissionRejectsPackagePatternIdentity(t *testing.T) {
 	moduleDir := t.TempDir()
 	outputDir := t.TempDir()
