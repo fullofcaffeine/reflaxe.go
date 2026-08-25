@@ -5,7 +5,9 @@ package goextern.time;
 @:go.import("time")
 @:go.package("time")
 @:go.name("Duration")
+@:go.valueType
 extern class Duration {
+	@:go.valueReturn
 	@:go.name("Abs")
 	public function abs():Duration;
 
@@ -24,6 +26,8 @@ extern class Duration {
 	@:go.name("Nanoseconds")
 	public function nanoseconds():Int;
 
+	@:go.valueArgs("0")
+	@:go.valueReturn
 	@:go.name("Round")
 	public function round(m:Duration):Duration;
 
@@ -33,6 +37,8 @@ extern class Duration {
 	@:go.name("String")
 	public function string():String;
 
+	@:go.valueArgs("0")
+	@:go.valueReturn
 	@:go.name("Truncate")
 	public function truncate(m:Duration):Duration;
 }

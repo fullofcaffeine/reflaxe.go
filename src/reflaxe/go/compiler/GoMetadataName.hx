@@ -25,6 +25,7 @@ enum abstract GoMetadataName(String) to String {
 	var GoPackageAlias = "go.pkg";
 	var GoName = "go.name";
 	var GoStruct = "go.struct";
+	var GoValueType = "go.valueType";
 	var NativeName = "native";
 	var GoReceiver = "go.receiver";
 	var GoValueError = "go.valueError";

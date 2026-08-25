@@ -9,18 +9,23 @@ package goextern.time;
 extern class Time {
 	public function new();
 
+	@:go.valueArgs("0")
+	@:go.valueReturn
 	@:go.name("Add")
 	public function add(d:Duration):Time;
 
+	@:go.valueReturn
 	@:go.name("AddDate")
 	public function addDate(years:Int, months:Int, days:Int):Time;
 
+	@:go.valueArgs("0")
 	@:go.name("After")
 	public function after(u:Time):Bool;
 
 	@:go.name("AppendFormat")
 	public function appendFormat(b:go.NativeSlice<Int>, layout:String):go.NativeSlice<Int>;
 
+	@:go.valueArgs("0")
 	@:go.name("Before")
 	public function before(u:Time):Bool;
 
@@ -28,16 +33,19 @@ extern class Time {
 	@:go.name("Clock")
 	public function clock():TimeClockResult;
 
+	@:go.valueArgs("0")
 	@:go.name("Compare")
 	public function compare(u:Time):Int;
 
 	@:go.tupleReturn
+	@:go.tupleValueResults("1")
 	@:go.name("Date")
 	public function date():TimeDateResult;
 
 	@:go.name("Day")
 	public function day():Int;
 
+	@:go.valueArgs("0")
 	@:go.name("Equal")
 	public function equal(u:Time):Bool;
 
@@ -61,6 +69,7 @@ extern class Time {
 	@:go.name("ISOWeek")
 	public function iSOWeek():TimeISOWeekResult;
 
+	@:go.valueReturn
 	@:go.name("In")
 	public function in_(loc:Location):Time;
 
@@ -70,6 +79,7 @@ extern class Time {
 	@:go.name("IsZero")
 	public function isZero():Bool;
 
+	@:go.valueReturn
 	@:go.name("Local")
 	public function local():Time;
 
@@ -91,12 +101,15 @@ extern class Time {
 	@:go.name("Minute")
 	public function minute():Int;
 
+	@:go.valueReturn
 	@:go.name("Month")
 	public function month():Month;
 
 	@:go.name("Nanosecond")
 	public function nanosecond():Int;
 
+	@:go.valueArgs("0")
+	@:go.valueReturn
 	@:go.name("Round")
 	public function round(d:Duration):Time;
 
@@ -106,12 +119,17 @@ extern class Time {
 	@:go.name("String")
 	public function string():String;
 
+	@:go.valueArgs("0")
+	@:go.valueReturn
 	@:go.name("Sub")
 	public function sub(u:Time):Duration;
 
+	@:go.valueArgs("0")
+	@:go.valueReturn
 	@:go.name("Truncate")
 	public function truncate(d:Duration):Time;
 
+	@:go.valueReturn
 	@:go.name("UTC")
 	public function utc():Time;
 
@@ -136,6 +154,7 @@ extern class Time {
 	@:go.name("UnmarshalText")
 	public function unmarshalText(data:go.NativeSlice<Int>):go.Error;
 
+	@:go.valueReturn
 	@:go.name("Weekday")
 	public function weekday():Weekday;
 
@@ -150,6 +169,7 @@ extern class Time {
 	public function zone():TimeZoneResult;
 
 	@:go.tupleReturn
+	@:go.tupleValueResults("0,1")
 	@:go.name("ZoneBounds")
 	public function zoneBounds():TimeZoneBoundsResult;
 }

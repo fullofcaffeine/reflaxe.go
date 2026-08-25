@@ -5,6 +5,7 @@ package goextern.time;
 @:go.import("time")
 @:go.package("time")
 @:go.name("Month")
+@:go.valueType
 extern class Month {
 	@:go.name("String")
 	public function string():String;

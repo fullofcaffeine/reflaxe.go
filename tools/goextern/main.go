@@ -54,6 +54,7 @@ type declaration struct {
 	AliasTarget     string
 	Interface       bool
 	Struct          bool
+	ValueType       bool
 	PackageClass    bool
 	Fields          []fieldDecl
 	StaticMethods   []methodDecl
@@ -336,6 +337,7 @@ func buildTypeDeclaration(named *types.Named, ctx mappingContext, usedCarrierNam
 	goName := named.Obj().Name()
 	_, isInterface := named.Underlying().(*types.Interface)
 	structType, isStruct := named.Underlying().(*types.Struct)
+	_, isNamedScalar := named.Underlying().(*types.Basic)
 	fields, fieldFallbacks := collectStructFields(goName, structType, ctx)
 	methods, carriers, fallbacks := collectMethods(named, false, ctx, goName, usedCarrierNames)
 	fallbacks = append(fallbacks, fieldFallbacks...)
@@ -345,6 +347,7 @@ func buildTypeDeclaration(named *types.Named, ctx mappingContext, usedCarrierNam
 		GoTypeName:      goName,
 		Interface:       isInterface,
 		Struct:          isStruct,
+		ValueType:       isNamedScalar,
 		PackageClass:    false,
 		Fields:          fields,
 		StaticMethods:   nil,
@@ -609,7 +612,7 @@ func signatureToMethod(goName string, sig *types.Signature, static bool, ctx map
 			Name: sanitizeParamName(rawName, i, usedNames),
 			Type: paramType,
 		})
-		if isStructValueType(param.Type()) {
+		if isPointerBackedValueType(param.Type()) {
 			valueArgs = append(valueArgs, i)
 		}
 	}
@@ -629,14 +632,14 @@ func signatureToMethod(goName string, sig *types.Signature, static bool, ctx map
 		if containsDynamicType(returnType) {
 			fallbacks = append(fallbacks, newDynamicFallback(ctx, symbol, resultPosition(result, 0), result.Type(), reason))
 		}
-		valueReturn = isStructValueType(result.Type())
+		valueReturn = isPointerBackedValueType(result.Type())
 	default:
 		if generatedCarrier, ok := buildTupleCarrier(goName, sig.Results(), ctx, ownerName, usedCarrierNames); ok {
 			returnType = generatedCarrier.ClassName
 			carrier = &generatedCarrier
 			tupleReturn = true
 			for i := 0; i < sig.Results().Len(); i++ {
-				if isStructValueType(sig.Results().At(i).Type()) {
+				if isPointerBackedValueType(sig.Results().At(i).Type()) {
 					tupleValueResults = append(tupleValueResults, i)
 				}
 			}
@@ -670,18 +673,27 @@ func signatureToMethod(goName string, sig *types.Signature, static bool, ctx map
 	}, carrier, fallbacks
 }
 
-// isStructValueType distinguishes a Go struct value from a pointer to the
-// same named struct. Both map to one mutable Haxe extern class, so goextern
-// records where the compiler must adapt that pointer-backed representation.
-func isStructValueType(t types.Type) bool {
+// isPointerBackedValueType distinguishes a named Go value from a pointer to
+// that value. Named structs and scalars both map to Haxe extern classes, so
+// goextern records where the compiler must adapt their pointer-backed carrier.
+func isPointerBackedValueType(t types.Type) bool {
 	if t == nil {
 		return false
 	}
-	if _, ok := types.Unalias(t).(*types.Pointer); ok {
+	resolved := types.Unalias(t)
+	if _, ok := resolved.(*types.Pointer); ok {
 		return false
 	}
-	_, ok := types.Unalias(t).Underlying().(*types.Struct)
-	return ok
+	named, ok := resolved.(*types.Named)
+	if !ok {
+		return false
+	}
+	switch named.Underlying().(type) {
+	case *types.Struct, *types.Basic:
+		return true
+	default:
+		return false
+	}
 }
 
 func buildTupleCarrier(goName string, results *types.Tuple, ctx mappingContext, ownerName string, usedCarrierNames map[string]bool) (tupleCarrierDecl, bool) {
@@ -1017,6 +1029,9 @@ func renderDeclaration(haxePackage string, goImportPath string, goPackageName st
 	}
 	if decl.Struct {
 		b.WriteString("@:go.struct\n")
+	}
+	if decl.ValueType {
+		b.WriteString("@:go.valueType\n")
 	}
 
 	allMethods := make([]methodDecl, 0, len(decl.StaticMethods)+len(decl.InstanceMethods))

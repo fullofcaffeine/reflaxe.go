@@ -7071,7 +7071,7 @@ class GoCompiler {
 				isStringLike: false
 			};
 		}
-		callExpr = normalizeExternStructValueCallResult(callee, returnType, callExpr);
+		callExpr = normalizeExternValueCallResult(callee, returnType, callExpr);
 		if (shouldAssertGenericCallResult(callee, returnType)) {
 			callExpr = lowerNullableAwareTypeAssertExpr(callExpr, returnType);
 		}
@@ -7760,7 +7760,7 @@ class GoCompiler {
 							isStringLike: false
 						};
 					}
-					callExpr = normalizeExternStructValueCallResult(callee, returnType, callExpr);
+					callExpr = normalizeExternValueCallResult(callee, returnType, callExpr);
 					if (shouldAssertGenericCallResult(callee, returnType)) {
 						callExpr = lowerNullableAwareTypeAssertExpr(callExpr, returnType);
 					}
@@ -9494,7 +9494,7 @@ class GoCompiler {
 		if (paramType == null || !isGoImportExternCall(callee) || isHxrtImportExternCall(callee)) {
 			return argExpr;
 		}
-		if (isNativeGoStructExternType(paramType) && externCallMetadataContainsIndex(callee, GoMetadataName.GoValueArgs, paramIndex)) {
+		if (isNativeGoValueExternType(paramType) && externCallMetadataContainsIndex(callee, GoMetadataName.GoValueArgs, paramIndex)) {
 			return GoExpr.GoUnary(GoUnaryOperator.Dereference, argExpr);
 		}
 		var nullableInner = nullableInnerType(paramType);
@@ -9558,7 +9558,7 @@ class GoCompiler {
 	}
 
 	function coerceExternTupleReturnValue(callee:TypedExpr, resultIndex:Int, value:GoExpr, targetType:Type):GoExpr {
-		if (isNativeGoStructExternType(targetType)
+		if (isNativeGoValueExternType(targetType)
 			&& externCallMetadataContainsIndex(callee, GoMetadataName.GoTupleValueResults, resultIndex)) {
 			return GoExpr.GoUnary(GoUnaryOperator.AddressOf, value);
 		}
@@ -9577,15 +9577,15 @@ class GoCompiler {
 	}
 
 	/**
-		What: Converts one Go struct value result to its mutable Haxe extern carrier.
-		Why: `@:go.struct` is pointer-backed, so leaving a native value unaddressed
+		What: Converts one Go named value result to its Haxe extern carrier.
+		Why: `@:go.struct` and `@:go.valueType` externs are pointer-backed, so leaving a native value unaddressed
 		would make its later use depend on whether it first touched a local variable.
 		How: Capture the call once in an inferred Go local and return its address only
-		when goextern recorded `@:go.valueReturn` on a matching struct extern result.
+		when goextern recorded `@:go.valueReturn` on a matching extern result.
 	**/
-	function normalizeExternStructValueCallResult(callee:TypedExpr, returnType:Type, callExpr:GoExpr):GoExpr {
+	function normalizeExternValueCallResult(callee:TypedExpr, returnType:Type, callExpr:GoExpr):GoExpr {
 		final field = externCallField(callee);
-		if (field == null || !hasMetadata(field.meta, [GoMetadataName.GoValueReturn]) || !isNativeGoStructExternType(returnType))
+		if (field == null || !hasMetadata(field.meta, [GoMetadataName.GoValueReturn]) || !isNativeGoValueExternType(returnType))
 			return callExpr;
 		final valueName = freshTempName("hx_extern_value");
 		return GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(returnType)], [
@@ -9594,9 +9594,9 @@ class GoCompiler {
 		]), []);
 	}
 
-	function isNativeGoStructExternType(type:Type):Bool {
+	function isNativeGoValueExternType(type:Type):Bool {
 		return switch Context.follow(type) {
-			case TInst(classRef, _): isNativeGoStructExtern(classRef.get());
+			case TInst(classRef, _): isNativeGoValueExtern(classRef.get());
 			case _: false;
 		};
 	}
@@ -9606,7 +9606,7 @@ class GoCompiler {
 		Why: Haxe uses one pointer-backed class for both `T` and `*T`, while generated
 		bindings must preserve which Go parameters and tuple results are values.
 		How: goextern emits the metadata from go/types; lowering validates it and
-		adapts only native struct externs at the named boundary positions.
+		adapts only marked native value externs at the named boundary positions.
 	**/
 	function externCallMetadataContainsIndex(callee:TypedExpr, name:GoMetadataName, expected:Int):Bool {
 		final field = externCallField(callee);
@@ -11991,6 +11991,11 @@ class GoCompiler {
 	**/
 	function isNativeGoStructExtern(classType:ClassType):Bool {
 		return classType.isExtern && hasMetadata(classType.meta, [GoMetadataName.GoStruct]);
+	}
+
+	/** Identifies a pointer-backed extern whose corresponding Go type can cross a call boundary by value. */
+	function isNativeGoValueExtern(classType:ClassType):Bool {
+		return classType.isExtern && hasMetadata(classType.meta, [GoMetadataName.GoStruct, GoMetadataName.GoValueType]);
 	}
 
 	/** Builds the qualified structured-AST type used by a native zero-value literal. */

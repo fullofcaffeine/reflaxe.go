@@ -190,6 +190,53 @@ func Pair(value Value) (Value, error) { return value, nil }
 	}
 }
 
+func TestBuildEmissionPreservesNamedScalarValueABI(t *testing.T) {
+	moduleDir := t.TempDir()
+	writeTestFile(t, filepath.Join(moduleDir, "go.mod"), "module example.com/scalarabi\n\ngo 1.22\n")
+	writeTestFile(t, filepath.Join(moduleDir, "api", "api.go"), `package api
+
+type Duration int64
+
+func ParseDuration(value string) (Duration, error) { return Duration(len(value)), nil }
+func AddDuration(left Duration, right *Duration) Duration { return left + *right }
+`)
+
+	emission, err := BuildEmission(Config{
+		GoImportPath:      "example.com/scalarabi/api",
+		WorkingDirectory:  moduleDir,
+		OutputRoot:        t.TempDir(),
+		HaxePackagePrefix: "goextern",
+	})
+	if err != nil {
+		t.Fatalf("BuildEmission failed for named scalar ABI fixture: %v", err)
+	}
+
+	durationFile := fileContentsByName(t, emission, "Duration.hx")
+	if !strings.Contains(durationFile, "@:go.valueType") {
+		t.Fatalf("Duration.hx missing named value ABI marker:\n%s", durationFile)
+	}
+
+	apiFile := fileContentsByName(t, emission, "ApiPkg.hx")
+	for _, snippet := range []string{
+		"@:go.valueArgs(\"0\")\n\t@:go.valueReturn\n\t@:go.name(\"AddDuration\")",
+		"@:go.tupleReturn\n\t@:go.tupleValueResults(\"0\")\n\t@:go.name(\"ParseDuration\")",
+	} {
+		if !strings.Contains(apiFile, snippet) {
+			t.Fatalf("ApiPkg.hx missing named scalar value ABI contract %q:\n%s", snippet, apiFile)
+		}
+	}
+	addDurationBlock := ""
+	for _, block := range strings.Split(apiFile, "\n\n") {
+		if strings.Contains(block, "@:go.name(\"AddDuration\")") {
+			addDurationBlock = block
+			break
+		}
+	}
+	if addDurationBlock == "" || strings.Contains(addDurationBlock, "@:go.valueArgs(\"1\")") {
+		t.Fatalf("pointer named scalar argument must not use value adaptation:\n%s", addDurationBlock)
+	}
+}
+
 func TestBuildEmissionRejectsPackagePatternIdentity(t *testing.T) {
 	moduleDir := t.TempDir()
 	outputDir := t.TempDir()
@@ -582,7 +629,7 @@ func TestBuildEmissionTimeTupleReturnCarrierUsesNamedFields(t *testing.T) {
 	if !strings.Contains(timeFile, "@:go.tupleReturn\n\t@:go.name(\"Zone\")\n\tpublic function zone():TimeZoneResult;") {
 		t.Fatalf("Time.Zone should use a typed tuple carrier")
 	}
-	if !strings.Contains(timeFile, "@:go.tupleReturn\n\t@:go.name(\"Date\")\n\tpublic function date():TimeDateResult;") {
+	if !strings.Contains(timeFile, "@:go.tupleReturn\n\t@:go.tupleValueResults(\"1\")\n\t@:go.name(\"Date\")\n\tpublic function date():TimeDateResult;") {
 		t.Fatalf("Time.Date should use a typed tuple carrier instead of Dynamic")
 	}
 	if !strings.Contains(timeFile, "@:go.tupleReturn\n\t@:go.name(\"MarshalBinary\")\n\tpublic function marshalBinary():TimeMarshalBinaryResult;") {
