@@ -861,6 +861,32 @@ func TestWriteEmissionPreservesUnownedFilesAndRejectsConflicts(t *testing.T) {
 	}
 }
 
+func TestWriteEmissionRejectsIdenticalUnownedFile(t *testing.T) {
+	dir := t.TempDir()
+	target := filepath.Join(dir, "generated", "Binding.hx")
+	contents := "package generated;\n\nextern class Binding {}\n"
+	writeTestFile(t, target, contents)
+
+	expectGeneratorErrorCode(t, writeEmission(&Emission{
+		OutputDir: dir,
+		RootKey:   "root-a",
+		Files: []EmittedFile{
+			{Name: "generated/Binding.hx", Contents: contents},
+		},
+	}), "unowned_output_conflict")
+
+	payload, err := os.ReadFile(target)
+	if err != nil {
+		t.Fatalf("read identical unowned file: %v", err)
+	}
+	if string(payload) != contents {
+		t.Fatalf("generator changed an identical unowned file")
+	}
+	if exists(filepath.Join(dir, ".goextern")) {
+		t.Fatalf("generator claimed an identical unowned file")
+	}
+}
+
 func TestWriteEmissionRejectsModifiedOwnedFile(t *testing.T) {
 	dir := t.TempDir()
 	initial := &Emission{
@@ -889,6 +915,34 @@ func TestWriteEmissionRejectsModifiedOwnedFile(t *testing.T) {
 	}
 	if string(payload) != "user edit\n" {
 		t.Fatalf("modified owned file was overwritten")
+	}
+}
+
+func TestWriteEmissionRejectsModifiedFileOwnedByAnotherRoot(t *testing.T) {
+	dir := t.TempDir()
+	shared := EmittedFile{Name: "pkg/Binding.hx", Contents: "original\n"}
+	if err := writeEmission(&Emission{
+		OutputDir: dir,
+		RootKey:   "root-a",
+		Files:     []EmittedFile{shared},
+	}); err != nil {
+		t.Fatalf("write first owner: %v", err)
+	}
+
+	target := filepath.Join(dir, "pkg", "Binding.hx")
+	writeTestFile(t, target, "user edit\n")
+	expectGeneratorErrorCode(t, writeEmission(&Emission{
+		OutputDir: dir,
+		RootKey:   "root-b",
+		Files:     []EmittedFile{shared},
+	}), "owned_output_modified")
+
+	payload, err := os.ReadFile(target)
+	if err != nil {
+		t.Fatalf("read modified shared file: %v", err)
+	}
+	if string(payload) != "user edit\n" {
+		t.Fatalf("new root overwrote a modified file owned by another root")
 	}
 }
 
@@ -950,6 +1004,37 @@ func TestWriteEmissionRejectsConflictingExistingRootClaims(t *testing.T) {
 	expectGeneratorErrorCode(t, writeEmission(emission), "owned_output_conflict")
 	if exists(filepath.Join(dir, "root", "Binding.hx")) {
 		t.Fatalf("conflicting ownership records must fail before writing")
+	}
+}
+
+func TestWriteEmissionRejectsConflictThatIncludesCurrentRoot(t *testing.T) {
+	dir := t.TempDir()
+	manifestDir := filepath.Join(dir, ".goextern", "roots")
+	writeTestFile(t, filepath.Join(manifestDir, "root-a.json"), `{
+	"schemaVersion": 1,
+	"rootKey": "root-a",
+	"root": {},
+	"files": [{"path": "dep/Shared.hx", "sha256": "0000000000000000000000000000000000000000000000000000000000000000"}]
+}
+`)
+	writeTestFile(t, filepath.Join(manifestDir, "root-b.json"), `{
+	"schemaVersion": 1,
+	"rootKey": "root-b",
+	"root": {},
+	"files": [{"path": "dep/Shared.hx", "sha256": "1111111111111111111111111111111111111111111111111111111111111111"}]
+}
+`)
+
+	emission := &Emission{
+		OutputDir: dir,
+		RootKey:   "root-a",
+		Files: []EmittedFile{
+			{Name: "root/Binding.hx", Contents: "binding\n"},
+		},
+	}
+	expectGeneratorErrorCode(t, writeEmission(emission), "owned_output_conflict")
+	if exists(filepath.Join(dir, "root", "Binding.hx")) {
+		t.Fatalf("conflicting ownership records must fail before current-root writes")
 	}
 }
 

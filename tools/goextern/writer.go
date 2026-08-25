@@ -207,19 +207,29 @@ func loadOwnershipManifests(dir string) (map[string]*ownershipManifest, error) {
 }
 
 func validateOwnershipPlan(outputRoot string, rootKey string, planned []ownedOutput, manifests map[string]*ownershipManifest, current *ownershipManifest) error {
+	allClaims := make(map[string]ownedOutput)
+	allClaimPathsByFold := make(map[string]string)
 	claims := make(map[string]ownedOutput)
 	claimPathsByFold := make(map[string]string)
-	for otherRoot, manifest := range manifests {
-		if otherRoot == rootKey {
-			continue
-		}
+	manifestRoots := make([]string, 0, len(manifests))
+	for manifestRoot := range manifests {
+		manifestRoots = append(manifestRoots, manifestRoot)
+	}
+	sort.Strings(manifestRoots)
+	for _, otherRoot := range manifestRoots {
+		manifest := manifests[otherRoot]
 		for _, output := range manifest.Files {
 			folded := strings.ToLower(output.Path)
-			if other, exists := claimPathsByFold[folded]; exists && other != output.Path {
+			if other, exists := allClaimPathsByFold[folded]; exists && other != output.Path {
 				return graphError("owned_output_conflict", "%q and %q differ only by case across roots", other, output.Path)
 			}
-			if claim, exists := claims[output.Path]; exists && claim.SHA256 != output.SHA256 {
+			if claim, exists := allClaims[output.Path]; exists && claim.SHA256 != output.SHA256 {
 				return graphError("owned_output_conflict", "%q has different recorded contents across roots", output.Path)
+			}
+			allClaimPathsByFold[folded] = output.Path
+			allClaims[output.Path] = output
+			if otherRoot == rootKey {
+				continue
 			}
 			claimPathsByFold[folded] = output.Path
 			claims[output.Path] = output
@@ -249,13 +259,16 @@ func validateOwnershipPlan(outputRoot string, rootKey string, planned []ownedOut
 		}
 		digest := sha256.Sum256(payload)
 		actual := hex.EncodeToString(digest[:])
-		if old, owned := currentByPath[output.Path]; owned && actual != old.SHA256 && actual != output.SHA256 {
-			return graphError("owned_output_modified", "%q differs from its recorded and planned contents", output.Path)
+		old, ownedHere := currentByPath[output.Path]
+		claim, ownedElsewhere := claims[output.Path]
+		if !ownedHere && !ownedElsewhere {
+			return graphError("unowned_output_conflict", "%q already exists without a goextern owner", output.Path)
 		}
-		if _, ownedHere := currentByPath[output.Path]; !ownedHere {
-			if _, ownedElsewhere := claims[output.Path]; !ownedElsewhere && actual != output.SHA256 {
-				return graphError("unowned_output_conflict", "%q already exists with different contents", output.Path)
-			}
+		if ownedElsewhere && actual != claim.SHA256 {
+			return graphError("owned_output_modified", "%q differs from the contents recorded by another root", output.Path)
+		}
+		if ownedHere && actual != old.SHA256 && actual != output.SHA256 {
+			return graphError("owned_output_modified", "%q differs from its recorded and planned contents", output.Path)
 		}
 	}
 	for _, old := range current.Files {

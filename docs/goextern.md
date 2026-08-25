@@ -173,8 +173,9 @@ First-class `(T,error)` interop pattern:
 - See `examples/interop_smoke` and `test/semantic_diff/go_value_error_result_contract`.
 
 Generated files are not an edit surface. Put stronger user-owned externs or
-typed adapters in a separate Haxe path. The ownership manifest rejects a
-different unowned file at a generated path.
+typed adapters in a separate Haxe path. The ownership manifest rejects any
+unowned file at a generated path, even when its bytes already match. This rule
+prevents the generator from claiming and later deleting a user-owned file.
 
 ## Advanced Signature Boundary Policy
 
