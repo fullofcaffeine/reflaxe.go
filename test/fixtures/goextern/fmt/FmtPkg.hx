@@ -3,6 +3,7 @@
 package goextern.fmt;
 
 @:go.import("fmt")
+@:go.package("fmt")
 extern class FmtPkg {
 	@:go.name("Append")
 	public static function append(b:go.NativeSlice<Int>, a:haxe.Rest<Dynamic>):go.NativeSlice<Int>;
@@ -21,27 +22,27 @@ extern class FmtPkg {
 
 	@:go.tupleReturn
 	@:go.name("Fprint")
-	public static function fprint(w:Dynamic, a:haxe.Rest<Dynamic>):FprintResult;
+	public static function fprint(w:goextern.io.Writer, a:haxe.Rest<Dynamic>):FprintResult;
 
 	@:go.tupleReturn
 	@:go.name("Fprintf")
-	public static function fprintf(w:Dynamic, format:String, a:haxe.Rest<Dynamic>):FprintfResult;
+	public static function fprintf(w:goextern.io.Writer, format:String, a:haxe.Rest<Dynamic>):FprintfResult;
 
 	@:go.tupleReturn
 	@:go.name("Fprintln")
-	public static function fprintln(w:Dynamic, a:haxe.Rest<Dynamic>):FprintlnResult;
+	public static function fprintln(w:goextern.io.Writer, a:haxe.Rest<Dynamic>):FprintlnResult;
 
 	@:go.tupleReturn
 	@:go.name("Fscan")
-	public static function fscan(r:Dynamic, a:haxe.Rest<Dynamic>):FscanResult;
+	public static function fscan(r:goextern.io.Reader, a:haxe.Rest<Dynamic>):FscanResult;
 
 	@:go.tupleReturn
 	@:go.name("Fscanf")
-	public static function fscanf(r:Dynamic, format:String, a:haxe.Rest<Dynamic>):FscanfResult;
+	public static function fscanf(r:goextern.io.Reader, format:String, a:haxe.Rest<Dynamic>):FscanfResult;
 
 	@:go.tupleReturn
 	@:go.name("Fscanln")
-	public static function fscanln(r:Dynamic, a:haxe.Rest<Dynamic>):FscanlnResult;
+	public static function fscanln(r:goextern.io.Reader, a:haxe.Rest<Dynamic>):FscanlnResult;
 
 	@:go.tupleReturn
 	@:go.name("Print")

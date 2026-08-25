@@ -29,6 +29,9 @@ Resolve a package from another Go module without changing that module:
 npm run dev:goextern -- --package example.com/app/api --dir ../app
 ```
 
+Pass one exact Go import path. Relative and wildcard package patterns are not
+accepted because the import path is part of the generated ownership identity.
+
 Print generated files without writing to disk:
 
 ```bash
@@ -43,35 +46,73 @@ npm run dev:goextern -- --package fmt --dynamic-report test/.test-cache/goextern
 
 ## Output Layout
 
-By default, output is written under:
+By default, the Haxe package `goextern` is written under:
 
 ```text
-gen/goextern/<go import path>/
+gen/goextern/<sanitized Go import path>/
 ```
 
 Examples:
 
 - `fmt` -> `gen/goextern/fmt/*.hx`
 - `context` -> `gen/goextern/context/*.hx`
-- `github.com/foo/bar` -> `gen/goextern/github.com/foo/bar/*.hx`
+- `github.com/foo/bar` -> `gen/goextern/github_com/foo/bar/*.hx`
+
+The output path matches the declared Haxe package. The `@:go.import` metadata
+keeps the original Go import path without changes. Add `gen` to the Haxe class
+path when you use the default output and package prefix.
 
 ## What It Emits
 
-- One extern class per exported named type in the package.
+- One extern class per supported exported named type in the root package.
+- One Haxe `typedef` per supported exported Go alias.
+- Externs for supported named dependency types that the root API reaches.
 - Exported fields on named structs when their types preserve the exact Go ABI.
 - One package static extern class (`<PkgName>Pkg`) for exported package-level functions.
 - Metadata for compiler lowering:
   - `@:go.import("<path>")`
+  - `@:go.package("<name>")`
   - `@:go.name("<symbol>")`
   - `@:go.struct` (on concrete Go structs with zero-value construction)
   - `@:go.valueError` (when the extern returns Go `(T,error)` and the Haxe return type is `go.Result<T>`)
 
 ## Determinism Contract
 
-- Exported symbols are processed in stable lexical order.
-- Methods are sorted with stable keys (name + signature).
-- File output order is stable.
-- Stale `.hx` files in the destination package directory are removed on write.
+- The generator uses the exact Go import path and declaration name as identity.
+- The root emits all exported types and package functions.
+- A dependency emits only reachable exported types and their supported methods.
+- A dependency package function requires a separate root invocation.
+- Recursive named types terminate and use stable references.
+- Symbols, methods, files, diagnostics, and manifests use stable sort keys.
+- The same invocation produces the same bytes when its Go package graph is unchanged.
+
+Each root owns its files through `.goextern/roots/<root-key>.json`. Two roots can
+own the same file only when its bytes are equal. The generator does not change
+an unowned file or a modified owned file. It removes a stale file only after
+the final owner releases that file.
+
+Run one generator process at a time for an output tree. The ownership manifest
+does not coordinate concurrent writers.
+
+A successful write reports its precision:
+
+```text
+generated 17 files across 4 packages; precision=exact; fallbacks=0; out=gen/goextern
+```
+
+The value is `precision=partial` when the fallback report is not empty.
+
+The generator stops before a write for these graph and ownership errors:
+
+- `package_load_failed`: Go did not load the selected root package.
+- `haxe_package_collision`: two Go paths map to the same Haxe package.
+- `output_path_collision`: two declarations map to the same output path.
+- `go_import_alias_required`: two Go packages require the same Go qualifier.
+- `owned_output_conflict`: two roots plan different bytes for one owned path.
+- `owned_output_modified`: a person or another tool changed an owned file.
+- `unowned_output_conflict`: an unowned file already uses the planned path.
+- `invalid_ownership_manifest`: an existing ownership record is malformed.
+- `unsafe_output_path`: a path escapes the root or crosses a symbolic link.
 
 ## Implementation Note
 
@@ -98,20 +139,21 @@ The generator intentionally starts conservative:
 - map with string keys -> `haxe.DynamicAccess<T>`
 - exported fields on named structs -> writable Haxe fields with exact `@:go.name` selectors
 - supported multi-return signatures -> generated tuple carrier classes
+- supported external named types -> fully qualified Haxe types and reachable dependency externs
 - unsupported/complex boundaries -> `Dynamic`
 
 Generated named structs have a zero-argument constructor. `haxe.go` lowers it
 to an addressed Go composite literal such as `&image.Point{}`. This creates the
 ordinary Go zero value; it does not call or invent a package constructor.
 
-Only exported, non-embedded fields whose complete type maps to the same Go ABI
-are emitted. The current exact set includes `bool`, `int`, `float64`, `string`,
-safe native slices, same-package named interfaces, and pointers to supported
-same-package named values. Unexported fields stay private to Go. Embedded fields,
-maps, width-changing scalars, pointer shapes without a named carrier, named Go
-values that Haxe would represent as pointers, and other unsupported fields are
-omitted and recorded in the fallback report. This prevents an extern from
-claiming a field type that does not match the Go ABI.
+The generator emits an exported, non-embedded field only when its complete Go
+ABI has an exact Haxe type. The exact set includes `bool`, `int`, `float64`,
+`string`, safe native slices, named interfaces, and pointers to supported named
+values. These named types can belong to the root or a dependency package.
+
+Unexported fields stay private to Go. The generator omits unsupported fields
+and records each omission in the fallback report. Examples include embedded
+fields, maps, width-changing scalars, and pointers without a named carrier.
 
 Generated tuple carrier pattern:
 
@@ -119,7 +161,8 @@ Generated tuple carrier pattern:
 - Haxe functions return one value, so `goextern` generates a small carrier class such as `TimeZoneResult`.
 - The extern method is marked with `@:go.tupleReturn`.
 - `haxe.go` lowers the call into the carrier and converts common native Go values, such as Go `string` and Go `error`, into the Haxe-facing representation.
-- Tuple carriers are generated when every result value maps without `Dynamic`, including scalar values, slices, `error`, and named types from the same generated package.
+- Tuple carriers are generated when every result value maps without `Dynamic`.
+- Exact results include scalars, slices, `error`, and supported named dependency types.
 - If any result value cannot be typed honestly yet, the method still returns `Dynamic`.
 
 First-class `(T,error)` interop pattern:
@@ -129,8 +172,10 @@ First-class `(T,error)` interop pattern:
 - Compiler lowering wraps the Go multi-return call into `go.Result<T>` automatically.
 - See `examples/interop_smoke` and `test/semantic_diff/go_value_error_result_contract`.
 
-This keeps generated externs broadly usable while avoiding unsafe precision claims.
-You can refine generated files manually where stronger typing is needed.
+Generated files are not an edit surface. Put stronger user-owned externs or
+typed adapters in a separate Haxe path. The ownership manifest rejects any
+unowned file at a generated path, even when its bytes already match. This rule
+prevents the generator from claiming and later deleting a user-owned file.
 
 ## Advanced Signature Boundary Policy
 
@@ -157,7 +202,8 @@ Terms:
 | `func Name(...) (A, B)` where both values map cleanly | Emits a generated tuple carrier such as `NameResult`, plus `@:go.tupleReturn`. | Use the generated carrier directly. Example evidence: `test/snapshot/go_native/extern_tuple_return`. |
 | `func Name(...) (A, B, C...)` where every value maps cleanly | Emits a generated tuple carrier with one field per Go result value. | Use the generated carrier directly, or write a smaller facade if a domain-specific name is clearer. |
 | any multi-return signature containing unsupported result types | Emits `Dynamic` for that method. | Add a typed facade wrapper. Do not pretend the generated `Dynamic` value is portable or fully typed. |
-| callbacks, channels, generics, unsafe pointers, named values from another package | Usually emits `Dynamic` at the boundary. | Generate the dependency package too when possible, or wrap the API behind a smaller typed facade. |
+| supported named types from another package | Emits a fully qualified Haxe type and the reachable dependency declaration. | Use the generated extern directly. Generate a separate root for dependency package functions. |
+| callbacks, channels, generics, unsafe pointers, or unsupported container shapes | Emits `Dynamic` or omits an unsupported field. | Use a precise user extern or a narrow typed adapter for that boundary. |
 
 Generated tuple carriers are intentionally simple. They are good when the Go
 result names are already meaningful, such as `name` and `offset`. A hand-written
@@ -186,9 +232,9 @@ The report is deterministic JSON:
 		{
 			"package": "fmt",
 			"symbol": "Fprint",
-			"position": "param:w",
-			"goType": "io.Writer",
-			"reason": "external_named_type"
+			"position": "param:a",
+			"goType": "[]any",
+			"reason": "empty_interface"
 		}
 	]
 }
@@ -207,7 +253,9 @@ Field meanings:
 Common reason codes:
 
 - `callback_signature`: the boundary is a Go function value, such as `func(rune) bool`.
-- `external_named_type`: the type comes from another Go package that was not generated with this package.
+- `generic_named_type`: the named type has type parameters or type arguments.
+- `unexported_named_type`: the Go package does not export the named type.
+- `alias_target_unsupported`: the exported alias target does not have an exact mapping.
 - `unsupported_map_key`: the Go map key is not a `string`, so it does not map to `haxe.DynamicAccess<T>`.
 - `struct`: the boundary is an anonymous Go struct.
 - `empty_interface`: the boundary is `any` / `interface{}`.
@@ -226,8 +274,7 @@ How to use this report:
 
 1. Generate the externs and the report.
 2. Find fallbacks in the APIs your app actually calls.
-3. For important APIs, write a small typed facade wrapper that converts the raw
-   Go shape into a simpler Haxe-facing shape.
+3. For important APIs, write a precise user extern or a narrow typed adapter.
 4. Leave low-value or truly dynamic boundaries as `Dynamic`.
 
 App code and examples must not use raw `__go__` to bypass these boundaries. Raw
@@ -269,7 +316,8 @@ The supported build lines are governed separately by
 
 Full CI still runs `goextern` confidence checks on other local Go versions:
 
-- `npm run test:goextern` always runs the generator unit tests.
+- `npm run test:goextern` runs the generator unit tests and the cross-package
+  Haxe-to-Go runtime tracer.
 - If the current Go release matches the fixture pin, CI runs the committed
   fixture drift check.
 - If the current Go release differs from the fixture pin, CI runs a

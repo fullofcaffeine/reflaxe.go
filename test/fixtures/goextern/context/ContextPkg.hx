@@ -3,6 +3,7 @@
 package goextern.context;
 
 @:go.import("context")
+@:go.package("context")
 extern class ContextPkg {
 	@:go.name("AfterFunc")
 	public static function afterFunc(ctx:Context, f:Dynamic):Dynamic;
@@ -26,19 +27,19 @@ extern class ContextPkg {
 
 	@:go.tupleReturn
 	@:go.name("WithDeadline")
-	public static function withDeadline(parent:Context, d:Dynamic):WithDeadlineResult;
+	public static function withDeadline(parent:Context, d:goextern.time.Time):WithDeadlineResult;
 
 	@:go.tupleReturn
 	@:go.name("WithDeadlineCause")
-	public static function withDeadlineCause(parent:Context, d:Dynamic, cause:go.Error):WithDeadlineCauseResult;
+	public static function withDeadlineCause(parent:Context, d:goextern.time.Time, cause:go.Error):WithDeadlineCauseResult;
 
 	@:go.tupleReturn
 	@:go.name("WithTimeout")
-	public static function withTimeout(parent:Context, timeout:Dynamic):WithTimeoutResult;
+	public static function withTimeout(parent:Context, timeout:goextern.time.Duration):WithTimeoutResult;
 
 	@:go.tupleReturn
 	@:go.name("WithTimeoutCause")
-	public static function withTimeoutCause(parent:Context, timeout:Dynamic, cause:go.Error):WithTimeoutCauseResult;
+	public static function withTimeoutCause(parent:Context, timeout:goextern.time.Duration, cause:go.Error):WithTimeoutCauseResult;
 
 	@:go.name("WithValue")
 	public static function withValue(parent:Context, key:Dynamic, val:Dynamic):Context;

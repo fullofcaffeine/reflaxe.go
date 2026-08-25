@@ -3,6 +3,7 @@
 package goextern.time;
 
 @:go.import("time")
+@:go.package("time")
 extern class TimePkg {
 	@:go.name("After")
 	public static function after(d:Duration):Dynamic;

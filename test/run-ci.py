@@ -404,8 +404,8 @@ def build_goextern_fixture_smoke_command() -> list[str]:
     return ["python3", "test/run-goextern-fixtures.py", "--smoke"]
 
 
-def build_goextern_unit_command() -> list[str]:
-    return ["bash", "-lc", "cd tools/goextern && go test ./..."]
+def build_goextern_command() -> list[str]:
+    return ["npm", "run", "test:goextern"]
 
 
 def current_go_release() -> str | None:
@@ -626,10 +626,10 @@ def main() -> int:
     else:
         print("==> Skipping metal example boundary stage")
 
-    print("==> goextern unit stage")
-    goextern_unit_code = run(build_goextern_unit_command())
-    if goextern_unit_code != 0:
-        return goextern_unit_code
+    print("==> goextern confidence stage")
+    goextern_code = run(build_goextern_command())
+    if goextern_code != 0:
+        return goextern_code
 
     goextern_stage = resolve_goextern_fixture_stage(
         skip=args.skip_goextern_fixtures,

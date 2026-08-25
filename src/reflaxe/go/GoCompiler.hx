@@ -854,8 +854,11 @@ class GoCompiler {
 
 	function stmtUsesImportAlias(stmt:GoStmt, alias:String):Bool {
 		return switch (stmt) {
-			case GoVarDecl(_, typeName, value, _): typeName != null && typeNameUsesImportAlias(typeName,
-					alias) || (value != null && exprUsesImportAlias(value, alias));
+			case GoVarDecl(_, typeName, value, useShort): // A short declaration prints only `name := value`; its retained Haxe
+				// type guides lowering but does not create a Go import reference.
+				(!useShort
+					&& typeName != null
+					&& typeNameUsesImportAlias(typeName, alias)) || (value != null && exprUsesImportAlias(value, alias));
 			case GoMultiAssign(_, value, _): exprUsesImportAlias(value, alias);
 			case GoAssign(left, right, _): exprUsesImportAlias(left, alias) || exprUsesImportAlias(right, alias);
 			case GoIncDec(target, _): exprUsesImportAlias(target, alias);
@@ -1045,10 +1048,13 @@ class GoCompiler {
 
 	function exprUsesImportAlias(expr:GoExpr, alias:String):Bool {
 		return switch (expr) {
-			case GoIdent(name): name == alias || rawCodeUsesImportAlias(name, alias);
+			// A standalone identifier can be a local variable with the same name as
+			// a package. Package use is represented by a selector (`pkg.Member`).
+			case GoIdent(name): rawCodeUsesImportAlias(name, alias);
 			case GoIntLiteral(_), GoFloatLiteral(_), GoBoolLiteral(_), GoStringLiteral(_), GoNil:
 				false;
-			case GoSelector(target, field): selectorMatchesQualifiedSymbol(target, field, alias) || exprUsesImportAlias(target, alias);
+			case GoSelector(target, field): selectorTargetUsesImportAlias(target,
+					alias) || selectorMatchesQualifiedSymbol(target, field, alias) || exprUsesImportAlias(target, alias);
 			case GoIndex(target, index): exprUsesImportAlias(target, alias) || exprUsesImportAlias(index, alias);
 			case GoSlice(target, start, end): exprUsesImportAlias(target,
 					alias) || (start != null && exprUsesImportAlias(start, alias)) || (end != null && exprUsesImportAlias(end, alias));
@@ -1113,6 +1119,18 @@ class GoCompiler {
 					}
 					used;
 				}
+		};
+	}
+
+	/**
+		What: Detect a package identifier in the target of a selector.
+		Why: A standalone local identifier can have the same name as a Go package.
+		How: Count the identifier only when the AST prints it before a selector field.
+	**/
+	function selectorTargetUsesImportAlias(target:GoExpr, alias:String):Bool {
+		return switch (target) {
+			case GoIdent(name): name == alias;
+			case _: false;
 		};
 	}
 

@@ -3,6 +3,7 @@
 package goextern.fmt;
 
 @:go.import("fmt")
+@:go.package("fmt")
 @:go.name("State")
 extern interface State {
 	@:go.name("Flag")

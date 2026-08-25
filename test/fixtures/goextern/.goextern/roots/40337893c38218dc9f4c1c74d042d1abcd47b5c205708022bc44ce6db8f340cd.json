@@ -1,0 +1,143 @@
+{
+	"schemaVersion": 1,
+	"rootKey": "40337893c38218dc9f4c1c74d042d1abcd47b5c205708022bc44ce6db8f340cd",
+	"root": {
+		"goImportPath": "fmt",
+		"haxePackagePrefix": "goextern",
+		"packageClassName": ""
+	},
+	"files": [
+		{
+			"path": "fmt/FmtPkg.hx",
+			"sha256": "81c8dcbe987fda71b3e0da6d49d03ac1f2245737ebb909f949cf6fdc9154613d"
+		},
+		{
+			"path": "fmt/Formatter.hx",
+			"sha256": "a6879d50abe16f57293cfa0fcd5c6f8729a8848958954ec2fc280ed26f4a1815"
+		},
+		{
+			"path": "fmt/FprintResult.hx",
+			"sha256": "351ceac90ee277380ae77d0865566977f048e16df79db106e2cf6a5113edf006"
+		},
+		{
+			"path": "fmt/FprintfResult.hx",
+			"sha256": "60d74779fc2951b0dc976f1694c5bd1c4eba7551d8fd2aa9a8bb64492916fd8d"
+		},
+		{
+			"path": "fmt/FprintlnResult.hx",
+			"sha256": "b5f110db881b652839e2c1148f832376ab145eaffea50a365bb3b098dad5632c"
+		},
+		{
+			"path": "fmt/FscanResult.hx",
+			"sha256": "df5d6afbbc8231e0ff99150e2196cc61564629211639b68ee27e0f8f35c889ef"
+		},
+		{
+			"path": "fmt/FscanfResult.hx",
+			"sha256": "277e5c19aaf9e7e3ebb21eb615d8f359124977cc45daf005e753562ba0ece642"
+		},
+		{
+			"path": "fmt/FscanlnResult.hx",
+			"sha256": "eb1666fc0c3445e32900421dc63c70ba5d196aba0b88883f2b54b469811e3b7a"
+		},
+		{
+			"path": "fmt/GoStringer.hx",
+			"sha256": "fb76662f489f62db8556230d4df3f036288ec820290b0e9541c4541e0cb08d07"
+		},
+		{
+			"path": "fmt/PrintResult.hx",
+			"sha256": "d2387910960b5ee36a007d8caf7d360241ba7a33c1b51b9b2502d55d605b0862"
+		},
+		{
+			"path": "fmt/PrintfResult.hx",
+			"sha256": "1c7500ab1ff57987456b3986875add838505f48a67a466a431dea13fa16f15d7"
+		},
+		{
+			"path": "fmt/PrintlnResult.hx",
+			"sha256": "f8e92d7a164f73de738a055b2277e52e1ac03e4a2bdf99b8c4363dc7b53a76f6"
+		},
+		{
+			"path": "fmt/ScanResult.hx",
+			"sha256": "57328898b147b68bdf0845333559cef2786ccb41db882fa0cb7ff817c0d21df0"
+		},
+		{
+			"path": "fmt/ScanState.hx",
+			"sha256": "cc9b29fd3b87d55d8256378263496ed90a23f1b62d1499321fe809bb5fe3c9ee"
+		},
+		{
+			"path": "fmt/ScanStateReadResult.hx",
+			"sha256": "0280626b5dba8304aaaaf4ca5e26c4575b53ef739ab2e1cbbd8ccb3828c712d7"
+		},
+		{
+			"path": "fmt/ScanStateReadRuneResult.hx",
+			"sha256": "5a5d80895013ec3987ee40476f81e2390667b736f685175b4e9a0b3f3f46e700"
+		},
+		{
+			"path": "fmt/ScanStateTokenResult.hx",
+			"sha256": "ccf89fb201c5ec7ca4c32088172dd896a36a5c2b8d32c220f0773f69bc49fcfb"
+		},
+		{
+			"path": "fmt/ScanStateWidthResult.hx",
+			"sha256": "4d98109cadcd81440acd9ad789f1ff9fbd18617b6c06de3bf67f2c7ab0fe9f98"
+		},
+		{
+			"path": "fmt/ScanfResult.hx",
+			"sha256": "7aab4d72edb5db3cf283081bd8635a4d239ad75850dbbf2f5d3719a98e4e2249"
+		},
+		{
+			"path": "fmt/ScanlnResult.hx",
+			"sha256": "73d106c74c5e63712aaac657ca7581fade9bef2d8c899decf13be37f63a72481"
+		},
+		{
+			"path": "fmt/Scanner.hx",
+			"sha256": "5096675de09d13c05f1194bfd28a4dfa9534346b2c263f9bd65654105249b4e5"
+		},
+		{
+			"path": "fmt/SscanResult.hx",
+			"sha256": "28eeb0b7e5693afc68ee2ae7ff8d29cc80ff365deaabfaa74a005fc206fe6562"
+		},
+		{
+			"path": "fmt/SscanfResult.hx",
+			"sha256": "213906a07eb1aac0e5d60a44f62c91c6223b4d78afe8e5d50b0b77c352a029f0"
+		},
+		{
+			"path": "fmt/SscanlnResult.hx",
+			"sha256": "63a954265cfb3a423b8da37218a2109d56f780cea2de547dcb27ba894ba22187"
+		},
+		{
+			"path": "fmt/State.hx",
+			"sha256": "a44103a1337a0f93a9482e936f6fc17a8a6200d792638c7b58b7d0bf686bc390"
+		},
+		{
+			"path": "fmt/StatePrecisionResult.hx",
+			"sha256": "28881e9f9948578caa700403ad18a8bb63716c5d6ac0a3aed94cdfa39bc68a6f"
+		},
+		{
+			"path": "fmt/StateWidthResult.hx",
+			"sha256": "c6cf477b5f03d5ddf2aa075e5e6f0624153440ccd5d8f2507bb2be74ee3ce1e3"
+		},
+		{
+			"path": "fmt/StateWriteResult.hx",
+			"sha256": "1ee1a74841260b5cce49c0b0f27a31927a73342e96b15282fc17a6c42ad53d17"
+		},
+		{
+			"path": "fmt/Stringer.hx",
+			"sha256": "f18bda838f9e05ee467bf30a145d9d8029b2c6c43b8b0da0d41f408ebf3232b8"
+		},
+		{
+			"path": "io/Reader.hx",
+			"sha256": "c9ce07b9b712551213d003c4120f9e0fe54ff6c57ad596eef02f884835e8b550"
+		},
+		{
+			"path": "io/ReaderReadResult.hx",
+			"sha256": "b4e81731fa787d14ce45c9bdcb04c0a1837c946bfea5ed79b0655d3fb95d2577"
+		},
+		{
+			"path": "io/Writer.hx",
+			"sha256": "e40fb67cac403e453bdfcb6aa3f4e6f629151befb4517c9497ce49adae95bbca"
+		},
+		{
+			"path": "io/WriterWriteResult.hx",
+			"sha256": "250fc77e1b7a256fb4fdf80186d08f7401386963e35d4750fdea03a6af55e1c5"
+		}
+	]
+}

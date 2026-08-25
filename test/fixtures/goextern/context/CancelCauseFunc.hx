@@ -3,5 +3,6 @@
 package goextern.context;
 
 @:go.import("context")
+@:go.package("context")
 @:go.name("CancelCauseFunc")
 extern class CancelCauseFunc {}

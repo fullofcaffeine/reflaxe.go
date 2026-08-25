@@ -3,6 +3,7 @@
 package goextern.sync;
 
 @:go.import("sync")
+@:go.package("sync")
 @:go.name("Cond")
 @:go.struct
 extern class Cond {

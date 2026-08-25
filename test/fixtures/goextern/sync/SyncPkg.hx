@@ -3,6 +3,7 @@
 package goextern.sync;
 
 @:go.import("sync")
+@:go.package("sync")
 extern class SyncPkg {
 	@:go.name("NewCond")
 	public static function newCond(l:Locker):Cond;

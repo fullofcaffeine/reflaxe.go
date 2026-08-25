@@ -3,6 +3,7 @@
 package goextern.fmt;
 
 @:go.import("fmt")
+@:go.package("fmt")
 @:go.name("Scanner")
 extern interface Scanner {
 	@:go.name("Scan")

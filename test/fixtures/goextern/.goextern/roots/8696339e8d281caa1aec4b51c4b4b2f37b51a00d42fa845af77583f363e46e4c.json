@@ -1,0 +1,47 @@
+{
+	"schemaVersion": 1,
+	"rootKey": "8696339e8d281caa1aec4b51c4b4b2f37b51a00d42fa845af77583f363e46e4c",
+	"root": {
+		"goImportPath": "sync",
+		"haxePackagePrefix": "goextern",
+		"packageClassName": ""
+	},
+	"files": [
+		{
+			"path": "sync/Cond.hx",
+			"sha256": "408ef2b0327a0155895a01b2879c47db067a2188873125f647f899e2c38d4ed4"
+		},
+		{
+			"path": "sync/Locker.hx",
+			"sha256": "3814d82c8dc8eff0171d59d4d8be474bbc86e107351b4045a786ad269f5f9b2d"
+		},
+		{
+			"path": "sync/Map.hx",
+			"sha256": "6285cb251b7cc4527b61e4613f8988f446593beea937f1cab05f95ff078ffc4a"
+		},
+		{
+			"path": "sync/Mutex.hx",
+			"sha256": "955c6eb6035853184625fdfb1218605efa71c235e4fb0261e3c5f712263ab0e7"
+		},
+		{
+			"path": "sync/Once.hx",
+			"sha256": "6fdb196c3a79c5498abb61e7562762fe90c05b86554dae1eb2b2789ccb4c891d"
+		},
+		{
+			"path": "sync/Pool.hx",
+			"sha256": "3e43fa21b8fe5d348ab415e1878be2fecf1942dfbd243d0f4f63aa81defee895"
+		},
+		{
+			"path": "sync/RWMutex.hx",
+			"sha256": "0917a2a9d7f72bdfe2cc85d3b9aad3d88e592d8a86fe439033c3a831d1e4d0e5"
+		},
+		{
+			"path": "sync/SyncPkg.hx",
+			"sha256": "95ea26583a8076352610203bde6dda5cfe17de03afb203479ca10fde1761b594"
+		},
+		{
+			"path": "sync/WaitGroup.hx",
+			"sha256": "2dfd05aa35e9ac48c283bd314f7f935b8bfcfcf53681a3cc2ddc86428cd0ace2"
+		}
+	]
+}

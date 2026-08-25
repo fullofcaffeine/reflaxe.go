@@ -3,6 +3,7 @@
 package goextern.sync;
 
 @:go.import("sync")
+@:go.package("sync")
 @:go.name("Locker")
 extern interface Locker {
 	@:go.name("Lock")

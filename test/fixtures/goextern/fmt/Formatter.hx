@@ -3,6 +3,7 @@
 package goextern.fmt;
 
 @:go.import("fmt")
+@:go.package("fmt")
 @:go.name("Formatter")
 extern interface Formatter {
 	@:go.name("Format")
