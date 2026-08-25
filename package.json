@@ -126,7 +126,7 @@
     "@semantic-release/npm": "file:scripts/release/disabled-semantic-release-npm",
     "@semantic-release/release-notes-generator": "^14.1.1",
     "ajv": "^8.17.1",
-    "conventional-changelog-conventionalcommits": "^8.0.0",
+    "conventional-changelog-conventionalcommits": "^10.4.0",
     "lix": "^15.0.0",
     "semantic-release": "^25.0.7",
     "semver": "^7.8.5"
