@@ -5,12 +5,16 @@ package goextern.time;
 @:go.import("time")
 @:go.package("time")
 extern class TimePkg {
+	@:go.valueArgs("0")
 	@:go.name("After")
 	public static function after(d:Duration):Dynamic;
 
+	@:go.valueArgs("0")
 	@:go.name("AfterFunc")
 	public static function afterFunc(d:Duration, f:Dynamic):Timer;
 
+	@:go.valueArgs("1")
+	@:go.valueReturn
 	@:go.name("Date")
 	public static function date(year:Int, month:Month, day:Int, hour:Int, min:Int, sec:Int, nsec:Int, loc:Location):Time;
 
@@ -25,45 +29,60 @@ extern class TimePkg {
 	@:go.name("LoadLocationFromTZData")
 	public static function loadLocationFromTZData(name:String, data:go.NativeSlice<Int>):LoadLocationFromTZDataResult;
 
+	@:go.valueArgs("0")
 	@:go.name("NewTicker")
 	public static function newTicker(d:Duration):Ticker;
 
+	@:go.valueArgs("0")
 	@:go.name("NewTimer")
 	public static function newTimer(d:Duration):Timer;
 
+	@:go.valueReturn
 	@:go.name("Now")
 	public static function now():Time;
 
 	@:go.tupleReturn
+	@:go.tupleValueResults("0")
 	@:go.name("Parse")
 	public static function parse(layout:String, value:String):ParseResult;
 
 	@:go.tupleReturn
+	@:go.tupleValueResults("0")
 	@:go.name("ParseDuration")
 	public static function parseDuration(s:String):ParseDurationResult;
 
 	@:go.tupleReturn
+	@:go.tupleValueResults("0")
 	@:go.name("ParseInLocation")
 	public static function parseInLocation(layout:String, value:String, loc:Location):ParseInLocationResult;
 
+	@:go.valueArgs("0")
+	@:go.valueReturn
 	@:go.name("Since")
 	public static function since(t:Time):Duration;
 
+	@:go.valueArgs("0")
 	@:go.name("Sleep")
 	public static function sleep(d:Duration):Void;
 
+	@:go.valueArgs("0")
 	@:go.name("Tick")
 	public static function tick(d:Duration):Dynamic;
 
+	@:go.valueReturn
 	@:go.name("Unix")
 	public static function unix(sec:Int, nsec:Int):Time;
 
+	@:go.valueReturn
 	@:go.name("UnixMicro")
 	public static function unixMicro(usec:Int):Time;
 
+	@:go.valueReturn
 	@:go.name("UnixMilli")
 	public static function unixMilli(msec:Int):Time;
 
+	@:go.valueArgs("0")
+	@:go.valueReturn
 	@:go.name("Until")
 	public static function until(t:Time):Duration;
 }

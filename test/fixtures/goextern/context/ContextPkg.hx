@@ -26,18 +26,22 @@ extern class ContextPkg {
 	public static function withCancelCause(parent:Context):WithCancelCauseResult;
 
 	@:go.tupleReturn
+	@:go.valueArgs("1")
 	@:go.name("WithDeadline")
 	public static function withDeadline(parent:Context, d:goextern.time.Time):WithDeadlineResult;
 
 	@:go.tupleReturn
+	@:go.valueArgs("1")
 	@:go.name("WithDeadlineCause")
 	public static function withDeadlineCause(parent:Context, d:goextern.time.Time, cause:go.Error):WithDeadlineCauseResult;
 
 	@:go.tupleReturn
+	@:go.valueArgs("1")
 	@:go.name("WithTimeout")
 	public static function withTimeout(parent:Context, timeout:goextern.time.Duration):WithTimeoutResult;
 
 	@:go.tupleReturn
+	@:go.valueArgs("1")
 	@:go.name("WithTimeoutCause")
 	public static function withTimeoutCause(parent:Context, timeout:goextern.time.Duration, cause:go.Error):WithTimeoutCauseResult;
 

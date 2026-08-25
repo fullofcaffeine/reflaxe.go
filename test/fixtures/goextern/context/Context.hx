@@ -7,6 +7,7 @@ package goextern.context;
 @:go.name("Context")
 extern interface Context {
 	@:go.tupleReturn
+	@:go.tupleValueResults("0")
 	@:go.name("Deadline")
 	public function deadline():ContextDeadlineResult;
 

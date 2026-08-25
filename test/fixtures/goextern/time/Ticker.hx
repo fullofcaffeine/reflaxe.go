@@ -9,6 +9,7 @@ package goextern.time;
 extern class Ticker {
 	public function new();
 
+	@:go.valueArgs("0")
 	@:go.name("Reset")
 	public function reset(d:Duration):Void;
 
