@@ -3,6 +3,7 @@
 package goextern.fmt;
 
 @:go.import("fmt")
+@:go.package("fmt")
 @:go.name("ScanState")
 extern interface ScanState {
 	@:go.tupleReturn

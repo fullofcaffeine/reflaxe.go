@@ -3,6 +3,7 @@
 package goextern.time;
 
 @:go.import("time")
+@:go.package("time")
 @:go.name("Weekday")
 extern class Weekday {
 	@:go.name("String")

@@ -3,6 +3,7 @@
 package goextern.errors;
 
 @:go.import("errors")
+@:go.package("errors")
 extern class ErrorsPkg {
 	@:go.name("As")
 	public static function as(err:go.Error, target:Dynamic):Bool;

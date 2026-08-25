@@ -29,8 +29,17 @@ type Config struct {
 
 type Emission struct {
 	OutputDir        string
+	RootKey          string
+	Root             ownershipRoot
+	PackageCount     int
 	Files            []EmittedFile
 	DynamicFallbacks []DynamicFallback
+}
+
+type ownershipRoot struct {
+	GoImportPath      string `json:"goImportPath"`
+	HaxePackagePrefix string `json:"haxePackagePrefix"`
+	PackageClassName  string `json:"packageClassName"`
 }
 
 type EmittedFile struct {
@@ -41,6 +50,8 @@ type EmittedFile struct {
 type declaration struct {
 	ClassName       string
 	GoTypeName      string
+	Alias           bool
+	AliasTarget     string
 	Interface       bool
 	Struct          bool
 	PackageClass    bool
@@ -89,7 +100,14 @@ type dynamicFallbackReport struct {
 
 type mappingContext struct {
 	currentPackagePath string
-	exportedTypeNames  map[string]bool
+	haxePackagePrefix  string
+	schedule           func(*types.TypeName)
+}
+
+type mappedType struct {
+	Haxe       string
+	Reason     string
+	References []*types.TypeName
 }
 
 var identifierPartPattern = regexp.MustCompile(`[A-Za-z0-9]+`)
@@ -201,13 +219,29 @@ func run(args []string, stdout io.Writer, stderr io.Writer) error {
 		}
 	}
 
-	_, _ = fmt.Fprintf(stdout, "generated %d files in %s\n", len(emission.Files), emission.OutputDir)
+	precision := "exact"
+	if len(emission.DynamicFallbacks) > 0 {
+		precision = "partial"
+	}
+	_, _ = fmt.Fprintf(
+		stdout,
+		"generated %d files across %d packages; precision=%s; fallbacks=%d; out=%s\n",
+		len(emission.Files),
+		emission.PackageCount,
+		precision,
+		len(emission.DynamicFallbacks),
+		emission.OutputDir,
+	)
 	return nil
 }
 
 func BuildEmission(cfg Config) (*Emission, error) {
-	if strings.TrimSpace(cfg.GoImportPath) == "" {
+	cfg.GoImportPath = strings.TrimSpace(cfg.GoImportPath)
+	if cfg.GoImportPath == "" {
 		return nil, errors.New("Go import path is required")
+	}
+	if err := validateExactGoImportPath(cfg.GoImportPath); err != nil {
+		return nil, graphError("package_load_failed", "package %q did not match exact import path: %v", cfg.GoImportPath, err)
 	}
 	if strings.TrimSpace(cfg.OutputRoot) == "" {
 		cfg.OutputRoot = "gen/goextern"
@@ -215,51 +249,27 @@ func BuildEmission(cfg Config) (*Emission, error) {
 
 	pkg, err := loadPackage(cfg.GoImportPath, cfg.WorkingDirectory)
 	if err != nil {
-		return nil, err
+		return nil, graphError("package_load_failed", "%v", err)
 	}
 
-	haxePackage, err := deriveHaxePackage(cfg.HaxePackagePrefix, cfg.GoImportPath)
-	if err != nil {
-		return nil, err
+	return buildGraphEmission(cfg, pkg)
+}
+
+func validateExactGoImportPath(goImportPath string) error {
+	if goImportPath == "." ||
+		goImportPath == ".." ||
+		strings.HasPrefix(goImportPath, "./") ||
+		strings.HasPrefix(goImportPath, "../") ||
+		strings.Contains(goImportPath, `\`) {
+		return errors.New("relative package patterns are not supported")
 	}
-
-	outputDir, err := deriveOutputDir(cfg.OutputRoot, cfg.GoImportPath)
-	if err != nil {
-		return nil, err
+	if goImportPath == "all" ||
+		goImportPath == "std" ||
+		goImportPath == "cmd" ||
+		strings.Contains(goImportPath, "...") {
+		return errors.New("wildcard or aggregate package patterns are not supported")
 	}
-
-	decls, carriers, fallbacks, err := collectDeclarations(pkg, cfg.PackageClassName)
-	if err != nil {
-		return nil, err
-	}
-
-	sort.Slice(decls, func(i, j int) bool {
-		return decls[i].ClassName < decls[j].ClassName
-	})
-
-	files := make([]EmittedFile, 0, len(decls))
-	for _, decl := range decls {
-		files = append(files, EmittedFile{
-			Name:     decl.ClassName + ".hx",
-			Contents: renderDeclaration(haxePackage, pkg.Types.Path(), decl),
-		})
-	}
-	for _, carrier := range carriers {
-		files = append(files, EmittedFile{
-			Name:     carrier.ClassName + ".hx",
-			Contents: renderTupleCarrier(haxePackage, carrier),
-		})
-	}
-
-	sort.Slice(files, func(i, j int) bool {
-		return files[i].Name < files[j].Name
-	})
-
-	return &Emission{
-		OutputDir:        outputDir,
-		Files:            files,
-		DynamicFallbacks: sortedDynamicFallbacks(fallbacks),
-	}, nil
+	return nil
 }
 
 func loadPackage(goImportPath string, workingDirectory string) (*packages.Package, error) {
@@ -279,8 +289,20 @@ func loadPackage(goImportPath string, workingDirectory string) (*packages.Packag
 	if len(pkgs) == 0 {
 		return nil, fmt.Errorf("package %q not found", goImportPath)
 	}
-	if packages.PrintErrors(pkgs) > 0 {
-		return nil, fmt.Errorf("failed loading package %q", goImportPath)
+	loadErrors := make([]string, 0)
+	for _, pkg := range pkgs {
+		if pkg == nil {
+			continue
+		}
+		for _, pkgErr := range pkg.Errors {
+			if detail := strings.TrimSpace(pkgErr.Error()); detail != "" {
+				loadErrors = append(loadErrors, detail)
+			}
+		}
+	}
+	if len(loadErrors) > 0 {
+		sort.Strings(loadErrors)
+		return nil, fmt.Errorf("failed loading package %q: %s", goImportPath, strings.Join(loadErrors, "; "))
 	}
 
 	for _, pkg := range pkgs {
@@ -289,88 +311,7 @@ func loadPackage(goImportPath string, workingDirectory string) (*packages.Packag
 		}
 	}
 
-	for _, pkg := range pkgs {
-		if pkg != nil && pkg.Types != nil {
-			return pkg, nil
-		}
-	}
-
-	return nil, fmt.Errorf("loaded package %q without type information", goImportPath)
-}
-
-func collectDeclarations(pkg *packages.Package, packageClassOverride string) ([]declaration, []tupleCarrierDecl, []DynamicFallback, error) {
-	scope := pkg.Types.Scope()
-	if scope == nil {
-		return nil, nil, nil, fmt.Errorf("package %q has no scope", pkg.Types.Path())
-	}
-
-	names := scope.Names()
-	sort.Strings(names)
-
-	exportedTypeNames := make(map[string]bool)
-	namedTypes := make([]*types.Named, 0)
-	packageFuncs := make([]*types.Func, 0)
-
-	for _, name := range names {
-		obj := scope.Lookup(name)
-		if obj == nil || !obj.Exported() {
-			continue
-		}
-
-		switch typed := obj.(type) {
-		case *types.TypeName:
-			named := asNamedType(typed)
-			if named == nil {
-				continue
-			}
-			exportedTypeNames[typed.Name()] = true
-			namedTypes = append(namedTypes, named)
-		case *types.Func:
-			packageFuncs = append(packageFuncs, typed)
-		}
-	}
-
-	sort.Slice(namedTypes, func(i, j int) bool {
-		return namedTypes[i].Obj().Name() < namedTypes[j].Obj().Name()
-	})
-	sort.Slice(packageFuncs, func(i, j int) bool {
-		if packageFuncs[i].Name() == packageFuncs[j].Name() {
-			return signatureSortKey(packageFuncs[i]) < signatureSortKey(packageFuncs[j])
-		}
-		return packageFuncs[i].Name() < packageFuncs[j].Name()
-	})
-
-	ctx := mappingContext{
-		currentPackagePath: pkg.Types.Path(),
-		exportedTypeNames:  exportedTypeNames,
-	}
-	usedCarrierNames := make(map[string]bool)
-	for name := range exportedTypeNames {
-		usedCarrierNames[name] = true
-	}
-
-	decls := make([]declaration, 0, len(namedTypes)+1)
-	carriers := make([]tupleCarrierDecl, 0)
-	fallbacks := make([]DynamicFallback, 0)
-	for _, named := range namedTypes {
-		decl, typeCarriers, typeFallbacks := buildTypeDeclaration(named, ctx, usedCarrierNames)
-		decls = append(decls, decl)
-		carriers = append(carriers, typeCarriers...)
-		fallbacks = append(fallbacks, typeFallbacks...)
-	}
-
-	if len(packageFuncs) > 0 {
-		decl, packageCarriers, packageFallbacks := buildPackageDeclaration(pkg.Types, packageClassOverride, packageFuncs, exportedTypeNames, ctx, usedCarrierNames)
-		decls = append(decls, decl)
-		carriers = append(carriers, packageCarriers...)
-		fallbacks = append(fallbacks, packageFallbacks...)
-	}
-
-	sort.Slice(carriers, func(i, j int) bool {
-		return carriers[i].ClassName < carriers[j].ClassName
-	})
-
-	return decls, carriers, fallbacks, nil
+	return nil, fmt.Errorf("loaded packages did not match exact import path %q", goImportPath)
 }
 
 func asNamedType(typeName *types.TypeName) *types.Named {
@@ -479,17 +420,18 @@ func mapStructFieldTypeWithReason(t types.Type, ctx mappingContext) (string, str
 	case *types.Map:
 		return "Dynamic", "map_field_abi"
 	case *types.Named:
-		mapped, reason := mapTypeWithReason(fieldType, ctx)
-		if reason != "" {
-			return "Dynamic", reason
+		mapped := mapTypeResult(fieldType, ctx)
+		if mapped.Reason != "" {
+			return "Dynamic", mapped.Reason
 		}
 		if _, isInterface := fieldType.Underlying().(*types.Interface); isInterface {
-			return mapped, ""
+			commitMappedType(ctx, mapped)
+			return mapped.Haxe, ""
 		}
 		return "Dynamic", "named_value_field_abi"
 	default:
-		_, reason := mapTypeWithReason(fieldType, ctx)
-		return "Dynamic", reason
+		mapped := mapTypeResult(fieldType, ctx)
+		return "Dynamic", mapped.Reason
 	}
 }
 
@@ -512,12 +454,13 @@ func mapNativeSliceFieldElementWithReason(t types.Type, ctx mappingContext) (str
 		}
 		return mapTypeWithReason(elementType, ctx)
 	case *types.Named:
-		mapped, reason := mapTypeWithReason(elementType, ctx)
-		if reason != "" {
-			return "Dynamic", reason
+		mapped := mapTypeResult(elementType, ctx)
+		if mapped.Reason != "" {
+			return "Dynamic", mapped.Reason
 		}
 		if _, isInterface := elementType.Underlying().(*types.Interface); isInterface {
-			return mapped, ""
+			commitMappedType(ctx, mapped)
+			return mapped.Haxe, ""
 		}
 		return "Dynamic", "slice_element_abi"
 	default:
@@ -715,13 +658,17 @@ func buildTupleCarrier(goName string, results *types.Tuple, ctx mappingContext, 
 	}
 
 	fields := make([]paramDecl, 0, results.Len())
+	mappedResults := make([]mappedType, 0, results.Len())
 	usedNames := make(map[string]int)
 	for i := 0; i < results.Len(); i++ {
 		result := results.At(i)
-		fieldType, _, ok := tupleResultType(result.Type(), ctx)
+		mapped := tupleResultTypeResult(result.Type(), ctx)
+		fieldType := mapped.Haxe
+		ok := mapped.Reason == "" && !containsDynamicType(fieldType)
 		if !ok {
 			return tupleCarrierDecl{}, false
 		}
+		mappedResults = append(mappedResults, mapped)
 		rawName := result.Name()
 		if rawName == "" {
 			rawName = "value" + strconv.Itoa(i+1)
@@ -731,6 +678,9 @@ func buildTupleCarrier(goName string, results *types.Tuple, ctx mappingContext, 
 			Type: fieldType,
 		})
 	}
+	for _, mapped := range mappedResults {
+		commitMappedType(ctx, mapped)
+	}
 
 	return tupleCarrierDecl{
 		ClassName: uniqueTupleCarrierName(ownerName, goName, usedCarrierNames),
@@ -739,15 +689,18 @@ func buildTupleCarrier(goName string, results *types.Tuple, ctx mappingContext, 
 }
 
 func tupleResultType(t types.Type, ctx mappingContext) (string, string, bool) {
-	if isBuiltinErrorType(t) {
-		return "Null<go.Error>", "", true
+	mapped := tupleResultTypeResult(t, ctx)
+	if mapped.Reason != "" || containsDynamicType(mapped.Haxe) {
+		return "", mapped.Reason, false
 	}
+	return mapped.Haxe, "", true
+}
 
-	mapped, reason := mapTypeWithReason(t, ctx)
-	if containsDynamicType(mapped) {
-		return "", reason, false
+func tupleResultTypeResult(t types.Type, ctx mappingContext) mappedType {
+	if isBuiltinErrorType(t) {
+		return mappedType{Haxe: "Null<go.Error>"}
 	}
-	return mapped, "", true
+	return mapTypeResult(t, ctx)
 }
 
 func containsDynamicType(mapped string) bool {
@@ -847,71 +800,122 @@ func uniqueTupleCarrierName(ownerName string, goName string, used map[string]boo
 	}
 }
 
-func mapType(t types.Type, ctx mappingContext) string {
-	mapped, _ := mapTypeWithReason(t, ctx)
-	return mapped
+func mapTypeWithReason(t types.Type, ctx mappingContext) (string, string) {
+	mapped := mapTypeResult(t, ctx)
+	if mapped.Reason == "" {
+		commitMappedType(ctx, mapped)
+	}
+	return mapped.Haxe, mapped.Reason
 }
 
-func mapTypeWithReason(t types.Type, ctx mappingContext) (string, string) {
+func mapTypeResult(t types.Type, ctx mappingContext) mappedType {
 	if t == nil {
-		return "Dynamic", "nil_type"
+		return mappedType{Haxe: "Dynamic", Reason: "nil_type"}
+	}
+
+	switch alias := t.(type) {
+	case *types.Alias:
+		obj := alias.Obj()
+		if obj == nil || obj.Pkg() == nil || !obj.Exported() {
+			return mappedType{Haxe: "Dynamic", Reason: "unexported_named_type"}
+		}
+		if named, ok := types.Unalias(alias).(*types.Named); ok && (named.TypeParams() != nil && named.TypeParams().Len() > 0 || named.TypeArgs() != nil && named.TypeArgs().Len() > 0) {
+			return mappedType{Haxe: "Dynamic", Reason: "generic_named_type"}
+		}
+		return mappedNamedType(obj, ctx)
 	}
 
 	switch tt := types.Unalias(t).(type) {
 	case *types.Basic:
-		return mapBasicTypeWithReason(tt)
+		haxe, reason := mapBasicTypeWithReason(tt)
+		return mappedType{Haxe: haxe, Reason: reason}
 	case *types.Pointer:
-		return mapTypeWithReason(tt.Elem(), ctx)
+		return mapTypeResult(tt.Elem(), ctx)
 	case *types.Slice:
-		elemType, elemReason := mapTypeWithReason(tt.Elem(), ctx)
-		return "go.NativeSlice<" + elemType + ">", elemReason
+		elem := mapTypeResult(tt.Elem(), ctx)
+		return mappedType{Haxe: "go.NativeSlice<" + elem.Haxe + ">", Reason: elem.Reason, References: elem.References}
 	case *types.Array:
-		return "Dynamic", "fixed_array"
+		return mappedType{Haxe: "Dynamic", Reason: "fixed_array"}
 	case *types.Map:
-		keyType, _ := mapTypeWithReason(tt.Key(), ctx)
-		valueType, valueReason := mapTypeWithReason(tt.Elem(), ctx)
-		if keyType == "String" {
-			return "haxe.DynamicAccess<" + valueType + ">", valueReason
+		key := mapTypeResult(tt.Key(), ctx)
+		value := mapTypeResult(tt.Elem(), ctx)
+		if key.Haxe == "String" && key.Reason == "" {
+			return mappedType{Haxe: "haxe.DynamicAccess<" + value.Haxe + ">", Reason: value.Reason, References: value.References}
 		}
-		return "Dynamic", "unsupported_map_key"
+		return mappedType{Haxe: "Dynamic", Reason: "unsupported_map_key"}
 	case *types.Named:
 		obj := tt.Obj()
 		if obj == nil {
-			return "Dynamic", "unknown_type"
+			return mappedType{Haxe: "Dynamic", Reason: "unknown_type"}
 		}
 		pkg := obj.Pkg()
 		if pkg == nil {
 			if obj.Name() == "error" {
-				return "go.Error", ""
+				return mappedType{Haxe: "go.Error"}
 			}
-			return "Dynamic", "unsupported_builtin_named"
+			return mappedType{Haxe: "Dynamic", Reason: "unsupported_builtin_named"}
 		}
-		if pkg.Path() == ctx.currentPackagePath {
-			if ctx.exportedTypeNames[obj.Name()] {
-				return obj.Name(), ""
-			}
-			return "Dynamic", "external_named_type"
+		if !obj.Exported() {
+			return mappedType{Haxe: "Dynamic", Reason: "unexported_named_type"}
 		}
-		return "Dynamic", "external_named_type"
+		if tt.TypeParams() != nil && tt.TypeParams().Len() > 0 || tt.TypeArgs() != nil && tt.TypeArgs().Len() > 0 {
+			return mappedType{Haxe: "Dynamic", Reason: "generic_named_type"}
+		}
+		return mappedNamedType(obj, ctx)
 	case *types.Interface:
 		if tt.NumMethods() == 0 {
-			return "Dynamic", "empty_interface"
+			return mappedType{Haxe: "Dynamic", Reason: "empty_interface"}
 		}
-		return "Dynamic", "non_empty_interface"
+		return mappedType{Haxe: "Dynamic", Reason: "non_empty_interface"}
 	case *types.Signature:
-		return "Dynamic", "callback_signature"
+		return mappedType{Haxe: "Dynamic", Reason: "callback_signature"}
 	case *types.Struct:
-		return "Dynamic", "struct"
+		return mappedType{Haxe: "Dynamic", Reason: "struct"}
 	case *types.Tuple:
-		return "Dynamic", "tuple"
+		return mappedType{Haxe: "Dynamic", Reason: "tuple"}
 	case *types.Chan:
-		return "Dynamic", "channel"
+		return mappedType{Haxe: "Dynamic", Reason: "channel"}
 	case *types.TypeParam:
-		return "Dynamic", "type_parameter"
+		return mappedType{Haxe: "Dynamic", Reason: "type_parameter"}
 	case *types.Union:
-		return "Dynamic", "union"
+		return mappedType{Haxe: "Dynamic", Reason: "union"}
 	default:
-		return "Dynamic", "unknown_type"
+		return mappedType{Haxe: "Dynamic", Reason: "unknown_type"}
+	}
+}
+
+func mappedNamedType(obj *types.TypeName, ctx mappingContext) mappedType {
+	if obj == nil || obj.Pkg() == nil || !obj.Exported() {
+		return mappedType{Haxe: "Dynamic", Reason: "unexported_named_type"}
+	}
+	haxeName := obj.Name()
+	if obj.Pkg().Path() != ctx.currentPackagePath {
+		haxePackage, err := deriveHaxePackage(ctx.haxePackagePrefix, obj.Pkg().Path())
+		if err != nil {
+			return mappedType{Haxe: "Dynamic", Reason: "invalid_import_path"}
+		}
+		if haxePackage != "" {
+			haxeName = haxePackage + "." + haxeName
+		}
+	}
+	return mappedType{Haxe: haxeName, References: []*types.TypeName{obj}}
+}
+
+func commitMappedType(ctx mappingContext, mapped mappedType) {
+	if ctx.schedule == nil || mapped.Reason != "" {
+		return
+	}
+	seen := make(map[declarationID]bool)
+	for _, ref := range mapped.References {
+		if ref == nil {
+			continue
+		}
+		id := typeNameID(ref)
+		if seen[id] {
+			continue
+		}
+		seen[id] = true
+		ctx.schedule(ref)
 	}
 }
 
@@ -943,7 +947,7 @@ func mapBasicTypeWithReason(basic *types.Basic) (string, string) {
 	return "Dynamic", "unknown_basic"
 }
 
-func renderDeclaration(haxePackage string, goImportPath string, decl declaration) string {
+func renderDeclaration(haxePackage string, goImportPath string, goPackageName string, decl declaration) string {
 	var b strings.Builder
 	b.WriteString("// Code generated by tools/goextern; DO NOT EDIT.\n")
 	b.WriteString("// Source package: ")
@@ -958,8 +962,20 @@ func renderDeclaration(haxePackage string, goImportPath string, decl declaration
 		b.WriteString(";\n\n")
 	}
 
+	if decl.Alias {
+		b.WriteString("typedef ")
+		b.WriteString(decl.ClassName)
+		b.WriteString(" = ")
+		b.WriteString(decl.AliasTarget)
+		b.WriteString(";\n")
+		return b.String()
+	}
+
 	b.WriteString("@:go.import(\"")
 	b.WriteString(goImportPath)
+	b.WriteString("\")\n")
+	b.WriteString("@:go.package(\"")
+	b.WriteString(goPackageName)
 	b.WriteString("\")\n")
 
 	if !decl.PackageClass {
@@ -1101,50 +1117,6 @@ func renderTupleCarrier(haxePackage string, carrier tupleCarrierDecl) string {
 	return b.String()
 }
 
-func writeEmission(emission *Emission) error {
-	if emission == nil {
-		return errors.New("nil emission")
-	}
-	if emission.OutputDir == "" {
-		return errors.New("empty output directory")
-	}
-
-	if err := os.MkdirAll(emission.OutputDir, 0o755); err != nil {
-		return fmt.Errorf("create output directory %q: %w", emission.OutputDir, err)
-	}
-
-	expected := make(map[string]bool, len(emission.Files))
-	for _, file := range emission.Files {
-		target := filepath.Join(emission.OutputDir, file.Name)
-		expected[file.Name] = true
-		if err := os.WriteFile(target, []byte(file.Contents), 0o644); err != nil {
-			return fmt.Errorf("write %q: %w", target, err)
-		}
-	}
-
-	entries, err := os.ReadDir(emission.OutputDir)
-	if err != nil {
-		return fmt.Errorf("read output directory %q: %w", emission.OutputDir, err)
-	}
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-		if filepath.Ext(entry.Name()) != ".hx" {
-			continue
-		}
-		if expected[entry.Name()] {
-			continue
-		}
-		target := filepath.Join(emission.OutputDir, entry.Name())
-		if err := os.Remove(target); err != nil {
-			return fmt.Errorf("remove stale file %q: %w", target, err)
-		}
-	}
-
-	return nil
-}
-
 func writeDynamicFallbackReport(path string, emission *Emission) error {
 	if strings.TrimSpace(path) == "" {
 		return errors.New("empty dynamic fallback report path")
@@ -1209,18 +1181,6 @@ func deriveHaxePackage(prefix string, goImportPath string) (string, error) {
 	}
 
 	return strings.Join(parts, "."), nil
-}
-
-func deriveOutputDir(outRoot string, goImportPath string) (string, error) {
-	if strings.TrimSpace(outRoot) == "" {
-		return "", errors.New("output root directory must not be empty")
-	}
-	segments, err := sanitizePathSegments(goImportPath)
-	if err != nil {
-		return "", err
-	}
-	all := append([]string{outRoot}, segments...)
-	return filepath.Join(all...), nil
 }
 
 func sanitizePathSegments(importPath string) ([]string, error) {

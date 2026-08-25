@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"go/token"
 	"go/types"
 	"io"
@@ -82,8 +84,8 @@ type Record struct {
 
 import "example.com/goexternfixture/model"
 
-func Find(id string) model.Record {
-	return model.Record{ID: id}
+func Find(id string) *model.Record {
+	return &model.Record{ID: id}
 }
 `)
 
@@ -106,15 +108,26 @@ func Find(id string) model.Record {
 	if !strings.Contains(apiFile, "@:go.name(\"Find\")") {
 		t.Fatalf("ApiPkg.hx missing Find symbol mapping:\n%s", apiFile)
 	}
-	if !strings.Contains(apiFile, "public static function find(id:String):Dynamic;") {
-		t.Fatalf("ApiPkg.hx must preserve the honest external named-type fallback:\n%s", apiFile)
+	if !strings.Contains(apiFile, "public static function find(id:String):goextern.example_com.goexternfixture.model.Record;") {
+		t.Fatalf("ApiPkg.hx must use the precise external named type:\n%s", apiFile)
 	}
-	if len(emission.DynamicFallbacks) != 1 {
-		t.Fatalf("expected one cross-package fallback, got %+v", emission.DynamicFallbacks)
+	recordFile := fileContentsByName(t, emission, "Record.hx")
+	for _, snippet := range []string{
+		"package goextern.example_com.goexternfixture.model;",
+		"@:go.import(\"example.com/goexternfixture/model\")",
+		"@:go.package(\"model\")",
+		"@:go.name(\"Record\")",
+		"@:go.struct",
+		"public var id:String;",
+	} {
+		if !strings.Contains(recordFile, snippet) {
+			t.Fatalf("Record.hx missing cross-package contract %q:\n%s", snippet, recordFile)
+		}
 	}
-	fallback := emission.DynamicFallbacks[0]
-	if fallback.GoType != "example.com/goexternfixture/model.Record" || fallback.Reason != "external_named_type" {
-		t.Fatalf("unexpected cross-package fallback: %+v", fallback)
+	for _, fallback := range emission.DynamicFallbacks {
+		if fallback.Symbol == "Find" && fallback.Reason == "external_named_type" {
+			t.Fatalf("Find must not retain an external_named_type fallback: %+v", fallback)
+		}
 	}
 
 	goModAfter, err := os.ReadFile(filepath.Join(moduleDir, "go.mod"))
@@ -126,6 +139,258 @@ func Find(id string) model.Record {
 	}
 	if exists(filepath.Join(moduleDir, "go.sum")) {
 		t.Fatalf("goextern created go.sum while inspecting a local-only module")
+	}
+}
+
+func TestBuildEmissionRejectsPackagePatternIdentity(t *testing.T) {
+	moduleDir := t.TempDir()
+	outputDir := t.TempDir()
+	writeTestFile(t, filepath.Join(moduleDir, "go.mod"), "module example.com/patternfixture\n\ngo 1.22\n")
+	writeTestFile(t, filepath.Join(moduleDir, "api", "api.go"), "package api\n\ntype Record struct{}\n")
+
+	_, err := BuildEmission(Config{
+		GoImportPath:      "example.com/patternfixture/...",
+		WorkingDirectory:  moduleDir,
+		OutputRoot:        outputDir,
+		HaxePackagePrefix: "goextern",
+	})
+	expectGeneratorErrorCode(t, err, "package_load_failed")
+	if !strings.Contains(err.Error(), "did not match exact import path") {
+		t.Fatalf("package pattern diagnostic must explain exact identity: %v", err)
+	}
+}
+
+func TestBuildEmissionClosesSupportedCrossPackageDeclarationGraph(t *testing.T) {
+	moduleDir := t.TempDir()
+	writeTestFile(t, filepath.Join(moduleDir, "go.mod"), "module example.com/graphfixture\n\ngo 1.22\n")
+	writeTestFile(t, filepath.Join(moduleDir, "contract", "context.go"), `package contract
+
+type Context interface {
+	Err() error
+}
+`)
+	writeTestFile(t, filepath.Join(moduleDir, "detail", "detail.go"), `package detail
+
+type Detail struct {
+	Bonus int
+}
+`)
+	writeTestFile(t, filepath.Join(moduleDir, "model", "item.go"), `package model
+
+import "example.com/graphfixture/detail"
+
+type Item struct {
+	Value  int
+	Detail *detail.Detail
+	Next   *Item
+	Pair   *Pair
+}
+
+type Pair struct {
+	Item *Item
+}
+`)
+	writeTestFile(t, filepath.Join(moduleDir, "api", "api.go"), `package api
+
+import (
+	"example.com/graphfixture/contract"
+	"example.com/graphfixture/model"
+)
+
+type ItemAlias = model.Item
+type SecondAlias = ItemAlias
+
+type Page struct {
+	Items []*model.Item
+}
+
+func Background() contract.Context { return nil }
+func Alias() *ItemAlias { return nil }
+func Second() *SecondAlias { return nil }
+func Lookup(ctx contract.Context, seed int) (*model.Item, error) { return nil, nil }
+func List(ctx contract.Context, seed int) (*Page, error) { return nil, nil }
+`)
+
+	cfg := Config{
+		GoImportPath:      "example.com/graphfixture/api",
+		WorkingDirectory:  moduleDir,
+		OutputRoot:        t.TempDir(),
+		HaxePackagePrefix: "goextern",
+	}
+	first, err := BuildEmission(cfg)
+	if err != nil {
+		t.Fatalf("BuildEmission failed: %v", err)
+	}
+	second, err := BuildEmission(cfg)
+	if err != nil {
+		t.Fatalf("second BuildEmission failed: %v", err)
+	}
+	if len(first.DynamicFallbacks) != 0 {
+		t.Fatalf("supported graph must be exact, got fallbacks: %+v", first.DynamicFallbacks)
+	}
+	if len(first.Files) != len(second.Files) {
+		t.Fatalf("graph file count changed: %d != %d", len(first.Files), len(second.Files))
+	}
+	for index := range first.Files {
+		if first.Files[index] != second.Files[index] {
+			t.Fatalf("graph output changed at index %d: %+v != %+v", index, first.Files[index], second.Files[index])
+		}
+	}
+
+	api := fileContentsByPath(t, first, "example_com/graphfixture/api/ApiPkg.hx")
+	for _, snippet := range []string{
+		"background():goextern.example_com.graphfixture.contract.Context;",
+		"lookup(ctx:goextern.example_com.graphfixture.contract.Context, seed:Int):LookupResult;",
+		"list(ctx:goextern.example_com.graphfixture.contract.Context, seed:Int):ListResult;",
+	} {
+		if !strings.Contains(api, snippet) {
+			t.Fatalf("ApiPkg.hx missing graph signature %q:\n%s", snippet, api)
+		}
+	}
+	page := fileContentsByPath(t, first, "example_com/graphfixture/api/Page.hx")
+	if !strings.Contains(page, "public var items:go.NativeSlice<goextern.example_com.graphfixture.model.Item>;") {
+		t.Fatalf("Page.hx missing precise external slice field:\n%s", page)
+	}
+	alias := fileContentsByPath(t, first, "example_com/graphfixture/api/ItemAlias.hx")
+	if !strings.Contains(alias, "typedef ItemAlias = goextern.example_com.graphfixture.model.Item;") {
+		t.Fatalf("ItemAlias.hx must preserve the public Go alias:\n%s", alias)
+	}
+	secondAlias := fileContentsByPath(t, first, "example_com/graphfixture/api/SecondAlias.hx")
+	if !strings.Contains(secondAlias, "typedef SecondAlias = goextern.example_com.graphfixture.model.Item;") {
+		t.Fatalf("SecondAlias.hx must retain an exact canonical alias target:\n%s", secondAlias)
+	}
+	item := fileContentsByPath(t, first, "example_com/graphfixture/model/Item.hx")
+	for _, snippet := range []string{
+		"public var detail:goextern.example_com.graphfixture.detail.Detail;",
+		"public var next:Item;",
+		"public var pair:Pair;",
+	} {
+		if !strings.Contains(item, snippet) {
+			t.Fatalf("Item.hx missing recursive graph field %q:\n%s", snippet, item)
+		}
+	}
+	_ = fileContentsByPath(t, first, "example_com/graphfixture/model/Pair.hx")
+	_ = fileContentsByPath(t, first, "example_com/graphfixture/detail/Detail.hx")
+	contextType := fileContentsByPath(t, first, "example_com/graphfixture/contract/Context.hx")
+	if !strings.Contains(contextType, "@:go.package(\"contract\")") || !strings.Contains(contextType, "extern interface Context") {
+		t.Fatalf("Context.hx missing exact package metadata or interface declaration:\n%s", contextType)
+	}
+}
+
+func TestDeclarationGraphRejectsPackageProjectionCollisions(t *testing.T) {
+	graph := &declarationGraph{
+		config:   Config{HaxePackagePrefix: "goextern"},
+		packages: make(map[string]*packagePlan),
+	}
+	if _, err := graph.packagePlan(types.NewPackage("example.com/dep-one", "depone")); err != nil {
+		t.Fatalf("first package plan failed: %v", err)
+	}
+	_, err := graph.packagePlan(types.NewPackage("example.com/dep_one", "depunder"))
+	expectGeneratorErrorCode(t, err, "haxe_package_collision")
+}
+
+func TestDeclarationGraphRejectsDuplicateGoPackageQualifiers(t *testing.T) {
+	graph := &declarationGraph{
+		config:   Config{HaxePackagePrefix: "goextern"},
+		packages: make(map[string]*packagePlan),
+	}
+	if _, err := graph.packagePlan(types.NewPackage("example.com/first", "shared")); err != nil {
+		t.Fatalf("first package plan failed: %v", err)
+	}
+	_, err := graph.packagePlan(types.NewPackage("example.net/second", "shared"))
+	expectGeneratorErrorCode(t, err, "go_import_alias_required")
+}
+
+func TestBuildEmissionRejectsCaseFoldedTypePathCollision(t *testing.T) {
+	moduleDir := t.TempDir()
+	writeTestFile(t, filepath.Join(moduleDir, "go.mod"), "module example.com/collisionfixture\n\ngo 1.22\n")
+	writeTestFile(t, filepath.Join(moduleDir, "model", "model.go"), `package model
+
+type URL struct{}
+type Url struct{}
+`)
+	_, err := BuildEmission(Config{
+		GoImportPath:      "example.com/collisionfixture/model",
+		WorkingDirectory:  moduleDir,
+		OutputRoot:        t.TempDir(),
+		HaxePackagePrefix: "goextern",
+	})
+	expectGeneratorErrorCode(t, err, "output_path_collision")
+}
+
+func TestBuildEmissionReportsStablePackageLoadErrorBeforeWriting(t *testing.T) {
+	moduleDir := t.TempDir()
+	outputDir := t.TempDir()
+	writeTestFile(t, filepath.Join(moduleDir, "go.mod"), "module example.com/loadfixture\n\ngo 1.22\n")
+	_, err := BuildEmission(Config{
+		GoImportPath:      "example.com/loadfixture/missing",
+		WorkingDirectory:  moduleDir,
+		OutputRoot:        outputDir,
+		HaxePackagePrefix: "goextern",
+	})
+	expectGeneratorErrorCode(t, err, "package_load_failed")
+	entries, readErr := os.ReadDir(outputDir)
+	if readErr != nil {
+		t.Fatalf("read output directory: %v", readErr)
+	}
+	if len(entries) != 0 {
+		t.Fatalf("package load error wrote output: %+v", entries)
+	}
+}
+
+func TestBuildEmissionReportsGenericNamedTypeWithoutFalseExtern(t *testing.T) {
+	moduleDir := t.TempDir()
+	writeTestFile(t, filepath.Join(moduleDir, "go.mod"), "module example.com/genericfixture\n\ngo 1.22\n")
+	writeTestFile(t, filepath.Join(moduleDir, "model", "model.go"), `package model
+
+type Box[T any] struct {
+	Value T
+}
+`)
+	emission, err := BuildEmission(Config{
+		GoImportPath:      "example.com/genericfixture/model",
+		WorkingDirectory:  moduleDir,
+		OutputRoot:        t.TempDir(),
+		HaxePackagePrefix: "goextern",
+	})
+	if err != nil {
+		t.Fatalf("BuildEmission failed: %v", err)
+	}
+	for _, file := range emission.Files {
+		if filepath.Base(file.Name) == "Box.hx" {
+			t.Fatalf("generic Box must not become a non-generic extern: %+v", file)
+		}
+	}
+	found := false
+	for _, fallback := range emission.DynamicFallbacks {
+		if fallback.Symbol == "Box" && fallback.Position == "type" && fallback.Reason == "generic_named_type" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("missing generic named type fallback: %+v", emission.DynamicFallbacks)
+	}
+}
+
+func TestUnsupportedNamedValueSliceDoesNotScheduleDependency(t *testing.T) {
+	pkg := types.NewPackage("example.com/model", "model")
+	typeName := types.NewTypeName(token.NoPos, pkg, "Value", nil)
+	named := types.NewNamed(typeName, types.NewStruct(nil, nil), nil)
+	scheduled := make([]*types.TypeName, 0)
+	ctx := mappingContext{
+		currentPackagePath: "example.com/root",
+		haxePackagePrefix:  "goextern",
+		schedule: func(candidate *types.TypeName) {
+			scheduled = append(scheduled, candidate)
+		},
+	}
+
+	mapped, reason := mapNativeSliceFieldElementWithReason(named, ctx)
+	if mapped != "Dynamic" || reason != "slice_element_abi" {
+		t.Fatalf("unsupported named value slice mismatch: got %q (%q)", mapped, reason)
+	}
+	if len(scheduled) != 0 {
+		t.Fatalf("unsupported field scheduled an unused dependency: %+v", scheduled)
 	}
 }
 
@@ -192,7 +457,7 @@ type Record struct {
 	wantFallbacks := map[string]string{
 		"Record.Related":  "embedded_field",
 		"Record.Inline":   "struct",
-		"Record.Created":  "external_named_type",
+		"Record.Created":  "named_value_field_abi",
 		"Record.Lookup":   "map_field_abi",
 		"Record.Optional": "pointer_field_abi",
 	}
@@ -229,8 +494,8 @@ func TestBuildEmissionFmtMultiReturnBoundary(t *testing.T) {
 		t.Fatalf("single-return fmt.Sprintf should stay strongly typed")
 	}
 	for _, signature := range []string{
-		"@:go.tupleReturn\n\t@:go.name(\"Fprint\")\n\tpublic static function fprint(w:Dynamic, a:haxe.Rest<Dynamic>):FprintResult;",
-		"@:go.tupleReturn\n\t@:go.name(\"Fscan\")\n\tpublic static function fscan(r:Dynamic, a:haxe.Rest<Dynamic>):FscanResult;",
+		"@:go.tupleReturn\n\t@:go.name(\"Fprint\")\n\tpublic static function fprint(w:goextern.io.Writer, a:haxe.Rest<Dynamic>):FprintResult;",
+		"@:go.tupleReturn\n\t@:go.name(\"Fscan\")\n\tpublic static function fscan(r:goextern.io.Reader, a:haxe.Rest<Dynamic>):FscanResult;",
 		"@:go.tupleReturn\n\t@:go.name(\"Sscanf\")\n\tpublic static function sscanf(str:String, format:String, a:haxe.Rest<Dynamic>):SscanfResult;",
 	} {
 		if !strings.Contains(pkgFile, signature) {
@@ -357,7 +622,7 @@ func TestBuildEmissionErrorsPackageClass(t *testing.T) {
 	if len(emission.Files) != 1 {
 		t.Fatalf("expected 1 emitted file for errors package, got %d", len(emission.Files))
 	}
-	if emission.Files[0].Name != "ErrorsPkg.hx" {
+	if emission.Files[0].Name != filepath.Join("errors", "ErrorsPkg.hx") {
 		t.Fatalf("unexpected file name: %s", emission.Files[0].Name)
 	}
 
@@ -377,12 +642,16 @@ func TestMapTypeWithReasonReportsStableDynamicReasonCodes(t *testing.T) {
 
 	ctx := mappingContext{
 		currentPackagePath: "example/current",
-		exportedTypeNames:  map[string]bool{"Local": true},
 	}
 
 	externalPkg := types.NewPackage("net/http", "http")
 	externalNamed := types.NewNamed(
 		types.NewTypeName(token.NoPos, externalPkg, "Request", nil),
+		types.NewStruct(nil, nil),
+		nil,
+	)
+	genericNamed := types.NewNamed(
+		types.NewTypeName(token.NoPos, externalPkg, "Box", nil),
 		types.NewStruct(nil, nil),
 		nil,
 	)
@@ -395,6 +664,12 @@ func TestMapTypeWithReasonReportsStableDynamicReasonCodes(t *testing.T) {
 	constraint := types.NewInterfaceType(nil, nil)
 	constraint.Complete()
 	typeParam := types.NewTypeParam(types.NewTypeName(token.NoPos, nil, "T", nil), constraint)
+	genericNamed.SetTypeParams([]*types.TypeParam{typeParam})
+	privateNamed := types.NewNamed(
+		types.NewTypeName(token.NoPos, externalPkg, "privateRecord", nil),
+		types.NewStruct(nil, nil),
+		nil,
+	)
 
 	cases := []struct {
 		name   string
@@ -402,7 +677,6 @@ func TestMapTypeWithReasonReportsStableDynamicReasonCodes(t *testing.T) {
 		reason string
 	}{
 		{name: "callback", typ: types.NewSignatureType(nil, nil, nil, types.NewTuple(), types.NewTuple(), false), reason: "callback_signature"},
-		{name: "external named type", typ: externalNamed, reason: "external_named_type"},
 		{name: "unsupported map key", typ: types.NewMap(types.Typ[types.Int], types.Typ[types.String]), reason: "unsupported_map_key"},
 		{name: "fixed array", typ: types.NewArray(types.Typ[types.Int], 4), reason: "fixed_array"},
 		{name: "struct", typ: types.NewStruct(nil, nil), reason: "struct"},
@@ -410,7 +684,14 @@ func TestMapTypeWithReasonReportsStableDynamicReasonCodes(t *testing.T) {
 		{name: "non-empty interface", typ: nonEmptyInterface, reason: "non_empty_interface"},
 		{name: "channel", typ: types.NewChan(types.SendRecv, types.Typ[types.Int]), reason: "channel"},
 		{name: "generic type parameter", typ: typeParam, reason: "type_parameter"},
+		{name: "generic named type", typ: genericNamed, reason: "generic_named_type"},
+		{name: "unexported named type", typ: privateNamed, reason: "unexported_named_type"},
 		{name: "unsafe pointer", typ: types.Typ[types.UnsafePointer], reason: "unsafe_pointer"},
+	}
+
+	mappedExternal, reason := mapTypeWithReason(externalNamed, ctx)
+	if mappedExternal != "net.http.Request" || reason != "" {
+		t.Fatalf("external named type must map precisely: got %q (%q)", mappedExternal, reason)
 	}
 
 	for _, tc := range cases {
@@ -469,12 +750,16 @@ func TestRunWritesDynamicFallbackReport(t *testing.T) {
 	outDir := filepath.Join(dir, "out")
 	reportPath := filepath.Join(dir, "dynamic.json")
 
+	var stdout bytes.Buffer
 	if err := run([]string{
 		"-package", "fmt",
 		"-out", outDir,
 		"-dynamic-report", reportPath,
-	}, io.Discard, io.Discard); err != nil {
+	}, &stdout, io.Discard); err != nil {
 		t.Fatalf("run failed: %v", err)
+	}
+	if !strings.Contains(stdout.String(), "precision=partial;") || !strings.Contains(stdout.String(), "fallbacks=") {
+		t.Fatalf("run must report partial precision and fallback count: %q", stdout.String())
 	}
 
 	payload, err := os.ReadFile(reportPath)
@@ -495,7 +780,7 @@ func TestRunWritesDynamicFallbackReport(t *testing.T) {
 
 	found := false
 	for _, fallback := range report.Fallbacks {
-		if fallback.Package == "fmt" && fallback.Symbol == "Fprint" && fallback.Position == "param:w" && fallback.GoType == "io.Writer" && fallback.Reason == "external_named_type" {
+		if fallback.Package == "fmt" && fallback.Symbol == "Fprint" && fallback.Position == "param:a" && fallback.GoType == "[]any" && fallback.Reason == "empty_interface" {
 			found = true
 			break
 		}
@@ -510,6 +795,7 @@ func TestWriteEmissionRemovesStaleHxFiles(t *testing.T) {
 
 	initial := &Emission{
 		OutputDir: dir,
+		RootKey:   "root-a",
 		Files: []EmittedFile{
 			{Name: "First.hx", Contents: "package;\n\nextern class First {}\n"},
 		},
@@ -521,6 +807,7 @@ func TestWriteEmissionRemovesStaleHxFiles(t *testing.T) {
 
 	next := &Emission{
 		OutputDir: dir,
+		RootKey:   "root-a",
 		Files: []EmittedFile{
 			{Name: "Second.hx", Contents: "package;\n\nextern class Second {}\n"},
 		},
@@ -538,11 +825,197 @@ func TestWriteEmissionRemovesStaleHxFiles(t *testing.T) {
 	}
 }
 
+func TestWriteEmissionPreservesUnownedFilesAndRejectsConflicts(t *testing.T) {
+	dir := t.TempDir()
+	unowned := filepath.Join(dir, "user", "Custom.hx")
+	writeTestFile(t, unowned, "package user;\n\nclass Custom {}\n")
+
+	emission := &Emission{
+		OutputDir: dir,
+		RootKey:   "root-a",
+		Files: []EmittedFile{
+			{Name: "generated/Binding.hx", Contents: "package generated;\n\nextern class Binding {}\n"},
+		},
+	}
+	if err := writeEmission(emission); err != nil {
+		t.Fatalf("writeEmission failed: %v", err)
+	}
+	if !exists(unowned) {
+		t.Fatalf("unowned Haxe file must be preserved")
+	}
+
+	conflict := &Emission{
+		OutputDir: dir,
+		RootKey:   "root-b",
+		Files: []EmittedFile{
+			{Name: "user/Custom.hx", Contents: "package user;\n\nextern class Different {}\n"},
+		},
+	}
+	expectGeneratorErrorCode(t, writeEmission(conflict), "unowned_output_conflict")
+	payload, err := os.ReadFile(unowned)
+	if err != nil {
+		t.Fatalf("read unowned file after conflict: %v", err)
+	}
+	if string(payload) != "package user;\n\nclass Custom {}\n" {
+		t.Fatalf("conflicting generation changed an unowned file")
+	}
+}
+
+func TestWriteEmissionRejectsModifiedOwnedFile(t *testing.T) {
+	dir := t.TempDir()
+	initial := &Emission{
+		OutputDir: dir,
+		RootKey:   "root-a",
+		Files: []EmittedFile{
+			{Name: "pkg/Binding.hx", Contents: "original\n"},
+		},
+	}
+	if err := writeEmission(initial); err != nil {
+		t.Fatalf("write initial emission: %v", err)
+	}
+	writeTestFile(t, filepath.Join(dir, "pkg", "Binding.hx"), "user edit\n")
+
+	next := &Emission{
+		OutputDir: dir,
+		RootKey:   "root-a",
+		Files: []EmittedFile{
+			{Name: "pkg/Binding.hx", Contents: "next\n"},
+		},
+	}
+	expectGeneratorErrorCode(t, writeEmission(next), "owned_output_modified")
+	payload, err := os.ReadFile(filepath.Join(dir, "pkg", "Binding.hx"))
+	if err != nil {
+		t.Fatalf("read modified owned file: %v", err)
+	}
+	if string(payload) != "user edit\n" {
+		t.Fatalf("modified owned file was overwritten")
+	}
+}
+
+func TestWriteEmissionKeepsSharedOutputUntilLastOwnerDropsIt(t *testing.T) {
+	dir := t.TempDir()
+	shared := EmittedFile{Name: "dep/Shared.hx", Contents: "shared\n"}
+	if err := writeEmission(&Emission{OutputDir: dir, RootKey: "root-a", Files: []EmittedFile{shared}}); err != nil {
+		t.Fatalf("write first shared owner: %v", err)
+	}
+	conflict := EmittedFile{Name: shared.Name, Contents: "different\n"}
+	expectGeneratorErrorCode(
+		t,
+		writeEmission(&Emission{OutputDir: dir, RootKey: "root-b", Files: []EmittedFile{conflict}}),
+		"owned_output_conflict",
+	)
+	if err := writeEmission(&Emission{OutputDir: dir, RootKey: "root-b", Files: []EmittedFile{shared}}); err != nil {
+		t.Fatalf("write second shared owner: %v", err)
+	}
+	if err := writeEmission(&Emission{OutputDir: dir, RootKey: "root-a"}); err != nil {
+		t.Fatalf("drop first shared owner: %v", err)
+	}
+	sharedPath := filepath.Join(dir, "dep", "Shared.hx")
+	if !exists(sharedPath) {
+		t.Fatalf("shared output was removed while another root still owned it")
+	}
+	if err := writeEmission(&Emission{OutputDir: dir, RootKey: "root-b"}); err != nil {
+		t.Fatalf("drop final shared owner: %v", err)
+	}
+	if exists(sharedPath) {
+		t.Fatalf("shared output remained after its final owner dropped it")
+	}
+}
+
+func TestWriteEmissionRejectsConflictingExistingRootClaims(t *testing.T) {
+	dir := t.TempDir()
+	manifestDir := filepath.Join(dir, ".goextern", "roots")
+	writeTestFile(t, filepath.Join(manifestDir, "root-a.json"), `{
+	"schemaVersion": 1,
+	"rootKey": "root-a",
+	"root": {},
+	"files": [{"path": "dep/Shared.hx", "sha256": "0000000000000000000000000000000000000000000000000000000000000000"}]
+}
+`)
+	writeTestFile(t, filepath.Join(manifestDir, "root-b.json"), `{
+	"schemaVersion": 1,
+	"rootKey": "root-b",
+	"root": {},
+	"files": [{"path": "dep/Shared.hx", "sha256": "1111111111111111111111111111111111111111111111111111111111111111"}]
+}
+`)
+
+	emission := &Emission{
+		OutputDir: dir,
+		RootKey:   "root-c",
+		Files: []EmittedFile{
+			{Name: "root/Binding.hx", Contents: "binding\n"},
+		},
+	}
+	expectGeneratorErrorCode(t, writeEmission(emission), "owned_output_conflict")
+	if exists(filepath.Join(dir, "root", "Binding.hx")) {
+		t.Fatalf("conflicting ownership records must fail before writing")
+	}
+}
+
+func TestWriteEmissionRejectsUnsafeRelativePathBeforeWriting(t *testing.T) {
+	dir := t.TempDir()
+	emission := &Emission{
+		OutputDir: dir,
+		RootKey:   "root-a",
+		Files: []EmittedFile{
+			{Name: "safe/Binding.hx", Contents: "safe\n"},
+			{Name: "../escape.hx", Contents: "unsafe\n"},
+		},
+	}
+	expectGeneratorErrorCode(t, writeEmission(emission), "unsafe_output_path")
+	if exists(filepath.Join(dir, ".goextern")) {
+		t.Fatalf("unsafe plan must fail before creating ownership state")
+	}
+	if exists(filepath.Join(dir, "safe", "Binding.hx")) {
+		t.Fatalf("unsafe plan wrote a valid sibling before the error")
+	}
+}
+
+func TestWriteEmissionRejectsSymbolicLinkBoundary(t *testing.T) {
+	dir := t.TempDir()
+	outside := t.TempDir()
+	link := filepath.Join(dir, "linked")
+	if err := os.Symlink(outside, link); err != nil {
+		t.Skipf("symbolic links unavailable: %v", err)
+	}
+	emission := &Emission{
+		OutputDir: dir,
+		RootKey:   "root-a",
+		Files: []EmittedFile{
+			{Name: "linked/Escape.hx", Contents: "unsafe\n"},
+		},
+	}
+	expectGeneratorErrorCode(t, writeEmission(emission), "unsafe_output_path")
+	if exists(filepath.Join(outside, "Escape.hx")) {
+		t.Fatalf("generator wrote through a symbolic-link boundary")
+	}
+}
+
+func TestWriteEmissionRejectsOwnershipDirectorySymbolicLink(t *testing.T) {
+	dir := t.TempDir()
+	outside := t.TempDir()
+	if err := os.Symlink(outside, filepath.Join(dir, ".goextern")); err != nil {
+		t.Skipf("symbolic links unavailable: %v", err)
+	}
+	emission := &Emission{
+		OutputDir: dir,
+		RootKey:   "root-a",
+		Files: []EmittedFile{
+			{Name: "safe/Binding.hx", Contents: "safe\n"},
+		},
+	}
+	expectGeneratorErrorCode(t, writeEmission(emission), "unsafe_output_path")
+	if exists(filepath.Join(outside, "roots", "root-a.json")) {
+		t.Fatalf("generator wrote ownership state through a symbolic link")
+	}
+}
+
 func fileContentsByName(t *testing.T, emission *Emission, fileName string) string {
 	t.Helper()
 
 	for _, file := range emission.Files {
-		if file.Name == fileName {
+		if file.Name == fileName || filepath.Base(file.Name) == fileName {
 			return file.Contents
 		}
 	}
@@ -550,9 +1023,35 @@ func fileContentsByName(t *testing.T, emission *Emission, fileName string) strin
 	return ""
 }
 
+func fileContentsByPath(t *testing.T, emission *Emission, filePath string) string {
+	t.Helper()
+	filePath = filepath.ToSlash(filePath)
+	for _, file := range emission.Files {
+		if filepath.ToSlash(file.Name) == filePath {
+			return file.Contents
+		}
+	}
+	t.Fatalf("expected file %q not found in emission", filePath)
+	return ""
+}
+
 func exists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
+}
+
+func expectGeneratorErrorCode(t *testing.T, err error, want string) {
+	t.Helper()
+	if err == nil {
+		t.Fatalf("expected generator error %q", want)
+	}
+	var failure *generatorError
+	if !errors.As(err, &failure) {
+		t.Fatalf("expected generatorError %q, got %T: %v", want, err, err)
+	}
+	if failure.Code != want {
+		t.Fatalf("generator error code mismatch: got %q, want %q (%v)", failure.Code, want, err)
+	}
 }
 
 func writeTestFile(t *testing.T, path string, contents string) {

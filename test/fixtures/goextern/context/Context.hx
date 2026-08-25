@@ -3,10 +3,12 @@
 package goextern.context;
 
 @:go.import("context")
+@:go.package("context")
 @:go.name("Context")
 extern interface Context {
+	@:go.tupleReturn
 	@:go.name("Deadline")
-	public function deadline():Dynamic;
+	public function deadline():ContextDeadlineResult;
 
 	@:go.name("Done")
 	public function done():Dynamic;

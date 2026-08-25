@@ -3,6 +3,7 @@
 package goextern.time;
 
 @:go.import("time")
+@:go.package("time")
 @:go.name("ParseError")
 @:go.struct
 extern class ParseError {

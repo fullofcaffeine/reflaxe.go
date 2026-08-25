@@ -3,6 +3,7 @@
 package goextern.fmt;
 
 @:go.import("fmt")
+@:go.package("fmt")
 @:go.name("Stringer")
 extern interface Stringer {
 	@:go.name("String")

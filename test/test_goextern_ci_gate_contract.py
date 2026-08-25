@@ -26,10 +26,10 @@ class GoexternCiGateContractTest(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.run_ci = load_run_ci()
 
-    def test_goextern_unit_stage_is_independent_of_fixture_pin(self) -> None:
+    def test_goextern_confidence_stage_includes_the_runtime_tracer(self) -> None:
         self.assertEqual(
-            self.run_ci.build_goextern_unit_command(),
-            ["bash", "-lc", "cd tools/goextern && go test ./..."],
+            self.run_ci.build_goextern_command(),
+            ["npm", "run", "test:goextern"],
         )
 
     def test_mismatched_toolchain_runs_current_toolchain_smoke(self) -> None:

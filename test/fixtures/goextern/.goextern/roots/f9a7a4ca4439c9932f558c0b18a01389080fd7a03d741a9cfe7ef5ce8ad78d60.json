@@ -1,0 +1,15 @@
+{
+	"schemaVersion": 1,
+	"rootKey": "f9a7a4ca4439c9932f558c0b18a01389080fd7a03d741a9cfe7ef5ce8ad78d60",
+	"root": {
+		"goImportPath": "errors",
+		"haxePackagePrefix": "goextern",
+		"packageClassName": ""
+	},
+	"files": [
+		{
+			"path": "errors/ErrorsPkg.hx",
+			"sha256": "4203fcf1ef4b0b32a7cc394103f12078c186c96d8afcc323c30b34f4e8b47dd1"
+		}
+	]
+}

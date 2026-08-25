@@ -3,6 +3,7 @@
 package goextern.sync;
 
 @:go.import("sync")
+@:go.package("sync")
 @:go.name("Pool")
 @:go.struct
 extern class Pool {

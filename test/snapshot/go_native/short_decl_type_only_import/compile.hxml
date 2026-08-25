@@ -1,0 +1,16 @@
+-cp .
+-cp ../../../../src
+-cp ../../../../std
+-cp ../../../../std/go/_std
+-cp ../../../../vendor/reflaxe/src
+-D reflaxe=4.0.0-beta
+-D reflaxe.go=0.0.0-development
+--macro nullSafety("reflaxe.go")
+--macro reflaxe.go.CompilerBootstrap.Start()
+--macro reflaxe.go.CompilerInit.Start()
+-D go_output=out
+-D reflaxe_go_strict_examples
+-D reflaxe.dont_output_metadata_id
+-D no-traces
+-D no_traces
+-main Main

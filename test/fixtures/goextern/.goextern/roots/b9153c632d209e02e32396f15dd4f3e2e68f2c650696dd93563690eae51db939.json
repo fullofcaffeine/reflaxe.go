@@ -1,0 +1,103 @@
+{
+	"schemaVersion": 1,
+	"rootKey": "b9153c632d209e02e32396f15dd4f3e2e68f2c650696dd93563690eae51db939",
+	"root": {
+		"goImportPath": "time",
+		"haxePackagePrefix": "goextern",
+		"packageClassName": ""
+	},
+	"files": [
+		{
+			"path": "time/Duration.hx",
+			"sha256": "6db153e07f6114f5c9bb8ff640ab2af9f86c2edf8efbb735be03002e8b77c9ee"
+		},
+		{
+			"path": "time/LoadLocationFromTZDataResult.hx",
+			"sha256": "ea6144ac80f523dd73309921287fdfe7749cc675f4904b6ffd9fae6ec2fb74d2"
+		},
+		{
+			"path": "time/LoadLocationResult.hx",
+			"sha256": "ef044c47e2c15135e1f817c38b766c3bf70fcb606ab150bfaf382d2f21539cf8"
+		},
+		{
+			"path": "time/Location.hx",
+			"sha256": "c127bdf20fe30016976f67973856dddf7e389acbb9fed5f1cb2adc20d2ea3ca6"
+		},
+		{
+			"path": "time/Month.hx",
+			"sha256": "0be437af35ece41775b62a4334e8e5e8937277a507573db6ca462c3e326aabde"
+		},
+		{
+			"path": "time/ParseDurationResult.hx",
+			"sha256": "aa44e81492869333835eafbf63704777031cde1b234949c75db50d7854afb466"
+		},
+		{
+			"path": "time/ParseError.hx",
+			"sha256": "8cf2ec3ba1d405a837bd041ae0af57bde276b5e17b75ddffc74464b6d4098010"
+		},
+		{
+			"path": "time/ParseInLocationResult.hx",
+			"sha256": "d5fe1a6f8e26e785d6ad473672ec6dc5f902c83caa463aa47b4cd1cebc28ef13"
+		},
+		{
+			"path": "time/ParseResult.hx",
+			"sha256": "8ba1d2b47b008bfce0aee3c4b085f71cbd1d5a133a5c1ffdc01a6dfac97f73f5"
+		},
+		{
+			"path": "time/Ticker.hx",
+			"sha256": "424d176dc1755cdb895b93dbd40d81d0933ca364c8f288d26bde8a1ea9eb0357"
+		},
+		{
+			"path": "time/Time.hx",
+			"sha256": "23a0102a39c92b0e3b2fd46ab2b60f816a992c2b0df35b6dc0e7e0008f685dde"
+		},
+		{
+			"path": "time/TimeClockResult.hx",
+			"sha256": "167c9b3d6df94de6f7dc703faba5ef262f16c447f93b4a67138d886d6b357ba6"
+		},
+		{
+			"path": "time/TimeDateResult.hx",
+			"sha256": "e7709bf52277cc2f276c151a2c97367c333d301edd7613bbff1191c65f0b6014"
+		},
+		{
+			"path": "time/TimeGobEncodeResult.hx",
+			"sha256": "5ca77efd74a0576f1616583752ae86b829c38e00445d41849df569fa6fc31a25"
+		},
+		{
+			"path": "time/TimeISOWeekResult.hx",
+			"sha256": "b49eaecbd86b1da129eaa5c819151c04e747c4f95d2e0d103889d3c344de46a9"
+		},
+		{
+			"path": "time/TimeMarshalBinaryResult.hx",
+			"sha256": "0608b73ddf6d69ea05a56aff7ecf7838077178f887fdd77eebc238c1b14f8dfd"
+		},
+		{
+			"path": "time/TimeMarshalJSONResult.hx",
+			"sha256": "bbfde16d2a13d1448db1a05e0a7f386d9ef58bbb439fcea69f4e6822e1dbf2cf"
+		},
+		{
+			"path": "time/TimeMarshalTextResult.hx",
+			"sha256": "cba768fafb4171a2115d0f489bd06984c6e41350d1ac26006b6e708ddfe62a1a"
+		},
+		{
+			"path": "time/TimePkg.hx",
+			"sha256": "1684076d4589cd52510591759013b453957064e7192d153a4a6b0e90041159d0"
+		},
+		{
+			"path": "time/TimeZoneBoundsResult.hx",
+			"sha256": "162695ddc7d1baeaadf9e2ebdbd60faa4e9d9510f3c9b9aad4ba944f1d346cd6"
+		},
+		{
+			"path": "time/TimeZoneResult.hx",
+			"sha256": "f49b261215535dda9510330053b3848e67528c3e8ca9ec801b192ae89c05f8d3"
+		},
+		{
+			"path": "time/Timer.hx",
+			"sha256": "51a5a5b28434f8be8f527282fc0e8739b2871a1ca73d47fe79e22d936c6a0b44"
+		},
+		{
+			"path": "time/Weekday.hx",
+			"sha256": "e922ac83605382b45b6db85c3d6f0520d7ac196dc9abd55cdcb3e38d172953ae"
+		}
+	]
+}

@@ -3,6 +3,7 @@
 package goextern.time;
 
 @:go.import("time")
+@:go.package("time")
 @:go.name("Ticker")
 @:go.struct
 extern class Ticker {

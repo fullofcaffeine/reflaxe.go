@@ -91,7 +91,7 @@
     "test:perf:go:update-baseline": "bash scripts/ci/perf-go-profiles.sh --update-baseline",
     "test:perf:hxrt-selective": "bash scripts/ci/perf-hxrt-selective.sh",
     "test:perf:hxrt-selective:update-baseline": "bash scripts/ci/perf-hxrt-selective.sh --update-baseline",
-    "test:goextern": "cd tools/goextern && go test ./...",
+    "test:goextern": "go -C tools/goextern test ./... && python3 test/test_goextern_cross_package_e2e.py",
     "examples:compile": "python3 test/run-examples.py --compile-only",
     "examples:bless": "python3 test/run-examples.py --bless-generated",
     "examples:sync": "python3 scripts/examples/sync-generated.py",
