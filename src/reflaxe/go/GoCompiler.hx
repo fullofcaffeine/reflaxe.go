@@ -4241,23 +4241,18 @@ class GoCompiler {
 		var loweredCases = new Array<GoSwitchCase>();
 
 		for (caseEntry in cases) {
-			var loweredCase = lowerInSwitchContext(function() return lowerOptionalCallableBranch(caseEntry.expr, resultType,
-				function() return lowerExprWithPrefix(caseEntry.expr)));
-			var caseBody = loweredCase.prefix.concat([GoStmt.GoAssign(GoExpr.GoIdent(temp), loweredCase.expr)]);
 			loweredCases.push({
 				values: [
 					for (caseValue in caseEntry.values)
 						stringSwitch ? lowerStringComparableExpr(caseValue) : lowerExpr(caseValue).expr
 				],
-				body: caseBody
+				body: lowerSwitchValueBranch(caseEntry.expr, resultType, temp)
 			});
 		}
 
 		var defaultBody:Null<Array<GoStmt>> = null;
 		if (defaultExpr != null) {
-			var loweredDefault = lowerInSwitchContext(function() return lowerOptionalCallableBranch(defaultExpr, resultType,
-				function() return lowerExprWithPrefix(defaultExpr)));
-			defaultBody = loweredDefault.prefix.concat([GoStmt.GoAssign(GoExpr.GoIdent(temp), loweredDefault.expr)]);
+			defaultBody = lowerSwitchValueBranch(defaultExpr, resultType, temp);
 		}
 
 		return {
@@ -4267,6 +4262,41 @@ class GoCompiler {
 			],
 			expr: GoExpr.GoIdent(temp),
 			isStringLike: isStringType(resultType)
+		};
+	}
+
+	/**
+		What: Lowers one branch of a value-producing switch into statements.
+
+		Why: Haxe permits a case to return from the enclosing function instead of
+		producing the switch value. Treating that `TReturn` as an ordinary value asks
+		the expression lowerer to compile control flow and fails before Go is emitted.
+
+		How: Preserve an escaping branch as function-level statements. Every branch
+		that can produce a value keeps the existing typed temporary assignment path.
+	**/
+	function lowerSwitchValueBranch(expr:TypedExpr, resultType:Type, temp:String):Array<GoStmt> {
+		if (switchBranchEndsWithReturn(expr))
+			return lowerInSwitchContext(function() return lowerToStatements(expr));
+		var lowered = lowerInSwitchContext(function() return lowerOptionalCallableBranch(expr, resultType, function() return lowerExprWithPrefix(expr)));
+		return lowered.prefix.concat([GoStmt.GoAssign(GoExpr.GoIdent(temp), lowered.expr)]);
+	}
+
+	/**
+		What: Detects a switch branch whose final operation returns from the function.
+
+		Why: The typer can wrap a source-level returning case in transparent nodes or a
+		block, so testing only the branch's outer expression misses valid return cases.
+
+		How: Follow only transparent wrappers and the final block expression. Earlier
+		conditional returns still fall through to a real branch value and remain false.
+	**/
+	function switchBranchEndsWithReturn(expr:TypedExpr):Bool {
+		return switch expr.expr {
+			case TReturn(_): true;
+			case TBlock(exprs): exprs.length > 0 && switchBranchEndsWithReturn(exprs[exprs.length - 1]);
+			case TParenthesis(inner) | TMeta(_, inner) | TCast(inner, _): switchBranchEndsWithReturn(inner);
+			case _: false;
 		};
 	}
 
