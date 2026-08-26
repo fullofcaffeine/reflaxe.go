@@ -4273,12 +4273,14 @@ class GoCompiler {
 		the expression lowerer to compile control flow and fails before Go is emitted.
 
 		How: Preserve an escaping branch as function-level statements. Every branch
-		that can produce a value keeps the existing typed temporary assignment path.
+		that can produce a value is projected through the shared expected-type path
+		before it enters the existing typed temporary assignment.
 	**/
 	function lowerSwitchValueBranch(expr:TypedExpr, resultType:Type, temp:String):Array<GoStmt> {
 		if (switchBranchEndsWithReturn(expr))
 			return lowerInSwitchContext(function() return lowerToStatements(expr));
-		var lowered = lowerInSwitchContext(function() return lowerOptionalCallableBranch(expr, resultType, function() return lowerExprWithPrefix(expr)));
+		var lowered = lowerInSwitchContext(function() return lowerOptionalCallableBranch(expr, resultType,
+			function() return lowerExprWithExpectedUpcast(expr, resultType)));
 		return lowered.prefix.concat([GoStmt.GoAssign(GoExpr.GoIdent(temp), lowered.expr)]);
 	}
 
