@@ -7072,7 +7072,10 @@ class GoCompiler {
 			};
 		}
 		callExpr = normalizeExternValueCallResult(callee, returnType, callExpr);
-		if (shouldAssertGenericCallResult(callee, returnType)) {
+		var appliedIterator = adaptErasedGenericStructuralIteratorCall(callee, callExpr);
+		if (appliedIterator != null) {
+			callExpr = appliedIterator;
+		} else if (shouldAssertGenericCallResult(callee, returnType)) {
 			callExpr = lowerNullableAwareTypeAssertExpr(callExpr, returnType);
 		}
 		callExpr = normalizeExternStringCallResult(callee, returnType, callExpr);
@@ -7080,6 +7083,32 @@ class GoCompiler {
 		return {
 			expr: callExpr,
 			isStringLike: isStringType(returnType)
+		};
+	}
+
+	/**
+		What: Finds a generated generic instance method whose applied result is the
+		canonical structural iterator shape.
+
+		Why: The declared method owns the emitted erased closure signature, while the
+		call expression carries Haxe's concrete type substitution. Both are required
+		to bridge the result without guessing from downstream field names or schemas.
+
+		How: Compare the declaration and applied callable types for a concrete
+		generated class through the iterable lowering owner. Interface dispatch is
+		excluded because its selected implementation can already store a concrete
+		closure. Transparent expression wrappers preserve the same authority.
+	**/
+	function adaptErasedGenericStructuralIteratorCall(callee:TypedExpr, callExpr:GoExpr):Null<GoExpr> {
+		return switch (callee.expr) {
+			case TField(_, FInstance(classRef, _, fieldRef)):
+				var classType = classRef.get();
+				(classType.params.length == 0 || classType.isInterface) ? null : lambdaIterableLowering.adaptErasedGenericStructuralIteratorResult(callExpr,
+					fieldRef.get().type, callee.t);
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
+				adaptErasedGenericStructuralIteratorCall(inner, callExpr);
+			case _:
+				null;
 		};
 	}
 
