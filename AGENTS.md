@@ -90,6 +90,25 @@ Agent policy:
 
 ## Compiler Guardrails
 
+- For full Haxe ports of existing Go applications, distinguish first-party
+  application code from independent libraries. First-party Go packages are
+  porting sources and must not remain as permanent extern-backed
+  implementations merely because they export convenient APIs. Go
+  standard-library and independent third-party packages are valid precise
+  extern targets.
+- When a consumer port cannot express a required exported standard-library or
+  independent third-party API, reduce the gap to a library-neutral failing
+  fixture and fix the reusable owner in haxe.go's compiler, staged Go SDK, or
+  extern tooling. Land that fix through the normal test, PR, review, and merge
+  workflow before the consumer repins and proves its original path. Do not
+  recommend handwritten Go as a shortcut around a reusable compiler or SDK
+  limitation.
+- Respect Go visibility. An unexported first-party API is not a compiler gap to
+  bypass; the consumer must port that behavior and bind a lower exported
+  standard-library or independent third-party boundary. An exceptional native
+  facade is eligible only for a genuinely third-party or platform mechanism
+  that remains unsafe or impossible after the reusable compiler/SDK options are
+  exhausted.
 - Prefer the AST-first pipeline: builder/lowering -> transform passes -> printer/output.
 - **Hard rule:** avoid `Dynamic`/`Any` whenever possible and prefer explicit typed abstractions end-to-end.
 - **Hard rule:** use test-first development (TDD) for all code changes (compiler, runtime, std/shims, examples, docs-with-contracts).
