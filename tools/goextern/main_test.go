@@ -297,9 +297,11 @@ type SecondAlias = ItemAlias
 
 type Page struct {
 	Items []*model.Item
+	Names []string
 }
 
 func Background() contract.Context { return nil }
+func Labels() []string { return nil }
 func Alias() *ItemAlias { return nil }
 func Second() *SecondAlias { return nil }
 func Lookup(ctx contract.Context, seed int) (*model.Item, error) { return nil, nil }
@@ -335,6 +337,7 @@ func List(ctx contract.Context, seed int) (*Page, error) { return nil, nil }
 	api := fileContentsByPath(t, first, "example_com/graphfixture/api/ApiPkg.hx")
 	for _, snippet := range []string{
 		"background():goextern.example_com.graphfixture.contract.Context;",
+		"labels():go.NativeStringSlice;",
 		"lookup(ctx:goextern.example_com.graphfixture.contract.Context, seed:Int):LookupResult;",
 		"list(ctx:goextern.example_com.graphfixture.contract.Context, seed:Int):ListResult;",
 	} {
@@ -345,6 +348,9 @@ func List(ctx contract.Context, seed int) (*Page, error) { return nil, nil }
 	page := fileContentsByPath(t, first, "example_com/graphfixture/api/Page.hx")
 	if !strings.Contains(page, "public var items:go.NativeSlice<goextern.example_com.graphfixture.model.Item>;") {
 		t.Fatalf("Page.hx missing precise external slice field:\n%s", page)
+	}
+	if !strings.Contains(page, "public var names:go.NativeStringSlice;") {
+		t.Fatalf("Page.hx missing precise native string slice field:\n%s", page)
 	}
 	alias := fileContentsByPath(t, first, "example_com/graphfixture/api/ItemAlias.hx")
 	if !strings.Contains(alias, "typedef ItemAlias = goextern.example_com.graphfixture.model.Item;") {

@@ -418,6 +418,9 @@ func mapStructFieldTypeWithReason(t types.Type, ctx mappingContext) (string, str
 		}
 		return mapTypeWithReason(fieldType, ctx)
 	case *types.Slice:
+		if basic, ok := types.Unalias(fieldType.Elem()).(*types.Basic); ok && basic.Kind() == types.String {
+			return "go.NativeStringSlice", ""
+		}
 		elementType, reason := mapNativeSliceFieldElementWithReason(fieldType.Elem(), ctx)
 		if reason != "" {
 			return "Dynamic", reason
@@ -876,6 +879,9 @@ func mapTypeResult(t types.Type, ctx mappingContext) mappedType {
 	case *types.Pointer:
 		return mapTypeResult(tt.Elem(), ctx)
 	case *types.Slice:
+		if basic, ok := types.Unalias(tt.Elem()).(*types.Basic); ok && basic.Kind() == types.String {
+			return mappedType{Haxe: "go.NativeStringSlice"}
+		}
 		elem := mapTypeResult(tt.Elem(), ctx)
 		return mappedType{Haxe: "go.NativeSlice<" + elem.Haxe + ">", Reason: elem.Reason, References: elem.References}
 	case *types.Array:
