@@ -25,6 +25,9 @@ class GoTypeMapper {
 		if (isBytesDataType(type)) {
 			return "[]int";
 		}
+		if (isNativeStringSliceType(type)) {
+			return "[]string";
+		}
 		var nativeSliceElement = nativeSliceElementType(type);
 		if (nativeSliceElement != null) {
 			return "[]" + arrayElementStorageGoType(nativeSliceElement, classTypeName, enumTypeName);
@@ -262,6 +265,9 @@ class GoTypeMapper {
 		if (nativeSliceElementType(type) != null) {
 			return true;
 		}
+		if (isNativeStringSliceType(type)) {
+			return true;
+		}
 		if (restElementType(type) != null) {
 			return true;
 		}
@@ -300,6 +306,9 @@ class GoTypeMapper {
 	}
 
 	public static function arrayElementGoType(type:Type, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):String {
+		if (isNativeStringSliceType(type)) {
+			return "string";
+		}
 		var nativeSliceElement = nativeSliceElementType(type);
 		if (nativeSliceElement != null) {
 			return arrayElementStorageGoType(nativeSliceElement, classTypeName, enumTypeName);
@@ -334,6 +343,9 @@ class GoTypeMapper {
 	public static function scalarGoType(type:Type, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):String {
 		if (isBytesDataType(type)) {
 			return "[]int";
+		}
+		if (isNativeStringSliceType(type)) {
+			return "[]string";
 		}
 		var nativeSliceElement = nativeSliceElementType(type);
 		if (nativeSliceElement != null) {
@@ -510,6 +522,15 @@ class GoTypeMapper {
 				}
 			case _:
 				null;
+		};
+	}
+
+	/** True only for the explicit native Go `[]string` boundary. */
+	public static function isNativeStringSliceType(type:Type):Bool {
+		return switch (Context.follow(type)) {
+			case TInst(classRef, _): final classType = classRef.get(); classType.pack.join(".") == "go" && classType.name == "NativeStringSlice";
+			case _:
+				false;
 		};
 	}
 

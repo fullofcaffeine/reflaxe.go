@@ -940,7 +940,10 @@ class GoLambdaIterableLowering {
 		var rawName = freshTempName("hx_lambda_raw");
 		var outName = freshTempName("hx_lambda_out");
 		var itemName = freshTempName("hx_lambda_item");
-		var convertedItemExpr = lowerNullableAwareTypeAssertExpr(GoExpr.GoIdent(itemName), targetElementType);
+		var convertedItemExpr = targetElementGoType == "string"
+			&& scalarGoType(targetElementType) == "*string" ? GoExpr.GoUnary("*",
+				GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"),
+					[GoExpr.GoIdent(itemName)])) : lowerNullableAwareTypeAssertExpr(GoExpr.GoIdent(itemName), targetElementType);
 		var outType = "[]" + targetElementGoType;
 		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: rawName, typeName: "[]any"}], [outType], [
 			GoStmt.GoVarDecl(outName, outType,

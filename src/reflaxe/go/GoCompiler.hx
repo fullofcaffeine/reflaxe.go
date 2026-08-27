@@ -3777,7 +3777,7 @@ class GoCompiler {
 							indexedArrayAssign;
 						} else {
 							var loweredRight = lowerStoredExprWithExpectedType(right, assignmentStorageType(left));
-							var assignmentValue = normalizeImportedExternFieldAssignment(left, loweredRight.expr);
+							var assignmentValue = normalizeNativeStorageAssignment(left, loweredRight.expr);
 							var lengthAssignStmts = lowerArrayLengthAssign(left, assignmentValue);
 							var assignStmts = if (lengthAssignStmts != null) {
 								lengthAssignStmts;
@@ -3805,9 +3805,9 @@ class GoCompiler {
 								rightExpr = coerceStoredArrayElementExpr(rightExpr, left.t);
 							}
 							var targetExpr = lowerLValue(left);
-							var leftValueExpr = normalizeImportedExternFieldAssignmentResult(left, targetExpr);
+							var leftValueExpr = normalizeNativeStorageAssignmentResult(left, targetExpr);
 							var assignExpr = lowerAssignOpExpr(assignOp, leftValueExpr, rightExpr, left.t, right.t, expr.pos, stringAppendFromSharedArray);
-							var assignStmt = GoStmt.GoAssign(targetExpr, normalizeImportedExternFieldAssignment(left, assignExpr));
+							var assignStmt = GoStmt.GoAssign(targetExpr, normalizeNativeStorageAssignment(left, assignExpr));
 							if (loweredRight.prefix.length > 0) {
 								loweredRight.prefix.concat([assignStmt]);
 							} else {
@@ -5839,9 +5839,10 @@ class GoCompiler {
 					materializeExprWithPrefix(lowerExprWithPrefix(expr), expr.t);
 				}
 			case TArray(target, index):
+				var indexed = usesSharedArrayCarrier(target) ? GoExpr.GoCall(GoExpr.GoSelector(lowerExpr(target).expr, "Get"),
+					[lowerExpr(index).expr]) : GoExpr.GoIndex(lowerExpr(target).expr, lowerExpr(index).expr);
 				{
-					expr: usesSharedArrayCarrier(target) ? GoExpr.GoCall(GoExpr.GoSelector(lowerExpr(target).expr, "Get"),
-						[lowerExpr(index).expr]) : GoExpr.GoIndex(lowerExpr(target).expr, lowerExpr(index).expr),
+					expr: normalizeNativeSliceElementRead(target, indexed),
 					isStringLike: isStringType(expr.t)
 				};
 			case TEnumIndex(inner):
@@ -6018,8 +6019,8 @@ class GoCompiler {
 						} else {
 							var targetExpr = lowerLValue(left);
 							var loweredRight = lowerStoredExprWithExpectedType(right, assignmentStorageType(left));
-							var rightExpr = normalizeImportedExternFieldAssignment(left, loweredRight.expr);
-							var resultExpr = normalizeImportedExternFieldAssignmentResult(left, targetExpr);
+							var rightExpr = normalizeNativeStorageAssignment(left, loweredRight.expr);
+							var resultExpr = normalizeNativeStorageAssignmentResult(left, targetExpr);
 							{
 								expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(left.t)],
 									loweredRight.prefix.concat([GoStmt.GoAssign(targetExpr, rightExpr), GoStmt.GoReturn(resultExpr)])),
@@ -6042,10 +6043,10 @@ class GoCompiler {
 							if (!stringAppendFromSharedArray && isSharedArrayElementExpr(right)) {
 								rightExpr = coerceStoredArrayElementExpr(rightExpr, left.t);
 							}
-							var leftValueExpr = normalizeImportedExternFieldAssignmentResult(left, targetExpr);
+							var leftValueExpr = normalizeNativeStorageAssignmentResult(left, targetExpr);
 							var assignExpr = lowerAssignOpExpr(assignOp, leftValueExpr, rightExpr, left.t, right.t, expr.pos, stringAppendFromSharedArray);
-							var storageExpr = normalizeImportedExternFieldAssignment(left, assignExpr);
-							var resultExpr = normalizeImportedExternFieldAssignmentResult(left, targetExpr);
+							var storageExpr = normalizeNativeStorageAssignment(left, assignExpr);
+							var resultExpr = normalizeNativeStorageAssignmentResult(left, targetExpr);
 							{
 								expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(left.t)],
 									loweredRight.prefix.concat([GoStmt.GoAssign(targetExpr, storageExpr), GoStmt.GoReturn(resultExpr)])),
@@ -6346,10 +6347,11 @@ class GoCompiler {
 			case TArray(target, index):
 				var loweredTarget = lowerExprWithPrefix(target);
 				var loweredIndex = lowerExprWithPrefix(index);
+				var indexed = usesSharedArrayCarrier(target) ? GoExpr.GoCall(GoExpr.GoSelector(loweredTarget.expr, "Get"),
+					[loweredIndex.expr]) : GoExpr.GoIndex(loweredTarget.expr, loweredIndex.expr);
 				{
 					prefix: loweredTarget.prefix.concat(loweredIndex.prefix),
-					expr: usesSharedArrayCarrier(target) ? GoExpr.GoCall(GoExpr.GoSelector(loweredTarget.expr, "Get"),
-						[loweredIndex.expr]) : GoExpr.GoIndex(loweredTarget.expr, loweredIndex.expr),
+					expr: normalizeNativeSliceElementRead(target, indexed),
 					isStringLike: isStringType(expr.t)
 				};
 			case TUnop(op, postFix, value):
@@ -7338,9 +7340,9 @@ class GoCompiler {
 		the statically known element type at the boundary.
 	**/
 	function lowerNativeSliceBoundaryCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
-		if (isStaticCall(callee, "NativeSlice", ["go"], "fromArray")) {
+		if (isStaticCall(callee, "NativeSlice", ["go"], "fromArray") || isStaticCall(callee, "NativeStringSlice", ["go"], "fromArray")) {
 			if (args.length != 1) {
-				Context.fatalError("go.NativeSlice.fromArray expects exactly one Array", callee.pos);
+				Context.fatalError("native slice fromArray expects exactly one Array", callee.pos);
 			}
 			return materializeExprWithPrefix(lowerExprWithExpectedUpcast(args[0], returnType), returnType);
 		}
@@ -8074,6 +8076,9 @@ class GoCompiler {
 	}
 
 	function arrayElementType(type:Type):Null<Type> {
+		if (isNativeStringSliceType(type)) {
+			return Context.getType("String");
+		}
 		var nativeSliceElement = nativeSliceElementType(type);
 		if (nativeSliceElement != null) {
 			return nativeSliceElement;
@@ -9493,12 +9498,15 @@ class GoCompiler {
 	}
 
 	/**
-		What: Converts a Haxe string before assignment to an imported Go field.
-		Why: The writable selector expects a Go `string` value, not Haxe's `*string` carrier.
-		How: Dereference the normalized runtime string only at this typed native boundary.
+		What: Converts a Haxe string before assignment to typed native Go storage.
+		Why: Imported string fields and native string-slice slots expect Go `string`
+		values, not Haxe's `*string` carrier.
+		How: Dereference the normalized runtime string only at those proven boundaries.
 	**/
-	function normalizeImportedExternFieldAssignment(target:TypedExpr, valueExpr:GoExpr):GoExpr {
+	function normalizeNativeStorageAssignment(target:TypedExpr, valueExpr:GoExpr):GoExpr {
 		return switch (target.expr) {
+			case TArray(slice, _) if (isNativeStringSliceType(slice.t)):
+				GoExpr.GoUnary("*", GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [valueExpr]));
 			case TField(_, FInstance(classRef, _, fieldRef)):
 				var classType = classRef.get();
 				var fieldType = fieldRef.get().type;
@@ -9510,23 +9518,26 @@ class GoCompiler {
 					&& isStringType(nullableInner) ? valueExpr : GoExpr.GoUnary("*", GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [valueExpr]));
 				}
 			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
-				normalizeImportedExternFieldAssignment(inner, valueExpr);
+				normalizeNativeStorageAssignment(inner, valueExpr);
 			case _:
 				valueExpr;
 		};
 	}
 
 	/**
-		What: Converts the value returned by an imported extern field assignment.
-		Why: The Go selector keeps its native type after the write, but Haxe observes its carrier type.
-		How: Reuse the field-read boundary before returning from the assignment expression.
+		What: Converts a value returned by a typed native-storage assignment.
+		Why: Go fields and native string-slice slots retain value strings after a write,
+		but the Haxe assignment expression observes its pointer-backed carrier.
+		How: Reuse the field-read boundary or native-slice normalization before return.
 	**/
-	function normalizeImportedExternFieldAssignmentResult(target:TypedExpr, fieldExpr:GoExpr):GoExpr {
+	function normalizeNativeStorageAssignmentResult(target:TypedExpr, fieldExpr:GoExpr):GoExpr {
 		return switch (target.expr) {
+			case TArray(slice, _) if (isNativeStringSliceType(slice.t)):
+				GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [fieldExpr]);
 			case TField(_, FInstance(classRef, _, fieldRef)):
 				normalizeImportedExternFieldRead(classRef.get(), fieldRef.get().type, fieldExpr);
 			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
-				normalizeImportedExternFieldAssignmentResult(inner, fieldExpr);
+				normalizeNativeStorageAssignmentResult(inner, fieldExpr);
 			case _:
 				fieldExpr;
 		};
@@ -10314,6 +10325,17 @@ class GoCompiler {
 		return lowerNullableAwareTypeAssertExpr(expr, targetType);
 	}
 
+	/**
+		What: Restores Haxe string semantics after indexing a native Go string slice.
+		Why: `go.NativeStringSlice` stores `string` values for exact `[]string`
+		extern compatibility, while ordinary Haxe expressions consume `*string`.
+		How: Normalize only an index whose receiver is the explicit native-slice
+		boundary with a statically known String element.
+	**/
+	function normalizeNativeSliceElementRead(target:TypedExpr, indexed:GoExpr):GoExpr {
+		return isNativeStringSliceType(target.t) ? GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [indexed]) : indexed;
+	}
+
 	function wrapInt32Expr(expr:GoExpr):GoExpr {
 		return GoExprOperatorOps.wrapInt32Expr(expr);
 	}
@@ -10652,8 +10674,10 @@ class GoCompiler {
 			case TArrayDecl(values):
 				{
 					prefix: [],
-					expr: GoExpr.GoCompositeLiteral(GoType.slice(arrayElementGoType(targetType)),
-						[for (value in values) GoCompositeElement.GoCompositeValue(lowerExpr(value).expr)]),
+					expr: GoExpr.GoCompositeLiteral(GoType.slice(arrayElementGoType(targetType)), [
+						for (value in values)
+							GoCompositeElement.GoCompositeValue(normalizeNativeSliceStoredElement(targetType, lowerExpr(value).expr))
+					]),
 					isStringLike: false
 				};
 			case TMeta(_, inner) | TParenthesis(inner):
@@ -10661,6 +10685,11 @@ class GoCompiler {
 			case _:
 				null;
 		};
+	}
+
+	/** Projects one Haxe carrier into the exact element stored by a native slice. */
+	function normalizeNativeSliceStoredElement(targetType:Type, value:GoExpr):GoExpr {
+		return isNativeStringSliceType(targetType) ? GoExpr.GoUnary("*", GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [value])) : value;
 	}
 
 	/**
@@ -11122,6 +11151,10 @@ class GoCompiler {
 
 	function scalarGoType(type:Type):String {
 		return GoTypeMapper.scalarGoType(type, classTypeNameForMappedType, enumTypeName);
+	}
+
+	function isNativeStringSliceType(type:Type):Bool {
+		return GoTypeMapper.isNativeStringSliceType(type);
 	}
 
 	function goFunctionType(args:Array<{name:String, opt:Bool, t:Type}>, returnType:Type):String {
