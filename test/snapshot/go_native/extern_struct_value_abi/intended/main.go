@@ -19,7 +19,7 @@ func main() {
 	fmt.Println(*hxrt.StdString(hxrt.StringConcatAny(hxrt.StringFromLiteral("point="), int(int32((hxrt.Int32Wrap(sum.X) + hxrt.Int32Wrap(sum.Y)))))))
 	first := func() *ParseResult {
 		hx_tuple_2, hx_tuple_3 := time.Parse(*hxrt.StdString(hxrt.StringFromLiteral("2006-01-02")), *hxrt.StdString(hxrt.StringFromLiteral("2026-08-24")))
-		return New_ParseResult(&hx_tuple_2, func(err error) *go___Error {
+		return New_ParseResult(&hx_tuple_2, func(err interface{ Error() string }) *go___Error {
 			if err == nil {
 				return nil
 			}
@@ -28,7 +28,7 @@ func main() {
 	}()
 	second := func() *ParseResult {
 		hx_tuple_4, hx_tuple_5 := time.Parse(*hxrt.StdString(hxrt.StringFromLiteral("2006-01-02")), *hxrt.StdString(hxrt.StringFromLiteral("2026-08-24")))
-		return New_ParseResult(&hx_tuple_4, func(err error) *go___Error {
+		return New_ParseResult(&hx_tuple_4, func(err interface{ Error() string }) *go___Error {
 			if err == nil {
 				return nil
 			}

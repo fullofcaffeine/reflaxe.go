@@ -9,7 +9,7 @@ import (
 func main() {
 	result := func() *GoHTTPRequestResult {
 		hx_tuple_1, hx_tuple_2 := http.NewRequest(*hxrt.StdString(hxrt.StringFromLiteral("GET")), *hxrt.StdString(hxrt.StringFromLiteral("https://example.com")), nil)
-		return New_GoHTTPRequestResult(hx_tuple_1, func(err error) *go___Error {
+		return New_GoHTTPRequestResult(hx_tuple_1, func(err interface{ Error() string }) *go___Error {
 			if err == nil {
 				return nil
 			}
