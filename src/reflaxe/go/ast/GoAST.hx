@@ -175,4 +175,7 @@ enum GoExpr {
 	GoUnary(op:GoUnaryOperator, expr:GoExpr);
 	GoBinary(op:GoBinaryOperator, left:GoExpr, right:GoExpr);
 	GoCall(callee:GoExpr, args:Array<GoExpr>);
+
+	/** A Go call whose final slice argument is expanded with `...`. */
+	GoVariadicCall(callee:GoExpr, args:Array<GoExpr>);
 }

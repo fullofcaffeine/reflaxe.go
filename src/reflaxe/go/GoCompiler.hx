@@ -1106,7 +1106,7 @@ class GoCompiler {
 			case GoUnary(_, inner):
 				exprUsesImportAlias(inner, alias);
 			case GoBinary(_, left, right): exprUsesImportAlias(left, alias) || exprUsesImportAlias(right, alias);
-			case GoCall(callee, args):
+			case GoCall(callee, args) | GoVariadicCall(callee, args):
 				if (exprUsesImportAlias(callee, alias)) {
 					true;
 				} else {
@@ -3961,7 +3961,7 @@ class GoCompiler {
 
 	function exprStatement(expr:GoExpr):Array<GoStmt> {
 		return switch (expr) {
-			case GoExpr.GoCall(_, _):
+			case GoExpr.GoCall(_, _) | GoExpr.GoVariadicCall(_, _):
 				[GoStmt.GoExprStmt(expr)];
 			case _:
 				if (isNilExpr(expr)) {
@@ -7065,6 +7065,7 @@ class GoCompiler {
 				loweredArg = adaptErasedFunctionCallArg(loweredArg, arg.t, emittedParamType);
 			}
 			loweredArg = normalizeExternCallArg(callee, loweredArg, paramType, index);
+			loweredArg = normalizeExternVariadicRestArg(callee, arg, loweredArg, index);
 			loweredArgs.push(loweredArg);
 		}
 		var functionInfo = resolveFunctionInfo(callee);
@@ -7090,7 +7091,7 @@ class GoCompiler {
 
 		var loweredCallee = lowerExpr(callee).expr;
 		var callExpr:GoExpr = isGeneratedDynamicFunctionCall(callee) ? lowerNullGuardedDynamicFunctionCall(loweredCallee, loweredArgs,
-			callee.t) : GoExpr.GoCall(loweredCallee, loweredArgs);
+			callee.t) : (isImportedExternVariadicCall(callee) ? GoExpr.GoVariadicCall(loweredCallee, loweredArgs) : GoExpr.GoCall(loweredCallee, loweredArgs));
 		if (isExternValueErrorCall(callee, returnType)) {
 			requireExternValueErrorResultShim(returnType);
 			return {
@@ -9579,6 +9580,72 @@ class GoCompiler {
 			return GoExpr.GoUnary("*", GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [argExpr]));
 		}
 		return argExpr;
+	}
+
+	/**
+		What: Preserves Go's variadic ABI for imported externs declared with `Rest<T>`.
+		Why: Haxe types a variadic call as one packed slice. Passing that slice as one
+		`any` argument changes both arity and the representation of Haxe strings.
+		How: Rebuild the typer-owned rest pack with native boundary values; the call
+		node then expands this final slice with Go's `...` syntax.
+	**/
+	function normalizeExternVariadicRestArg(callee:TypedExpr, source:TypedExpr, lowered:GoExpr, paramIndex:Int):GoExpr {
+		if (!isImportedExternVariadicCall(callee) || paramIndex != externCallParameterCount(callee) - 1) {
+			return lowered;
+		}
+		final values = restPackValues(source);
+		if (values == null) {
+			return lowered;
+		}
+		return GoExpr.GoCompositeLiteral(GoType.slice(GoType.named("any")), [
+			for (value in values)
+				GoCompositeElement.GoCompositeValue(normalizeExternVariadicValue(value))
+		]);
+	}
+
+	function normalizeExternVariadicValue(value:TypedExpr):GoExpr {
+		final lowered = lowerExpr(value).expr;
+		if (isStringType(value.t)) {
+			return GoExpr.GoUnary(GoUnaryOperator.Dereference, GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [lowered]));
+		}
+		return lowered;
+	}
+
+	function isImportedExternVariadicCall(callee:TypedExpr):Bool {
+		if (!isGoImportExternCall(callee) || isHxrtImportExternCall(callee)) {
+			return false;
+		}
+		final parameters = externCallParameters(callee);
+		return parameters.length > 0 && restElementType(parameters[parameters.length - 1].t) != null;
+	}
+
+	function externCallParameterCount(callee:TypedExpr):Int {
+		return externCallParameters(callee).length;
+	}
+
+	function externCallParameters(callee:TypedExpr):Array<{name:String, opt:Bool, t:Type}> {
+		final field = externCallField(callee);
+		return typedFunctionArgs(field == null ? callee.t : field.type);
+	}
+
+	function restPackValues(expr:TypedExpr):Null<Array<TypedExpr>> {
+		return switch expr.expr {
+			case TBlock(exprs):
+				var found:Null<Array<TypedExpr>> = null;
+				for (entry in exprs) {
+					switch entry.expr {
+						case TBinop(OpAssign, _, right):
+							switch right.expr {
+								case TArrayDecl(values): found = values;
+								case _:
+							}
+						case _:
+					}
+				}
+				found;
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _): restPackValues(inner);
+			case _: null;
+		};
 	}
 
 	function lowerExternTupleReturnExpr(callee:TypedExpr, returnType:Type, callExpr:GoExpr):Null<GoExpr> {
