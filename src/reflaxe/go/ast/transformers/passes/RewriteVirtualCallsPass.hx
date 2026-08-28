@@ -316,6 +316,11 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 					for (arg in args)
 						rewriteExpr(arg, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets)
 				]);
+			case GoExpr.GoVariadicCall(callee, args):
+				GoExpr.GoVariadicCall(rewriteExpr(callee, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets), [
+					for (arg in args)
+						rewriteExpr(arg, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets)
+				]);
 			case _:
 				expr;
 		};

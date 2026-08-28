@@ -449,6 +449,12 @@ class GoASTPrinter {
 			case GoCall(callee, args):
 				var renderedArgs = [for (arg in args) printExpr(arg)].join(", ");
 				printExpr(callee) + "(" + renderedArgs + ")";
+			case GoVariadicCall(callee, args):
+				if (args.length == 0)
+					throw "Invalid Go variadic call: missing final slice argument";
+				var renderedArgs = [for (arg in args) printExpr(arg)];
+				renderedArgs[renderedArgs.length - 1] += "...";
+				printExpr(callee) + "(" + renderedArgs.join(", ") + ")";
 		}
 	}
 

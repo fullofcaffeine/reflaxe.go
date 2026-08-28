@@ -402,7 +402,7 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 			case GoExpr.GoBinary(_, left, right):
 				collectExprReads(left);
 				collectExprReads(right);
-			case GoExpr.GoCall(callee, args):
+			case GoExpr.GoCall(callee, args) | GoExpr.GoVariadicCall(callee, args):
 				collectExprReads(callee);
 				for (arg in args) {
 					collectExprReads(arg);
@@ -728,6 +728,8 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 				GoExpr.GoBinary(op, rewriteExpr(left), rewriteExpr(right));
 			case GoExpr.GoCall(callee, args):
 				GoExpr.GoCall(rewriteExpr(callee), [for (arg in args) rewriteExpr(arg)]);
+			case GoExpr.GoVariadicCall(callee, args):
+				GoExpr.GoVariadicCall(rewriteExpr(callee), [for (arg in args) rewriteExpr(arg)]);
 			case _:
 				expr;
 		};

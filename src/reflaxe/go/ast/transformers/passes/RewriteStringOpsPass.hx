@@ -158,6 +158,8 @@ class RewriteStringOpsPass implements IGoASTPass {
 				GoExpr.GoBinary(op, rewriteExpr(left), rewriteExpr(right));
 			case GoExpr.GoCall(callee, args):
 				GoExpr.GoCall(rewriteExpr(callee), [for (arg in args) rewriteExpr(arg)]);
+			case GoExpr.GoVariadicCall(callee, args):
+				GoExpr.GoVariadicCall(rewriteExpr(callee), [for (arg in args) rewriteExpr(arg)]);
 			case _:
 				expr;
 		};
