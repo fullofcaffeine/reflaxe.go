@@ -9,7 +9,7 @@ import (
 func main() {
 	duration := func() *ParseDurationResult {
 		hx_tuple_1, hx_tuple_2 := time.ParseDuration(*hxrt.StdString(hxrt.StringFromLiteral("1s")))
-		return New_ParseDurationResult(&hx_tuple_1, func(err error) *go___Error {
+		return New_ParseDurationResult(&hx_tuple_1, func(err interface{ Error() string }) *go___Error {
 			if err == nil {
 				return nil
 			}

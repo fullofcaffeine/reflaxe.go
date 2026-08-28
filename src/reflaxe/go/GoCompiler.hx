@@ -7106,6 +7106,7 @@ class GoCompiler {
 			};
 		}
 		callExpr = normalizeExternValueCallResult(callee, returnType, callExpr);
+		callExpr = normalizeExternErrorCallResult(callee, returnType, callExpr);
 		var appliedIterator = adaptErasedGenericStructuralIteratorCall(callee, callExpr);
 		if (appliedIterator != null) {
 			callExpr = appliedIterator;
@@ -7824,6 +7825,7 @@ class GoCompiler {
 						};
 					}
 					callExpr = normalizeExternValueCallResult(callee, returnType, callExpr);
+					callExpr = normalizeExternErrorCallResult(callee, returnType, callExpr);
 					if (shouldAssertGenericCallResult(callee, returnType)) {
 						callExpr = lowerNullableAwareTypeAssertExpr(callExpr, returnType);
 					}
@@ -9638,14 +9640,37 @@ class GoCompiler {
 			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [value]);
 		}
 		if (isGoErrorType(targetType)) {
-			return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: "err", typeName: "error"}], ["*go___Error"], [
-				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("err"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null),
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_go___Error"), [
-					GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("err"), "Error"), [])])
-				]))
-			]), [value]);
+			return coerceNativeGoError(value);
 		}
 		return value;
+	}
+
+	/**
+		What: Converts one native Go `error` result to Haxe's nullable `go.Error` carrier.
+		Why: Imported externs return the Go interface value, while ordinary Haxe code
+		expects the generated carrier that provides `message` and `toString()`.
+		How: Preserve nil and copy a non-nil error's stable `Error()` text exactly once.
+	**/
+	function normalizeExternErrorCallResult(callee:TypedExpr, returnType:Type, callExpr:GoExpr):GoExpr {
+		if (!isGoErrorType(returnType) || !isGoImportExternCall(callee) || isHxrtImportExternCall(callee)) {
+			return callExpr;
+		}
+		return coerceNativeGoError(callExpr);
+	}
+
+	/**
+		What: Emits the shared native-error-to-Haxe-error adapter.
+		Why: A Haxe local can be named `error`, so generated signatures must not rely
+		on Go's shadowable predeclared `error` identifier.
+		How: Accept the equivalent structural Error method interface and preserve nil.
+	**/
+	function coerceNativeGoError(value:GoExpr):GoExpr {
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: "err", typeName: "interface { Error() string }"}], ["*go___Error"], [
+			GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("err"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null),
+			GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("New_go___Error"), [
+				GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("err"), "Error"), [])])
+			]))
+		]), [value]);
 	}
 
 	/**

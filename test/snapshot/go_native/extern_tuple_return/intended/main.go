@@ -26,7 +26,7 @@ func New_AtoiResult(n int, err *go___Error) *AtoiResult {
 func main() {
 	ok := func() *AtoiResult {
 		hx_tuple_1, hx_tuple_2 := strconv.Atoi(*hxrt.StdString(hxrt.StringFromLiteral("12")))
-		return New_AtoiResult(hx_tuple_1, func(err error) *go___Error {
+		return New_AtoiResult(hx_tuple_1, func(err interface{ Error() string }) *go___Error {
 			if err == nil {
 				return nil
 			}
@@ -35,7 +35,7 @@ func main() {
 	}()
 	bad := func() *AtoiResult {
 		hx_tuple_3, hx_tuple_4 := strconv.Atoi(*hxrt.StdString(hxrt.StringFromLiteral("nope")))
-		return New_AtoiResult(hx_tuple_3, func(err error) *go___Error {
+		return New_AtoiResult(hx_tuple_3, func(err interface{ Error() string }) *go___Error {
 			if err == nil {
 				return nil
 			}
