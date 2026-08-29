@@ -1,5 +1,8 @@
 class Main {
-	static function readValue(fail:Bool):String {
+	static function readValue(skip:Bool, fail:Bool):String {
+		if (skip) {
+			return "";
+		}
 		try {
 			if (fail) {
 				throw "failed";
@@ -11,7 +14,7 @@ class Main {
 	}
 
 	static function main():Void {
-		if (readValue(false) != "value" || readValue(true) != "fallback") {
+		if (readValue(true, false) != "" || readValue(false, false) != "value" || readValue(false, true) != "fallback") {
 			throw "unexpected result";
 		}
 	}
