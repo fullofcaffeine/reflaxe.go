@@ -3,12 +3,15 @@ package main
 import "snapshot/hxrt"
 
 func main() {
-	if !hxrt.StringEqualStringPtr(readValue(false), hxrt.StringFromLiteral("value")) || !hxrt.StringEqualStringPtr(readValue(true), hxrt.StringFromLiteral("fallback")) {
+	if (!hxrt.StringEqualStringPtr(readValue(true, false), hxrt.StringFromLiteral("")) || !hxrt.StringEqualStringPtr(readValue(false, false), hxrt.StringFromLiteral("value"))) || !hxrt.StringEqualStringPtr(readValue(false, true), hxrt.StringFromLiteral("fallback")) {
 		hxrt.Throw(hxrt.StringFromLiteral("unexpected result"))
 	}
 }
 
-func readValue(fail bool) *string {
+func readValue(skip bool, fail bool) *string {
+	if skip {
+		return hxrt.StringFromLiteral("")
+	}
 	hx_try_return_1 := false
 	var hx_try_value_2 *string
 	hxrt.TryCatch(func() {
