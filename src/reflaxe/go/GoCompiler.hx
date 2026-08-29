@@ -4197,6 +4197,9 @@ class GoCompiler {
 		pushLocalScope();
 		pushReturnRedirectMask();
 		var out = lowerToStatements(expr);
+		if (terminalTryCatchAlwaysReturns(expr)) {
+			out = out.concat(unreachableReturnFallbackStmts(currentFunctionReturnType()));
+		}
 		popReturnRedirect();
 		popLocalScope();
 		return out;
@@ -4483,6 +4486,56 @@ class GoCompiler {
 			}
 		}
 		return false;
+	}
+
+	/**
+		What: Detects a try/catch whose normal source-level paths all return.
+		Why: Returns cross the runtime try closures through a flag, which Go's
+		control-flow checker cannot prove is set after the helper call.
+		How: Require the try body and every catch body to end in a return, then emit
+		a typed unreachable fallback solely for Go's static return requirement.
+	**/
+	function tryCatchAlwaysReturns(tryExpr:TypedExpr, catches:Array<{v:TVar, expr:TypedExpr}>):Bool {
+		if (!exprAlwaysReturns(tryExpr)) {
+			return false;
+		}
+		for (catchEntry in catches) {
+			if (!exprAlwaysReturns(catchEntry.expr)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	function terminalTryCatchAlwaysReturns(expr:TypedExpr):Bool {
+		return switch (expr.expr) {
+			case TTry(tryExpr, catches): tryCatchAlwaysReturns(tryExpr, catches);
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _): terminalTryCatchAlwaysReturns(inner);
+			case TBlock(expressions): expressions.length > 0 && terminalTryCatchAlwaysReturns(expressions[expressions.length - 1]);
+			case _: false;
+		};
+	}
+
+	function exprAlwaysReturns(expr:TypedExpr):Bool {
+		return switch (expr.expr) {
+			case TReturn(_) | TThrow(_): true;
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _): exprAlwaysReturns(inner);
+			case TBlock(expressions): expressions.length > 0 && exprAlwaysReturns(expressions[expressions.length - 1]);
+			case TIf(_, thenExpr, elseExpr): elseExpr != null && exprAlwaysReturns(thenExpr) && exprAlwaysReturns(elseExpr);
+			case TTry(innerTry, innerCatches): tryCatchAlwaysReturns(innerTry, innerCatches);
+			case _: false;
+		};
+	}
+
+	function unreachableReturnFallbackStmts(returnType:Null<Type>):Array<GoStmt> {
+		if (returnType == null || isVoidType(returnType)) {
+			return [GoStmt.GoReturn(null)];
+		}
+		var zeroName = freshTempName("hx_try_zero");
+		return [
+			GoStmt.GoVarDecl(zeroName, valueStorageGoType(returnType), null, false),
+			GoStmt.GoReturn(GoExpr.GoIdent(zeroName))
+		];
 	}
 
 	function exprContainsReturn(expr:TypedExpr):Bool {
