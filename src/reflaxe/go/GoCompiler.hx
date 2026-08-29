@@ -4198,7 +4198,7 @@ class GoCompiler {
 		pushReturnRedirectMask();
 		var out = lowerToStatements(expr);
 		var returnType = currentFunctionReturnType();
-		if (returnType != null && !isVoidType(returnType) && terminalTryCatchContainsReturn(expr)) {
+		if (returnType != null && !isVoidType(returnType) && endsWithTryReturnRedirect(out)) {
 			out = out.concat(unreachableReturnFallbackStmts(returnType));
 		}
 		popReturnRedirect();
@@ -4490,17 +4490,18 @@ class GoCompiler {
 	}
 
 	/**
-		What: Detects a function body whose final statement uses the try return bridge.
-		Why: Go cannot prove the bridge flag is set, and Haxe can retain an implicit
-		zero-value path even when every authored try and catch branch returns.
-		How: Inspect only the function's terminal statement so earlier try/catch code
-		keeps its existing continuation, then add the ordinary typed fallback return.
+		What: Detects a function whose final lowered statement is its try return bridge.
+		Why: Equivalent class and module-level Haxe functions have different typed-AST
+		wrappers, while the compiler-owned Go bridge shape is stable for both.
+		How: Match only the generated terminal guard and its compiler-owned flag name;
+		earlier try/catch statements retain their normal continuation unchanged.
 	**/
-	function terminalTryCatchContainsReturn(expr:TypedExpr):Bool {
-		return switch (expr.expr) {
-			case TTry(tryExpr, catches): tryCatchContainsReturn(tryExpr, catches);
-			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _): terminalTryCatchContainsReturn(inner);
-			case TBlock(expressions): expressions.length > 0 && terminalTryCatchContainsReturn(expressions[expressions.length - 1]);
+	function endsWithTryReturnRedirect(statements:Array<GoStmt>):Bool {
+		if (statements.length == 0) {
+			return false;
+		}
+		return switch (statements[statements.length - 1]) {
+			case GoIf(GoIdent(flagName), _, null): StringTools.startsWith(flagName, "hx_try_return_");
 			case _: false;
 		};
 	}
