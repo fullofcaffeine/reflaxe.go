@@ -139,7 +139,7 @@ func main() {
 		if enabled.(bool) {
 			hx_if_10 = count.(int)
 		} else {
-			hx_if_10 = int(int32(-int32(count.(int))))
+			hx_if_10 = int(-int32(count.(int)))
 		}
 		return hx_if_10
 	}
@@ -168,7 +168,7 @@ func main() {
 		if enabled.(bool) {
 			hx_if_12 = count.(int)
 		} else {
-			hx_if_12 = int(int32(-int32(count.(int))))
+			hx_if_12 = int(-int32(count.(int)))
 		}
 		return hx_if_12
 	}
@@ -185,7 +185,7 @@ func main() {
 		if enabled.(bool) {
 			hx_if_13 = count.(int)
 		} else {
-			hx_if_13 = int(int32(-int32(count.(int))))
+			hx_if_13 = int(-int32(count.(int)))
 		}
 		return hx_if_13
 	}

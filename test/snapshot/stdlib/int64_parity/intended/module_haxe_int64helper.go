@@ -83,8 +83,8 @@ func haxe__Int64Helper_fromFloat(f float64) *haxe___Int64_____Int64 {
 		i = int(int32((i + 1)))
 	}
 	if neg {
-		high_4 := int(int32(^int32(result.high)))
-		low_3 := int((hxrt.Int32Wrap(int(int32(^int32(result.low)))) + hxrt.Int32Wrap(1)))
+		high_4 := int(^int32(result.high))
+		low_3 := int((hxrt.Int32Wrap(int(^int32(result.low))) + hxrt.Int32Wrap(1)))
 		if low_3 == 0 {
 			hx_post_5 := high_4
 			high_4 = int(int32((high_4 + 1)))

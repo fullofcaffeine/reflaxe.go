@@ -2299,7 +2299,7 @@ func (self *haxe__rtti__XmlParser) parseIntString(value *string) int {
 	}
 	var hx_if_520 int
 	if negative {
-		hx_if_520 = int(int32(-int32(result)))
+		hx_if_520 = int(-int32(result))
 	} else {
 		hx_if_520 = result
 	}
