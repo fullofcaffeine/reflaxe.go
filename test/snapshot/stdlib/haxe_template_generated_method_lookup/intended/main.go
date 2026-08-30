@@ -180,7 +180,7 @@ func (self *MethodBase) describe(resolve func(*string) any, key *string) *string
 
 func (self *MethodBase) bump(resolve func(*string) any, key *string) int {
 	amount := hxrt.IntFromNullableAny(resolve(key))
-	self.total = int(int32((hxrt.Int32Wrap(self.total) + hxrt.Int32Wrap(amount))))
+	self.total = int((hxrt.Int32Wrap(self.total) + hxrt.Int32Wrap(amount)))
 	return self.total
 }
 

@@ -26,19 +26,19 @@ func New_haxe__io__Path(path *string) *haxe__io__Path {
 	c2 := hxrt.StringLastIndexOfStringPtr(path, hxrt.StringFromLiteral("\\"), 0, false)
 	if c1 < c2 {
 		self.dir = hxrt.StringSubstrStringPtr(path, 0, c2, true)
-		path = hxrt.StringSubstrStringPtr(path, int(int32((hxrt.Int32Wrap(c2) + hxrt.Int32Wrap(1)))), 0, false)
+		path = hxrt.StringSubstrStringPtr(path, int((hxrt.Int32Wrap(c2) + hxrt.Int32Wrap(1))), 0, false)
 		self.backslash = true
 	} else {
 		if c2 < c1 {
 			self.dir = hxrt.StringSubstrStringPtr(path, 0, c1, true)
-			path = hxrt.StringSubstrStringPtr(path, int(int32((hxrt.Int32Wrap(c1) + hxrt.Int32Wrap(1)))), 0, false)
+			path = hxrt.StringSubstrStringPtr(path, int((hxrt.Int32Wrap(c1) + hxrt.Int32Wrap(1))), 0, false)
 		} else {
 			self.dir = nil
 		}
 	}
 	cp := hxrt.StringLastIndexOfStringPtr(path, hxrt.StringFromLiteral("."), 0, false)
 	if cp != -1 {
-		self.ext = hxrt.StringSubstrStringPtr(path, int(int32((hxrt.Int32Wrap(cp) + hxrt.Int32Wrap(1)))), 0, false)
+		self.ext = hxrt.StringSubstrStringPtr(path, int((hxrt.Int32Wrap(cp) + hxrt.Int32Wrap(1))), 0, false)
 		self.file = hxrt.StringSubstrStringPtr(path, 0, cp, true)
 	} else {
 		self.ext = nil
@@ -56,7 +56,7 @@ func haxe__io__Path_addTrailingSlash(path *string) *string {
 	var hx_if_3 *string
 	if c1 < c2 {
 		var hx_if_1 *string
-		if c2 != int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(path)) - hxrt.Int32Wrap(1)))) {
+		if c2 != int((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(path)) - hxrt.Int32Wrap(1))) {
 			hx_if_1 = hxrt.StringConcatStringPtr(path, hxrt.StringFromLiteral("\\"))
 		} else {
 			hx_if_1 = path
@@ -64,7 +64,7 @@ func haxe__io__Path_addTrailingSlash(path *string) *string {
 		hx_if_3 = hx_if_1
 	} else {
 		var hx_if_2 *string
-		if c1 != int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(path)) - hxrt.Int32Wrap(1)))) {
+		if c1 != int((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(path)) - hxrt.Int32Wrap(1))) {
 			hx_if_2 = hxrt.StringConcatStringPtr(path, hxrt.StringFromLiteral("/"))
 		} else {
 			hx_if_2 = path
@@ -144,7 +144,7 @@ func haxe__io__Path_normalize(path *string) *string {
 			return hx_value_16.(*string)
 		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
-		if (hxrt.StringEqualStringPtr(token, hxrt.StringFromLiteral("..")) && (target.Len() > 0)) && !hxrt.StringEqualAny(target.Get(int(int32((hxrt.Int32Wrap(target.Len())-hxrt.Int32Wrap(1))))), hxrt.StringFromLiteral("..")) {
+		if (hxrt.StringEqualStringPtr(token, hxrt.StringFromLiteral("..")) && (target.Len() > 0)) && !hxrt.StringEqualAny(target.Get(int((hxrt.Int32Wrap(target.Len())-hxrt.Int32Wrap(1)))), hxrt.StringFromLiteral("..")) {
 			target.Pop()
 		} else {
 			if hxrt.StringEqualStringPtr(token, hxrt.StringFromLiteral("")) {
@@ -174,13 +174,13 @@ func haxe__io__Path_normalize(path *string) *string {
 		index := hx_post_21
 		c_1 := hxrt.StringCharCodeAtStringPtr(value, index)
 		if ((c_1 >= 55296) && (c_1 <= 56319)) && (_g_offset < hxrt.StringLengthStringPtr(_g_s)) {
-			c_1 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(c_1) - hxrt.Int32Wrap(55232))))) << uint(10))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(func() int {
+			c_1 = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(c_1) - hxrt.Int32Wrap(55232)))) << uint(10)))) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(func() int {
 				value_1 := _g_s
 				hx_post_22 := _g_offset
 				_g_offset = int(int32((_g_offset + 1)))
 				index_1 := hx_post_22
 				return hxrt.StringCharCodeAtStringPtr(value_1, index_1)
-			}()) & hxrt.Int32Wrap(1023))))))))
+			}()) & hxrt.Int32Wrap(1023))))))
 		}
 		c := c_1
 		switch c {

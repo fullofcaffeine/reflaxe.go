@@ -31,7 +31,7 @@ func eval(expr *Expr) int {
 		_g1 := expr.params[1].(int)
 		left := _g_1
 		right := _g1
-		hx_switch_1 = int(int32((hxrt.Int32Wrap(left) + hxrt.Int32Wrap(right))))
+		hx_switch_1 = int((hxrt.Int32Wrap(left) + hxrt.Int32Wrap(right)))
 	}
 	return hx_switch_1
 }

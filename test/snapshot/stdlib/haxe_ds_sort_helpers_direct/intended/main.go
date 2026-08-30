@@ -3,7 +3,7 @@ package main
 import "snapshot/hxrt"
 
 func cmp(a int, b int) int {
-	return int(int32((hxrt.Int32Wrap(a) - hxrt.Int32Wrap(b))))
+	return int((hxrt.Int32Wrap(a) - hxrt.Int32Wrap(b)))
 }
 
 func main() {

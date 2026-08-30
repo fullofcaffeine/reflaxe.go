@@ -50,7 +50,7 @@ func (self *haxe__io__BufferInput) refill() {
 		self.buf.__hx_this.blit(0, self.buf, self.pos, self.available)
 		self.pos = 0
 	}
-	self.available = int(int32((hxrt.Int32Wrap(self.available) + hxrt.Int32Wrap(self.i.__hx_this.readBytes(self.buf, self.available, int(int32((hxrt.Int32Wrap(self.buf.length)-hxrt.Int32Wrap(self.available)))))))))
+	self.available = int((hxrt.Int32Wrap(self.available) + hxrt.Int32Wrap(self.i.__hx_this.readBytes(self.buf, self.available, int((hxrt.Int32Wrap(self.buf.length)-hxrt.Int32Wrap(self.available)))))))
 }
 
 func (self *haxe__io__BufferInput) readByte() int {
@@ -75,7 +75,7 @@ func (self *haxe__io__BufferInput) readBytes(bytes *haxe__io__Bytes, targetPos i
 	}
 	size := hx_if_1
 	bytes.__hx_this.blit(targetPos, self.buf, self.pos, size)
-	self.pos = int(int32((hxrt.Int32Wrap(self.pos) + hxrt.Int32Wrap(size))))
-	self.available = int(int32((hxrt.Int32Wrap(self.available) - hxrt.Int32Wrap(size))))
+	self.pos = int((hxrt.Int32Wrap(self.pos) + hxrt.Int32Wrap(size)))
+	self.available = int((hxrt.Int32Wrap(self.available) - hxrt.Int32Wrap(size)))
 	return size
 }

@@ -23,7 +23,7 @@ func main() {
 		return hxrt.StdString(url.Path)
 	}()
 	if ((hxrt.StringEqualStringPtr(assignedScheme, hxrt.StringFromLiteral("http")) && hxrt.StringEqualStringPtr(hxrt.StdString(url.Scheme), hxrt.StringFromLiteral("https"))) && hxrt.StringEqualStringPtr(appendedPath, hxrt.StringFromLiteral("/beads"))) && hxrt.StringEqualStringPtr(hxrt.StdString(url.Path), hxrt.StringFromLiteral("/beads")) {
-		fmt.Println(int(int32((hxrt.Int32Wrap(point.X) + hxrt.Int32Wrap(point.Y)))))
+		fmt.Println(int((hxrt.Int32Wrap(point.X) + hxrt.Int32Wrap(point.Y))))
 	} else {
 		fmt.Println(-1)
 	}

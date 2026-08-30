@@ -182,7 +182,7 @@ func InteractiveCli_parsePositiveInt(raw *string) int {
 		if (code < 48) || (code > 57) {
 			return -1
 		}
-		value = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) * hxrt.Int32Wrap(10))))) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) - hxrt.Int32Wrap(48))))))))
+		value = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value) * hxrt.Int32Wrap(10)))) + hxrt.Int32Wrap(int((hxrt.Int32Wrap(code) - hxrt.Int32Wrap(48))))))
 		i = int(int32((i + 1)))
 	}
 	return value
@@ -271,7 +271,7 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 			continue
 		}
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("add")) {
-			if int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2)))) >= args.Len() {
+			if int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))) >= args.Len() {
 				InteractiveCli_failUsage(hxrt.StringFromLiteral("add requires <priority> <title_token>"))
 				return
 			}
@@ -281,9 +281,9 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 					return hx_zero_23
 				}
 				return hx_value_22.(*string)
-			}(args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1)))))))
+			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))))
 			if priority < 0 {
-				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid priority: "), args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1)))))))
+				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid priority: "), args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))))
 				return
 			}
 			title := InteractiveCli_decodeToken(func(hx_value_26 any) *string {
@@ -292,15 +292,15 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 					return hx_zero_27
 				}
 				return hx_value_26.(*string)
-			}(args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2)))))))
+			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))))
 			app.add(title, priority)
 			InteractiveCli_saveState(app)
 			hxrt.Println(any(hxrt.StringFromLiteral("ok add")))
-			i = int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3))))
+			i = int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3)))
 			continue
 		}
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("toggle")) {
-			if int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1)))) >= args.Len() {
+			if int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))) >= args.Len() {
 				InteractiveCli_failUsage(hxrt.StringFromLiteral("toggle requires <id>"))
 				return
 			}
@@ -310,9 +310,9 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 					return hx_zero_29
 				}
 				return hx_value_28.(*string)
-			}(args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1)))))))
+			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))))
 			if id < 0 {
-				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid id: "), args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1)))))))
+				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid id: "), args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))))
 				return
 			}
 			if app.toggle(id) {
@@ -321,11 +321,11 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 			} else {
 				hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("missing id: "), id)))
 			}
-			i = int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))
+			i = int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2)))
 			continue
 		}
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("tag")) {
-			if int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2)))) >= args.Len() {
+			if int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))) >= args.Len() {
 				InteractiveCli_failUsage(hxrt.StringFromLiteral("tag requires <id> <tag_token>"))
 				return
 			}
@@ -335,9 +335,9 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 					return hx_zero_33
 				}
 				return hx_value_32.(*string)
-			}(args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1)))))))
+			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))))
 			if id_1 < 0 {
-				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid id: "), args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1)))))))
+				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid id: "), args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))))
 				return
 			}
 			tag := InteractiveCli_decodeToken(func(hx_value_36 any) *string {
@@ -346,18 +346,18 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 					return hx_zero_37
 				}
 				return hx_value_36.(*string)
-			}(args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2)))))))
+			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))))
 			if app.tag(id_1, tag) {
 				InteractiveCli_saveState(app)
 				hxrt.Println(any(hxrt.StringFromLiteral("ok tag")))
 			} else {
 				hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("missing id: "), id_1)))
 			}
-			i = int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3))))
+			i = int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3)))
 			continue
 		}
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("batch")) {
-			if int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3)))) >= args.Len() {
+			if int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3))) >= args.Len() {
 				InteractiveCli_failUsage(hxrt.StringFromLiteral("batch requires <priority> <title1_token> <title2_token>"))
 				return
 			}
@@ -367,9 +367,9 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 					return hx_zero_39
 				}
 				return hx_value_38.(*string)
-			}(args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1)))))))
+			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))))
 			if priority_1 < 0 {
-				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid priority: "), args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1)))))))
+				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid priority: "), args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))))
 				return
 			}
 			titles := hxrt.NewArray()
@@ -379,20 +379,20 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 					return hx_zero_44
 				}
 				return hx_value_43.(*string)
-			}(args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))))))
+			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2)))))))
 			titles.Push(InteractiveCli_decodeToken(func(hx_value_46 any) *string {
 				if hx_value_46 == nil {
 					var hx_zero_47 *string
 					return hx_zero_47
 				}
 				return hx_value_46.(*string)
-			}(args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3))))))))
+			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3)))))))
 			added := app.addMany(titles, priority_1)
 			if added > 0 {
 				InteractiveCli_saveState(app)
 			}
 			hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("ok batch added="), added)))
-			i = int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(4))))
+			i = int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(4)))
 			continue
 		}
 		InteractiveCli_failUsage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("unknown command: "), cmd))

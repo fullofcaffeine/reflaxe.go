@@ -159,28 +159,28 @@ func (self *haxe__Template) parseTokens(data *string) *hxrt.Array {
 			return hx_field_25.(int)
 		}(p)) == 58 {
 			hx_obj_17 := map[string]any{}
-			hx_obj_17["p"] = hxrt.StringSubstrStringPtr(data, int(int32((hxrt.Int32Wrap(func(hx_obj_18 map[string]any) int {
+			hx_obj_17["p"] = hxrt.StringSubstrStringPtr(data, int((hxrt.Int32Wrap(func(hx_obj_18 map[string]any) int {
 				hx_field_19 := hx_obj_18["pos"]
 				if hx_field_19 == nil {
 					var hx_zero_20 int
 					return hx_zero_20
 				}
 				return hx_field_19.(int)
-			}(p)) + hxrt.Int32Wrap(2)))), int(int32((hxrt.Int32Wrap(func(hx_obj_21 map[string]any) int {
+			}(p)) + hxrt.Int32Wrap(2))), int((hxrt.Int32Wrap(func(hx_obj_21 map[string]any) int {
 				hx_field_22 := hx_obj_21["len"]
 				if hx_field_22 == nil {
 					var hx_zero_23 int
 					return hx_zero_23
 				}
 				return hx_field_22.(int)
-			}(p)) - hxrt.Int32Wrap(4)))), true)
+			}(p)) - hxrt.Int32Wrap(4))), true)
 			hx_obj_17["s"] = false
 			hx_obj_17["l"] = nil
 			tokens.Push(hx_obj_17)
 			data = haxe__Template_splitter.__hx_this.matchedRight()
 			continue
 		}
-		parp := int(int32((hxrt.Int32Wrap(func(hx_obj_27 map[string]any) int {
+		parp := int((hxrt.Int32Wrap(func(hx_obj_27 map[string]any) int {
 			hx_field_28 := hx_obj_27["pos"]
 			if hx_field_28 == nil {
 				var hx_zero_29 int
@@ -194,7 +194,7 @@ func (self *haxe__Template) parseTokens(data *string) *hxrt.Array {
 				return hx_zero_32
 			}
 			return hx_field_31.(int)
-		}(p)))))
+		}(p))))
 		npar := 1
 		params := hxrt.NewArray()
 		part := hxrt.StringFromLiteral("")
@@ -215,7 +215,7 @@ func (self *haxe__Template) parseTokens(data *string) *hxrt.Array {
 					}
 				}
 			}
-			chunk := hxrt.StringSubstrStringPtr(data, int(int32((hxrt.Int32Wrap(parp) - hxrt.Int32Wrap(1)))), 1, true)
+			chunk := hxrt.StringSubstrStringPtr(data, int((hxrt.Int32Wrap(parp) - hxrt.Int32Wrap(1))), 1, true)
 			if (c == 44) && (npar == 1) {
 				params.Push(part)
 				part = hxrt.StringFromLiteral("")
@@ -229,7 +229,7 @@ func (self *haxe__Template) parseTokens(data *string) *hxrt.Array {
 		hx_obj_36["s"] = false
 		hx_obj_36["l"] = params
 		tokens.Push(hx_obj_36)
-		data = hxrt.StringSubstrStringPtr(data, parp, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(data)) - hxrt.Int32Wrap(parp)))), true)
+		data = hxrt.StringSubstrStringPtr(data, parp, int((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(data)) - hxrt.Int32Wrap(parp))), true)
 	}
 	if hxrt.StringLengthStringPtr(data) > 0 {
 		hx_obj_38 := map[string]any{}
@@ -366,7 +366,7 @@ func (self *haxe__Template) parse(cursor *haxe___Template__TokenCursor) *haxe___
 	}
 	pos := haxe__Template_kwdEnd(p, hxrt.StringFromLiteral("if"))
 	if pos > 0 {
-		p = hxrt.StringSubstrStringPtr(p, pos, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(p)) - hxrt.Int32Wrap(pos)))), true)
+		p = hxrt.StringSubstrStringPtr(p, pos, int((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(p)) - hxrt.Int32Wrap(pos))), true)
 		e := self.__hx_this.parseExpr(p)
 		eif := self.__hx_this.parseBlock(cursor)
 		var hx_if_77 map[string]any
@@ -453,14 +453,14 @@ func (self *haxe__Template) parse(cursor *haxe___Template__TokenCursor) *haxe___
 						return hx_zero_89
 					}
 					return hx_field_88.(*string)
-				}(nextToken), 4, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(func(hx_obj_90 map[string]any) *string {
+				}(nextToken), 4, int((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(func(hx_obj_90 map[string]any) *string {
 					hx_field_91 := hx_obj_90["p"]
 					if hx_field_91 == nil {
 						var hx_zero_92 *string
 						return hx_zero_92
 					}
 					return hx_field_91.(*string)
-				}(nextToken))) - hxrt.Int32Wrap(4)))), true)
+				}(nextToken))) - hxrt.Int32Wrap(4))), true)
 				eelse = self.__hx_this.parse(cursor)
 			}
 		}
@@ -468,7 +468,7 @@ func (self *haxe__Template) parse(cursor *haxe___Template__TokenCursor) *haxe___
 	}
 	pos = haxe__Template_kwdEnd(p, hxrt.StringFromLiteral("foreach"))
 	if pos >= 0 {
-		p = hxrt.StringSubstrStringPtr(p, pos, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(p)) - hxrt.Int32Wrap(pos)))), true)
+		p = hxrt.StringSubstrStringPtr(p, pos, int((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(p)) - hxrt.Int32Wrap(pos))), true)
 		e_1 := self.__hx_this.parseExpr(p)
 		efor := self.__hx_this.parseBlock(cursor)
 		var hx_if_102 map[string]any
@@ -615,7 +615,7 @@ func (self *haxe__Template) makeConst(v *string) func() any {
 	haxe__Template_expr_trim.__hx_this.match(v)
 	v = haxe__Template_expr_trim.__hx_this.matched(1)
 	if hxrt.StringCharCodeAtAnyStringPtr(v, 0) == 34 {
-		str := hxrt.StringSubstrStringPtr(v, 1, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(v)) - hxrt.Int32Wrap(2)))), true)
+		str := hxrt.StringSubstrStringPtr(v, 1, int((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(v)) - hxrt.Int32Wrap(2))), true)
 		literal := func() any {
 			return str
 		}
@@ -1146,7 +1146,7 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 }
 
 func (self *haxe__Template) popStackValue() any {
-	lastIndex := int(int32((hxrt.Int32Wrap(self.stack.Len()) - hxrt.Int32Wrap(1))))
+	lastIndex := int((hxrt.Int32Wrap(self.stack.Len()) - hxrt.Int32Wrap(1)))
 	var value any = self.stack.Get(lastIndex)
 	remaining := hxrt.NewArray()
 	_g := 0
@@ -1424,7 +1424,7 @@ func haxe__Template_parseFloatLiteral(value *string) float64 {
 		if (code < 48) || (code > 57) {
 			break
 		}
-		intPart = ((intPart * 10.0) + float64(int(int32((hxrt.Int32Wrap(code) - hxrt.Int32Wrap(48))))))
+		intPart = ((intPart * 10.0) + float64(int((hxrt.Int32Wrap(code) - hxrt.Int32Wrap(48)))))
 		index = int(int32((index + 1)))
 	}
 	fracPart := 0.0
@@ -1436,7 +1436,7 @@ func haxe__Template_parseFloatLiteral(value *string) float64 {
 			if (code_1 < 48) || (code_1 > 57) {
 				break
 			}
-			fracPart = ((fracPart * 10.0) + float64(int(int32((hxrt.Int32Wrap(code_1) - hxrt.Int32Wrap(48))))))
+			fracPart = ((fracPart * 10.0) + float64(int((hxrt.Int32Wrap(code_1) - hxrt.Int32Wrap(48)))))
 			divisor = (divisor * 10.0)
 			index = int(int32((index + 1)))
 		}
@@ -1461,7 +1461,7 @@ func haxe__Template_parseFloatLiteral(value *string) float64 {
 				if (code_2 < 48) || (code_2 > 57) {
 					break
 				}
-				exponent = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(exponent) * hxrt.Int32Wrap(10))))) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code_2) - hxrt.Int32Wrap(48))))))))
+				exponent = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(exponent) * hxrt.Int32Wrap(10)))) + hxrt.Int32Wrap(int((hxrt.Int32Wrap(code_2) - hxrt.Int32Wrap(48))))))
 				index = int(int32((index + 1)))
 			}
 			for exponent > 0 {
@@ -1484,7 +1484,7 @@ func haxe__Template_parseIntLiteral(value *string) int {
 	index := 0
 	for index < hxrt.StringLengthStringPtr(value) {
 		code := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(value, index))
-		out = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(out) * hxrt.Int32Wrap(10))))) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) - hxrt.Int32Wrap(48))))))))
+		out = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(out) * hxrt.Int32Wrap(10)))) + hxrt.Int32Wrap(int((hxrt.Int32Wrap(code) - hxrt.Int32Wrap(48))))))
 		index = int(int32((index + 1)))
 	}
 	return out

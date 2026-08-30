@@ -31,7 +31,7 @@ func (self *haxe__zip__Uncompress) execute(src *haxe__io__Bytes, srcPos int, dst
 	self.__hx_this.ensureOpen()
 	haxe__zip__Uncompress_validatePosition(srcPos, src.length)
 	haxe__zip__Uncompress_validatePosition(dstPos, dst.length)
-	bufferSize := int(int32((hxrt.Int32Wrap(dst.length) - hxrt.Int32Wrap(dstPos))))
+	bufferSize := int((hxrt.Int32Wrap(dst.length) - hxrt.Int32Wrap(dstPos)))
 	if bufferSize == 0 {
 		hx_obj_1 := map[string]any{}
 		hx_obj_1["done"] = false
@@ -100,7 +100,7 @@ func haxe__zip__Uncompress_fromValues(values []int) *haxe__io__Bytes {
 		hx_post_6 := _g
 		_g = int(int32((_g + 1)))
 		index := hx_post_6
-		bytes.b[index] = int(int32((hxrt.Int32Wrap(values[index]) & hxrt.Int32Wrap(255))))
+		bytes.b[index] = int((hxrt.Int32Wrap(values[index]) & hxrt.Int32Wrap(255)))
 		bytes.__hx_rawValid = false
 	}
 	return bytes
@@ -162,7 +162,7 @@ func haxe__zip__Uncompress_writeValues(destination *haxe__io__Bytes, position in
 		hx_post_15 := _g
 		_g = int(int32((_g + 1)))
 		index := hx_post_15
-		destination.b[int(int32((hxrt.Int32Wrap(position) + hxrt.Int32Wrap(index))))] = int(int32((hxrt.Int32Wrap(values[index]) & hxrt.Int32Wrap(255))))
+		destination.b[int((hxrt.Int32Wrap(position) + hxrt.Int32Wrap(index)))] = int((hxrt.Int32Wrap(values[index]) & hxrt.Int32Wrap(255)))
 		destination.__hx_rawValid = false
 	}
 	return len(values)

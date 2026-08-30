@@ -42,13 +42,13 @@ func haxe__Utf8_codePointToString(code int) *string {
 	} else {
 		var hx_if_2 *hxrt.Array
 		if code < 2048 {
-			hx_if_2 = hxrt.NewArray(int(int32((hxrt.Int32Wrap(192) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(6)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) & hxrt.Int32Wrap(63)))))))))
+			hx_if_2 = hxrt.NewArray(int((hxrt.Int32Wrap(192) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(code) >> uint(6)))))), int((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(code) & hxrt.Int32Wrap(63)))))))
 		} else {
 			var hx_if_1 *hxrt.Array
 			if code < 65536 {
-				hx_if_1 = hxrt.NewArray(int(int32((hxrt.Int32Wrap(224) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(12)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(6))))) & hxrt.Int32Wrap(63)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) & hxrt.Int32Wrap(63)))))))))
+				hx_if_1 = hxrt.NewArray(int((hxrt.Int32Wrap(224) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(code) >> uint(12)))))), int((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(code) >> uint(6)))) & hxrt.Int32Wrap(63)))))), int((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(code) & hxrt.Int32Wrap(63)))))))
 			} else {
-				hx_if_1 = hxrt.NewArray(int(int32((hxrt.Int32Wrap(240) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(18)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(12))))) & hxrt.Int32Wrap(63)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) >> uint(6))))) & hxrt.Int32Wrap(63)))))))), int(int32((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) & hxrt.Int32Wrap(63)))))))))
+				hx_if_1 = hxrt.NewArray(int((hxrt.Int32Wrap(240) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(code) >> uint(18)))))), int((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(code) >> uint(12)))) & hxrt.Int32Wrap(63)))))), int((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(code) >> uint(6)))) & hxrt.Int32Wrap(63)))))), int((hxrt.Int32Wrap(128) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(code) & hxrt.Int32Wrap(63)))))))
 			}
 			hx_if_2 = hx_if_1
 		}
@@ -62,7 +62,7 @@ func haxe__Utf8_codePointToString(code int) *string {
 		hx_post_4 := _g
 		_g = int(int32((_g + 1)))
 		index := hx_post_4
-		bytes.b[index] = int(int32((hxrt.Int32Wrap(hxrt.IntFromNullableAny(raw.Get(index))) & hxrt.Int32Wrap(255))))
+		bytes.b[index] = int((hxrt.Int32Wrap(hxrt.IntFromNullableAny(raw.Get(index))) & hxrt.Int32Wrap(255)))
 		bytes.__hx_rawValid = false
 	}
 	return bytes.__hx_this.toString()
@@ -118,15 +118,15 @@ func haxe__Utf8_decode(s *string) *string {
 			hx_if_8 = c.(int)
 		}
 		code := hx_if_8
-		bytes.b[index] = int(int32((hxrt.Int32Wrap(func() int {
+		bytes.b[index] = int((hxrt.Int32Wrap(func() int {
 			var hx_if_9 int
 			if code < 0 {
 				hx_if_9 = 0
 			} else {
-				hx_if_9 = int(int32((hxrt.Int32Wrap(code) & hxrt.Int32Wrap(255))))
+				hx_if_9 = int((hxrt.Int32Wrap(code) & hxrt.Int32Wrap(255)))
 			}
 			return hx_if_9
-		}()) & hxrt.Int32Wrap(255))))
+		}()) & hxrt.Int32Wrap(255)))
 		bytes.__hx_rawValid = false
 	}
 	return bytes.__hx_this.toString()

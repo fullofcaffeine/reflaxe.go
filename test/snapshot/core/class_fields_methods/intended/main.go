@@ -19,7 +19,7 @@ func New_Counter(start int) *Counter {
 }
 
 func (self *Counter) inc(step int) int {
-	self.value = int(int32((hxrt.Int32Wrap(self.value) + hxrt.Int32Wrap(step))))
+	self.value = int((hxrt.Int32Wrap(self.value) + hxrt.Int32Wrap(step)))
 	return self.value
 }
 

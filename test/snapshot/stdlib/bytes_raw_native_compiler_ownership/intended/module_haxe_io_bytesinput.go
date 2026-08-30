@@ -46,9 +46,9 @@ func New_haxe__io__BytesInput(bytes *haxe__io__Bytes, pos any, len any) *haxe__i
 		pos = 0
 	}
 	if len == nil {
-		len = int(int32((hxrt.Int32Wrap(bytes.length) - hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(pos.(int)))))))
+		len = int((hxrt.Int32Wrap(bytes.length) - hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(pos.(int))))))
 	}
-	if ((hxrt.IntFromNullableAny(pos.(int)) < 0) || (hxrt.IntFromNullableAny(len.(int)) < 0)) || (int(int32((hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(pos.(int)))) + hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(len.(int))))))) > bytes.length) {
+	if ((hxrt.IntFromNullableAny(pos.(int)) < 0) || (hxrt.IntFromNullableAny(len.(int)) < 0)) || (int((hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(pos.(int)))) + hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(len.(int)))))) > bytes.length) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
 	}
 	self.b = bytes.__hx_this.getData()
@@ -74,7 +74,7 @@ func (self *haxe__io__BytesInput) set_position(value int) int {
 			value = self.totlen
 		}
 	}
-	self.len = int(int32((hxrt.Int32Wrap(self.totlen) - hxrt.Int32Wrap(value))))
+	self.len = int((hxrt.Int32Wrap(self.totlen) - hxrt.Int32Wrap(value)))
 	return func() int {
 		self.pos = value
 		return self.pos
@@ -92,7 +92,7 @@ func (self *haxe__io__BytesInput) readByte() int {
 }
 
 func (self *haxe__io__BytesInput) readBytes(bytes *haxe__io__Bytes, targetPos int, requested int) int {
-	if ((targetPos < 0) || (requested < 0)) || (int(int32((hxrt.Int32Wrap(targetPos) + hxrt.Int32Wrap(requested)))) > bytes.length) {
+	if ((targetPos < 0) || (requested < 0)) || (int((hxrt.Int32Wrap(targetPos) + hxrt.Int32Wrap(requested))) > bytes.length) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
 	}
 	if (self.len == 0) && (requested > 0) {
@@ -107,11 +107,11 @@ func (self *haxe__io__BytesInput) readBytes(bytes *haxe__io__Bytes, targetPos in
 		hx_post_2 := _g
 		_g = int(int32((_g + 1)))
 		index := hx_post_2
-		value := self.b[int(int32((hxrt.Int32Wrap(self.pos) + hxrt.Int32Wrap(index))))]
-		bytes.b[int(int32((hxrt.Int32Wrap(targetPos) + hxrt.Int32Wrap(index))))] = int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
+		value := self.b[int((hxrt.Int32Wrap(self.pos) + hxrt.Int32Wrap(index)))]
+		bytes.b[int((hxrt.Int32Wrap(targetPos) + hxrt.Int32Wrap(index)))] = int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255)))
 		bytes.__hx_rawValid = false
 	}
-	self.pos = int(int32((hxrt.Int32Wrap(self.pos) + hxrt.Int32Wrap(requested))))
-	self.len = int(int32((hxrt.Int32Wrap(self.len) - hxrt.Int32Wrap(requested))))
+	self.pos = int((hxrt.Int32Wrap(self.pos) + hxrt.Int32Wrap(requested)))
+	self.len = int((hxrt.Int32Wrap(self.len) - hxrt.Int32Wrap(requested)))
 	return requested
 }

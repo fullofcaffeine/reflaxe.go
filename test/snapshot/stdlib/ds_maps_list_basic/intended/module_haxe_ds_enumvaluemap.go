@@ -38,7 +38,7 @@ func New_haxe__ds___EnumValueMap__EnumValueTreeNode(left *haxe__ds___EnumValueMa
 			hx_if_2 = right.height
 		}
 		rightHeight := hx_if_2
-		self.height = int(int32((hxrt.Int32Wrap(func() int {
+		self.height = int((hxrt.Int32Wrap(func() int {
 			var hx_if_3 int
 			if leftHeight > rightHeight {
 				hx_if_3 = leftHeight
@@ -46,7 +46,7 @@ func New_haxe__ds___EnumValueMap__EnumValueTreeNode(left *haxe__ds___EnumValueMa
 				hx_if_3 = rightHeight
 			}
 			return hx_if_3
-		}()) + hxrt.Int32Wrap(1))))
+		}()) + hxrt.Int32Wrap(1)))
 	} else {
 		self.height = height
 	}
@@ -306,7 +306,7 @@ func (self *haxe__ds__EnumValueMap) clear() {
 }
 
 func (self *haxe__ds__EnumValueMap) compare(left any, right any) int {
-	result := int(int32((hxrt.Int32Wrap(Type_enumIndex(left)) - hxrt.Int32Wrap(Type_enumIndex(right)))))
+	result := int((hxrt.Int32Wrap(Type_enumIndex(left)) - hxrt.Int32Wrap(Type_enumIndex(right))))
 	if result != 0 {
 		return result
 	}
@@ -320,7 +320,7 @@ func (self *haxe__ds__EnumValueMap) compare(left any, right any) int {
 }
 
 func (self *haxe__ds__EnumValueMap) compareArgs(left *hxrt.Array, right *hxrt.Array) int {
-	result := int(int32((hxrt.Int32Wrap(left.Len()) - hxrt.Int32Wrap(right.Len()))))
+	result := int((hxrt.Int32Wrap(left.Len()) - hxrt.Int32Wrap(right.Len())))
 	if result != 0 {
 		return result
 	}
@@ -571,7 +571,7 @@ func (self *haxe__ds__EnumValueMap) balance(left *haxe__ds___EnumValueMap__EnumV
 		hx_if_89 = right.height
 	}
 	rightHeight := hx_if_89
-	if leftHeight > int(int32((hxrt.Int32Wrap(rightHeight) + hxrt.Int32Wrap(2)))) {
+	if leftHeight > int((hxrt.Int32Wrap(rightHeight) + hxrt.Int32Wrap(2))) {
 		var hx_if_90 int
 		if left.left == nil {
 			hx_if_90 = 0
@@ -591,7 +591,7 @@ func (self *haxe__ds__EnumValueMap) balance(left *haxe__ds___EnumValueMap__EnumV
 		}
 		return New_haxe__ds___EnumValueMap__EnumValueTreeNode(New_haxe__ds___EnumValueMap__EnumValueTreeNode(left.left, left.key, left.value, left.right.left, -1), left.right.key, left.right.value, New_haxe__ds___EnumValueMap__EnumValueTreeNode(left.right.right, key, value, right, -1), -1)
 	}
-	if rightHeight > int(int32((hxrt.Int32Wrap(leftHeight) + hxrt.Int32Wrap(2)))) {
+	if rightHeight > int((hxrt.Int32Wrap(leftHeight) + hxrt.Int32Wrap(2))) {
 		var hx_if_92 int
 		if right.right == nil {
 			hx_if_92 = 0
@@ -611,7 +611,7 @@ func (self *haxe__ds__EnumValueMap) balance(left *haxe__ds___EnumValueMap__EnumV
 		}
 		return New_haxe__ds___EnumValueMap__EnumValueTreeNode(New_haxe__ds___EnumValueMap__EnumValueTreeNode(left, key, value, right.left.left, -1), right.left.key, right.left.value, New_haxe__ds___EnumValueMap__EnumValueTreeNode(right.left.right, right.key, right.value, right.right, -1), -1)
 	}
-	return New_haxe__ds___EnumValueMap__EnumValueTreeNode(left, key, value, right, int(int32((hxrt.Int32Wrap(func() int {
+	return New_haxe__ds___EnumValueMap__EnumValueTreeNode(left, key, value, right, int((hxrt.Int32Wrap(func() int {
 		var hx_if_94 int
 		if leftHeight > rightHeight {
 			hx_if_94 = leftHeight
@@ -619,7 +619,7 @@ func (self *haxe__ds__EnumValueMap) balance(left *haxe__ds___EnumValueMap__EnumV
 			hx_if_94 = rightHeight
 		}
 		return hx_if_94
-	}()) + hxrt.Int32Wrap(1)))))
+	}()) + hxrt.Int32Wrap(1))))
 }
 
 func (self *haxe__ds__EnumValueMap) getIMap(key any) any {

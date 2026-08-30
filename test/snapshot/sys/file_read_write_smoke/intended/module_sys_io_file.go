@@ -19,7 +19,7 @@ func sys__io__File_getBytes(path *string) *haxe__io__Bytes {
 		hx_post_1 := _g
 		_g = int(int32((_g + 1)))
 		index := hx_post_1
-		bytes.b[index] = int(int32((hxrt.Int32Wrap(values[index]) & hxrt.Int32Wrap(255))))
+		bytes.b[index] = int((hxrt.Int32Wrap(values[index]) & hxrt.Int32Wrap(255)))
 		bytes.__hx_rawValid = false
 	}
 	return bytes

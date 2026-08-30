@@ -14,14 +14,14 @@ class GoExprOperatorOps {
 		return switch (op) {
 			case OpUShr:
 				var shifted = GoExpr.GoBinary(">>", GoExpr.GoCall(GoExpr.GoIdent("uint32"), [leftInt32]), GoExpr.GoCall(GoExpr.GoIdent("uint"), [rightExpr]));
-				wrapInt32Expr(GoExpr.GoCall(GoExpr.GoIdent("int32"), [shifted]));
+				widenNativeInt32Expr(GoExpr.GoCall(GoExpr.GoIdent("int32"), [shifted]));
 			case OpShl:
-				wrapInt32Expr(GoExpr.GoBinary("<<", leftInt32, GoExpr.GoCall(GoExpr.GoIdent("uint"), [rightExpr])));
+				widenNativeInt32Expr(GoExpr.GoBinary("<<", leftInt32, GoExpr.GoCall(GoExpr.GoIdent("uint"), [rightExpr])));
 			case OpShr:
-				wrapInt32Expr(GoExpr.GoBinary(">>", leftInt32, GoExpr.GoCall(GoExpr.GoIdent("uint"), [rightExpr])));
+				widenNativeInt32Expr(GoExpr.GoBinary(">>", leftInt32, GoExpr.GoCall(GoExpr.GoIdent("uint"), [rightExpr])));
 			case OpAdd | OpSub | OpMult | OpMod | OpAnd | OpOr | OpXor:
 				var rightInt32 = GoExpr.GoCall(GoExpr.GoIdent("hxrt.Int32Wrap"), [rightExpr]);
-				wrapInt32Expr(GoExpr.GoBinary(binopSymbol(op), leftInt32, rightInt32));
+				widenNativeInt32Expr(GoExpr.GoBinary(binopSymbol(op), leftInt32, rightInt32));
 			case _:
 				GoExpr.GoBinary(binopSymbol(op), leftExpr, rightExpr);
 		};
@@ -29,6 +29,11 @@ class GoExprOperatorOps {
 
 	public static function wrapInt32Expr(expr:GoExpr):GoExpr {
 		return GoExpr.GoCall(GoExpr.GoIdent("int"), [GoExpr.GoCall(GoExpr.GoIdent("int32"), [expr])]);
+	}
+
+	/** Widens an expression already proven to have Go `int32` type into Haxe's Go `int` carrier. */
+	public static function widenNativeInt32Expr(expr:GoExpr):GoExpr {
+		return GoExpr.GoCall(GoExpr.GoIdent("int"), [expr]);
 	}
 
 	public static function floatOperandExpr(expr:GoExpr, shouldKeepFloat:Bool):GoExpr {

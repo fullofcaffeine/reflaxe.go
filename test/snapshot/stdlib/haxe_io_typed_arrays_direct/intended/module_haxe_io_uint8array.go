@@ -16,12 +16,12 @@ func haxe__io___UInt8Array__UInt8Array_Impl___new(elements int) *haxe__io__Array
 func haxe__io___UInt8Array__UInt8Array_Impl__fromArray(a *hxrt.Array, pos int, length any) *haxe__io__ArrayBufferViewImpl {
 	var hx_if_1 int
 	if length == nil {
-		hx_if_1 = int(int32((hxrt.Int32Wrap(a.Len()) - hxrt.Int32Wrap(pos))))
+		hx_if_1 = int((hxrt.Int32Wrap(a.Len()) - hxrt.Int32Wrap(pos)))
 	} else {
 		hx_if_1 = length.(int)
 	}
 	resolvedLength := hx_if_1
-	if ((pos < 0) || (resolvedLength < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(resolvedLength)))) > a.Len()) {
+	if ((pos < 0) || (resolvedLength < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(resolvedLength))) > a.Len()) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
 	}
 	var this1 *haxe__io__ArrayBufferViewImpl
@@ -36,11 +36,11 @@ func haxe__io___UInt8Array__UInt8Array_Impl__fromArray(a *hxrt.Array, pos int, l
 		hx_post_2 := _g
 		_g = int(int32((_g + 1)))
 		idx := hx_post_2
-		value := hxrt.IntFromNullableAny(a.Get(int(int32((hxrt.Int32Wrap(idx) + hxrt.Int32Wrap(pos))))))
+		value := hxrt.IntFromNullableAny(a.Get(int((hxrt.Int32Wrap(idx) + hxrt.Int32Wrap(pos)))))
 		if (idx >= 0) && (idx < out.byteLength) {
 			_this := out.bytes
-			pos_1 := int(int32((hxrt.Int32Wrap(idx) + hxrt.Int32Wrap(out.byteOffset))))
-			_this.b[pos_1] = int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
+			pos_1 := int((hxrt.Int32Wrap(idx) + hxrt.Int32Wrap(out.byteOffset)))
+			_this.b[pos_1] = int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255)))
 			_this.__hx_rawValid = false
 		} else {
 			_ = 0
@@ -61,7 +61,7 @@ func haxe__io___UInt8Array__UInt8Array_Impl__fromData(d *haxe__io__ArrayBufferVi
 }
 
 func haxe__io___UInt8Array__UInt8Array_Impl__get(this1 *haxe__io__ArrayBufferViewImpl, index int) int {
-	return this1.bytes.b[int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(this1.byteOffset))))]
+	return this1.bytes.b[int((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(this1.byteOffset)))]
 }
 
 func haxe__io___UInt8Array__UInt8Array_Impl__getData(this1 *haxe__io__ArrayBufferViewImpl) *haxe__io__ArrayBufferViewImpl {
@@ -81,8 +81,8 @@ var haxe__io___UInt8Array__UInt8Array_Impl__length int
 func haxe__io___UInt8Array__UInt8Array_Impl__set(this1 *haxe__io__ArrayBufferViewImpl, index int, value int) int {
 	if (index >= 0) && (index < this1.byteLength) {
 		_this := this1.bytes
-		pos := int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(this1.byteOffset))))
-		_this.b[pos] = int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
+		pos := int((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(this1.byteOffset)))
+		_this.b[pos] = int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255)))
 		_this.__hx_rawValid = false
 		return value
 	}

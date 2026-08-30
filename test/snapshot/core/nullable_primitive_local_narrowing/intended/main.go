@@ -27,7 +27,7 @@ func floatBranch(value any) float64 {
 func intBranch(value any) int {
 	if value != nil {
 		narrowed := value.(int)
-		return int(int32((hxrt.Int32Wrap(narrowed) + hxrt.Int32Wrap(1))))
+		return int((hxrt.Int32Wrap(narrowed) + hxrt.Int32Wrap(1)))
 	}
 	return -1
 }

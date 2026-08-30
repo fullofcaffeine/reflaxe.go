@@ -4,7 +4,7 @@ import "examples_pulseforge_portable/hxrt"
 
 func app__core__PulseCodec_enrich(event *app__core__PulseEvent) *app__core__PulseEnrichedEvent {
 	severity := app__core__PulseCodec_severityFor(event.value)
-	weightedValue := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(event.value) * hxrt.Int32Wrap(severity))))) + hxrt.Int32Wrap(app__core__PulseCodec_regionBoost(event.region)))))
+	weightedValue := int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(event.value) * hxrt.Int32Wrap(severity)))) + hxrt.Int32Wrap(app__core__PulseCodec_regionBoost(event.region))))
 	return New_app__core__PulseEnrichedEvent(event, severity, weightedValue)
 }
 

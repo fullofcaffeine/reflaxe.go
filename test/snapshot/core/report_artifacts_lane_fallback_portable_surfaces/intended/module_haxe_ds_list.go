@@ -129,7 +129,7 @@ func (self *haxe__ds__List) last() any {
 	if self.length == 0 {
 		hx_if_7 = nil
 	} else {
-		hx_if_7 = self.items.Get(int(int32((hxrt.Int32Wrap(self.length) - hxrt.Int32Wrap(1)))))
+		hx_if_7 = self.items.Get(int((hxrt.Int32Wrap(self.length) - hxrt.Int32Wrap(1))))
 	}
 	return hx_if_7
 }

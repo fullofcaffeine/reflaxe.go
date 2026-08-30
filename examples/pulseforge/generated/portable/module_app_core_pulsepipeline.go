@@ -84,7 +84,7 @@ func (self *app__core__PulsePipeline) ingest(frames *hxrt.Array, capacity int) *
 			return hx_value_14.(*app__core__PulseIngressFrame)
 		}(frames.Get(_g))
 		_g = int(int32((_g + 1)))
-		if int(int32((hxrt.Int32Wrap(queue.Len()) - hxrt.Int32Wrap(queueHead)))) >= boundedCapacity {
+		if int((hxrt.Int32Wrap(queue.Len()) - hxrt.Int32Wrap(queueHead))) >= boundedCapacity {
 			backpressureEvents = int(int32((backpressureEvents + 1)))
 			accepted.Push(queue.Get(queueHead))
 			queueHead = int(int32((queueHead + 1)))
@@ -112,8 +112,8 @@ func (self *app__core__PulsePipeline) aggregate(enriched *hxrt.Array) map[string
 			return hx_value_19.(*app__core__PulseEnrichedEvent)
 		}(enriched.Get(_g))
 		_g = int(int32((_g + 1)))
-		totalValue = int(int32((hxrt.Int32Wrap(totalValue) + hxrt.Int32Wrap(entry.event.value))))
-		totalWeighted = int(int32((hxrt.Int32Wrap(totalWeighted) + hxrt.Int32Wrap(entry.weightedValue))))
+		totalValue = int((hxrt.Int32Wrap(totalValue) + hxrt.Int32Wrap(entry.event.value)))
+		totalWeighted = int((hxrt.Int32Wrap(totalWeighted) + hxrt.Int32Wrap(entry.weightedValue)))
 		source := entry.event.source
 		bucket := self.findSourceAggregate(sourceSummaries, source)
 		if bucket == nil {

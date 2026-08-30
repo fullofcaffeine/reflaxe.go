@@ -31,8 +31,8 @@ func New_app__core__PulseSourceAggregate(source *string) *app__core__PulseSource
 
 func (self *app__core__PulseSourceAggregate) record(entry *app__core__PulseEnrichedEvent) {
 	self.count = int(int32((self.count + 1)))
-	self.totalValue = int(int32((hxrt.Int32Wrap(self.totalValue) + hxrt.Int32Wrap(entry.event.value))))
-	self.totalWeighted = int(int32((hxrt.Int32Wrap(self.totalWeighted) + hxrt.Int32Wrap(entry.weightedValue))))
+	self.totalValue = int((hxrt.Int32Wrap(self.totalValue) + hxrt.Int32Wrap(entry.event.value)))
+	self.totalWeighted = int((hxrt.Int32Wrap(self.totalWeighted) + hxrt.Int32Wrap(entry.weightedValue)))
 	if entry.event.value > self.maxValue {
 		self.maxValue = entry.event.value
 	}

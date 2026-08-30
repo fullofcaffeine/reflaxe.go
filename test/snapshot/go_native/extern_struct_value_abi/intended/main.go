@@ -16,7 +16,7 @@ func main() {
 		hx_extern_value_1 := left.Add(*right)
 		return &hx_extern_value_1
 	}()
-	fmt.Println(*hxrt.StdString(hxrt.StringConcatAny(hxrt.StringFromLiteral("point="), int(int32((hxrt.Int32Wrap(sum.X) + hxrt.Int32Wrap(sum.Y)))))))
+	fmt.Println(*hxrt.StdString(hxrt.StringConcatAny(hxrt.StringFromLiteral("point="), int((hxrt.Int32Wrap(sum.X) + hxrt.Int32Wrap(sum.Y))))))
 	first := func() *ParseResult {
 		hx_tuple_2, hx_tuple_3 := time.Parse(*hxrt.StdString(hxrt.StringFromLiteral("2006-01-02")), *hxrt.StdString(hxrt.StringFromLiteral("2026-08-24")))
 		return New_ParseResult(&hx_tuple_2, func(err interface{ Error() string }) *go___Error {

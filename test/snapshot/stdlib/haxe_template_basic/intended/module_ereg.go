@@ -52,16 +52,16 @@ func (self *EReg) matched(n int) *string {
 	if n < 0 {
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid group"))
 	}
-	offset := int(int32((hxrt.Int32Wrap(n) * hxrt.Int32Wrap(2))))
-	if int(int32((hxrt.Int32Wrap(offset) + hxrt.Int32Wrap(1)))) >= len(current.Indices) {
+	offset := int((hxrt.Int32Wrap(n) * hxrt.Int32Wrap(2)))
+	if int((hxrt.Int32Wrap(offset) + hxrt.Int32Wrap(1))) >= len(current.Indices) {
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid group"))
 	}
 	start := current.Indices[offset]
-	end := current.Indices[int(int32((hxrt.Int32Wrap(offset) + hxrt.Int32Wrap(1))))]
+	end := current.Indices[int((hxrt.Int32Wrap(offset) + hxrt.Int32Wrap(1)))]
 	if (start < 0) || (end < start) {
 		return nil
 	}
-	return hxrt.StringSubstrStringPtr(self.lastSource, start, int(int32((hxrt.Int32Wrap(end) - hxrt.Int32Wrap(start)))), true)
+	return hxrt.StringSubstrStringPtr(self.lastSource, start, int((hxrt.Int32Wrap(end) - hxrt.Int32Wrap(start))), true)
 }
 
 func (self *EReg) matchedLeft() *string {
@@ -79,7 +79,7 @@ func (self *EReg) matchedPos() map[string]any {
 	start := current.Indices[0]
 	hx_obj_1 := map[string]any{}
 	hx_obj_1["pos"] = start
-	hx_obj_1["len"] = int(int32((hxrt.Int32Wrap(current.Indices[1]) - hxrt.Int32Wrap(start))))
+	hx_obj_1["len"] = int((hxrt.Int32Wrap(current.Indices[1]) - hxrt.Int32Wrap(start)))
 	return hx_obj_1
 }
 
@@ -95,7 +95,7 @@ func (self *EReg) matchSub(s *string, pos int, len int) bool {
 	if len < 0 {
 		hx_if_3 = hxrt.StringLengthStringPtr(s)
 	} else {
-		hx_if_3 = int(int32((hxrt.Int32Wrap(start) + hxrt.Int32Wrap(len))))
+		hx_if_3 = int((hxrt.Int32Wrap(start) + hxrt.Int32Wrap(len)))
 	}
 	limit := hx_if_3
 	if limit > hxrt.StringLengthStringPtr(s) {
@@ -142,7 +142,7 @@ func (self *EReg) split(s *string) *hxrt.Array {
 		}
 		start := current.Indices[0]
 		end := current.Indices[1]
-		parts.Push(hxrt.StringSubstrStringPtr(s, copyOffset, int(int32((hxrt.Int32Wrap(start) - hxrt.Int32Wrap(copyOffset)))), true))
+		parts.Push(hxrt.StringSubstrStringPtr(s, copyOffset, int((hxrt.Int32Wrap(start) - hxrt.Int32Wrap(copyOffset))), true))
 		copyOffset = end
 		nextStart := end
 		if (start == end) && (nextStart == searchStart) {
@@ -169,7 +169,7 @@ func (self *EReg) replace(s *string, by *string) *string {
 		}
 		start := current.Indices[0]
 		end := current.Indices[1]
-		x := hxrt.StringSubstrStringPtr(s, copyOffset, int(int32((hxrt.Int32Wrap(start) - hxrt.Int32Wrap(copyOffset)))), true)
+		x := hxrt.StringSubstrStringPtr(s, copyOffset, int((hxrt.Int32Wrap(start) - hxrt.Int32Wrap(copyOffset))), true)
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(x))
 		x_1 := self.__hx_this.expandReplacement(by, s, current)
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(x_1))
@@ -181,7 +181,7 @@ func (self *EReg) replace(s *string, by *string) *string {
 			if end >= hxrt.StringLengthStringPtr(s) {
 				break
 			}
-			searchStart = int(int32((hxrt.Int32Wrap(end) + hxrt.Int32Wrap(1))))
+			searchStart = int((hxrt.Int32Wrap(end) + hxrt.Int32Wrap(1)))
 		} else {
 			searchStart = end
 		}
@@ -204,7 +204,7 @@ func (self *EReg) map_(s *string, f func(*EReg) *string) *string {
 		}
 		start := current.Indices[0]
 		end := current.Indices[1]
-		x_1 := hxrt.StringSubstrStringPtr(s, offset, int(int32((hxrt.Int32Wrap(start) - hxrt.Int32Wrap(offset)))), true)
+		x_1 := hxrt.StringSubstrStringPtr(s, offset, int((hxrt.Int32Wrap(start) - hxrt.Int32Wrap(offset))), true)
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(x_1))
 		self.lastSource = s
 		self.lastMatch = current
@@ -213,7 +213,7 @@ func (self *EReg) map_(s *string, f func(*EReg) *string) *string {
 		if start == end {
 			x_3 := hxrt.StringSubstrStringPtr(s, start, 1, true)
 			out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(x_3))
-			offset = int(int32((hxrt.Int32Wrap(start) + hxrt.Int32Wrap(1))))
+			offset = int((hxrt.Int32Wrap(start) + hxrt.Int32Wrap(1)))
 		} else {
 			offset = end
 		}
@@ -246,11 +246,11 @@ func (self *EReg) expandReplacement(by *string, source *string, currentMatch *hx
 	index := 0
 	for index < hxrt.StringLengthStringPtr(by) {
 		current := hxrt.StringCharAtStringPtr(by, index)
-		if hxrt.StringEqualStringPtr(current, hxrt.StringFromLiteral("$")) && (int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(1)))) < hxrt.StringLengthStringPtr(by)) {
-			next := hxrt.StringCharAtStringPtr(by, int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(1)))))
+		if hxrt.StringEqualStringPtr(current, hxrt.StringFromLiteral("$")) && (int((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(1))) < hxrt.StringLengthStringPtr(by)) {
+			next := hxrt.StringCharAtStringPtr(by, int((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(1))))
 			if hxrt.StringEqualStringPtr(next, hxrt.StringFromLiteral("$")) {
 				out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StringFromLiteral("$"))
-				index = int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(2))))
+				index = int((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(2)))
 				continue
 			}
 			var hx_switch_8 int
@@ -278,23 +278,23 @@ func (self *EReg) expandReplacement(by *string, source *string, currentMatch *hx
 			}
 			group := hx_switch_8
 			if group != 0 {
-				offset := int(int32((hxrt.Int32Wrap(group) * hxrt.Int32Wrap(2))))
-				if int(int32((hxrt.Int32Wrap(offset) + hxrt.Int32Wrap(1)))) >= len(currentMatch.Indices) {
+				offset := int((hxrt.Int32Wrap(group) * hxrt.Int32Wrap(2)))
+				if int((hxrt.Int32Wrap(offset) + hxrt.Int32Wrap(1))) >= len(currentMatch.Indices) {
 					hxrt.Throw(hxrt.StringFromLiteral("Invalid group"))
 				}
 				start := currentMatch.Indices[offset]
-				end := currentMatch.Indices[int(int32((hxrt.Int32Wrap(offset) + hxrt.Int32Wrap(1))))]
+				end := currentMatch.Indices[int((hxrt.Int32Wrap(offset) + hxrt.Int32Wrap(1)))]
 				var hx_if_9 *string
 				if (start < 0) || (end < start) {
 					hx_if_9 = nil
 				} else {
-					hx_if_9 = hxrt.StringSubstrStringPtr(source, start, int(int32((hxrt.Int32Wrap(end) - hxrt.Int32Wrap(start)))), true)
+					hx_if_9 = hxrt.StringSubstrStringPtr(source, start, int((hxrt.Int32Wrap(end) - hxrt.Int32Wrap(start))), true)
 				}
 				value := hx_if_9
 				if !hxrt.StringEqualStringPtr(value, nil) {
 					out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(value))
 				}
-				index = int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(2))))
+				index = int((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(2)))
 				continue
 			}
 		}

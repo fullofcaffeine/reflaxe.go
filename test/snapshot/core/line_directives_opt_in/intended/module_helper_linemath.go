@@ -19,6 +19,6 @@ func New_helper__LineMath() *helper__LineMath {
 
 func (self *helper__LineMath) doubleIt(value int) int {
 	//line helper/LineMath.hx:6
-	twice := int(int32((hxrt.Int32Wrap(value) * hxrt.Int32Wrap(2))))
+	twice := int((hxrt.Int32Wrap(value) * hxrt.Int32Wrap(2)))
 	return twice
 }

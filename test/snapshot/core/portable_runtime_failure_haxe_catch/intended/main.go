@@ -6,7 +6,7 @@ func main() {
 	var value any = nil
 	hxrt.TryCatch(func() {
 		typed := hxrt.IntFromNullableAny(value)
-		hxrt.Println(any(int(int32((hxrt.Int32Wrap(typed) + hxrt.Int32Wrap(1))))))
+		hxrt.Println(any(int((hxrt.Int32Wrap(typed) + hxrt.Int32Wrap(1)))))
 	}, func(hx_caught_1 any) {
 		hx_tmp := hx_caught_1
 		_ = hx_tmp

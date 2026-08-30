@@ -30,7 +30,7 @@ func New_app__core__FluxRouteAggregate(route *string) *app__core__FluxRouteAggre
 
 func (self *app__core__FluxRouteAggregate) record(response *app__core__FluxProxyResponse) {
 	self.count = int(int32((self.count + 1)))
-	self.totalLatencyMs = int(int32((hxrt.Int32Wrap(self.totalLatencyMs) + hxrt.Int32Wrap(response.latencyMs))))
+	self.totalLatencyMs = int((hxrt.Int32Wrap(self.totalLatencyMs) + hxrt.Int32Wrap(response.latencyMs)))
 	if response.success {
 		self.successCount = int(int32((self.successCount + 1)))
 	} else {
@@ -45,7 +45,7 @@ func (self *app__core__FluxRouteAggregate) averageLatencyMs() int {
 	remaining := self.totalLatencyMs
 	quotient := 0
 	for remaining >= self.count {
-		remaining = int(int32((hxrt.Int32Wrap(remaining) - hxrt.Int32Wrap(self.count))))
+		remaining = int((hxrt.Int32Wrap(remaining) - hxrt.Int32Wrap(self.count)))
 		quotient = int(int32((quotient + 1)))
 	}
 	return quotient

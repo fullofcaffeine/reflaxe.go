@@ -79,10 +79,10 @@ func (self *app__runtime__CoreRuntime) stageScore(parsed *hxrt.Array, enriched *
 			return hx_value_7.(*app__core__PulseEnrichedEvent)
 		}(enriched.Get(_g))
 		_g = int(int32((_g + 1)))
-		score = int(int32((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(entry.weightedValue))))
+		score = int((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(entry.weightedValue)))
 	}
-	score = int(int32((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(alerts.Len()) * hxrt.Int32Wrap(5))))))))
-	score = int(int32((hxrt.Int32Wrap(score) - hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(backpressureEvents) * hxrt.Int32Wrap(2))))))))
-	score = int(int32((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(parsed.Len()))))
+	score = int((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(int((hxrt.Int32Wrap(alerts.Len()) * hxrt.Int32Wrap(5))))))
+	score = int((hxrt.Int32Wrap(score) - hxrt.Int32Wrap(int((hxrt.Int32Wrap(backpressureEvents) * hxrt.Int32Wrap(2))))))
+	score = int((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(parsed.Len())))
 	return score
 }

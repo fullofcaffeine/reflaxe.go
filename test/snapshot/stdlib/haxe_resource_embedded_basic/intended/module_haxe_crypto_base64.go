@@ -14,7 +14,7 @@ func haxe__crypto__Base64_addPadding(value *string, byteLength int, complement b
 	if !complement {
 		return value
 	}
-	_g := int(int32((hxrt.Int32Wrap(byteLength) % hxrt.Int32Wrap(3))))
+	_g := int((hxrt.Int32Wrap(byteLength) % hxrt.Int32Wrap(3)))
 	switch _g {
 	case 1:
 		return hxrt.StringConcatStringPtr(value, hxrt.StringFromLiteral("=="))
@@ -35,7 +35,7 @@ func haxe__crypto__Base64_encode(bytes *haxe__io__Bytes, complement bool) *strin
 
 func haxe__crypto__Base64_removePadding(value *string, complement bool) *string {
 	if complement {
-		for (hxrt.StringLengthStringPtr(value) > 0) && (hxrt.StringCharCodeAtAnyStringPtr(value, int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(value))-hxrt.Int32Wrap(1))))) == 61) {
+		for (hxrt.StringLengthStringPtr(value) > 0) && (hxrt.StringCharCodeAtAnyStringPtr(value, int((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(value))-hxrt.Int32Wrap(1)))) == 61) {
 			value = hxrt.StringSubstrStringPtr(value, 0, -1, true)
 		}
 	}

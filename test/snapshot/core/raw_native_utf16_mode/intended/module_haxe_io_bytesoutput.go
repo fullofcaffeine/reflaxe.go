@@ -52,7 +52,7 @@ func (self *haxe__io__BytesOutput) writeByte(value int) {
 
 func (self *haxe__io__BytesOutput) writeBytes(bytes *haxe__io__Bytes, pos int, len int) int {
 	_this := self.b
-	if ((pos < 0) || (len < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len)))) > bytes.length) {
+	if ((pos < 0) || (len < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len))) > bytes.length) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
 	}
 	_this.b = hxrt.BytesBufferAddSlice(_this.b, bytes.__hx_this.getData(), pos, len)

@@ -28,7 +28,7 @@ func main() {
 	hx_obj_4["count"] = sibling.delta
 	details := hx_obj_4
 	fmt.Println(box.value)
-	fmt.Println(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(38) + hxrt.Int32Wrap(consumeDetails(details)))))) + hxrt.Int32Wrap(nestedDepth(nested)))))) + hxrt.Int32Wrap(hxrt.StringLengthStringPtr(hxrt.StringFromLiteral("x")))))))
+	fmt.Println(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(38) + hxrt.Int32Wrap(consumeDetails(details))))) + hxrt.Int32Wrap(nestedDepth(nested))))) + hxrt.Int32Wrap(hxrt.StringLengthStringPtr(hxrt.StringFromLiteral("x"))))))
 }
 
 func nestedDepth(value *UsedBox) int {

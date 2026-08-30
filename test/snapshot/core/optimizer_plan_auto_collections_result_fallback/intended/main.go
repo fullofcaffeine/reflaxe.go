@@ -31,7 +31,7 @@ func main() {
 		}
 		return hx_value_4.(bool)
 	}(result.isOk())
-	hxrt.Println(any(int(int32((hxrt.Int32Wrap(func() int {
+	hxrt.Println(any(int((hxrt.Int32Wrap(func() int {
 		var hx_if_6 int
 		if exists {
 			hx_if_6 = 1
@@ -47,7 +47,7 @@ func main() {
 			hx_if_7 = 0
 		}
 		return hx_if_7
-	}()))))))
+	}())))))
 }
 
 func go__concurrency_makeChan(buffer int) any {

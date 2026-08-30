@@ -93,7 +93,7 @@ func Harness_donePoints(cards *hxrt.Array) int {
 		}(cards.Get(_g))
 		_g = int(int32((_g + 1)))
 		if hxrt.StringEqualStringPtr(card.state, hxrt.StringFromLiteral("done")) {
-			total = int(int32((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(card.points))))
+			total = int((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(card.points)))
 		}
 	}
 	return total
@@ -167,7 +167,7 @@ func Harness_intFloorDiv(numerator int, denominator int) int {
 	quotient := 0
 	remaining := numerator
 	for remaining >= denominator {
-		remaining = int(int32((hxrt.Int32Wrap(remaining) - hxrt.Int32Wrap(denominator))))
+		remaining = int((hxrt.Int32Wrap(remaining) - hxrt.Int32Wrap(denominator)))
 		quotient = int(int32((quotient + 1)))
 	}
 	return quotient
@@ -258,7 +258,7 @@ func Harness_openPoints(cards *hxrt.Array) int {
 		}(cards.Get(_g))
 		_g = int(int32((_g + 1)))
 		if !hxrt.StringEqualStringPtr(card.state, hxrt.StringFromLiteral("done")) {
-			total = int(int32((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(card.points))))
+			total = int((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(card.points)))
 		}
 	}
 	return total
@@ -270,7 +270,7 @@ func Harness_progressBar(donePoints int, totalPoints int, width int) *string {
 	}
 	filled := 0
 	if totalPoints > 0 {
-		filled = Harness_intFloorDiv(int(int32((hxrt.Int32Wrap(donePoints) * hxrt.Int32Wrap(width)))), totalPoints)
+		filled = Harness_intFloorDiv(int((hxrt.Int32Wrap(donePoints) * hxrt.Int32Wrap(width))), totalPoints)
 	}
 	if filled < 0 {
 		filled = 0
@@ -278,14 +278,14 @@ func Harness_progressBar(donePoints int, totalPoints int, width int) *string {
 	if filled > width {
 		filled = width
 	}
-	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("["), Harness_repeatChar(hxrt.StringFromLiteral("#"), filled)), Harness_repeatChar(hxrt.StringFromLiteral("-"), int(int32((hxrt.Int32Wrap(width)-hxrt.Int32Wrap(filled)))))), hxrt.StringFromLiteral("]"))
+	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("["), Harness_repeatChar(hxrt.StringFromLiteral("#"), filled)), Harness_repeatChar(hxrt.StringFromLiteral("-"), int((hxrt.Int32Wrap(width)-hxrt.Int32Wrap(filled))))), hxrt.StringFromLiteral("]"))
 }
 
 func Harness_readinessPercent(donePoints int, totalPoints int) int {
 	if totalPoints <= 0 {
 		return 0
 	}
-	return Harness_intFloorDiv(int(int32((hxrt.Int32Wrap(donePoints) * hxrt.Int32Wrap(100)))), totalPoints)
+	return Harness_intFloorDiv(int((hxrt.Int32Wrap(donePoints) * hxrt.Int32Wrap(100))), totalPoints)
 }
 
 func Harness_releaseTaggedOpen(cards *hxrt.Array) int {
@@ -358,7 +358,7 @@ func Harness_sprintForecast(openPoints int, velocityPerSprint int) int {
 	if openPoints <= 0 {
 		return 0
 	}
-	return Harness_intFloorDiv(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(openPoints) + hxrt.Int32Wrap(velocityPerSprint))))) - hxrt.Int32Wrap(1)))), velocityPerSprint)
+	return Harness_intFloorDiv(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(openPoints) + hxrt.Int32Wrap(velocityPerSprint)))) - hxrt.Int32Wrap(1))), velocityPerSprint)
 }
 
 func Harness_totalPoints(cards *hxrt.Array) int {
@@ -373,7 +373,7 @@ func Harness_totalPoints(cards *hxrt.Array) int {
 			return hx_value_33.(*domain__StoryCard)
 		}(cards.Get(_g))
 		_g = int(int32((_g + 1)))
-		totalPoints = int(int32((hxrt.Int32Wrap(totalPoints) + hxrt.Int32Wrap(card.points))))
+		totalPoints = int((hxrt.Int32Wrap(totalPoints) + hxrt.Int32Wrap(card.points)))
 	}
 	return totalPoints
 }

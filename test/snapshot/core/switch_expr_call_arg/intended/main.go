@@ -24,7 +24,7 @@ func asInt(kind *Kind) int {
 		case 1:
 			_g := kind.params[0].(int)
 			value := _g
-			hx_switch_1 = int(int32((hxrt.Int32Wrap(value) + hxrt.Int32Wrap(1))))
+			hx_switch_1 = int((hxrt.Int32Wrap(value) + hxrt.Int32Wrap(1)))
 		}
 		return hx_switch_1
 	}())

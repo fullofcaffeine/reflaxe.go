@@ -46,11 +46,11 @@ func join(values *hxrt.Array) *string {
 
 func main() {
 	flags := haxe___EnumFlags__EnumFlags_Impl__from(Mode_Alpha)
-	flags = int(int32((hxrt.Int32Wrap(flags) | hxrt.Int32Wrap(4))))
-	flags = int(int32((hxrt.Int32Wrap(flags) & hxrt.Int32Wrap(-2))))
-	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("flags.alpha="), hxrt.StdString((int(int32((hxrt.Int32Wrap(flags) & hxrt.Int32Wrap(1)))) != 0))))
+	flags = int((hxrt.Int32Wrap(flags) | hxrt.Int32Wrap(4)))
+	flags = int((hxrt.Int32Wrap(flags) & hxrt.Int32Wrap(-2)))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("flags.alpha="), hxrt.StdString((int((hxrt.Int32Wrap(flags) & hxrt.Int32Wrap(1))) != 0))))
 	hxrt.Println(v)
-	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("flags.gamma="), hxrt.StdString((int(int32((hxrt.Int32Wrap(flags) & hxrt.Int32Wrap(4)))) != 0))))
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("flags.gamma="), hxrt.StdString((int((hxrt.Int32Wrap(flags) & hxrt.Int32Wrap(4))) != 0))))
 	hxrt.Println(v_1)
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("flags.int="), flags)))
 	var enumType any = Type_getEnum(Mode_Alpha)

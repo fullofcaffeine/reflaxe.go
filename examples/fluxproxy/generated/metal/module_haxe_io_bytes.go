@@ -52,12 +52,12 @@ func (self *haxe__io__Bytes) get(pos int) int {
 }
 
 func (self *haxe__io__Bytes) set(pos int, value int) {
-	self.b[pos] = int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
+	self.b[pos] = int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
 }
 
 func (self *haxe__io__Bytes) blit(pos int, src *haxe__io__Bytes, srcpos int, len int) {
-	if ((((pos < 0) || (srcpos < 0)) || (len < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len)))) > self.length)) || (int(int32((hxrt.Int32Wrap(srcpos) + hxrt.Int32Wrap(len)))) > src.length) {
+	if ((((pos < 0) || (srcpos < 0)) || (len < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len))) > self.length)) || (int((hxrt.Int32Wrap(srcpos) + hxrt.Int32Wrap(len))) > src.length) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
 	}
 	if len == 0 {
@@ -68,23 +68,23 @@ func (self *haxe__io__Bytes) blit(pos int, src *haxe__io__Bytes, srcpos int, len
 }
 
 func (self *haxe__io__Bytes) fill(pos int, len int, value int) {
-	if ((pos < 0) || (len < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len)))) > self.length) {
+	if ((pos < 0) || (len < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len))) > self.length) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
 	}
-	masked := int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
+	masked := int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255)))
 	_g := 0
 	_g1 := len
 	for _g < _g1 {
 		hx_post_1 := _g
 		_g = int(int32((_g + 1)))
 		index := hx_post_1
-		self.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index))))] = masked
+		self.b[int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index)))] = masked
 	}
 	self.__hx_rawValid = false
 }
 
 func (self *haxe__io__Bytes) sub(pos int, len int) *haxe__io__Bytes {
-	if ((pos < 0) || (len < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len)))) > self.length) {
+	if ((pos < 0) || (len < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len))) > self.length) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
 	}
 	out := haxe__io__Bytes_alloc(len)
@@ -94,7 +94,7 @@ func (self *haxe__io__Bytes) sub(pos int, len int) *haxe__io__Bytes {
 		hx_post_2 := _g
 		_g = int(int32((_g + 1)))
 		index := hx_post_2
-		out.b[index] = self.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index))))]
+		out.b[index] = self.b[int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index)))]
 	}
 	return out
 }
@@ -136,70 +136,70 @@ func (self *haxe__io__Bytes) compare(other *haxe__io__Bytes) int {
 }
 
 func (self *haxe__io__Bytes) getDouble(pos int) float64 {
-	return haxe__io__FPHelper_i64ToDouble(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[pos]) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[int(int32((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(1))))]) << uint(8))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[int(int32((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(2))))]) << uint(16))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[int(int32((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(3))))]) << uint(24)))))))), func() int {
-		pos_1 := int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(4))))
-		return int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[pos_1]) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[int(int32((hxrt.Int32Wrap(pos_1)+hxrt.Int32Wrap(1))))]) << uint(8))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[int(int32((hxrt.Int32Wrap(pos_1)+hxrt.Int32Wrap(2))))]) << uint(16))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[int(int32((hxrt.Int32Wrap(pos_1)+hxrt.Int32Wrap(3))))]) << uint(24))))))))
+	return haxe__io__FPHelper_i64ToDouble(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[pos]) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[int((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(1)))]) << uint(8))))))) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[int((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(2)))]) << uint(16))))))) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[int((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(3)))]) << uint(24)))))), func() int {
+		pos_1 := int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(4)))
+		return int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[pos_1]) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[int((hxrt.Int32Wrap(pos_1)+hxrt.Int32Wrap(1)))]) << uint(8))))))) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[int((hxrt.Int32Wrap(pos_1)+hxrt.Int32Wrap(2)))]) << uint(16))))))) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[int((hxrt.Int32Wrap(pos_1)+hxrt.Int32Wrap(3)))]) << uint(24))))))
 	}())
 }
 
 func (self *haxe__io__Bytes) getFloat(pos int) float64 {
-	return haxe__io__FPHelper_i32ToFloat(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[pos]) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[int(int32((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(1))))]) << uint(8))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[int(int32((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(2))))]) << uint(16))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[int(int32((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(3))))]) << uint(24)))))))))
+	return haxe__io__FPHelper_i32ToFloat(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[pos]) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[int((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(1)))]) << uint(8))))))) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[int((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(2)))]) << uint(16))))))) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[int((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(3)))]) << uint(24)))))))
 }
 
 func (self *haxe__io__Bytes) setDouble(pos int, value float64) {
 	bits := haxe__io__FPHelper_doubleToI64(value)
 	value_1 := bits.low
-	self.b[pos] = int(int32((hxrt.Int32Wrap(value_1) & hxrt.Int32Wrap(255))))
+	self.b[pos] = int((hxrt.Int32Wrap(value_1) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
-	self.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(1))))] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value_1) >> uint(8))))) & hxrt.Int32Wrap(255))))
+	self.b[int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(1)))] = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value_1) >> uint(8)))) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
-	self.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(2))))] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value_1) >> uint(16))))) & hxrt.Int32Wrap(255))))
+	self.b[int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(2)))] = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value_1) >> uint(16)))) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
-	self.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(3))))] = int(int32((hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(value_1)) >> uint(24)))))) & hxrt.Int32Wrap(255))))
+	self.b[int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(3)))] = int((hxrt.Int32Wrap(int(int32((uint32(hxrt.Int32Wrap(value_1)) >> uint(24))))) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
-	pos_1 := int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(4))))
+	pos_1 := int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(4)))
 	value_2 := bits.high
-	self.b[pos_1] = int(int32((hxrt.Int32Wrap(value_2) & hxrt.Int32Wrap(255))))
+	self.b[pos_1] = int((hxrt.Int32Wrap(value_2) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
-	self.b[int(int32((hxrt.Int32Wrap(pos_1) + hxrt.Int32Wrap(1))))] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value_2) >> uint(8))))) & hxrt.Int32Wrap(255))))
+	self.b[int((hxrt.Int32Wrap(pos_1) + hxrt.Int32Wrap(1)))] = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value_2) >> uint(8)))) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
-	self.b[int(int32((hxrt.Int32Wrap(pos_1) + hxrt.Int32Wrap(2))))] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value_2) >> uint(16))))) & hxrt.Int32Wrap(255))))
+	self.b[int((hxrt.Int32Wrap(pos_1) + hxrt.Int32Wrap(2)))] = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value_2) >> uint(16)))) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
-	self.b[int(int32((hxrt.Int32Wrap(pos_1) + hxrt.Int32Wrap(3))))] = int(int32((hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(value_2)) >> uint(24)))))) & hxrt.Int32Wrap(255))))
+	self.b[int((hxrt.Int32Wrap(pos_1) + hxrt.Int32Wrap(3)))] = int((hxrt.Int32Wrap(int(int32((uint32(hxrt.Int32Wrap(value_2)) >> uint(24))))) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
 }
 
 func (self *haxe__io__Bytes) setFloat(pos int, value float64) {
 	value_1 := haxe__io__FPHelper_floatToI32(value)
-	self.b[pos] = int(int32((hxrt.Int32Wrap(value_1) & hxrt.Int32Wrap(255))))
+	self.b[pos] = int((hxrt.Int32Wrap(value_1) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
-	self.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(1))))] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value_1) >> uint(8))))) & hxrt.Int32Wrap(255))))
+	self.b[int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(1)))] = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value_1) >> uint(8)))) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
-	self.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(2))))] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value_1) >> uint(16))))) & hxrt.Int32Wrap(255))))
+	self.b[int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(2)))] = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value_1) >> uint(16)))) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
-	self.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(3))))] = int(int32((hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(value_1)) >> uint(24)))))) & hxrt.Int32Wrap(255))))
+	self.b[int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(3)))] = int((hxrt.Int32Wrap(int(int32((uint32(hxrt.Int32Wrap(value_1)) >> uint(24))))) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
 }
 
 func (self *haxe__io__Bytes) getUInt16(pos int) int {
-	return int(int32((hxrt.Int32Wrap(self.b[pos]) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[int(int32((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(1))))]) << uint(8))))))))
+	return int((hxrt.Int32Wrap(self.b[pos]) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[int((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(1)))]) << uint(8))))))
 }
 
 func (self *haxe__io__Bytes) setUInt16(pos int, value int) {
-	self.b[pos] = int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
+	self.b[pos] = int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
-	self.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(1))))] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) >> uint(8))))) & hxrt.Int32Wrap(255))))
+	self.b[int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(1)))] = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value) >> uint(8)))) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
 }
 
 func (self *haxe__io__Bytes) getInt32(pos int) int {
-	return int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[pos]) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[int(int32((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(1))))]) << uint(8))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[int(int32((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(2))))]) << uint(16))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[int(int32((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(3))))]) << uint(24))))))))
+	return int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[pos]) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[int((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(1)))]) << uint(8))))))) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[int((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(2)))]) << uint(16))))))) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[int((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(3)))]) << uint(24))))))
 }
 
 func (self *haxe__io__Bytes) getInt64(pos int) *haxe___Int64_____Int64 {
-	pos_1 := int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(4))))
-	high := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[pos_1]) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[int(int32((hxrt.Int32Wrap(pos_1)+hxrt.Int32Wrap(1))))]) << uint(8))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[int(int32((hxrt.Int32Wrap(pos_1)+hxrt.Int32Wrap(2))))]) << uint(16))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[int(int32((hxrt.Int32Wrap(pos_1)+hxrt.Int32Wrap(3))))]) << uint(24))))))))
-	low := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[pos]) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[int(int32((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(1))))]) << uint(8))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[int(int32((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(2))))]) << uint(16))))))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(self.b[int(int32((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(3))))]) << uint(24))))))))
+	pos_1 := int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(4)))
+	high := int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[pos_1]) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[int((hxrt.Int32Wrap(pos_1)+hxrt.Int32Wrap(1)))]) << uint(8))))))) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[int((hxrt.Int32Wrap(pos_1)+hxrt.Int32Wrap(2)))]) << uint(16))))))) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[int((hxrt.Int32Wrap(pos_1)+hxrt.Int32Wrap(3)))]) << uint(24))))))
+	low := int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[pos]) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[int((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(1)))]) << uint(8))))))) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[int((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(2)))]) << uint(16))))))) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(self.b[int((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(3)))]) << uint(24))))))
 	x := New_haxe___Int64_____Int64(high, low)
 	var this1 *haxe___Int64_____Int64
 	this1 = x
@@ -207,40 +207,40 @@ func (self *haxe__io__Bytes) getInt64(pos int) *haxe___Int64_____Int64 {
 }
 
 func (self *haxe__io__Bytes) setInt32(pos int, value int) {
-	self.b[pos] = int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
+	self.b[pos] = int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
-	self.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(1))))] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) >> uint(8))))) & hxrt.Int32Wrap(255))))
+	self.b[int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(1)))] = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value) >> uint(8)))) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
-	self.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(2))))] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) >> uint(16))))) & hxrt.Int32Wrap(255))))
+	self.b[int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(2)))] = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value) >> uint(16)))) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
-	self.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(3))))] = int(int32((hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(value)) >> uint(24)))))) & hxrt.Int32Wrap(255))))
+	self.b[int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(3)))] = int((hxrt.Int32Wrap(int(int32((uint32(hxrt.Int32Wrap(value)) >> uint(24))))) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
 }
 
 func (self *haxe__io__Bytes) setInt64(pos int, value *haxe___Int64_____Int64) {
 	value1 := value.low
-	self.b[pos] = int(int32((hxrt.Int32Wrap(value1) & hxrt.Int32Wrap(255))))
+	self.b[pos] = int((hxrt.Int32Wrap(value1) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
-	self.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(1))))] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value1) >> uint(8))))) & hxrt.Int32Wrap(255))))
+	self.b[int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(1)))] = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value1) >> uint(8)))) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
-	self.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(2))))] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value1) >> uint(16))))) & hxrt.Int32Wrap(255))))
+	self.b[int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(2)))] = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value1) >> uint(16)))) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
-	self.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(3))))] = int(int32((hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(value1)) >> uint(24)))))) & hxrt.Int32Wrap(255))))
+	self.b[int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(3)))] = int((hxrt.Int32Wrap(int(int32((uint32(hxrt.Int32Wrap(value1)) >> uint(24))))) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
-	pos_1 := int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(4))))
+	pos_1 := int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(4)))
 	value_1 := value.high
-	self.b[pos_1] = int(int32((hxrt.Int32Wrap(value_1) & hxrt.Int32Wrap(255))))
+	self.b[pos_1] = int((hxrt.Int32Wrap(value_1) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
-	self.b[int(int32((hxrt.Int32Wrap(pos_1) + hxrt.Int32Wrap(1))))] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value_1) >> uint(8))))) & hxrt.Int32Wrap(255))))
+	self.b[int((hxrt.Int32Wrap(pos_1) + hxrt.Int32Wrap(1)))] = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value_1) >> uint(8)))) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
-	self.b[int(int32((hxrt.Int32Wrap(pos_1) + hxrt.Int32Wrap(2))))] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value_1) >> uint(16))))) & hxrt.Int32Wrap(255))))
+	self.b[int((hxrt.Int32Wrap(pos_1) + hxrt.Int32Wrap(2)))] = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value_1) >> uint(16)))) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
-	self.b[int(int32((hxrt.Int32Wrap(pos_1) + hxrt.Int32Wrap(3))))] = int(int32((hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(value_1)) >> uint(24)))))) & hxrt.Int32Wrap(255))))
+	self.b[int((hxrt.Int32Wrap(pos_1) + hxrt.Int32Wrap(3)))] = int((hxrt.Int32Wrap(int(int32((uint32(hxrt.Int32Wrap(value_1)) >> uint(24))))) & hxrt.Int32Wrap(255)))
 	self.__hx_rawValid = false
 }
 
 func (self *haxe__io__Bytes) getString(pos int, len int, encoding *haxe__io__Encoding) *string {
-	if ((pos < 0) || (len < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len)))) > self.length) {
+	if ((pos < 0) || (len < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len))) > self.length) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
 	}
 	return hxrt.StdString(hxrt.BytesStringFromView(self.__hx_this.__hx_nativeView(), pos, len, ((encoding == haxe__io__Encoding_RawNative) && false)))
@@ -265,9 +265,9 @@ func (self *haxe__io__Bytes) toHex() *string {
 		_g = int(int32((_g + 1)))
 		index := hx_post_7
 		value := self.b[index]
-		c := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(digits, int(int32((hxrt.Int32Wrap(value) >> uint(4))))))
+		c := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(digits, int((hxrt.Int32Wrap(value) >> uint(4)))))
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StringFromCharCode(c))
-		c_1 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(digits, int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(15))))))
+		c_1 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(digits, int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(15)))))
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StringFromCharCode(c_1))
 	}
 	return out_b
@@ -313,17 +313,17 @@ func haxe__io__Bytes_ofData(data []int) *haxe__io__Bytes {
 
 func haxe__io__Bytes_ofHex(value *string) *haxe__io__Bytes {
 	textLength := hxrt.StringLengthStringPtr(value)
-	if int(int32((hxrt.Int32Wrap(textLength) & hxrt.Int32Wrap(1)))) != 0 {
+	if int((hxrt.Int32Wrap(textLength) & hxrt.Int32Wrap(1))) != 0 {
 		hxrt.Throw(hxrt.StringFromLiteral("Not a hex string (odd number of digits)"))
 	}
-	out := haxe__io__Bytes_alloc(int(int32((hxrt.Int32Wrap(textLength) >> uint(1)))))
+	out := haxe__io__Bytes_alloc(int((hxrt.Int32Wrap(textLength) >> uint(1))))
 	_g := 0
 	_g1 := out.length
 	for _g < _g1 {
 		hx_post_8 := _g
 		_g = int(int32((_g + 1)))
 		index := hx_post_8
-		var c any = hxrt.StringCharCodeAtAnyStringPtr(value, int(int32((hxrt.Int32Wrap(index) * hxrt.Int32Wrap(2)))))
+		var c any = hxrt.StringCharCodeAtAnyStringPtr(value, int((hxrt.Int32Wrap(index) * hxrt.Int32Wrap(2))))
 		var hx_if_9 int
 		if c == nil {
 			hx_if_9 = -1
@@ -331,7 +331,7 @@ func haxe__io__Bytes_ofHex(value *string) *haxe__io__Bytes {
 			hx_if_9 = c.(int)
 		}
 		high := hx_if_9
-		var c_1 any = hxrt.StringCharCodeAtAnyStringPtr(value, int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(index) * hxrt.Int32Wrap(2))))) + hxrt.Int32Wrap(1)))))
+		var c_1 any = hxrt.StringCharCodeAtAnyStringPtr(value, int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(index) * hxrt.Int32Wrap(2)))) + hxrt.Int32Wrap(1))))
 		var hx_if_10 int
 		if c_1 == nil {
 			hx_if_10 = -1
@@ -339,9 +339,9 @@ func haxe__io__Bytes_ofHex(value *string) *haxe__io__Bytes {
 			hx_if_10 = c_1.(int)
 		}
 		low := hx_if_10
-		high = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(high) & hxrt.Int32Wrap(15))))) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(high) & hxrt.Int32Wrap(64))))) >> uint(6))))) * hxrt.Int32Wrap(9))))))))
-		low = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(low) & hxrt.Int32Wrap(15))))) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(low) & hxrt.Int32Wrap(64))))) >> uint(6))))) * hxrt.Int32Wrap(9))))))))
-		out.b[index] = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(high) << uint(4))))) | hxrt.Int32Wrap(low))))) & hxrt.Int32Wrap(255))))) & hxrt.Int32Wrap(255))))
+		high = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(high) & hxrt.Int32Wrap(15)))) + hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(high) & hxrt.Int32Wrap(64)))) >> uint(6)))) * hxrt.Int32Wrap(9))))))
+		low = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(low) & hxrt.Int32Wrap(15)))) + hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(low) & hxrt.Int32Wrap(64)))) >> uint(6)))) * hxrt.Int32Wrap(9))))))
+		out.b[index] = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(high) << uint(4)))) | hxrt.Int32Wrap(low)))) & hxrt.Int32Wrap(255)))) & hxrt.Int32Wrap(255)))
 		out.__hx_rawValid = false
 	}
 	return out

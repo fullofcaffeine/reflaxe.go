@@ -46,10 +46,10 @@ func (self *haxe__io__BytesBuffer) addString(value *string, encoding *haxe__io__
 }
 
 func (self *haxe__io__BytesBuffer) addInt32(value int) {
-	self.b = hxrt.BytesBufferAddByte(self.b, int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255)))))
-	self.b = hxrt.BytesBufferAddByte(self.b, int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) >> uint(8))))) & hxrt.Int32Wrap(255)))))
-	self.b = hxrt.BytesBufferAddByte(self.b, int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) >> uint(16))))) & hxrt.Int32Wrap(255)))))
-	self.b = hxrt.BytesBufferAddByte(self.b, int(int32(int32((uint32(hxrt.Int32Wrap(value)) >> uint(24))))))
+	self.b = hxrt.BytesBufferAddByte(self.b, int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
+	self.b = hxrt.BytesBufferAddByte(self.b, int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value) >> uint(8)))) & hxrt.Int32Wrap(255))))
+	self.b = hxrt.BytesBufferAddByte(self.b, int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value) >> uint(16)))) & hxrt.Int32Wrap(255))))
+	self.b = hxrt.BytesBufferAddByte(self.b, int(int32((uint32(hxrt.Int32Wrap(value)) >> uint(24)))))
 }
 
 func (self *haxe__io__BytesBuffer) addInt64(value *haxe___Int64_____Int64) {
@@ -66,7 +66,7 @@ func (self *haxe__io__BytesBuffer) addDouble(value float64) {
 }
 
 func (self *haxe__io__BytesBuffer) addBytes(source *haxe__io__Bytes, pos int, len int) {
-	if ((pos < 0) || (len < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len)))) > source.length) {
+	if ((pos < 0) || (len < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len))) > source.length) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
 	}
 	self.b = hxrt.BytesBufferAddSlice(self.b, source.__hx_this.getData(), pos, len)

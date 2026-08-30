@@ -49,7 +49,7 @@ func (self *sys__net__UdpSocket) setBroadcast(enabled bool) {
 }
 
 func (self *sys__net__UdpSocket) sendTo(bytes *haxe__io__Bytes, pos int, length int, address *sys__net__Address) int {
-	if ((((bytes == nil) || (address == nil)) || (pos < 0)) || (length < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(length)))) > bytes.length) {
+	if ((((bytes == nil) || (address == nil)) || (pos < 0)) || (length < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(length))) > bytes.length) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
 	}
 	values := hxrt.NewArray()
@@ -59,7 +59,7 @@ func (self *sys__net__UdpSocket) sendTo(bytes *haxe__io__Bytes, pos int, length 
 		hx_post_1 := _g
 		_g = int(int32((_g + 1)))
 		index := hx_post_1
-		values.Push(bytes.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index))))])
+		values.Push(bytes.b[int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index)))])
 	}
 	result := hxrt.SocketUdpSendTo(self.handle, func(hx_lambda_raw_3 []any) []int {
 		hx_lambda_out_4 := make([]int, 0, len(hx_lambda_raw_3))
@@ -84,7 +84,7 @@ func (self *sys__net__UdpSocket) sendTo(bytes *haxe__io__Bytes, pos int, length 
 }
 
 func (self *sys__net__UdpSocket) readFrom(bytes *haxe__io__Bytes, pos int, length int, address *sys__net__Address) int {
-	if ((((bytes == nil) || (address == nil)) || (pos < 0)) || (length < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(length)))) > bytes.length) {
+	if ((((bytes == nil) || (address == nil)) || (pos < 0)) || (length < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(length))) > bytes.length) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
 	}
 	if length == 0 {
@@ -104,7 +104,7 @@ func (self *sys__net__UdpSocket) readFrom(bytes *haxe__io__Bytes, pos int, lengt
 		_g = int(int32((_g + 1)))
 		index := hx_post_8
 		value := result.Values[index]
-		bytes.b[int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index))))] = int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
+		bytes.b[int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index)))] = int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255)))
 		bytes.__hx_rawValid = false
 	}
 	address.host = result.Host

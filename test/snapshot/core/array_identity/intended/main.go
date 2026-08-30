@@ -140,7 +140,7 @@ func main() {
 		hx_array_target_37 := base
 		hx_array_index_38 := index
 		var hx_array_current_39 int = hxrt.IntFromNullableAny(hx_array_target_37.Get(hx_array_index_38))
-		var hx_array_assigned_40 int = int(int32((hxrt.Int32Wrap(hx_array_current_39) + hxrt.Int32Wrap(markedValue()))))
+		var hx_array_assigned_40 int = int((hxrt.Int32Wrap(hx_array_current_39) + hxrt.Int32Wrap(markedValue())))
 		hx_array_target_37.Set(hx_array_index_38, hx_array_assigned_40)
 		return hx_array_assigned_40
 	}()
