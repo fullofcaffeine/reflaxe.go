@@ -39,9 +39,10 @@ Agent policy:
   - Raise to extended thinking when local tracing shows the fix is no longer a bounded implementation and has become a broader design problem.
   - Escalate to Oracle only when local investigation still leaves multiple defensible designs unresolved after that deeper pass.
 - `thinking:xhigh` should get a second-pass review before closure.
-  - Preferred: an Oracle checkpoint/review.
-  - Acceptable fallback: an explicit written second-pass design review recorded in the bead comments.
+  - Use Oracle only when the work is also genuinely critical and remains unusually hard, materially undefined, non-convergent, or in need of a higher-quality independent challenge.
+  - Otherwise use an explicit written second-pass design review recorded in the bead comments.
 - Oracle is a review/escalation tool for `thinking:xhigh`; it is not a substitute for implementation, tests, or CI evidence.
+- For rare Oracle planning or review, invoke the globally installed `$oracle-review` skill and let its caf-oracle facade own the request ledger, agent provenance, checked evidence, dedicated browser dispatch, recovery, response capture, disposition, and archive. Do not maintain a parallel `/tmp/oracle` queue or manually upload and paste when the tool is available. If `$show-me-your-work` is active, link its concise trail to the caf-oracle request rather than duplicating artifacts. The repository-specific thresholds above still decide whether escalation is warranted.
 
 ## High-Level Goal
 
