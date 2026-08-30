@@ -26,8 +26,8 @@ func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor 
 	divSign := ((dividend.high < 0) != (divisor.high < 0))
 	var hx_if_3 *haxe___Int64_____Int64
 	if dividend.high < 0 {
-		high_1 := int(int32(^int32(dividend.high)))
-		low_1 := int((hxrt.Int32Wrap(int(int32(^int32(dividend.low)))) + hxrt.Int32Wrap(1)))
+		high_1 := int(^int32(dividend.high))
+		low_1 := int((hxrt.Int32Wrap(int(^int32(dividend.low))) + hxrt.Int32Wrap(1)))
 		if low_1 == 0 {
 			hx_post_2 := high_1
 			high_1 = int(int32((high_1 + 1)))
@@ -50,8 +50,8 @@ func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor 
 	modulus := hx_if_3
 	var hx_if_5 *haxe___Int64_____Int64
 	if divisor.high < 0 {
-		high_3 := int(int32(^int32(divisor.high)))
-		low_3 := int((hxrt.Int32Wrap(int(int32(^int32(divisor.low)))) + hxrt.Int32Wrap(1)))
+		high_3 := int(^int32(divisor.high))
+		low_3 := int((hxrt.Int32Wrap(int(^int32(divisor.low))) + hxrt.Int32Wrap(1)))
 		if low_3 == 0 {
 			hx_post_4 := high_3
 			high_3 = int(int32((high_3 + 1)))
@@ -243,8 +243,8 @@ func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor 
 		divisor = hx_if_16
 	}
 	if divSign {
-		high_16 := int(int32(^int32(quotient.high)))
-		low_16 := int((hxrt.Int32Wrap(int(int32(^int32(quotient.low)))) + hxrt.Int32Wrap(1)))
+		high_16 := int(^int32(quotient.high))
+		low_16 := int((hxrt.Int32Wrap(int(^int32(quotient.low))) + hxrt.Int32Wrap(1)))
 		if low_16 == 0 {
 			hx_post_17 := high_16
 			high_16 = int(int32((high_16 + 1)))
@@ -258,8 +258,8 @@ func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor 
 		quotient = this1_21
 	}
 	if dividend.high < 0 {
-		high_17 := int(int32(^int32(modulus.high)))
-		low_17 := int((hxrt.Int32Wrap(int(int32(^int32(modulus.low)))) + hxrt.Int32Wrap(1)))
+		high_17 := int(^int32(modulus.high))
+		low_17 := int((hxrt.Int32Wrap(int(^int32(modulus.low))) + hxrt.Int32Wrap(1)))
 		if low_17 == 0 {
 			hx_post_18 := high_17
 			high_17 = int(int32((high_17 + 1)))
@@ -326,8 +326,8 @@ func haxe___Int64__Int64_Impl__toString(this1 *haxe___Int64_____Int64) *string {
 					}
 					return hx_field_21.(*haxe___Int64_____Int64)
 				}(r)
-				high := int(int32(^int32(x_1.high)))
-				low := int((hxrt.Int32Wrap(int(int32(^int32(x_1.low)))) + hxrt.Int32Wrap(1)))
+				high := int(^int32(x_1.high))
+				low := int((hxrt.Int32Wrap(int(^int32(x_1.low))) + hxrt.Int32Wrap(1)))
 				if low == 0 {
 					hx_post_23 := high
 					high = int(int32((high + 1)))
@@ -347,8 +347,8 @@ func haxe___Int64__Int64_Impl__toString(this1 *haxe___Int64_____Int64) *string {
 				}
 				return hx_field_25.(*haxe___Int64_____Int64)
 			}(r)
-			high_1 := int(int32(^int32(x_2.high)))
-			low_1 := int((hxrt.Int32Wrap(int(int32(^int32(x_2.low)))) + hxrt.Int32Wrap(1)))
+			high_1 := int(^int32(x_2.high))
+			low_1 := int((hxrt.Int32Wrap(int(^int32(x_2.low))) + hxrt.Int32Wrap(1)))
 			if low_1 == 0 {
 				hx_post_27 := high_1
 				high_1 = int(int32((high_1 + 1)))

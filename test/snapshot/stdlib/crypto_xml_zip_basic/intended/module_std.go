@@ -1033,7 +1033,7 @@ func Std_parseInt(x *string) any {
 		}
 		var hx_if_6 any
 		if negative {
-			hx_if_6 = int(int32(-int32(value)))
+			hx_if_6 = int(-int32(value))
 		} else {
 			hx_if_6 = value
 		}
@@ -1072,7 +1072,7 @@ func Std_parseInt(x *string) any {
 	if negative {
 		hx_if_9 = result
 	} else {
-		hx_if_9 = int(int32(-int32(result)))
+		hx_if_9 = int(-int32(result))
 	}
 	return hx_if_9
 }

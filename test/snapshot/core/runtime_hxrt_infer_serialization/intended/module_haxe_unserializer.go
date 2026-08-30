@@ -112,7 +112,7 @@ func (self *haxe__Unserializer) readDigits() int {
 	}
 	var hx_if_5 int
 	if negative {
-		hx_if_5 = int(int32(-int32(value)))
+		hx_if_5 = int(-int32(value))
 	} else {
 		hx_if_5 = value
 	}
