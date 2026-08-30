@@ -69,10 +69,10 @@ func (self *app__runtime__CoreRuntime) stageScore(responses *hxrt.Array, retryCo
 		}
 	}
 	score := 0
-	score = int(int32((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(successCount) * hxrt.Int32Wrap(10))))))))
-	score = int(int32((hxrt.Int32Wrap(score) - hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(errorCount) * hxrt.Int32Wrap(6))))))))
-	score = int(int32((hxrt.Int32Wrap(score) - hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(backpressureEvents) * hxrt.Int32Wrap(2))))))))
-	score = int(int32((hxrt.Int32Wrap(score) - hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(retryCount) * hxrt.Int32Wrap(2))))))))
-	score = int(int32((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(responses.Len()))))
+	score = int((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(int((hxrt.Int32Wrap(successCount) * hxrt.Int32Wrap(10))))))
+	score = int((hxrt.Int32Wrap(score) - hxrt.Int32Wrap(int((hxrt.Int32Wrap(errorCount) * hxrt.Int32Wrap(6))))))
+	score = int((hxrt.Int32Wrap(score) - hxrt.Int32Wrap(int((hxrt.Int32Wrap(backpressureEvents) * hxrt.Int32Wrap(2))))))
+	score = int((hxrt.Int32Wrap(score) - hxrt.Int32Wrap(int((hxrt.Int32Wrap(retryCount) * hxrt.Int32Wrap(2))))))
+	score = int((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(responses.Len())))
 	return score
 }

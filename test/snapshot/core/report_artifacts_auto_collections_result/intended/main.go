@@ -27,7 +27,7 @@ func main() {
 		hx_if_2 = 0
 	}
 	value := hx_if_2
-	var v any = any(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(go__slice_length__int_95e97e5e(slice)) + hxrt.Int32Wrap(fromMap))))) + hxrt.Int32Wrap(value)))))
+	var v any = any(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(go__slice_length__int_95e97e5e(slice)) + hxrt.Int32Wrap(fromMap)))) + hxrt.Int32Wrap(value))))
 	hxrt.Println(v)
 }
 

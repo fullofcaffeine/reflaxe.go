@@ -105,7 +105,7 @@ func (self *app__core__FluxPipeline) ingest(requests *hxrt.Array, capacity int) 
 			return hx_value_20.(*app__core__FluxRequest)
 		}(requests.Get(_g))
 		_g = int(int32((_g + 1)))
-		if int(int32((hxrt.Int32Wrap(queue.Len()) - hxrt.Int32Wrap(queueHead)))) >= boundedCapacity {
+		if int((hxrt.Int32Wrap(queue.Len()) - hxrt.Int32Wrap(queueHead))) >= boundedCapacity {
 			backpressureEvents = int(int32((backpressureEvents + 1)))
 			accepted.Push(queue.Get(queueHead))
 			queueHead = int(int32((queueHead + 1)))
@@ -173,7 +173,7 @@ func (self *app__core__FluxPipeline) retries(responses *hxrt.Array) int {
 			return hx_value_31.(*app__core__FluxProxyResponse)
 		}(responses.Get(_g))
 		_g = int(int32((_g + 1)))
-		total = int(int32((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(response.attempts) - hxrt.Int32Wrap(1))))))))
+		total = int((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(int((hxrt.Int32Wrap(response.attempts) - hxrt.Int32Wrap(1))))))
 	}
 	return total
 }
@@ -241,11 +241,11 @@ func (self *app__core__FluxPipeline) applyRoutePolicies(requests *hxrt.Array, pe
 			rateLimited = int(int32((rateLimited + 1)))
 			continue
 		}
-		routeCounts = self.setStringIntStateValue(routeCounts, route, int(int32((hxrt.Int32Wrap(routeCount) + hxrt.Int32Wrap(1)))))
+		routeCounts = self.setStringIntStateValue(routeCounts, route, int((hxrt.Int32Wrap(routeCount) + hxrt.Int32Wrap(1))))
 		dispatchable.Push(request)
 		predictsFailure := ((request.status >= 500) || (request.latencyMs > timeoutMs))
 		if predictsFailure {
-			failureStreak = self.setStringIntStateValue(failureStreak, route, int(int32((hxrt.Int32Wrap(streak) + hxrt.Int32Wrap(1)))))
+			failureStreak = self.setStringIntStateValue(failureStreak, route, int((hxrt.Int32Wrap(streak) + hxrt.Int32Wrap(1))))
 		} else {
 			failureStreak = self.setStringIntStateValue(failureStreak, route, 0)
 		}

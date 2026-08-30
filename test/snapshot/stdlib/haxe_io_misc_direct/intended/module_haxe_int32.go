@@ -6,7 +6,7 @@ func haxe___Int32__Int32_Impl__ucompare(a int, b int) int {
 	if a < 0 {
 		var hx_if_1 int
 		if b < 0 {
-			hx_if_1 = int(int32((hxrt.Int32Wrap(int(int32(^int32(b)))) - hxrt.Int32Wrap(int(int32(^int32(a)))))))
+			hx_if_1 = int((hxrt.Int32Wrap(int(int32(^int32(b)))) - hxrt.Int32Wrap(int(int32(^int32(a))))))
 		} else {
 			hx_if_1 = 1
 		}
@@ -16,7 +16,7 @@ func haxe___Int32__Int32_Impl__ucompare(a int, b int) int {
 	if b < 0 {
 		hx_if_2 = -1
 	} else {
-		hx_if_2 = int(int32((hxrt.Int32Wrap(a) - hxrt.Int32Wrap(b))))
+		hx_if_2 = int((hxrt.Int32Wrap(a) - hxrt.Int32Wrap(b)))
 	}
 	return hx_if_2
 }

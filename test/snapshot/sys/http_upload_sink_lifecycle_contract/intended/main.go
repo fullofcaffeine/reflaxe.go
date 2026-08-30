@@ -460,7 +460,7 @@ func (self *_Main__TrackingInput) readBytes(bytes *haxe__io__Bytes, targetPos in
 		return 1
 	case *hxrt.StdString(hxrt.StringFromLiteral("stream")):
 		bytes.__hx_this.fill(targetPos, requested, 97)
-		self.position = int(int32((hxrt.Int32Wrap(self.position) + hxrt.Int32Wrap(requested))))
+		self.position = int((hxrt.Int32Wrap(self.position) + hxrt.Int32Wrap(requested)))
 		return requested
 	case *hxrt.StdString(hxrt.StringFromLiteral("zero")):
 		return 0
@@ -468,7 +468,7 @@ func (self *_Main__TrackingInput) readBytes(bytes *haxe__io__Bytes, targetPos in
 		if self.position >= self.payload.length {
 			hxrt.Throw(New_haxe__io__Eof())
 		}
-		count := int(int32((hxrt.Int32Wrap(self.payload.length) - hxrt.Int32Wrap(self.position))))
+		count := int((hxrt.Int32Wrap(self.payload.length) - hxrt.Int32Wrap(self.position)))
 		if count > 2 {
 			count = 2
 		}
@@ -476,7 +476,7 @@ func (self *_Main__TrackingInput) readBytes(bytes *haxe__io__Bytes, targetPos in
 			count = requested
 		}
 		bytes.__hx_this.blit(targetPos, self.payload, self.position, count)
-		self.position = int(int32((hxrt.Int32Wrap(self.position) + hxrt.Int32Wrap(count))))
+		self.position = int((hxrt.Int32Wrap(self.position) + hxrt.Int32Wrap(count)))
 		return count
 	}
 }

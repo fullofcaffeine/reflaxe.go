@@ -46,7 +46,7 @@ func SysStderr() *FileOutput {
 
 // FileSaveContent stores text without collapsing write failures into success.
 func FileSaveContent(path *string, content *string) error {
-	return os.WriteFile(*StdString(path), []byte(*StdString(content)), 0o644)
+	return os.WriteFile(*StdString(path), []byte(*StdString(content)), 0o644) //nolint:gosec // Haxe file APIs create ordinary user-visible files and honor the process umask.
 }
 
 // FileGetContent returns text and preserves missing, permission, and I/O errors.
@@ -67,7 +67,7 @@ func OpenFileInput(path *string) (*FileInput, error) {
 }
 
 func openFileOutput(path *string, flags int) (*FileOutput, error) {
-	file, err := os.OpenFile(*StdString(path), flags, 0o644)
+	file, err := os.OpenFile(*StdString(path), flags, 0o644) //nolint:gosec // Haxe file APIs create ordinary user-visible files and honor the process umask.
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func FileGetBytes(path *string) ([]byte, error) {
 }
 
 func FileSaveBytes(path *string, raw []byte) error {
-	return os.WriteFile(*StdString(path), raw, 0o644)
+	return os.WriteFile(*StdString(path), raw, 0o644) //nolint:gosec // Haxe file APIs create ordinary user-visible files and honor the process umask.
 }
 
 func FileCopy(srcPath *string, dstPath *string) error {
@@ -99,7 +99,7 @@ func FileCopy(srcPath *string, dstPath *string) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(*StdString(dstPath), raw, 0o644)
+	return os.WriteFile(*StdString(dstPath), raw, 0o644) //nolint:gosec // Haxe file APIs create ordinary user-visible files and honor the process umask.
 }
 
 func (self *FileInput) ReadByte() (int, bool, error) {

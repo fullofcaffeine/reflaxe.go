@@ -20,7 +20,7 @@ func main() {
 	for _g < nums.Len() {
 		n := hxrt.IntFromNullableAny(nums.Get(_g))
 		_g = int(int32((_g + 1)))
-		sum = int(int32((hxrt.Int32Wrap(sum) + hxrt.Int32Wrap(n))))
+		sum = int((hxrt.Int32Wrap(sum) + hxrt.Int32Wrap(n)))
 	}
 	hxrt.Println(any(sum))
 }

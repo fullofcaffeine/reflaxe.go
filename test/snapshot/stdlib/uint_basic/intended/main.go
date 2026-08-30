@@ -4,8 +4,8 @@ import "snapshot/hxrt"
 
 func main() {
 	base := 3
-	scaled := int(int32((hxrt.Int32Wrap(base) * hxrt.Int32Wrap(7))))
-	shifted := int(int32(int32((uint32(hxrt.Int32Wrap(scaled)) >> uint(1)))))
+	scaled := int((hxrt.Int32Wrap(base) * hxrt.Int32Wrap(7)))
+	shifted := int(int32((uint32(hxrt.Int32Wrap(scaled)) >> uint(1))))
 	var v any = any(hxrt.StdString(func() float64 {
 		int := base
 		var hx_if_1 float64

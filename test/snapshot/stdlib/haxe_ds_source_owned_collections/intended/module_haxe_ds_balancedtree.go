@@ -23,7 +23,7 @@ func New_haxe__ds__TreeNode(l *haxe__ds__TreeNode, k any, v any, r *haxe__ds__Tr
 	self.value = v
 	self.right = r
 	if h == -1 {
-		self._height = int(int32((hxrt.Int32Wrap(func() int {
+		self._height = int((hxrt.Int32Wrap(func() int {
 			var hx_if_5 int
 			if func() int {
 				_this := self.left
@@ -63,7 +63,7 @@ func New_haxe__ds__TreeNode(l *haxe__ds__TreeNode, k any, v any, r *haxe__ds__Tr
 				hx_if_5 = hx_if_4
 			}
 			return hx_if_5
-		}()) + hxrt.Int32Wrap(1))))
+		}()) + hxrt.Int32Wrap(1)))
 	} else {
 		self._height = h
 	}
@@ -530,7 +530,7 @@ func (self *haxe__ds__BalancedTree) balance(l *haxe__ds__TreeNode, k any, v any,
 	}
 	hr := hx_if_87
 	var hx_if_96 *haxe__ds__TreeNode
-	if hl > int(int32((hxrt.Int32Wrap(hr) + hxrt.Int32Wrap(2)))) {
+	if hl > int((hxrt.Int32Wrap(hr) + hxrt.Int32Wrap(2))) {
 		var hx_if_90 *haxe__ds__TreeNode
 		if func() int {
 			_this := l.left
@@ -558,7 +558,7 @@ func (self *haxe__ds__BalancedTree) balance(l *haxe__ds__TreeNode, k any, v any,
 		hx_if_96 = hx_if_90
 	} else {
 		var hx_if_95 *haxe__ds__TreeNode
-		if hr > int(int32((hxrt.Int32Wrap(hl) + hxrt.Int32Wrap(2)))) {
+		if hr > int((hxrt.Int32Wrap(hl) + hxrt.Int32Wrap(2))) {
 			var hx_if_93 *haxe__ds__TreeNode
 			if func() int {
 				_this_2 := r.right
@@ -585,7 +585,7 @@ func (self *haxe__ds__BalancedTree) balance(l *haxe__ds__TreeNode, k any, v any,
 			}
 			hx_if_95 = hx_if_93
 		} else {
-			hx_if_95 = New_haxe__ds__TreeNode(l, k, v, r, int(int32((hxrt.Int32Wrap(func() int {
+			hx_if_95 = New_haxe__ds__TreeNode(l, k, v, r, int((hxrt.Int32Wrap(func() int {
 				var hx_if_94 int
 				if hl > hr {
 					hx_if_94 = hl
@@ -593,7 +593,7 @@ func (self *haxe__ds__BalancedTree) balance(l *haxe__ds__TreeNode, k any, v any,
 					hx_if_94 = hr
 				}
 				return hx_if_94
-			}()) + hxrt.Int32Wrap(1)))))
+			}()) + hxrt.Int32Wrap(1))))
 		}
 		hx_if_96 = hx_if_95
 	}

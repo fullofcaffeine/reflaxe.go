@@ -13,5 +13,5 @@ func main() {
 var MathBox_factor int = 3
 
 func MathBox_mul(value int) int {
-	return int(int32((hxrt.Int32Wrap(value) * hxrt.Int32Wrap(MathBox_factor))))
+	return int((hxrt.Int32Wrap(value) * hxrt.Int32Wrap(MathBox_factor)))
 }

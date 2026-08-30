@@ -2006,10 +2006,10 @@ func (self *haxe__rtti__XmlParser) xtype(x *Xml) *haxe__rtti__CType {
 				return hx_zero_477
 			}
 			return hx_value_476.(map[string]any)
-		}(args.Get(int(int32((hxrt.Int32Wrap(args.Len()) - hxrt.Int32Wrap(1))))))
+		}(args.Get(int((hxrt.Int32Wrap(args.Len()) - hxrt.Int32Wrap(1)))))
 		callArgs := hxrt.NewArray()
 		_g := 0
-		_g1 := int(int32((hxrt.Int32Wrap(args.Len()) - hxrt.Int32Wrap(1))))
+		_g1 := int((hxrt.Int32Wrap(args.Len()) - hxrt.Int32Wrap(1)))
 		for _g < _g1 {
 			hx_post_478 := _g
 			_g = int(int32((_g + 1)))
@@ -2124,14 +2124,14 @@ func (self *haxe__rtti__XmlParser) splitString(value *string, separator *string)
 			parts.Push(hxrt.StringSubstrStringPtr(value, start, 0, false))
 			break
 		}
-		parts.Push(hxrt.StringSubstrStringPtr(value, start, int(int32((hxrt.Int32Wrap(index) - hxrt.Int32Wrap(start)))), true))
-		start = int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(hxrt.StringLengthStringPtr(separator)))))
+		parts.Push(hxrt.StringSubstrStringPtr(value, start, int((hxrt.Int32Wrap(index) - hxrt.Int32Wrap(start))), true))
+		start = int((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(hxrt.StringLengthStringPtr(separator))))
 	}
 	return parts
 }
 
 func (self *haxe__rtti__XmlParser) findSeparator(value *string, separator *string, start int) int {
-	limit := int(int32((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(value)) - hxrt.Int32Wrap(hxrt.StringLengthStringPtr(separator)))))
+	limit := int((hxrt.Int32Wrap(hxrt.StringLengthStringPtr(value)) - hxrt.Int32Wrap(hxrt.StringLengthStringPtr(separator))))
 	index := start
 	for index <= limit {
 		if hxrt.StringEqualStringPtr(hxrt.StringSubstrStringPtr(value, index, hxrt.StringLengthStringPtr(separator), true), separator) {
@@ -2294,7 +2294,7 @@ func (self *haxe__rtti__XmlParser) parseIntString(value *string) int {
 		if (code < zeroCode) || (code > nineCode) {
 			return 0
 		}
-		result = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(result) * hxrt.Int32Wrap(10))))) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) - hxrt.Int32Wrap(zeroCode))))))))
+		result = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(result) * hxrt.Int32Wrap(10)))) + hxrt.Int32Wrap(int((hxrt.Int32Wrap(code) - hxrt.Int32Wrap(zeroCode))))))
 		index = int(int32((index + 1)))
 	}
 	var hx_if_520 int

@@ -19,7 +19,7 @@ func NativeCollectionOps_eval() *string {
 	received := go__concurrency_recvOr__int_95e97e5e(channel.__hx_native, -1)
 	slice := go___Go_newSlice()
 	go__slice_push__int_95e97e5e(slice, received)
-	go__slice_set__int_95e97e5e(slice, 0, int(int32((hxrt.Int32Wrap(go__slice_get__int_95e97e5e(slice, 0)) + hxrt.Int32Wrap(1)))))
+	go__slice_set__int_95e97e5e(slice, 0, int((hxrt.Int32Wrap(go__slice_get__int_95e97e5e(slice, 0)) + hxrt.Int32Wrap(1))))
 	map_ := go___Go_newMap()
 	go__map_set__int__int_b895c9bd(map_, 1, go__slice_get__int_95e97e5e(slice, 0))
 	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StdString(func(hx_value_1 any) any {

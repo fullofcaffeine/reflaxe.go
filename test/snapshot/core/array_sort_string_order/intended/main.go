@@ -37,25 +37,25 @@ func main() {
 	})
 	score := 0
 	if hxrt.StringEqualAny(values.Get(0), hxrt.StringFromLiteral("alpha")) {
-		score = int(int32((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(1))))
+		score = int((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(1)))
 	}
 	if hxrt.StringEqualAny(values.Get(1), hxrt.StringFromLiteral("beta")) {
-		score = int(int32((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(2))))
+		score = int((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(2)))
 	}
 	if hxrt.StringEqualAny(values.Get(2), hxrt.StringFromLiteral("gamma")) {
-		score = int(int32((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(4))))
+		score = int((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(4)))
 	}
 	if hxrt.StringCompareStringPtr(hxrt.StringFromLiteral("alpha"), hxrt.StringFromLiteral("beta")) < 0 {
-		score = int(int32((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(8))))
+		score = int((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(8)))
 	}
 	if hxrt.StringCompareStringPtr(hxrt.StringFromLiteral("beta"), hxrt.StringFromLiteral("beta")) <= 0 {
-		score = int(int32((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(16))))
+		score = int((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(16)))
 	}
 	if hxrt.StringCompareStringPtr(hxrt.StringFromLiteral("gamma"), hxrt.StringFromLiteral("beta")) > 0 {
-		score = int(int32((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(32))))
+		score = int((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(32)))
 	}
 	if hxrt.StringCompareStringPtr(hxrt.StringFromLiteral("gamma"), hxrt.StringFromLiteral("gamma")) >= 0 {
-		score = int(int32((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(64))))
+		score = int((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(64)))
 	}
 	if score != 127 {
 		hxrt.Throw(hxrt.StringFromLiteral("unexpected sort or string ordering result"))

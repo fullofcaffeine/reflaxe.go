@@ -28,7 +28,7 @@ func InteractiveCli_nextSequence(frames *hxrt.Array) int {
 		}(frames.Get(_g))
 		_g = int(int32((_g + 1)))
 		if frame.sequence >= next {
-			next = int(int32((hxrt.Int32Wrap(frame.sequence) + hxrt.Int32Wrap(1))))
+			next = int((hxrt.Int32Wrap(frame.sequence) + hxrt.Int32Wrap(1)))
 		}
 	}
 	return next
@@ -46,7 +46,7 @@ func InteractiveCli_parsePositiveInt(raw *string) int {
 		if (code < 48) || (code > 57) {
 			return -1
 		}
-		value = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) * hxrt.Int32Wrap(10))))) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) - hxrt.Int32Wrap(48))))))))
+		value = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value) * hxrt.Int32Wrap(10)))) + hxrt.Int32Wrap(int((hxrt.Int32Wrap(code) - hxrt.Int32Wrap(48))))))
 		i = int(int32((i + 1)))
 	}
 	return value
@@ -135,7 +135,7 @@ func InteractiveCli_run(runtime app__runtime__PulseRuntime) {
 			continue
 		}
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("ingest")) {
-			if int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3)))) >= args.Len() {
+			if int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3))) >= args.Len() {
 				InteractiveCli_failUsage(hxrt.StringFromLiteral("ingest requires <source_token> <value> <region_token>"))
 				return
 			}
@@ -145,16 +145,16 @@ func InteractiveCli_run(runtime app__runtime__PulseRuntime) {
 					return hx_zero_9
 				}
 				return hx_value_8.(*string)
-			}(args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1)))))))
+			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))))
 			value := InteractiveCli_parsePositiveInt(func(hx_value_10 any) *string {
 				if hx_value_10 == nil {
 					var hx_zero_11 *string
 					return hx_zero_11
 				}
 				return hx_value_10.(*string)
-			}(args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2)))))))
+			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))))
 			if value < 0 {
-				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid value: "), args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2)))))))
+				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid value: "), args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))))
 				return
 			}
 			region := InteractiveCli_decodeToken(func(hx_value_14 any) *string {
@@ -163,14 +163,14 @@ func InteractiveCli_run(runtime app__runtime__PulseRuntime) {
 					return hx_zero_15
 				}
 				return hx_value_14.(*string)
-			}(args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3)))))))
+			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3))))))
 			sequence := InteractiveCli_nextSequence(frames)
 			frames.Push(New_app__core__PulseIngressFrame(sequence, source, value, region))
 			ingestReport := InteractiveCli_runReport(runtime, frames)
 			hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("ok ingest seq="), sequence)))
 			var v_4 any = any(InteractiveCli_liveLine(ingestReport))
 			hxrt.Println(v_4)
-			i = int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(4))))
+			i = int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(4)))
 			continue
 		}
 		InteractiveCli_failUsage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("unknown command: "), cmd))

@@ -17,12 +17,12 @@ var haxe__io___ArrayBufferView__ArrayBufferView_Impl__byteOffset int
 func haxe__io___ArrayBufferView__ArrayBufferView_Impl__fromBytes(bytes *haxe__io__Bytes, pos int, length any) *haxe__io__ArrayBufferViewImpl {
 	var hx_if_1 int
 	if length == nil {
-		hx_if_1 = int(int32((hxrt.Int32Wrap(bytes.length) - hxrt.Int32Wrap(pos))))
+		hx_if_1 = int((hxrt.Int32Wrap(bytes.length) - hxrt.Int32Wrap(pos)))
 	} else {
 		hx_if_1 = length.(int)
 	}
 	resolvedLength := hx_if_1
-	if ((pos < 0) || (resolvedLength < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(resolvedLength)))) > bytes.length) {
+	if ((pos < 0) || (resolvedLength < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(resolvedLength))) > bytes.length) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
 	}
 	a := New_haxe__io__ArrayBufferViewImpl(bytes, pos, resolvedLength)
@@ -83,15 +83,15 @@ func New_haxe__io__ArrayBufferViewImpl(bytes *haxe__io__Bytes, pos int, length i
 func (self *haxe__io__ArrayBufferViewImpl) sub(begin int, length any) *haxe__io__ArrayBufferViewImpl {
 	var hx_if_2 int
 	if length == nil {
-		hx_if_2 = int(int32((hxrt.Int32Wrap(self.byteLength) - hxrt.Int32Wrap(begin))))
+		hx_if_2 = int((hxrt.Int32Wrap(self.byteLength) - hxrt.Int32Wrap(begin)))
 	} else {
 		hx_if_2 = length.(int)
 	}
 	resolvedLength := hx_if_2
-	if ((begin < 0) || (resolvedLength < 0)) || (int(int32((hxrt.Int32Wrap(begin) + hxrt.Int32Wrap(resolvedLength)))) > self.byteLength) {
+	if ((begin < 0) || (resolvedLength < 0)) || (int((hxrt.Int32Wrap(begin) + hxrt.Int32Wrap(resolvedLength))) > self.byteLength) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
 	}
-	return New_haxe__io__ArrayBufferViewImpl(self.bytes, int(int32((hxrt.Int32Wrap(self.byteOffset) + hxrt.Int32Wrap(begin)))), resolvedLength)
+	return New_haxe__io__ArrayBufferViewImpl(self.bytes, int((hxrt.Int32Wrap(self.byteOffset) + hxrt.Int32Wrap(begin))), resolvedLength)
 }
 
 func (self *haxe__io__ArrayBufferViewImpl) subarray(begin any, end any) *haxe__io__ArrayBufferViewImpl {
@@ -104,10 +104,10 @@ func (self *haxe__io__ArrayBufferViewImpl) subarray(begin any, end any) *haxe__i
 	resolvedBegin := hx_if_3
 	var hx_if_4 int
 	if end == nil {
-		hx_if_4 = int(int32((hxrt.Int32Wrap(self.byteLength) - hxrt.Int32Wrap(resolvedBegin))))
+		hx_if_4 = int((hxrt.Int32Wrap(self.byteLength) - hxrt.Int32Wrap(resolvedBegin)))
 	} else {
 		hx_if_4 = end.(int)
 	}
 	resolvedEnd := hx_if_4
-	return self.__hx_this.sub(resolvedBegin, int(int32((hxrt.Int32Wrap(resolvedEnd) - hxrt.Int32Wrap(resolvedBegin)))))
+	return self.__hx_this.sub(resolvedBegin, int((hxrt.Int32Wrap(resolvedEnd) - hxrt.Int32Wrap(resolvedBegin))))
 }

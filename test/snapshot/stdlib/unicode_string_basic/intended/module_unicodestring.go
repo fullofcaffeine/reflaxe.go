@@ -44,7 +44,7 @@ func _UnicodeString__UnicodeString_Impl__charAt(this1 *string, index int) *strin
 	}(this1))) {
 		return hxrt.StringFromLiteral("")
 	}
-	return hxrt.StdString(hxrt.StringSliceCodePointsStringPtr(this1, index, int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(1))))))
+	return hxrt.StdString(hxrt.StringSliceCodePointsStringPtr(this1, index, int((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(1)))))
 }
 
 func _UnicodeString__UnicodeString_Impl__charCodeAt(this1 *string, index int) any {
@@ -143,7 +143,7 @@ func _UnicodeString__UnicodeString_Impl__indexOf(this1 *string, str *string, sta
 	}
 	start := hx_if_20
 	if start < 0 {
-		start = int(int32((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(start))))
+		start = int((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(start)))
 		if start < 0 {
 			start = 0
 		}
@@ -155,11 +155,11 @@ func _UnicodeString__UnicodeString_Impl__indexOf(this1 *string, str *string, sta
 	if needleLength == 0 {
 		return start
 	}
-	if needleLength > int(int32((hxrt.Int32Wrap(total) - hxrt.Int32Wrap(start)))) {
+	if needleLength > int((hxrt.Int32Wrap(total) - hxrt.Int32Wrap(start))) {
 		return -1
 	}
 	candidate := start
-	lastCandidate := int(int32((hxrt.Int32Wrap(total) - hxrt.Int32Wrap(needleLength))))
+	lastCandidate := int((hxrt.Int32Wrap(total) - hxrt.Int32Wrap(needleLength)))
 	for candidate <= lastCandidate {
 		if _UnicodeString__UnicodeString_Impl__matchesAt(hxrt.StdString(this1), str, needleLength, candidate) {
 			return candidate
@@ -206,7 +206,7 @@ func _UnicodeString__UnicodeString_Impl__lastIndexOf(this1 *string, str *string,
 		return -1
 	}
 	candidate := start
-	lastCandidate := int(int32((hxrt.Int32Wrap(total) - hxrt.Int32Wrap(needleLength))))
+	lastCandidate := int((hxrt.Int32Wrap(total) - hxrt.Int32Wrap(needleLength)))
 	if candidate > lastCandidate {
 		candidate = lastCandidate
 	}
@@ -232,7 +232,7 @@ func _UnicodeString__UnicodeString_Impl__lessThanOrEqual(a any, b any) bool {
 func _UnicodeString__UnicodeString_Impl__matchesAt(this1 *string, str *string, needleLength int, candidate int) bool {
 	offset := 0
 	for offset < needleLength {
-		if hxrt.StringCharCodeAtStringPtr(this1, int(int32((hxrt.Int32Wrap(candidate)+hxrt.Int32Wrap(offset))))) != hxrt.StringCharCodeAtStringPtr(str, offset) {
+		if hxrt.StringCharCodeAtStringPtr(this1, int((hxrt.Int32Wrap(candidate)+hxrt.Int32Wrap(offset)))) != hxrt.StringCharCodeAtStringPtr(str, offset) {
 			return false
 		}
 		offset = int(int32((offset + 1)))
@@ -266,7 +266,7 @@ func _UnicodeString__UnicodeString_Impl__substr(this1 *string, pos int, len any)
 	}(this1))
 	start := pos
 	if start < 0 {
-		start = int(int32((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(start))))
+		start = int((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(start)))
 		if start < 0 {
 			start = 0
 		}
@@ -278,9 +278,9 @@ func _UnicodeString__UnicodeString_Impl__substr(this1 *string, pos int, len any)
 	if len != nil {
 		var hx_if_30 int
 		if len.(int) < 0 {
-			hx_if_30 = int(int32((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(len.(int)))))
+			hx_if_30 = int((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(len.(int))))
 		} else {
-			hx_if_30 = int(int32((hxrt.Int32Wrap(start) + hxrt.Int32Wrap(len.(int)))))
+			hx_if_30 = int((hxrt.Int32Wrap(start) + hxrt.Int32Wrap(len.(int))))
 		}
 		end = hx_if_30
 		if end > total {
@@ -352,7 +352,7 @@ func _UnicodeString__UnicodeString_Impl__validate(bytes *haxe__io__Bytes, encodi
 					return false
 				} else {
 					if c < 224 {
-						if int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(1)))) > max {
+						if int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(1))) > max {
 							return false
 						}
 						hx_post_36 := pos
@@ -364,7 +364,7 @@ func _UnicodeString__UnicodeString_Impl__validate(bytes *haxe__io__Bytes, encodi
 						}
 					} else {
 						if c < 240 {
-							if int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(2)))) > max {
+							if int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(2))) > max {
 								return false
 							}
 							hx_post_37 := pos
@@ -387,7 +387,7 @@ func _UnicodeString__UnicodeString_Impl__validate(bytes *haxe__io__Bytes, encodi
 							if (c3 < 128) || (c3 > 191) {
 								return false
 							}
-							c = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(c) << uint(16))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(c2_1) << uint(8))))))))) | hxrt.Int32Wrap(c3))))
+							c = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(c) << uint(16)))) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(c2_1) << uint(8))))))) | hxrt.Int32Wrap(c3)))
 							if (15573120 <= c) && (c <= 15581119) {
 								return false
 							}
@@ -395,7 +395,7 @@ func _UnicodeString__UnicodeString_Impl__validate(bytes *haxe__io__Bytes, encodi
 							if c > 244 {
 								return false
 							} else {
-								if int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(3)))) > max {
+								if int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(3))) > max {
 									return false
 								}
 								hx_post_39 := pos

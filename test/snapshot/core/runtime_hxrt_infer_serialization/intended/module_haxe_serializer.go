@@ -174,13 +174,13 @@ func (self *haxe__Serializer) serializeBytes(value *haxe__io__Bytes) {
 	_this := self.buf
 	_this.b = hxrt.StringConcatStringPtr(_this.b, hxrt.StringFromLiteral("s"))
 	_this_1 := self.buf
-	v := (float64(int(int32((hxrt.Int32Wrap(value.length) * hxrt.Int32Wrap(8))))) / float64(6))
+	v := (float64(int((hxrt.Int32Wrap(value.length) * hxrt.Int32Wrap(8)))) / float64(6))
 	x := hxrt.MathCeilInt(v)
 	_this_1.b = hxrt.StringConcatStringPtr(_this_1.b, hxrt.StdString(x))
 	_this_2 := self.buf
 	_this_2.b = hxrt.StringConcatStringPtr(_this_2.b, hxrt.StringFromLiteral(":"))
 	index := 0
-	max := int(int32((hxrt.Int32Wrap(value.length) - hxrt.Int32Wrap(2))))
+	max := int((hxrt.Int32Wrap(value.length) - hxrt.Int32Wrap(2)))
 	for index < max {
 		hx_post_7 := index
 		index = int(int32((index + 1)))
@@ -195,16 +195,16 @@ func (self *haxe__Serializer) serializeBytes(value *haxe__io__Bytes) {
 		pos_2 := hx_post_9
 		third := value.b[pos_2]
 		_this_3 := self.buf
-		c := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int(int32((hxrt.Int32Wrap(first) >> uint(2))))))
+		c := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int((hxrt.Int32Wrap(first) >> uint(2)))))
 		_this_3.b = hxrt.StringConcatStringPtr(_this_3.b, hxrt.StringFromCharCode(c))
 		_this_4 := self.buf
-		c_1 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(first) << uint(4))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second) >> uint(4))))))))) & hxrt.Int32Wrap(63))))))
+		c_1 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(first) << uint(4)))) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(second) >> uint(4))))))) & hxrt.Int32Wrap(63)))))
 		_this_4.b = hxrt.StringConcatStringPtr(_this_4.b, hxrt.StringFromCharCode(c_1))
 		_this_5 := self.buf
-		c_2 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second) << uint(2))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(third) >> uint(6))))))))) & hxrt.Int32Wrap(63))))))
+		c_2 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(second) << uint(2)))) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(third) >> uint(6))))))) & hxrt.Int32Wrap(63)))))
 		_this_5.b = hxrt.StringConcatStringPtr(_this_5.b, hxrt.StringFromCharCode(c_2))
 		_this_6 := self.buf
-		c_3 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int(int32((hxrt.Int32Wrap(third) & hxrt.Int32Wrap(63))))))
+		c_3 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int((hxrt.Int32Wrap(third) & hxrt.Int32Wrap(63)))))
 		_this_6.b = hxrt.StringConcatStringPtr(_this_6.b, hxrt.StringFromCharCode(c_3))
 	}
 	if index == max {
@@ -217,25 +217,25 @@ func (self *haxe__Serializer) serializeBytes(value *haxe__io__Bytes) {
 		pos_4 := hx_post_11
 		second_1 := value.b[pos_4]
 		_this_7 := self.buf
-		c_4 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int(int32((hxrt.Int32Wrap(first_1) >> uint(2))))))
+		c_4 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int((hxrt.Int32Wrap(first_1) >> uint(2)))))
 		_this_7.b = hxrt.StringConcatStringPtr(_this_7.b, hxrt.StringFromCharCode(c_4))
 		_this_8 := self.buf
-		c_5 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(first_1) << uint(4))))) | hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second_1) >> uint(4))))))))) & hxrt.Int32Wrap(63))))))
+		c_5 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(first_1) << uint(4)))) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(second_1) >> uint(4))))))) & hxrt.Int32Wrap(63)))))
 		_this_8.b = hxrt.StringConcatStringPtr(_this_8.b, hxrt.StringFromCharCode(c_5))
 		_this_9 := self.buf
-		c_6 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(second_1) << uint(2))))) & hxrt.Int32Wrap(63))))))
+		c_6 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(second_1) << uint(2)))) & hxrt.Int32Wrap(63)))))
 		_this_9.b = hxrt.StringConcatStringPtr(_this_9.b, hxrt.StringFromCharCode(c_6))
 	} else {
-		if index == int(int32((hxrt.Int32Wrap(max) + hxrt.Int32Wrap(1)))) {
+		if index == int((hxrt.Int32Wrap(max) + hxrt.Int32Wrap(1))) {
 			hx_post_12 := index
 			index = int(int32((index + 1)))
 			pos_5 := hx_post_12
 			first_2 := value.b[pos_5]
 			_this_10 := self.buf
-			c_7 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int(int32((hxrt.Int32Wrap(first_2) >> uint(2))))))
+			c_7 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int((hxrt.Int32Wrap(first_2) >> uint(2)))))
 			_this_10.b = hxrt.StringConcatStringPtr(_this_10.b, hxrt.StringFromCharCode(c_7))
 			_this_11 := self.buf
-			c_8 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(first_2) << uint(4))))) & hxrt.Int32Wrap(63))))))
+			c_8 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(first_2) << uint(4)))) & hxrt.Int32Wrap(63)))))
 			_this_11.b = hxrt.StringConcatStringPtr(_this_11.b, hxrt.StringFromCharCode(c_8))
 		}
 	}

@@ -4,10 +4,10 @@ import "snapshot/hxrt"
 
 func main() {
 	add := func(a int, b int) int {
-		return int(int32((hxrt.Int32Wrap(a) + hxrt.Int32Wrap(b))))
+		return int((hxrt.Int32Wrap(a) + hxrt.Int32Wrap(b)))
 	}
 	mul := func(v int) int {
-		return int(int32((hxrt.Int32Wrap(v) * hxrt.Int32Wrap(3))))
+		return int((hxrt.Int32Wrap(v) * hxrt.Int32Wrap(3)))
 	}
 	var v any = any(twice(5))
 	hxrt.Println(v)
@@ -18,5 +18,5 @@ func main() {
 }
 
 func twice(value int) int {
-	return int(int32((hxrt.Int32Wrap(value) * hxrt.Int32Wrap(2))))
+	return int((hxrt.Int32Wrap(value) * hxrt.Int32Wrap(2)))
 }

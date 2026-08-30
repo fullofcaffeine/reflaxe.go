@@ -19,9 +19,9 @@ func DateTools___format(d *Date, f *string) *string {
 	length := hxrt.StringLengthStringPtr(f)
 	for pos < length {
 		if hxrt.StringEqualStringPtr(hxrt.StringCharAtStringPtr(f, pos), hxrt.StringFromLiteral("%")) {
-			x := DateTools___format_get(d, hxrt.StringSubstrStringPtr(f, int(int32((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(1)))), 1, true))
+			x := DateTools___format_get(d, hxrt.StringSubstrStringPtr(f, int((hxrt.Int32Wrap(pos)+hxrt.Int32Wrap(1))), 1, true))
 			result_b = hxrt.StringConcatStringPtr(result_b, hxrt.StdString(x))
-			pos = int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(2))))
+			pos = int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(2)))
 			continue
 		}
 		x_1 := hxrt.StringCharAtStringPtr(f, pos)
@@ -101,7 +101,7 @@ func DateTools___format_get(d *Date, e *string) *string {
 		}(), 2)
 	}
 	if hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("I")) || hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("l")) {
-		hour := int(int32((hxrt.Int32Wrap(d.__hx_this.getHours()) % hxrt.Int32Wrap(12))))
+		hour := int((hxrt.Int32Wrap(d.__hx_this.getHours()) % hxrt.Int32Wrap(12)))
 		return StringTools_lpad(hxrt.StdString(func() any {
 			var hx_if_10 any
 			if hour == 0 {
@@ -121,7 +121,7 @@ func DateTools___format_get(d *Date, e *string) *string {
 		}(), 2)
 	}
 	if hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("m")) {
-		return StringTools_lpad(hxrt.StdString(int(int32((hxrt.Int32Wrap(d.__hx_this.getMonth()) + hxrt.Int32Wrap(1))))), hxrt.StringFromLiteral("0"), 2)
+		return StringTools_lpad(hxrt.StdString(int((hxrt.Int32Wrap(d.__hx_this.getMonth()) + hxrt.Int32Wrap(1)))), hxrt.StringFromLiteral("0"), 2)
 	}
 	if hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("M")) {
 		return StringTools_lpad(hxrt.StdString(d.__hx_this.getMinutes()), hxrt.StringFromLiteral("0"), 2)
@@ -173,7 +173,7 @@ func DateTools___format_get(d *Date, e *string) *string {
 		return hxrt.StdString(d.__hx_this.getDay())
 	}
 	if hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("y")) {
-		return StringTools_lpad(hxrt.StdString(int(int32((hxrt.Int32Wrap(d.__hx_this.getFullYear()) % hxrt.Int32Wrap(100))))), hxrt.StringFromLiteral("0"), 2)
+		return StringTools_lpad(hxrt.StdString(int((hxrt.Int32Wrap(d.__hx_this.getFullYear()) % hxrt.Int32Wrap(100)))), hxrt.StringFromLiteral("0"), 2)
 	}
 	if hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("Y")) {
 		return hxrt.StdString(d.__hx_this.getFullYear())
@@ -201,7 +201,7 @@ func DateTools_getMonthDays(d *Date) int {
 	if month != 1 {
 		return hxrt.IntFromNullableAny(DateTools_DAYS_OF_MONTH.Get(month))
 	}
-	isLeap := (((int(int32((hxrt.Int32Wrap(year) % hxrt.Int32Wrap(4)))) == 0) && (int(int32((hxrt.Int32Wrap(year) % hxrt.Int32Wrap(100)))) != 0)) || (int(int32((hxrt.Int32Wrap(year) % hxrt.Int32Wrap(400)))) == 0))
+	isLeap := (((int((hxrt.Int32Wrap(year) % hxrt.Int32Wrap(4))) == 0) && (int((hxrt.Int32Wrap(year) % hxrt.Int32Wrap(100))) != 0)) || (int((hxrt.Int32Wrap(year) % hxrt.Int32Wrap(400))) == 0))
 	var hx_if_15 int
 	if isLeap {
 		hx_if_15 = 29

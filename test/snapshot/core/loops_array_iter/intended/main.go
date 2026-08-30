@@ -9,7 +9,7 @@ func main() {
 	for _g < values.Len() {
 		value := hxrt.IntFromNullableAny(values.Get(_g))
 		_g = int(int32((_g + 1)))
-		sum = int(int32((hxrt.Int32Wrap(sum) + hxrt.Int32Wrap(value))))
+		sum = int((hxrt.Int32Wrap(sum) + hxrt.Int32Wrap(value)))
 	}
 	hxrt.Println(any(sum))
 }

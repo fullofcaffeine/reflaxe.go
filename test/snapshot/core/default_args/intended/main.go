@@ -3,12 +3,12 @@ package main
 import "snapshot/hxrt"
 
 func add(a int, b int) int {
-	return int(int32((hxrt.Int32Wrap(a) + hxrt.Int32Wrap(b))))
+	return int((hxrt.Int32Wrap(a) + hxrt.Int32Wrap(b)))
 }
 
 func main() {
 	local := func(v int) int {
-		return int(int32((hxrt.Int32Wrap(v) + hxrt.Int32Wrap(1))))
+		return int((hxrt.Int32Wrap(v) + hxrt.Int32Wrap(1)))
 	}
 	var v any = any(add(1, 2))
 	hxrt.Println(v)

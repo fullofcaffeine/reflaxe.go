@@ -28,7 +28,7 @@ func InteractiveCli_nextId(requests *hxrt.Array) int {
 		}(requests.Get(_g))
 		_g = int(int32((_g + 1)))
 		if request.id >= next {
-			next = int(int32((hxrt.Int32Wrap(request.id) + hxrt.Int32Wrap(1))))
+			next = int((hxrt.Int32Wrap(request.id) + hxrt.Int32Wrap(1)))
 		}
 	}
 	return next
@@ -46,7 +46,7 @@ func InteractiveCli_parsePositiveInt(raw *string) int {
 		if (code < 48) || (code > 57) {
 			return -1
 		}
-		value = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) * hxrt.Int32Wrap(10))))) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) - hxrt.Int32Wrap(48))))))))
+		value = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value) * hxrt.Int32Wrap(10)))) + hxrt.Int32Wrap(int((hxrt.Int32Wrap(code) - hxrt.Int32Wrap(48))))))
 		i = int(int32((i + 1)))
 	}
 	return value
@@ -135,7 +135,7 @@ func InteractiveCli_run(runtime app__runtime__FluxRuntime) {
 			continue
 		}
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("ingest")) {
-			if int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3)))) >= args.Len() {
+			if int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3))) >= args.Len() {
 				InteractiveCli_failUsage(hxrt.StringFromLiteral("ingest requires <route_token> <latency_ms> <status_code>"))
 				return
 			}
@@ -145,16 +145,16 @@ func InteractiveCli_run(runtime app__runtime__FluxRuntime) {
 					return hx_zero_9
 				}
 				return hx_value_8.(*string)
-			}(args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1)))))))
+			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))))
 			latency := InteractiveCli_parsePositiveInt(func(hx_value_10 any) *string {
 				if hx_value_10 == nil {
 					var hx_zero_11 *string
 					return hx_zero_11
 				}
 				return hx_value_10.(*string)
-			}(args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2)))))))
+			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))))
 			if latency < 0 {
-				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid latency_ms: "), args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2)))))))
+				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid latency_ms: "), args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))))
 				return
 			}
 			status := InteractiveCli_parsePositiveInt(func(hx_value_14 any) *string {
@@ -163,9 +163,9 @@ func InteractiveCli_run(runtime app__runtime__FluxRuntime) {
 					return hx_zero_15
 				}
 				return hx_value_14.(*string)
-			}(args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3)))))))
+			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3))))))
 			if (status < 100) || (status > 599) {
-				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid status_code: "), args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3)))))))
+				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid status_code: "), args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3))))))
 				return
 			}
 			requestId := InteractiveCli_nextId(requests)
@@ -174,7 +174,7 @@ func InteractiveCli_run(runtime app__runtime__FluxRuntime) {
 			hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("ok ingest id="), requestId)))
 			var v_4 any = any(InteractiveCli_liveLine(ingestReport))
 			hxrt.Println(v_4)
-			i = int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(4))))
+			i = int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(4)))
 			continue
 		}
 		InteractiveCli_failUsage(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("unknown command: "), cmd))

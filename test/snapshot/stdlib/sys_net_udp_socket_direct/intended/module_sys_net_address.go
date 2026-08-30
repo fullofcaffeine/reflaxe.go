@@ -27,11 +27,11 @@ func (self *sys__net__Address) getHost() *sys__net__Host {
 }
 
 func (self *sys__net__Address) compare(a *sys__net__Address) int {
-	dh := int(int32((hxrt.Int32Wrap(a.host) - hxrt.Int32Wrap(self.host))))
+	dh := int((hxrt.Int32Wrap(a.host) - hxrt.Int32Wrap(self.host)))
 	if dh != 0 {
 		return dh
 	}
-	dp := int(int32((hxrt.Int32Wrap(a.port) - hxrt.Int32Wrap(self.port))))
+	dp := int((hxrt.Int32Wrap(a.port) - hxrt.Int32Wrap(self.port)))
 	if dp != 0 {
 		return dp
 	}
@@ -46,5 +46,5 @@ func (self *sys__net__Address) clone() *sys__net__Address {
 }
 
 func sys__net__Address_octet(value int, shift int) *string {
-	return hxrt.StdString(int(int32((hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(value)) >> uint(shift)))))) & hxrt.Int32Wrap(255)))))
+	return hxrt.StdString(int((hxrt.Int32Wrap(int(int32((uint32(hxrt.Int32Wrap(value)) >> uint(shift))))) & hxrt.Int32Wrap(255))))
 }

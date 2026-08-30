@@ -38,7 +38,7 @@ func haxe__Int64Helper_fromFloat(f float64) *haxe___Int64_____Int64 {
 			a_high = 0
 			a_low = 1
 			b_1 := i
-			b_1 = int(int32((hxrt.Int32Wrap(b_1) & hxrt.Int32Wrap(63))))
+			b_1 = int((hxrt.Int32Wrap(b_1) & hxrt.Int32Wrap(63)))
 			var hx_if_3 *haxe___Int64_____Int64
 			if b_1 == 0 {
 				high := a_high
@@ -50,14 +50,14 @@ func haxe__Int64Helper_fromFloat(f float64) *haxe___Int64_____Int64 {
 			} else {
 				var hx_if_2 *haxe___Int64_____Int64
 				if b_1 < 32 {
-					high_1 := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(a_high) << uint(b_1))))) | hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(a_low)) >> uint(int(int32((hxrt.Int32Wrap(32) - hxrt.Int32Wrap(b_1)))))))))))))
-					low_1 := int(int32((hxrt.Int32Wrap(a_low) << uint(b_1))))
+					high_1 := int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(a_high) << uint(b_1)))) | hxrt.Int32Wrap(int(int32((uint32(hxrt.Int32Wrap(a_low)) >> uint(int((hxrt.Int32Wrap(32) - hxrt.Int32Wrap(b_1))))))))))
+					low_1 := int((hxrt.Int32Wrap(a_low) << uint(b_1)))
 					x_2 := New_haxe___Int64_____Int64(high_1, low_1)
 					var this1_2 *haxe___Int64_____Int64
 					this1_2 = x_2
 					hx_if_2 = this1_2
 				} else {
-					high_2 := int(int32((hxrt.Int32Wrap(a_low) << uint(int(int32((hxrt.Int32Wrap(b_1) - hxrt.Int32Wrap(32))))))))
+					high_2 := int((hxrt.Int32Wrap(a_low) << uint(int((hxrt.Int32Wrap(b_1) - hxrt.Int32Wrap(32))))))
 					x_3 := New_haxe___Int64_____Int64(high_2, 0)
 					var this1_3 *haxe___Int64_____Int64
 					this1_3 = x_3
@@ -66,8 +66,8 @@ func haxe__Int64Helper_fromFloat(f float64) *haxe___Int64_____Int64 {
 				hx_if_3 = hx_if_2
 			}
 			b := hx_if_3
-			high_3 := int(int32((hxrt.Int32Wrap(result.high) + hxrt.Int32Wrap(b.high))))
-			low_2 := int(int32((hxrt.Int32Wrap(result.low) + hxrt.Int32Wrap(b.low))))
+			high_3 := int((hxrt.Int32Wrap(result.high) + hxrt.Int32Wrap(b.high)))
+			low_2 := int((hxrt.Int32Wrap(result.low) + hxrt.Int32Wrap(b.low)))
 			if haxe___Int32__Int32_Impl__ucompare(low_2, result.low) < 0 {
 				hx_post_4 := high_3
 				high_3 = int(int32((high_3 + 1)))
@@ -84,7 +84,7 @@ func haxe__Int64Helper_fromFloat(f float64) *haxe___Int64_____Int64 {
 	}
 	if neg {
 		high_4 := int(int32(^int32(result.high)))
-		low_3 := int(int32((hxrt.Int32Wrap(int(int32(^int32(result.low)))) + hxrt.Int32Wrap(1))))
+		low_3 := int((hxrt.Int32Wrap(int(int32(^int32(result.low)))) + hxrt.Int32Wrap(1)))
 		if low_3 == 0 {
 			hx_post_5 := high_4
 			high_4 = int(int32((high_4 + 1)))
@@ -126,31 +126,31 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 		hx_post_6 := _g
 		_g = int(int32((_g + 1)))
 		i := hx_post_6
-		digitInt := int(int32((hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(s, int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(len)-hxrt.Int32Wrap(1)))))-hxrt.Int32Wrap(i)))))))) - hxrt.Int32Wrap(48))))
+		digitInt := int((hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(s, int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(len)-hxrt.Int32Wrap(1))))-hxrt.Int32Wrap(i))))))) - hxrt.Int32Wrap(48)))
 		if (digitInt < 0) || (digitInt > 9) {
 			hxrt.Throw(hxrt.StringFromLiteral("NumberFormatError"))
 		}
 		if digitInt != 0 {
 			var digit_low int
 			var digit_high int
-			digit_high = int(int32((hxrt.Int32Wrap(digitInt) >> uint(31))))
+			digit_high = int((hxrt.Int32Wrap(digitInt) >> uint(31)))
 			digit_low = digitInt
 			if sIsNegative {
 				var b_low int
 				var b_high int
 				mask := 65535
-				al := int(int32((hxrt.Int32Wrap(multiplier.low) & hxrt.Int32Wrap(mask))))
-				ah := int(int32(int32((uint32(hxrt.Int32Wrap(multiplier.low)) >> uint(16)))))
-				bl := int(int32((hxrt.Int32Wrap(digit_low) & hxrt.Int32Wrap(mask))))
-				bh := int(int32(int32((uint32(hxrt.Int32Wrap(digit_low)) >> uint(16)))))
-				p00 := int(int32((hxrt.Int32Wrap(al) * hxrt.Int32Wrap(bl))))
-				p10 := int(int32((hxrt.Int32Wrap(ah) * hxrt.Int32Wrap(bl))))
-				p01 := int(int32((hxrt.Int32Wrap(al) * hxrt.Int32Wrap(bh))))
-				p11 := int(int32((hxrt.Int32Wrap(ah) * hxrt.Int32Wrap(bh))))
+				al := int((hxrt.Int32Wrap(multiplier.low) & hxrt.Int32Wrap(mask)))
+				ah := int(int32((uint32(hxrt.Int32Wrap(multiplier.low)) >> uint(16))))
+				bl := int((hxrt.Int32Wrap(digit_low) & hxrt.Int32Wrap(mask)))
+				bh := int(int32((uint32(hxrt.Int32Wrap(digit_low)) >> uint(16))))
+				p00 := int((hxrt.Int32Wrap(al) * hxrt.Int32Wrap(bl)))
+				p10 := int((hxrt.Int32Wrap(ah) * hxrt.Int32Wrap(bl)))
+				p01 := int((hxrt.Int32Wrap(al) * hxrt.Int32Wrap(bh)))
+				p11 := int((hxrt.Int32Wrap(ah) * hxrt.Int32Wrap(bh)))
 				low := p00
-				high := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(p11) + hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(p01)) >> uint(16)))))))))) + hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(p10)) >> uint(16)))))))))
-				p01 = int(int32((hxrt.Int32Wrap(p01) << uint(16))))
-				low = int(int32((hxrt.Int32Wrap(low) + hxrt.Int32Wrap(p01))))
+				high := int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(p11) + hxrt.Int32Wrap(int(int32((uint32(hxrt.Int32Wrap(p01)) >> uint(16)))))))) + hxrt.Int32Wrap(int(int32((uint32(hxrt.Int32Wrap(p10)) >> uint(16)))))))
+				p01 = int((hxrt.Int32Wrap(p01) << uint(16)))
+				low = int((hxrt.Int32Wrap(low) + hxrt.Int32Wrap(p01)))
 				if haxe___Int32__Int32_Impl__ucompare(low, p01) < 0 {
 					hx_post_7 := high
 					high = int(int32((high + 1)))
@@ -158,8 +158,8 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 					_ = ret
 					high = high
 				}
-				p10 = int(int32((hxrt.Int32Wrap(p10) << uint(16))))
-				low = int(int32((hxrt.Int32Wrap(low) + hxrt.Int32Wrap(p10))))
+				p10 = int((hxrt.Int32Wrap(p10) << uint(16)))
+				low = int((hxrt.Int32Wrap(low) + hxrt.Int32Wrap(p10)))
 				if haxe___Int32__Int32_Impl__ucompare(low, p10) < 0 {
 					hx_post_8 := high
 					high = int(int32((high + 1)))
@@ -167,11 +167,11 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 					_ = ret_1
 					high = high
 				}
-				high = int(int32((hxrt.Int32Wrap(high) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(multiplier.low) * hxrt.Int32Wrap(digit_high))))) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(multiplier.high) * hxrt.Int32Wrap(digit_low))))))))))))
+				high = int((hxrt.Int32Wrap(high) + hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(multiplier.low) * hxrt.Int32Wrap(digit_high)))) + hxrt.Int32Wrap(int((hxrt.Int32Wrap(multiplier.high) * hxrt.Int32Wrap(digit_low)))))))))
 				b_high = high
 				b_low = low
-				high_1 := int(int32((hxrt.Int32Wrap(current.high) - hxrt.Int32Wrap(b_high))))
-				low_1 := int(int32((hxrt.Int32Wrap(current.low) - hxrt.Int32Wrap(b_low))))
+				high_1 := int((hxrt.Int32Wrap(current.high) - hxrt.Int32Wrap(b_high)))
+				low_1 := int((hxrt.Int32Wrap(current.low) - hxrt.Int32Wrap(b_low)))
 				if haxe___Int32__Int32_Impl__ucompare(current.low, b_low) < 0 {
 					hx_post_9 := high_1
 					high_1 = int(int32((high_1 - 1)))
@@ -190,18 +190,18 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 				var b_low_1 int
 				var b_high_1 int
 				mask_1 := 65535
-				al_1 := int(int32((hxrt.Int32Wrap(multiplier.low) & hxrt.Int32Wrap(mask_1))))
-				ah_1 := int(int32(int32((uint32(hxrt.Int32Wrap(multiplier.low)) >> uint(16)))))
-				bl_1 := int(int32((hxrt.Int32Wrap(digit_low) & hxrt.Int32Wrap(mask_1))))
-				bh_1 := int(int32(int32((uint32(hxrt.Int32Wrap(digit_low)) >> uint(16)))))
-				p00_1 := int(int32((hxrt.Int32Wrap(al_1) * hxrt.Int32Wrap(bl_1))))
-				p10_1 := int(int32((hxrt.Int32Wrap(ah_1) * hxrt.Int32Wrap(bl_1))))
-				p01_1 := int(int32((hxrt.Int32Wrap(al_1) * hxrt.Int32Wrap(bh_1))))
-				p11_1 := int(int32((hxrt.Int32Wrap(ah_1) * hxrt.Int32Wrap(bh_1))))
+				al_1 := int((hxrt.Int32Wrap(multiplier.low) & hxrt.Int32Wrap(mask_1)))
+				ah_1 := int(int32((uint32(hxrt.Int32Wrap(multiplier.low)) >> uint(16))))
+				bl_1 := int((hxrt.Int32Wrap(digit_low) & hxrt.Int32Wrap(mask_1)))
+				bh_1 := int(int32((uint32(hxrt.Int32Wrap(digit_low)) >> uint(16))))
+				p00_1 := int((hxrt.Int32Wrap(al_1) * hxrt.Int32Wrap(bl_1)))
+				p10_1 := int((hxrt.Int32Wrap(ah_1) * hxrt.Int32Wrap(bl_1)))
+				p01_1 := int((hxrt.Int32Wrap(al_1) * hxrt.Int32Wrap(bh_1)))
+				p11_1 := int((hxrt.Int32Wrap(ah_1) * hxrt.Int32Wrap(bh_1)))
 				low_2 := p00_1
-				high_2 := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(p11_1) + hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(p01_1)) >> uint(16)))))))))) + hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(p10_1)) >> uint(16)))))))))
-				p01_1 = int(int32((hxrt.Int32Wrap(p01_1) << uint(16))))
-				low_2 = int(int32((hxrt.Int32Wrap(low_2) + hxrt.Int32Wrap(p01_1))))
+				high_2 := int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(p11_1) + hxrt.Int32Wrap(int(int32((uint32(hxrt.Int32Wrap(p01_1)) >> uint(16)))))))) + hxrt.Int32Wrap(int(int32((uint32(hxrt.Int32Wrap(p10_1)) >> uint(16)))))))
+				p01_1 = int((hxrt.Int32Wrap(p01_1) << uint(16)))
+				low_2 = int((hxrt.Int32Wrap(low_2) + hxrt.Int32Wrap(p01_1)))
 				if haxe___Int32__Int32_Impl__ucompare(low_2, p01_1) < 0 {
 					hx_post_10 := high_2
 					high_2 = int(int32((high_2 + 1)))
@@ -209,8 +209,8 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 					_ = ret_3
 					high_2 = high_2
 				}
-				p10_1 = int(int32((hxrt.Int32Wrap(p10_1) << uint(16))))
-				low_2 = int(int32((hxrt.Int32Wrap(low_2) + hxrt.Int32Wrap(p10_1))))
+				p10_1 = int((hxrt.Int32Wrap(p10_1) << uint(16)))
+				low_2 = int((hxrt.Int32Wrap(low_2) + hxrt.Int32Wrap(p10_1)))
 				if haxe___Int32__Int32_Impl__ucompare(low_2, p10_1) < 0 {
 					hx_post_11 := high_2
 					high_2 = int(int32((high_2 + 1)))
@@ -218,11 +218,11 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 					_ = ret_4
 					high_2 = high_2
 				}
-				high_2 = int(int32((hxrt.Int32Wrap(high_2) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(multiplier.low) * hxrt.Int32Wrap(digit_high))))) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(multiplier.high) * hxrt.Int32Wrap(digit_low))))))))))))
+				high_2 = int((hxrt.Int32Wrap(high_2) + hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(multiplier.low) * hxrt.Int32Wrap(digit_high)))) + hxrt.Int32Wrap(int((hxrt.Int32Wrap(multiplier.high) * hxrt.Int32Wrap(digit_low)))))))))
 				b_high_1 = high_2
 				b_low_1 = low_2
-				high_3 := int(int32((hxrt.Int32Wrap(current.high) + hxrt.Int32Wrap(b_high_1))))
-				low_3 := int(int32((hxrt.Int32Wrap(current.low) + hxrt.Int32Wrap(b_low_1))))
+				high_3 := int((hxrt.Int32Wrap(current.high) + hxrt.Int32Wrap(b_high_1)))
+				low_3 := int((hxrt.Int32Wrap(current.low) + hxrt.Int32Wrap(b_low_1)))
 				if haxe___Int32__Int32_Impl__ucompare(low_3, current.low) < 0 {
 					hx_post_12 := high_3
 					high_3 = int(int32((high_3 + 1)))
@@ -240,18 +240,18 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 			}
 		}
 		mask_2 := 65535
-		al_2 := int(int32((hxrt.Int32Wrap(multiplier.low) & hxrt.Int32Wrap(mask_2))))
-		ah_2 := int(int32(int32((uint32(hxrt.Int32Wrap(multiplier.low)) >> uint(16)))))
-		bl_2 := int(int32((hxrt.Int32Wrap(base_low) & hxrt.Int32Wrap(mask_2))))
-		bh_2 := int(int32(int32((uint32(hxrt.Int32Wrap(base_low)) >> uint(16)))))
-		p00_2 := int(int32((hxrt.Int32Wrap(al_2) * hxrt.Int32Wrap(bl_2))))
-		p10_2 := int(int32((hxrt.Int32Wrap(ah_2) * hxrt.Int32Wrap(bl_2))))
-		p01_2 := int(int32((hxrt.Int32Wrap(al_2) * hxrt.Int32Wrap(bh_2))))
-		p11_2 := int(int32((hxrt.Int32Wrap(ah_2) * hxrt.Int32Wrap(bh_2))))
+		al_2 := int((hxrt.Int32Wrap(multiplier.low) & hxrt.Int32Wrap(mask_2)))
+		ah_2 := int(int32((uint32(hxrt.Int32Wrap(multiplier.low)) >> uint(16))))
+		bl_2 := int((hxrt.Int32Wrap(base_low) & hxrt.Int32Wrap(mask_2)))
+		bh_2 := int(int32((uint32(hxrt.Int32Wrap(base_low)) >> uint(16))))
+		p00_2 := int((hxrt.Int32Wrap(al_2) * hxrt.Int32Wrap(bl_2)))
+		p10_2 := int((hxrt.Int32Wrap(ah_2) * hxrt.Int32Wrap(bl_2)))
+		p01_2 := int((hxrt.Int32Wrap(al_2) * hxrt.Int32Wrap(bh_2)))
+		p11_2 := int((hxrt.Int32Wrap(ah_2) * hxrt.Int32Wrap(bh_2)))
 		low_4 := p00_2
-		high_4 := int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(p11_2) + hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(p01_2)) >> uint(16)))))))))) + hxrt.Int32Wrap(int(int32(int32((uint32(hxrt.Int32Wrap(p10_2)) >> uint(16)))))))))
-		p01_2 = int(int32((hxrt.Int32Wrap(p01_2) << uint(16))))
-		low_4 = int(int32((hxrt.Int32Wrap(low_4) + hxrt.Int32Wrap(p01_2))))
+		high_4 := int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(p11_2) + hxrt.Int32Wrap(int(int32((uint32(hxrt.Int32Wrap(p01_2)) >> uint(16)))))))) + hxrt.Int32Wrap(int(int32((uint32(hxrt.Int32Wrap(p10_2)) >> uint(16)))))))
+		p01_2 = int((hxrt.Int32Wrap(p01_2) << uint(16)))
+		low_4 = int((hxrt.Int32Wrap(low_4) + hxrt.Int32Wrap(p01_2)))
 		if haxe___Int32__Int32_Impl__ucompare(low_4, p01_2) < 0 {
 			hx_post_13 := high_4
 			high_4 = int(int32((high_4 + 1)))
@@ -259,8 +259,8 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 			_ = ret_6
 			high_4 = high_4
 		}
-		p10_2 = int(int32((hxrt.Int32Wrap(p10_2) << uint(16))))
-		low_4 = int(int32((hxrt.Int32Wrap(low_4) + hxrt.Int32Wrap(p10_2))))
+		p10_2 = int((hxrt.Int32Wrap(p10_2) << uint(16)))
+		low_4 = int((hxrt.Int32Wrap(low_4) + hxrt.Int32Wrap(p10_2)))
 		if haxe___Int32__Int32_Impl__ucompare(low_4, p10_2) < 0 {
 			hx_post_14 := high_4
 			high_4 = int(int32((high_4 + 1)))
@@ -268,7 +268,7 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 			_ = ret_7
 			high_4 = high_4
 		}
-		high_4 = int(int32((hxrt.Int32Wrap(high_4) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(multiplier.low) * hxrt.Int32Wrap(base_high))))) + hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(multiplier.high) * hxrt.Int32Wrap(base_low))))))))))))
+		high_4 = int((hxrt.Int32Wrap(high_4) + hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(multiplier.low) * hxrt.Int32Wrap(base_high)))) + hxrt.Int32Wrap(int((hxrt.Int32Wrap(multiplier.high) * hxrt.Int32Wrap(base_low)))))))))
 		x_4 := New_haxe___Int64_____Int64(high_4, low_4)
 		var this1_4 *haxe___Int64_____Int64
 		this1_4 = x_4

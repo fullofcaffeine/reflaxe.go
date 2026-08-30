@@ -117,14 +117,14 @@ func streamRoundTrip(payload *haxe__io__Bytes) *string {
 	for !compressDone {
 		destination := haxe__io__Bytes_alloc(4)
 		result := compressor.__hx_this.execute(payload, sourcePosition, destination, 0)
-		sourcePosition = int(int32((hxrt.Int32Wrap(sourcePosition) + hxrt.Int32Wrap(func(hx_obj_19 map[string]any) int {
+		sourcePosition = int((hxrt.Int32Wrap(sourcePosition) + hxrt.Int32Wrap(func(hx_obj_19 map[string]any) int {
 			hx_field_20 := hx_obj_19["read"]
 			if hx_field_20 == nil {
 				var hx_zero_21 int
 				return hx_zero_21
 			}
 			return hx_field_20.(int)
-		}(result)))))
+		}(result))))
 		len := func(hx_obj_22 map[string]any) int {
 			hx_field_23 := hx_obj_22["write"]
 			if hx_field_23 == nil {
@@ -158,14 +158,14 @@ func streamRoundTrip(payload *haxe__io__Bytes) *string {
 	for !inflateDone {
 		destination_1 := haxe__io__Bytes_alloc(3)
 		result_1 := inflater.__hx_this.execute(compressed, compressedPosition, destination_1, 0)
-		compressedPosition = int(int32((hxrt.Int32Wrap(compressedPosition) + hxrt.Int32Wrap(func(hx_obj_28 map[string]any) int {
+		compressedPosition = int((hxrt.Int32Wrap(compressedPosition) + hxrt.Int32Wrap(func(hx_obj_28 map[string]any) int {
 			hx_field_29 := hx_obj_28["read"]
 			if hx_field_29 == nil {
 				var hx_zero_30 int
 				return hx_zero_30
 			}
 			return hx_field_29.(int)
-		}(result_1)))))
+		}(result_1))))
 		len_1 := func(hx_obj_31 map[string]any) int {
 			hx_field_32 := hx_obj_31["write"]
 			if hx_field_32 == nil {

@@ -7,13 +7,13 @@ import (
 
 func Std_digitValue(code int, hexadecimal bool) int {
 	if (code >= 48) && (code <= 57) {
-		return int(int32((hxrt.Int32Wrap(code) - hxrt.Int32Wrap(48))))
+		return int((hxrt.Int32Wrap(code) - hxrt.Int32Wrap(48)))
 	}
 	if (hexadecimal && (code >= 97)) && (code <= 102) {
-		return int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) - hxrt.Int32Wrap(97))))) + hxrt.Int32Wrap(10))))
+		return int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(code) - hxrt.Int32Wrap(97)))) + hxrt.Int32Wrap(10)))
 	}
 	if (hexadecimal && (code >= 65)) && (code <= 70) {
-		return int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code) - hxrt.Int32Wrap(65))))) + hxrt.Int32Wrap(10))))
+		return int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(code) - hxrt.Int32Wrap(65)))) + hxrt.Int32Wrap(10)))
 	}
 	return -1
 }
@@ -985,9 +985,9 @@ func Std_parseInt(x *string) any {
 			index = int(int32((index + 1)))
 		}
 	}
-	hexadecimal := (((int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(1)))) < length) && (hxrt.StringCharCodeAtAnyStringPtr(x, index) == 48)) && ((hxrt.StringCharCodeAtAnyStringPtr(x, int(int32((hxrt.Int32Wrap(index)+hxrt.Int32Wrap(1))))) == 120) || (hxrt.StringCharCodeAtAnyStringPtr(x, int(int32((hxrt.Int32Wrap(index)+hxrt.Int32Wrap(1))))) == 88)))
+	hexadecimal := (((int((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(1))) < length) && (hxrt.StringCharCodeAtAnyStringPtr(x, index) == 48)) && ((hxrt.StringCharCodeAtAnyStringPtr(x, int((hxrt.Int32Wrap(index)+hxrt.Int32Wrap(1)))) == 120) || (hxrt.StringCharCodeAtAnyStringPtr(x, int((hxrt.Int32Wrap(index)+hxrt.Int32Wrap(1)))) == 88)))
 	if hexadecimal {
-		index = int(int32((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(2))))
+		index = int((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(2)))
 	}
 	digitStart := index
 	if hexadecimal {
@@ -998,15 +998,15 @@ func Std_parseInt(x *string) any {
 			code_1 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(x, index))
 			var hx_if_5 int
 			if (code_1 >= 48) && (code_1 <= 57) {
-				hx_if_5 = int(int32((hxrt.Int32Wrap(code_1) - hxrt.Int32Wrap(48))))
+				hx_if_5 = int((hxrt.Int32Wrap(code_1) - hxrt.Int32Wrap(48)))
 			} else {
 				var hx_if_4 int
 				if (code_1 >= 97) && (code_1 <= 102) {
-					hx_if_4 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code_1) - hxrt.Int32Wrap(97))))) + hxrt.Int32Wrap(10))))
+					hx_if_4 = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(code_1) - hxrt.Int32Wrap(97)))) + hxrt.Int32Wrap(10)))
 				} else {
 					var hx_if_3 int
 					if (code_1 >= 65) && (code_1 <= 70) {
-						hx_if_3 = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(code_1) - hxrt.Int32Wrap(65))))) + hxrt.Int32Wrap(10))))
+						hx_if_3 = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(code_1) - hxrt.Int32Wrap(65)))) + hxrt.Int32Wrap(10)))
 					} else {
 						hx_if_3 = -1
 					}
@@ -1025,7 +1025,7 @@ func Std_parseInt(x *string) any {
 					return nil
 				}
 			}
-			value = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) << uint(4))))) | hxrt.Int32Wrap(digit))))
+			value = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value) << uint(4)))) | hxrt.Int32Wrap(digit)))
 			index = int(int32((index + 1)))
 		}
 		if index == digitStart {
@@ -1044,7 +1044,7 @@ func Std_parseInt(x *string) any {
 		code_2 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(x, index))
 		var hx_if_7 int
 		if (code_2 >= 48) && (code_2 <= 57) {
-			hx_if_7 = int(int32((hxrt.Int32Wrap(code_2) - hxrt.Int32Wrap(48))))
+			hx_if_7 = int((hxrt.Int32Wrap(code_2) - hxrt.Int32Wrap(48)))
 		} else {
 			hx_if_7 = -1
 		}
@@ -1062,7 +1062,7 @@ func Std_parseInt(x *string) any {
 		if (result < -214748364) || ((result == -214748364) && (digit_1 > lastAllowedDigit)) {
 			return nil
 		}
-		result = int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(result) * hxrt.Int32Wrap(10))))) - hxrt.Int32Wrap(digit_1))))
+		result = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(result) * hxrt.Int32Wrap(10)))) - hxrt.Int32Wrap(digit_1)))
 		index = int(int32((index + 1)))
 	}
 	if index == digitStart {

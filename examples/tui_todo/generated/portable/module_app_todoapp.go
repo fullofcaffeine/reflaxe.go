@@ -104,7 +104,7 @@ func (self *app__TodoApp) buildRuntimeMetrics() *profile__TodoRuntimeMetrics {
 			p1 = int(int32((p1 + 1)))
 		}
 	}
-	return New_profile__TodoRuntimeMetrics(total, int(int32((hxrt.Int32Wrap(total) - hxrt.Int32Wrap(done)))), done, p1)
+	return New_profile__TodoRuntimeMetrics(total, int((hxrt.Int32Wrap(total) - hxrt.Int32Wrap(done))), done, p1)
 }
 
 func (self *app__TodoApp) render() *string {

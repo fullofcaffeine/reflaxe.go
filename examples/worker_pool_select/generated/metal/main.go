@@ -13,7 +13,7 @@ var STOP_TOKEN *string = hxrt.StringFromLiteral("__stop__")
 func main() {
 	workerCount := 3
 	tasks := hxrt.NewArray(hxrt.StringFromLiteral("alpha"), hxrt.StringFromLiteral("beta"), hxrt.StringFromLiteral("gamma"), hxrt.StringFromLiteral("delta"))
-	jobs := go__concurrency_newChan___string_f613ccd0(int(int32((hxrt.Int32Wrap(tasks.Len()) + hxrt.Int32Wrap(workerCount)))))
+	jobs := go__concurrency_newChan___string_f613ccd0(int((hxrt.Int32Wrap(tasks.Len()) + hxrt.Int32Wrap(workerCount))))
 	results := go__concurrency_newChan___string_f613ccd0(tasks.Len())
 	_g := 0
 	for _g < tasks.Len() {

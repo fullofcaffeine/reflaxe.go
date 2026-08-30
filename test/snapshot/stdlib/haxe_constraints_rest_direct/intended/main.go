@@ -69,10 +69,10 @@ func restDigest(args []int) *string {
 	}()), hxrt.StringFromLiteral(":")), func() int {
 		var hx_if_12 int
 		if copied.Len() > 0 {
-			hx_if_12 = hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(copied.Get(int(int32((hxrt.Int32Wrap(copied.Len()) - hxrt.Int32Wrap(1)))))))
+			hx_if_12 = hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(copied.Get(int((hxrt.Int32Wrap(copied.Len()) - hxrt.Int32Wrap(1))))))
 		} else {
 			hx_if_12 = -99
 		}
 		return hx_if_12
-	}()), hxrt.StringFromLiteral("|append=")), appended[int(int32((hxrt.Int32Wrap(len(appended))-hxrt.Int32Wrap(1))))]), hxrt.StringFromLiteral("|prepend=")), prepended[0])
+	}()), hxrt.StringFromLiteral("|append=")), appended[int((hxrt.Int32Wrap(len(appended))-hxrt.Int32Wrap(1)))]), hxrt.StringFromLiteral("|prepend=")), prepended[0])
 }

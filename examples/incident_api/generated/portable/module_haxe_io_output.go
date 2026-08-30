@@ -46,7 +46,7 @@ func (self *haxe__io__Output) writeByte(value int) {
 }
 
 func (self *haxe__io__Output) writeBytes(bytes *haxe__io__Bytes, pos int, len int) int {
-	if ((pos < 0) || (len < 0)) || (int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len)))) > bytes.length) {
+	if ((pos < 0) || (len < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len))) > bytes.length) {
 		hxrt.Throw(haxe__io__Error_OutsideBounds)
 	}
 	total := len
@@ -79,8 +79,8 @@ func (self *haxe__io__Output) writeFullBytes(bytes *haxe__io__Bytes, pos int, le
 		if count == 0 {
 			hxrt.Throw(haxe__io__Error_Blocked)
 		}
-		pos = int(int32((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(count))))
-		len = int(int32((hxrt.Int32Wrap(len) - hxrt.Int32Wrap(count))))
+		pos = int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(count)))
+		len = int((hxrt.Int32Wrap(len) - hxrt.Int32Wrap(count)))
 	}
 }
 
@@ -103,14 +103,14 @@ func (self *haxe__io__Output) writeInt8(value int) {
 	if (value < -128) || (value >= 128) {
 		hxrt.Throw(haxe__io__Error_Overflow)
 	}
-	self.__hx_this.writeByte(int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255)))))
+	self.__hx_this.writeByte(int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
 }
 
 func (self *haxe__io__Output) writeInt16(value int) {
 	if (value < -32768) || (value >= 32768) {
 		hxrt.Throw(haxe__io__Error_Overflow)
 	}
-	self.__hx_this.writeUInt16(int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(65535)))))
+	self.__hx_this.writeUInt16(int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(65535))))
 }
 
 func (self *haxe__io__Output) writeUInt16(value int) {
@@ -118,11 +118,11 @@ func (self *haxe__io__Output) writeUInt16(value int) {
 		hxrt.Throw(haxe__io__Error_Overflow)
 	}
 	if self.bigEndian {
-		self.__hx_this.writeByte(int(int32((hxrt.Int32Wrap(value) >> uint(8)))))
-		self.__hx_this.writeByte(int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255)))))
+		self.__hx_this.writeByte(int((hxrt.Int32Wrap(value) >> uint(8))))
+		self.__hx_this.writeByte(int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
 	} else {
-		self.__hx_this.writeByte(int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255)))))
-		self.__hx_this.writeByte(int(int32((hxrt.Int32Wrap(value) >> uint(8)))))
+		self.__hx_this.writeByte(int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
+		self.__hx_this.writeByte(int((hxrt.Int32Wrap(value) >> uint(8))))
 	}
 }
 
@@ -130,7 +130,7 @@ func (self *haxe__io__Output) writeInt24(value int) {
 	if (value < -8388608) || (value >= 8388608) {
 		hxrt.Throw(haxe__io__Error_Overflow)
 	}
-	self.__hx_this.writeUInt24(int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(16777215)))))
+	self.__hx_this.writeUInt24(int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(16777215))))
 }
 
 func (self *haxe__io__Output) writeUInt24(value int) {
@@ -138,27 +138,27 @@ func (self *haxe__io__Output) writeUInt24(value int) {
 		hxrt.Throw(haxe__io__Error_Overflow)
 	}
 	if self.bigEndian {
-		self.__hx_this.writeByte(int(int32((hxrt.Int32Wrap(value) >> uint(16)))))
-		self.__hx_this.writeByte(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) >> uint(8))))) & hxrt.Int32Wrap(255)))))
-		self.__hx_this.writeByte(int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255)))))
+		self.__hx_this.writeByte(int((hxrt.Int32Wrap(value) >> uint(16))))
+		self.__hx_this.writeByte(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value) >> uint(8)))) & hxrt.Int32Wrap(255))))
+		self.__hx_this.writeByte(int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
 	} else {
-		self.__hx_this.writeByte(int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255)))))
-		self.__hx_this.writeByte(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) >> uint(8))))) & hxrt.Int32Wrap(255)))))
-		self.__hx_this.writeByte(int(int32((hxrt.Int32Wrap(value) >> uint(16)))))
+		self.__hx_this.writeByte(int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
+		self.__hx_this.writeByte(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value) >> uint(8)))) & hxrt.Int32Wrap(255))))
+		self.__hx_this.writeByte(int((hxrt.Int32Wrap(value) >> uint(16))))
 	}
 }
 
 func (self *haxe__io__Output) writeInt32(value int) {
 	if self.bigEndian {
-		self.__hx_this.writeByte(int(int32(int32((uint32(hxrt.Int32Wrap(value)) >> uint(24))))))
-		self.__hx_this.writeByte(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) >> uint(16))))) & hxrt.Int32Wrap(255)))))
-		self.__hx_this.writeByte(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) >> uint(8))))) & hxrt.Int32Wrap(255)))))
-		self.__hx_this.writeByte(int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255)))))
+		self.__hx_this.writeByte(int(int32((uint32(hxrt.Int32Wrap(value)) >> uint(24)))))
+		self.__hx_this.writeByte(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value) >> uint(16)))) & hxrt.Int32Wrap(255))))
+		self.__hx_this.writeByte(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value) >> uint(8)))) & hxrt.Int32Wrap(255))))
+		self.__hx_this.writeByte(int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
 	} else {
-		self.__hx_this.writeByte(int(int32((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255)))))
-		self.__hx_this.writeByte(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) >> uint(8))))) & hxrt.Int32Wrap(255)))))
-		self.__hx_this.writeByte(int(int32((hxrt.Int32Wrap(int(int32((hxrt.Int32Wrap(value) >> uint(16))))) & hxrt.Int32Wrap(255)))))
-		self.__hx_this.writeByte(int(int32(int32((uint32(hxrt.Int32Wrap(value)) >> uint(24))))))
+		self.__hx_this.writeByte(int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
+		self.__hx_this.writeByte(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value) >> uint(8)))) & hxrt.Int32Wrap(255))))
+		self.__hx_this.writeByte(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(value) >> uint(16)))) & hxrt.Int32Wrap(255))))
+		self.__hx_this.writeByte(int(int32((uint32(hxrt.Int32Wrap(value)) >> uint(24)))))
 	}
 }
 

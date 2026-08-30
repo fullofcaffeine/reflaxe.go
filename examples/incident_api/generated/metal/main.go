@@ -19,7 +19,7 @@ func argValue(name *string, fallback *string) *string {
 		return hx_sort_out_3
 	}(hxrt.SysArgs()))
 	i := 0
-	for i < int(int32((hxrt.Int32Wrap(args.Len()) - hxrt.Int32Wrap(1)))) {
+	for i < int((hxrt.Int32Wrap(args.Len()) - hxrt.Int32Wrap(1))) {
 		if hxrt.StringEqualAny(args.Get(i), name) {
 			return func(hx_value_4 any) *string {
 				if hx_value_4 == nil {
@@ -27,7 +27,7 @@ func argValue(name *string, fallback *string) *string {
 					return hx_zero_5
 				}
 				return hx_value_4.(*string)
-			}(args.Get(int(int32((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))))
+			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1)))))
 		}
 		i = int(int32((i + 1)))
 	}

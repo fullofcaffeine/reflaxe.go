@@ -516,7 +516,7 @@ func (self *sys__Http) pumpUpload(exchange *hxrt.HttpExchange, upload map[string
 		if !hxrt.StringEqualStringPtr(sinkError, nil) {
 			break
 		}
-		remaining = int(int32((hxrt.Int32Wrap(remaining) - hxrt.Int32Wrap(count))))
+		remaining = int((hxrt.Int32Wrap(remaining) - hxrt.Int32Wrap(count)))
 	}
 	if !hxrt.StringEqualStringPtr(sourceError, nil) {
 		hxrt.HttpUploadSinkAbort(sink, sourceError)
@@ -549,7 +549,7 @@ func (self *sys__Http) handleDataRequest(post bool, api *haxe__io__Output, metho
 		if comma > 0 {
 			mediaType = hxrt.StringSubstrStringPtr(encoded, 0, comma, true)
 		}
-		encoded = hxrt.StringSubstrStringPtr(encoded, int(int32((hxrt.Int32Wrap(comma) + hxrt.Int32Wrap(1)))), 0, false)
+		encoded = hxrt.StringSubstrStringPtr(encoded, int((hxrt.Int32Wrap(comma) + hxrt.Int32Wrap(1))), 0, false)
 	}
 	if self.file != nil {
 		encoded = hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("multipart file="), func(hx_obj_96 map[string]any) *string {
@@ -655,7 +655,7 @@ func (self *sys__Http) recordResponseHeaders(exchange *hxrt.HttpExchange) {
 				return hx_zero_111
 			}
 			return hx_value_110.(*string)
-		}(values.Get(int(int32((hxrt.Int32Wrap(values.Len()) - hxrt.Int32Wrap(1))))))
+		}(values.Get(int((hxrt.Int32Wrap(values.Len()) - hxrt.Int32Wrap(1)))))
 		var this1 haxe__IMap = self.responseHeaders
 		this1.(*haxe__ds__StringMap).__hx_this.set(name, last)
 		if !hxrt.StringEqualStringPtr(normalized, name) {
