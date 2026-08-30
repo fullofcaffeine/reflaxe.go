@@ -26,6 +26,15 @@ class GeneratedLintContractTests(unittest.TestCase):
         self.assertNotIn("int(int32((hxrt.Int32Wrap", bytes_output)
         self.assertNotIn("int(int32(int32(", bytes_output)
 
+        unary_output = (
+            ROOT
+            / "test/snapshot/core/arithmetic/intended/main.go"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("int(int32(-int32(", unary_output)
+        self.assertNotIn("int(int32(^int32(", unary_output)
+        self.assertIn("int(-int32(", unary_output)
+        self.assertIn("int(^int32(", unary_output)
+
 
 if __name__ == "__main__":
     unittest.main()

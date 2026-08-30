@@ -6126,7 +6126,7 @@ class GoCompiler {
 					case _:
 						var loweredValue = lowerExpr(value).expr;
 						var unaryExpr = if (isInt32SemanticType(expr.t, expr.pos) && (op == OpNeg || op == OpNegBits)) {
-							wrapInt32Expr(GoExpr.GoUnary(unopSymbol(op), GoExpr.GoCall(GoExpr.GoIdent("int32"), [loweredValue])));
+							GoExprOperatorOps.widenNativeInt32Expr(GoExpr.GoUnary(unopSymbol(op), GoExpr.GoCall(GoExpr.GoIdent("int32"), [loweredValue])));
 						} else {
 							GoExpr.GoUnary(unopSymbol(op), loweredValue);
 						}
