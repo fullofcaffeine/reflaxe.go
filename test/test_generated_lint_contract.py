@@ -44,6 +44,14 @@ class GeneratedLintContractTests(unittest.TestCase):
         self.assertNotIn("any(names.Get(", array_output)
         self.assertIn("hxrt.Println(names.Get(0))", array_output)
 
+    def test_dynamic_type_helpers_rely_on_their_any_parameter_boundary(self) -> None:
+        std_output = (
+            ROOT
+            / "test/snapshot/stdlib/crypto_xml_zip_basic/intended/module_std.go"
+        ).read_text(encoding="utf-8")
+
+        self.assertNotIn("}(any(hx_value))", std_output)
+
 
 if __name__ == "__main__":
     unittest.main()

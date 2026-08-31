@@ -361,14 +361,14 @@ func (self *haxe__ds__EnumValueMap) compareArg(left any, right any) int {
 		default:
 			return false
 		}
-	}(any(left)) && func(hx_value any) bool {
+	}(left) && func(hx_value any) bool {
 		switch hx_value.(type) {
 		case *hxrt.Array:
 			return true
 		default:
 			return false
 		}
-	}(any(right)) {
+	}(right) {
 		return func(hx_value_50 any) int {
 			if hx_value_50 == nil {
 				var hx_zero_51 int

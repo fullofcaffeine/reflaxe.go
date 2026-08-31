@@ -8505,10 +8505,7 @@ class GoCompiler {
 				{typeName: classMarker, body: markerBody(classCases)},
 				{typeName: enumMarker, body: markerBody(enumCases)}
 			], [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))])
-		]), [
-			GoExpr.GoCall(GoExpr.GoIdent("any"), [valueExpr]),
-			GoExpr.GoCall(GoExpr.GoIdent("any"), [targetExpr])
-		]);
+		]), [valueExpr, targetExpr]);
 	}
 
 	/**
@@ -8870,7 +8867,7 @@ class GoCompiler {
 		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: "hx_value", typeName: GoType.builtin(GoBuiltinType.AnyType)}], [GoType.builtin(GoBuiltinType.Bool)],
 			[
 				GoStmt.GoTypeSwitch(GoExpr.GoIdent("hx_value"), "hx_carrier", cases, [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))])
-			]), [GoExpr.GoCall(GoExpr.GoIdent("any"), [valueExpr])]);
+			]), [valueExpr]);
 	}
 
 	/**
@@ -8916,7 +8913,7 @@ class GoCompiler {
 						body: [GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))]
 					}
 			], [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))])
-		]), [GoExpr.GoCall(GoExpr.GoIdent("any"), [valueExpr])]);
+		]), [valueExpr]);
 	}
 
 	function stdIsOfTypeClassTypeNames(targetClass:ClassType):Array<String> {

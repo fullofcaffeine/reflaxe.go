@@ -1171,7 +1171,7 @@ func haxe__Template_addValues(left any, right any) any {
 		default:
 			return false
 		}
-	}(any(left)) || func(hx_value any) bool {
+	}(left) || func(hx_value any) bool {
 		switch hx_value.(type) {
 		case *string:
 			return true
@@ -1180,7 +1180,7 @@ func haxe__Template_addValues(left any, right any) any {
 		default:
 			return false
 		}
-	}(any(right)) {
+	}(right) {
 		return hxrt.StringConcatStringPtr(hxrt.StdString(left), hxrt.StdString(right))
 	}
 	return (haxe__Template_valueAsFloat(left) + haxe__Template_valueAsFloat(right))
@@ -1214,7 +1214,7 @@ func haxe__Template_compareValues(left any, right any) int {
 		default:
 			return false
 		}
-	}(any(left)) || func(hx_value any) bool {
+	}(left) || func(hx_value any) bool {
 		switch hx_value.(type) {
 		case int:
 			return true
@@ -1245,7 +1245,7 @@ func haxe__Template_compareValues(left any, right any) int {
 		default:
 			return false
 		}
-	}(any(left)))
+	}(left))
 	rightNumeric := (func(hx_value any) bool {
 		switch hx_value.(type) {
 		case int:
@@ -1273,7 +1273,7 @@ func haxe__Template_compareValues(left any, right any) int {
 		default:
 			return false
 		}
-	}(any(right)) || func(hx_value any) bool {
+	}(right) || func(hx_value any) bool {
 		switch hx_value.(type) {
 		case int:
 			return true
@@ -1304,7 +1304,7 @@ func haxe__Template_compareValues(left any, right any) int {
 		default:
 			return false
 		}
-	}(any(right)))
+	}(right))
 	if leftNumeric && rightNumeric {
 		leftFloat := haxe__Template_valueAsFloat(left)
 		rightFloat := haxe__Template_valueAsFloat(right)
@@ -1595,7 +1595,7 @@ func haxe__Template_valueAsFloat(value any) float64 {
 		default:
 			return false
 		}
-	}(any(value)) || func(hx_value any) bool {
+	}(value) || func(hx_value any) bool {
 		switch hx_value.(type) {
 		case int:
 			return true
@@ -1626,7 +1626,7 @@ func haxe__Template_valueAsFloat(value any) float64 {
 		default:
 			return false
 		}
-	}(any(value)) {
+	}(value) {
 		return func(hx_value_244 any) float64 {
 			if hx_value_244 == nil {
 				var hx_zero_245 float64
@@ -1644,7 +1644,7 @@ func haxe__Template_valueAsFloat(value any) float64 {
 		default:
 			return false
 		}
-	}(any(value)) {
+	}(value) {
 		return haxe__Template_parseFloatLiteral(hxrt.StdString(func(hx_value_246 any) *string {
 			if hx_value_246 == nil {
 				var hx_zero_247 *string

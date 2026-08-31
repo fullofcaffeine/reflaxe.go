@@ -68,7 +68,7 @@ func main() {
 		default:
 			return false
 		}
-	}(any(nil)))
+	}(nil))
 	hxrt.Println(v_3)
 	var v_4 any = any(true)
 	hxrt.Println(v_4)

@@ -31,7 +31,7 @@ func main() {
 		default:
 			return false
 		}
-	}(any(d)))
+	}(d))
 	hxrt.Println(v)
 	var v_1 any = any(func(hx_value any) bool {
 		switch hx_value.(type) {
@@ -42,6 +42,6 @@ func main() {
 		default:
 			return false
 		}
-	}(any(d)))
+	}(d))
 	hxrt.Println(v_1)
 }
