@@ -11,7 +11,7 @@ func main() {
 		go__concurrency_send__int_95e97e5e(channel.__hx_native, 1)
 	})
 	var value any = go__concurrency_recv__int_95e97e5e(channel.__hx_native)
-	hxrt.Println(any(value))
+	hxrt.Println(value)
 }
 
 func go__concurrency_makeChan(buffer int) any {

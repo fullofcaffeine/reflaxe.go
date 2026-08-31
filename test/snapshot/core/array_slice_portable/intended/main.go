@@ -19,7 +19,7 @@ func main() {
 	hx_array_target_1 := copy
 	hx_array_index_2 := 0
 	hx_array_target_1.Set(hx_array_index_2, 9)
-	hxrt.Println(any(values.Get(0)))
+	hxrt.Println(values.Get(0))
 	printValues(NativeSlicer_middle(values))
 }
 

@@ -6007,7 +6007,7 @@ class GoCompiler {
 				if (!storageTransparentArrayCast && innerGoType != castGoType) {
 					if (castGoType != "any" && innerGoType == "any") {
 						castExpr = lowerNullableAwareTypeAssertExpr(castExpr, expr.t);
-					} else if (castGoType == "any" && innerGoType != "any") {
+					} else if (castGoType == "any" && innerGoType != "any" && !exprBackedByAny(inner)) {
 						castExpr = GoExpr.GoCall(GoExpr.GoIdent("any"), [castExpr]);
 					} else {
 						var concreteDowncast = lowerConcreteClassDowncastExpr(castExpr, inner.t, expr.t);

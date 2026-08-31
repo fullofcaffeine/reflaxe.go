@@ -21,7 +21,7 @@ func main() {
 		}
 		return hx_sort_out_3
 	}(go__slice_toArray__int_95e97e5e(ints)))
-	hxrt.Println(any(intsArray.Get(0)))
+	hxrt.Println(intsArray.Get(0))
 	words := go___Go_newSlice()
 	go__slice_push___string_f613ccd0(words, hxrt.StringFromLiteral("go"))
 	go__slice_push___string_f613ccd0(words, hxrt.StringFromLiteral("haxe"))
