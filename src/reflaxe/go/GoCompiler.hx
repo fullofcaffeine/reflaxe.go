@@ -11,6 +11,7 @@ import haxe.macro.TypeTools;
 import reflaxe.go.analyze.GoProfileContractAnalyzer;
 import reflaxe.go.compiler.GoAutoLoweringMode;
 import reflaxe.go.compiler.GoCompilerDefine;
+import reflaxe.go.compiler.GoBuildConstraint;
 import reflaxe.go.compiler.GoExprOperatorOps;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureInference;
@@ -465,6 +466,7 @@ class GoCompiler {
 		tempVarCounter = 0;
 		tempVarCountersByModule = new Map<String, Int>();
 		var moduleDecls = new Map<String, Array<GoDecl>>();
+		final moduleBuildConstraints = collectModuleBuildConstraints(classes, enums);
 		for (enumType in enums) {
 			appendModuleDecls(moduleDecls, enumType.module, lowerModuleDecls(enumType.module, function() return lowerEnumDecls(enumType)));
 		}
@@ -553,7 +555,7 @@ class GoCompiler {
 				preludeDecls = [];
 				supportDecls = [];
 			}
-			generated.push(renderGeneratedFile(relativePath, fileDecls, candidateImports));
+			generated.push(renderGeneratedFile(relativePath, fileDecls, candidateImports, moduleBuildConstraints.get(moduleName)));
 		}
 
 		if (preludeDecls.length > 0 || supportDecls.length > 0) {
@@ -672,7 +674,7 @@ class GoCompiler {
 		return imports;
 	}
 
-	function renderGeneratedFile(relativePath:String, decls:Array<GoDecl>, candidateImports:Array<String>):GoGeneratedFile {
+	function renderGeneratedFile(relativePath:String, decls:Array<GoDecl>, candidateImports:Array<String>, ?buildConstraint:GoBuildConstraint):GoGeneratedFile {
 		var file:GoFile = {
 			packageName: outputIdentity.packageName,
 			imports: [for (path in candidateImports) GoImportPath.parse(path)],
@@ -681,10 +683,51 @@ class GoCompiler {
 		var transformed = GoASTTransformer.transform(file, compilationContext);
 		noteTransformedRuntimeFeatures(transformed.decls);
 		var filtered = filterImportsByUsage(transformed);
+		final source = GoASTPrinter.printFile(filtered);
 		return {
 			relativePath: relativePath,
-			contents: GoASTPrinter.printFile(filtered)
+			contents: buildConstraint == null ? source : '//go:build ${buildConstraint.render()}\n\n' + source
 		};
+	}
+
+	function collectModuleBuildConstraints(classes:Array<ClassType>, enums:Array<EnumType>):Map<String, GoBuildConstraint> {
+		final result = new Map<String, GoBuildConstraint>();
+		final rendered = new Map<String, String>();
+		for (classType in classes)
+			collectModuleBuildConstraint(classType.module, classType.meta, result, rendered);
+		for (enumType in enums)
+			collectModuleBuildConstraint(enumType.module, enumType.meta, result, rendered);
+		return result;
+	}
+
+	function collectModuleBuildConstraint(moduleName:String, meta:MetaAccess, result:Map<String, GoBuildConstraint>, rendered:Map<String, String>):Void {
+		final entries = [
+			for (entry in meta.get())
+				if (GoMetadataName.GoBuildConstraintMetadata.matches(entry.name)) entry
+		];
+		if (entries.length == 0)
+			return;
+		if (entries.length != 1)
+			Context.fatalError("@:goBuildConstraint must appear at most once on a type", entries[1].pos);
+		final entry = entries[0];
+		if (entry.params == null || entry.params.length != 1)
+			Context.fatalError("@:goBuildConstraint requires exactly one compile-time string parameter", entry.pos);
+		final value = readConstStringExpr(entry.params[0]);
+		if (value == null)
+			Context.fatalError("@:goBuildConstraint requires exactly one compile-time string parameter", entry.pos);
+		final constraint = try {
+			GoBuildConstraint.parse(value);
+		} catch (_:haxe.Exception) {
+			Context.fatalError("@:goBuildConstraint value is not a valid Go build constraint", entry.pos);
+			return;
+		};
+		final canonical = constraint.render();
+		if (moduleName == mainIdentity.moduleName)
+			Context.fatalError("@:goBuildConstraint cannot constrain the selected main module", entry.pos);
+		if (rendered.exists(moduleName) && rendered.get(moduleName) != canonical)
+			Context.fatalError("all types in one Haxe module must use the same @:goBuildConstraint value", entry.pos);
+		result.set(moduleName, constraint);
+		rendered.set(moduleName, canonical);
 	}
 
 	function noteTransformedRuntimeFeatures(decls:Array<GoDecl>):Void {

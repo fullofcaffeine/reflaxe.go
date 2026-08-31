@@ -1,0 +1,1 @@
+all types in one Haxe module must use the same @:goBuildConstraint value

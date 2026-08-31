@@ -1,0 +1,1 @@
+@:goBuildConstraint must appear at most once on a type

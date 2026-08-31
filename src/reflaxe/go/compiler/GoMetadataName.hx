@@ -20,6 +20,7 @@ enum abstract GoMetadataName(String) to String {
 	var GoMetal = "goMetal";
 	var RemovedHaxeMetal = "haxeMetal";
 	var GoAllowRaw = "goAllowRaw";
+	var GoBuildConstraintMetadata = "goBuildConstraint";
 	var GoImport = "go.import";
 	var GoPackage = "go.package";
 	var GoPackageAlias = "go.pkg";

@@ -217,6 +217,21 @@ are present in report artifacts.
     - `python3 test/run-snapshots.py --case negative/go_metal_lane_injection`
     - `python3 test/run-semantic-diff.py --suite lanes`
     - `npm run test:semantic-diff:lanes`
+- `@:goBuildConstraint("<expression>")`
+  - Selects the generated Go file for one non-main Haxe module with Go's build
+    constraint grammar: tags, `!`, `&&`, `||`, and parentheses.
+  - The compiler validates and deterministically renders the expression as a
+    `//go:build` header. It rejects repeated metadata, conflicting constraints
+    on types in one module, non-literal or malformed values, and constraints on
+    the selected main module.
+  - Use complementary constrained adapter modules around a common Haxe-owned
+    interface. Do not use this metadata as free-form Go header injection.
+  - Validation commands:
+    - `python3 test/run-snapshots.py --case core/typed_go_build_constraints`
+    - `python3 test/run-snapshots.py --case negative/go_build_constraint_invalid`
+    - `python3 test/run-snapshots.py --case negative/go_build_constraint_main`
+    - `python3 test/run-snapshots.py --case negative/go_build_constraint_module_conflict`
+    - `python3 test/run-snapshots.py --case negative/go_build_constraint_repeated`
 
 Removed:
 
