@@ -173,7 +173,7 @@ func (self *haxe__Unserializer) unserializeObject(target any) {
 			default:
 				return false
 			}
-		}(any(key)) {
+		}(key) {
 			hxrt.Throw(hxrt.StringFromLiteral("Invalid object key"))
 		}
 		Reflect_setField(target, hxrt.StdString(func(hx_value_8 any) *string {

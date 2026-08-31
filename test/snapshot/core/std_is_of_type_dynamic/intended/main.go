@@ -48,7 +48,7 @@ func main() {
 		default:
 			return false
 		}
-	}(any(d)))
+	}(d))
 	hxrt.Println(v)
 	var v_1 any = any(func(hx_value any) bool {
 		switch hx_carrier := hx_value.(type) {
@@ -66,7 +66,7 @@ func main() {
 		default:
 			return false
 		}
-	}(any(d)))
+	}(d))
 	hxrt.Println(v_1)
 	d = New_Base()
 	var v_2 any = any(func(hx_value any) bool {
@@ -85,7 +85,7 @@ func main() {
 		default:
 			return false
 		}
-	}(any(d)))
+	}(d))
 	hxrt.Println(v_2)
 	d = hxrt.NewArray(1, 2)
 	var v_3 any = any(func(hx_value any) bool {
@@ -95,7 +95,7 @@ func main() {
 		default:
 			return false
 		}
-	}(any(d)))
+	}(d))
 	hxrt.Println(v_3)
 	d = 1
 	var v_4 any = any(func(hx_value any) bool {
@@ -105,7 +105,7 @@ func main() {
 		default:
 			return false
 		}
-	}(any(d)))
+	}(d))
 	hxrt.Println(v_4)
 	d = nil
 	var v_5 any = any((d != nil))

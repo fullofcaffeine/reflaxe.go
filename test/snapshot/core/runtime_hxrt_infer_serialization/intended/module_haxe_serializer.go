@@ -512,7 +512,7 @@ func (self *haxe__Serializer) serialize(value any) {
 		default:
 			return false
 		}
-	}(any(value)) {
+	}(value) {
 		if self.useCache && self.__hx_this.serializeRef(value) {
 			return
 		}
@@ -593,7 +593,7 @@ func (self *haxe__Serializer) serialize(value any) {
 			default:
 				return false
 			}
-		}(any(value)) {
+		}(value) {
 			_this_9 := self.buf
 			_this_9.b = hxrt.StringConcatStringPtr(_this_9.b, hxrt.StringFromLiteral("A"))
 			self.__hx_this.serializeString(Type_getClassName(value))
@@ -605,7 +605,7 @@ func (self *haxe__Serializer) serialize(value any) {
 				default:
 					return false
 				}
-			}(any(value)) {
+			}(value) {
 				_this_10 := self.buf
 				_this_10.b = hxrt.StringConcatStringPtr(_this_10.b, hxrt.StringFromLiteral("B"))
 				self.__hx_this.serializeString(Type_getEnumName(value))

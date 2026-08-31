@@ -23,7 +23,7 @@ func haxe__NativeStackTrace_toHaxe(nativeStackTrace any, skip int) *hxrt.Array {
 		default:
 			return false
 		}
-	}(any(nativeStackTrace)) {
+	}(nativeStackTrace) {
 		return hxrt.NewArray()
 	}
 	stack := func(hx_value_1 any) *hxrt.Array {

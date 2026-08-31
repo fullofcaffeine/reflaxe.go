@@ -38,7 +38,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "Bool":
 				return func(hx_value any) bool {
 					switch hx_value.(type) {
@@ -47,7 +47,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "Class":
 				return func(hx_value any) bool {
 					switch hx_value.(type) {
@@ -56,7 +56,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "Dynamic":
 				return (hx_value != nil)
 			case "Enum":
@@ -67,7 +67,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "Float":
 				return func(hx_value any) bool {
 					switch hx_value.(type) {
@@ -100,7 +100,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "Int":
 				return func(hx_value any) bool {
 					switch hx_value.(type) {
@@ -129,7 +129,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "String":
 				return func(hx_value any) bool {
 					switch hx_value.(type) {
@@ -140,7 +140,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "_Main.TrackingInput":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -158,7 +158,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe._Int64.___Int64":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -170,7 +170,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.ds.StringMap":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -182,7 +182,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.exceptions.NotImplementedException":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -200,7 +200,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.exceptions.PosException":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -217,7 +217,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.http.HttpBase":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -234,7 +234,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.io.Bytes":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -246,7 +246,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.io.BytesBuffer":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -258,7 +258,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.io.BytesOutput":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -276,7 +276,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.io.Eof":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -288,7 +288,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.io.Input":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -315,7 +315,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.io.Output":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -342,7 +342,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.iterators.MapKeyValueIterator":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -354,7 +354,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.iterators.StringIterator":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -366,7 +366,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.iterators.StringKeyValueIterator":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -378,7 +378,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "sys.Http":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -396,7 +396,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "sys.io.Process":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -408,7 +408,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "sys.io._Process.ProcessInput":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -426,7 +426,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "sys.io._Process.ProcessOutput":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -444,7 +444,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "sys.net.Host":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -456,7 +456,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "sys.net.Socket":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -468,7 +468,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "sys.net.SocketInput":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -486,7 +486,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "sys.net.SocketOutput":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -504,7 +504,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "sys.thread.Tls":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -516,7 +516,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			default:
 				return false
 			}
@@ -534,7 +534,7 @@ func Std_downcast(value any, c any) any {
 		default:
 			return false
 		}
-	}(any(value), any(c)) {
+	}(value, c) {
 		hx_if_1 = value
 	} else {
 		hx_if_1 = nil
@@ -563,7 +563,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "Bool":
 					return func(hx_value any) bool {
 						switch hx_value.(type) {
@@ -572,7 +572,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "Class":
 					return func(hx_value any) bool {
 						switch hx_value.(type) {
@@ -581,7 +581,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "Dynamic":
 					return (hx_value != nil)
 				case "Enum":
@@ -592,7 +592,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "Float":
 					return func(hx_value any) bool {
 						switch hx_value.(type) {
@@ -625,7 +625,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "Int":
 					return func(hx_value any) bool {
 						switch hx_value.(type) {
@@ -654,7 +654,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "String":
 					return func(hx_value any) bool {
 						switch hx_value.(type) {
@@ -665,7 +665,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "_Main.TrackingInput":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -683,7 +683,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "haxe._Int64.___Int64":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -695,7 +695,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "haxe.ds.StringMap":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -707,7 +707,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "haxe.exceptions.NotImplementedException":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -725,7 +725,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "haxe.exceptions.PosException":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -742,7 +742,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "haxe.http.HttpBase":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -759,7 +759,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "haxe.io.Bytes":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -771,7 +771,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "haxe.io.BytesBuffer":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -783,7 +783,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "haxe.io.BytesOutput":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -801,7 +801,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "haxe.io.Eof":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -813,7 +813,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "haxe.io.Input":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -840,7 +840,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "haxe.io.Output":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -867,7 +867,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "haxe.iterators.MapKeyValueIterator":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -879,7 +879,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "haxe.iterators.StringIterator":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -891,7 +891,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "haxe.iterators.StringKeyValueIterator":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -903,7 +903,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "sys.Http":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -921,7 +921,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "sys.io.Process":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -933,7 +933,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "sys.io._Process.ProcessInput":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -951,7 +951,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "sys.io._Process.ProcessOutput":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -969,7 +969,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "sys.net.Host":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -981,7 +981,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "sys.net.Socket":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -993,7 +993,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "sys.net.SocketInput":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -1011,7 +1011,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "sys.net.SocketOutput":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -1029,7 +1029,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				case "sys.thread.Tls":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -1041,7 +1041,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(any(hx_value))
+					}(hx_value)
 				default:
 					return false
 				}
@@ -1059,7 +1059,7 @@ func Std_instance(value any, c any) any {
 			default:
 				return false
 			}
-		}(any(value), any(c)) {
+		}(value, c) {
 			hx_if_2 = value
 		} else {
 			hx_if_2 = nil
@@ -1095,7 +1095,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "Bool":
 				return func(hx_value any) bool {
 					switch hx_value.(type) {
@@ -1104,7 +1104,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "Class":
 				return func(hx_value any) bool {
 					switch hx_value.(type) {
@@ -1113,7 +1113,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "Dynamic":
 				return (hx_value != nil)
 			case "Enum":
@@ -1124,7 +1124,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "Float":
 				return func(hx_value any) bool {
 					switch hx_value.(type) {
@@ -1157,7 +1157,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "Int":
 				return func(hx_value any) bool {
 					switch hx_value.(type) {
@@ -1186,7 +1186,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "String":
 				return func(hx_value any) bool {
 					switch hx_value.(type) {
@@ -1197,7 +1197,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "_Main.TrackingInput":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1215,7 +1215,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe._Int64.___Int64":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1227,7 +1227,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.ds.StringMap":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1239,7 +1239,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.exceptions.NotImplementedException":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1257,7 +1257,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.exceptions.PosException":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1274,7 +1274,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.http.HttpBase":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1291,7 +1291,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.io.Bytes":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1303,7 +1303,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.io.BytesBuffer":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1315,7 +1315,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.io.BytesOutput":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1333,7 +1333,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.io.Eof":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1345,7 +1345,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.io.Input":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1372,7 +1372,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.io.Output":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1399,7 +1399,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.iterators.MapKeyValueIterator":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1411,7 +1411,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.iterators.StringIterator":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1423,7 +1423,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "haxe.iterators.StringKeyValueIterator":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1435,7 +1435,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "sys.Http":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1453,7 +1453,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "sys.io.Process":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1465,7 +1465,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "sys.io._Process.ProcessInput":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1483,7 +1483,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "sys.io._Process.ProcessOutput":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1501,7 +1501,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "sys.net.Host":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1513,7 +1513,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "sys.net.Socket":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1525,7 +1525,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "sys.net.SocketInput":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1543,7 +1543,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "sys.net.SocketOutput":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1561,7 +1561,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			case "sys.thread.Tls":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1573,7 +1573,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(any(hx_value))
+				}(hx_value)
 			default:
 				return false
 			}
@@ -1591,7 +1591,7 @@ func Std_is(v any, t any) bool {
 		default:
 			return false
 		}
-	}(any(v), any(t))
+	}(v, t)
 }
 
 func Std_isDecimalDigit(code int) bool {

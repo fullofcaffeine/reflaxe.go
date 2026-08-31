@@ -286,7 +286,7 @@ func haxe__ds__List_sameValue(left any, right any) bool {
 		default:
 			return false
 		}
-	}(any(left)) || func(hx_value any) bool {
+	}(left) || func(hx_value any) bool {
 		switch hx_value.(type) {
 		case *string:
 			return true
@@ -295,7 +295,7 @@ func haxe__ds__List_sameValue(left any, right any) bool {
 		default:
 			return false
 		}
-	}(any(right)) {
+	}(right) {
 		return hxrt.StringEqualStringPtr(hxrt.StdString(left), hxrt.StdString(right))
 	}
 	return hxrt.HaxeEqual(left, right)
