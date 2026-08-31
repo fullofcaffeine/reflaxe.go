@@ -15,7 +15,7 @@ func main() {
 	}()
 	var v any = any(values.Len())
 	hxrt.Println(v)
-	hxrt.Println(any(values.Get(0)))
+	hxrt.Println(values.Get(0))
 	hxrt.Println(any(pushLen))
-	hxrt.Println(any(removed))
+	hxrt.Println(removed)
 }

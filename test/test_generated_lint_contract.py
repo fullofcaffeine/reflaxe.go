@@ -35,6 +35,15 @@ class GeneratedLintContractTests(unittest.TestCase):
         self.assertIn("int(-int32(", unary_output)
         self.assertIn("int(^int32(", unary_output)
 
+    def test_erased_array_reads_are_not_reboxed_as_any(self) -> None:
+        array_output = (
+            ROOT
+            / "test/snapshot/core/array_constructor_new/intended/main.go"
+        ).read_text(encoding="utf-8")
+
+        self.assertNotIn("any(names.Get(", array_output)
+        self.assertIn("hxrt.Println(names.Get(0))", array_output)
+
 
 if __name__ == "__main__":
     unittest.main()
