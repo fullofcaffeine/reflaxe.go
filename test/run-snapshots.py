@@ -523,6 +523,15 @@ def maybe_cleanup_artifacts(case: SnapshotCase, success: bool) -> None:
             shutil.rmtree(out_dir, ignore_errors=True)
 
 
+def uses_complementary_cgo_files(go_files: list[Path]) -> bool:
+    constraints: set[str] = set()
+    for path in go_files:
+        lines = path.read_text(encoding="utf-8").splitlines()
+        if lines:
+            constraints.add(lines[0])
+    return "//go:build cgo" in constraints and "//go:build !cgo" in constraints
+
+
 def run_case(case: SnapshotCase, args: argparse.Namespace) -> CaseResult:
     started = time.monotonic()
 
@@ -565,10 +574,21 @@ def run_case(case: SnapshotCase, args: argparse.Namespace) -> CaseResult:
                 duration = time.monotonic() - started
                 return CaseResult(case.case_id, False, duration, "gofmt", command_output(gofmt_proc))
 
-            gotest_proc = run_command(["go", "test", "./..."], cwd=out_dir, timeout_s=args.timeout)
-            if gotest_proc.returncode != 0:
-                duration = time.monotonic() - started
-                return CaseResult(case.case_id, False, duration, "go test", command_output(gotest_proc))
+            cgo_modes: tuple[str | None, ...] = (
+                ("1", "0") if uses_complementary_cgo_files(go_files) else (None,)
+            )
+            for cgo_enabled in cgo_modes:
+                env = None if cgo_enabled is None else {"CGO_ENABLED": cgo_enabled, "GOWORK": "off"}
+                gotest_proc = run_command(
+                    ["go", "test", "./..."],
+                    cwd=out_dir,
+                    timeout_s=args.timeout,
+                    env=env,
+                )
+                if gotest_proc.returncode != 0:
+                    duration = time.monotonic() - started
+                    step = "go test" if cgo_enabled is None else f"go test (CGO_ENABLED={cgo_enabled})"
+                    return CaseResult(case.case_id, False, duration, step, command_output(gotest_proc))
 
         intended = case.case_path / "intended"
         if args.update:

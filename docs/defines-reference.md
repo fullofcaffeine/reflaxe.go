@@ -226,6 +226,10 @@ are present in report artifacts.
     the selected main module.
   - Use complementary constrained adapter modules around a common Haxe-owned
     interface. Do not use this metadata as free-form Go header injection.
+  - Unconstrained runtime type registries omit constrained concrete classes and
+    enums so a complementary build never names an unavailable Go carrier. Keep
+    conditional implementation types behind the common typed interface rather
+    than exposing their class or enum tokens through shared dynamic RTTI.
   - Validation commands:
     - `python3 test/run-snapshots.py --case core/typed_go_build_constraints`
     - `python3 test/run-snapshots.py --case negative/go_build_constraint_invalid`

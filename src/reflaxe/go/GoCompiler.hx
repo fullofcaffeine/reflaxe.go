@@ -297,6 +297,8 @@ class GoCompiler {
 	var requiresGeneratedFieldLookup:Bool;
 	var projectClasses:Array<ClassType>;
 	var projectEnums:Array<EnumType>;
+	final buildConstrainedClassNames:Map<String, Bool>;
+	final buildConstrainedEnumNames:Map<String, Bool>;
 	final availableClassesByName:Map<String, ClassType>;
 	final pendingRequiredClassesByName:Map<String, ClassType>;
 	final availableEnumsByName:Map<String, EnumType>;
@@ -370,6 +372,8 @@ class GoCompiler {
 		requiresGeneratedFieldLookup = false;
 		projectClasses = [];
 		projectEnums = [];
+		buildConstrainedClassNames = new Map<String, Bool>();
+		buildConstrainedEnumNames = new Map<String, Bool>();
 		availableClassesByName = new Map<String, ClassType>();
 		pendingRequiredClassesByName = new Map<String, ClassType>();
 		availableEnumsByName = new Map<String, EnumType>();
@@ -466,7 +470,8 @@ class GoCompiler {
 		tempVarCounter = 0;
 		tempVarCountersByModule = new Map<String, Int>();
 		var moduleDecls = new Map<String, Array<GoDecl>>();
-		final moduleBuildConstraints = collectModuleBuildConstraints(classes, enums);
+		var moduleBuildConstraints = collectModuleBuildConstraints(classes, enums);
+		refreshBuildConstrainedTypes(moduleBuildConstraints);
 		for (enumType in enums) {
 			appendModuleDecls(moduleDecls, enumType.module, lowerModuleDecls(enumType.module, function() return lowerEnumDecls(enumType)));
 		}
@@ -498,6 +503,8 @@ class GoCompiler {
 		drainPendingEnumQueue(moduleDecls, enumQueue, queuedEnumNames, projectEnums);
 		drainPendingClassQueue(moduleDecls, classQueue, queuedClassNames, projectClasses);
 		drainPendingEnumQueue(moduleDecls, enumQueue, queuedEnumNames, projectEnums);
+		moduleBuildConstraints = collectModuleBuildConstraints(projectClasses, projectEnums);
+		refreshBuildConstrainedTypes(moduleBuildConstraints);
 
 		// Exact Type and Reflect metadata adapters share the class-token carrier used
 		// by TTypeExpr lowering, without selecting ordinary runtime reflection.
@@ -728,6 +735,24 @@ class GoCompiler {
 			Context.fatalError("all types in one Haxe module must use the same @:goBuildConstraint value", entry.pos);
 		result.set(moduleName, constraint);
 		rendered.set(moduleName, canonical);
+	}
+
+	/**
+		Records types whose declarations do not exist in every Go file set.
+
+		Shared metadata helpers must omit these types: naming a constrained carrier
+		from an unconstrained file makes the complementary Go build ill-typed before
+		any runtime lookup can fail closed.
+	**/
+	function refreshBuildConstrainedTypes(moduleConstraints:Map<String, GoBuildConstraint>):Void {
+		clearBoolMap(buildConstrainedClassNames);
+		clearBoolMap(buildConstrainedEnumNames);
+		for (classType in projectClasses)
+			if (moduleConstraints.exists(classType.module))
+				buildConstrainedClassNames.set(fullClassName(classType), true);
+		for (enumType in projectEnums)
+			if (moduleConstraints.exists(enumType.module))
+				buildConstrainedEnumNames.set(fullEnumName(enumType), true);
 	}
 
 	function noteTransformedRuntimeFeatures(decls:Array<GoDecl>):Void {
@@ -1681,7 +1706,10 @@ class GoCompiler {
 
 	/** Build the post-reachability metadata input consumed by the typed emitter. */
 	function generatedMethodClassMetadata():Array<GeneratedMethodClassMetadata> {
-		var seeds = [for (seed in generatedMethodMetadataByClassName) seed];
+		var seeds = [
+			for (seed in generatedMethodMetadataByClassName)
+				if (!buildConstrainedClassNames.exists(seed.className)) seed
+		];
 		seeds.sort(function(a, b) return Reflect.compare(a.goTypeName, b.goTypeName));
 		var relevantClassNames = relevantGeneratedMethodClassNames(seeds);
 		var entries = new Array<GeneratedMethodClassMetadata>();
@@ -1797,7 +1825,10 @@ class GoCompiler {
 		set used by the canonical enumeration switch.
 	**/
 	function generatedFieldClassMetadata():Array<GeneratedFieldClassMetadata> {
-		var seeds = [for (seed in generatedFieldMetadataByClassName) seed];
+		var seeds = [
+			for (seed in generatedFieldMetadataByClassName)
+				if (!buildConstrainedClassNames.exists(seed.className)) seed
+		];
 		seeds.sort(function(a, b) return Reflect.compare(a.goTypeName, b.goTypeName));
 		var relevantClassNames = relevantGeneratedFieldClassNames(seeds);
 		var entries = new Array<GeneratedFieldClassMetadata>();
@@ -1894,7 +1925,7 @@ class GoCompiler {
 	function typeReflectionClassMetadata():Array<TypeReflectionClassMetadata> {
 		var entries = new Array<TypeReflectionClassMetadata>();
 		for (classType in projectClasses) {
-			if (classType.isExtern || classType.isInterface) {
+			if (classType.isExtern || classType.isInterface || buildConstrainedClassNames.exists(fullClassName(classType))) {
 				continue;
 			}
 			switch (classType.kind) {
@@ -1925,7 +1956,7 @@ class GoCompiler {
 	function rttiClassMetadata():Array<RttiClassMetadata> {
 		var entries = new Array<RttiClassMetadata>();
 		for (classType in projectClasses) {
-			if (classType.isExtern || classType.isInterface) {
+			if (classType.isExtern || classType.isInterface || buildConstrainedClassNames.exists(fullClassName(classType))) {
 				continue;
 			}
 			switch (classType.kind) {
@@ -1961,7 +1992,7 @@ class GoCompiler {
 	function typeReflectionEnumMetadata():Array<TypeReflectionEnumMetadata> {
 		var entries = new Array<TypeReflectionEnumMetadata>();
 		for (enumType in projectEnums) {
-			if (enumType.isExtern) {
+			if (enumType.isExtern || buildConstrainedEnumNames.exists(fullEnumName(enumType))) {
 				continue;
 			}
 			var constructors = new Array<TypeReflectionEnumConstructorMetadata>();
@@ -8586,7 +8617,9 @@ class GoCompiler {
 		specs.set("String", ["*string", "string"]);
 
 		for (classType in projectClasses) {
-			if (classType.isExtern || specs.exists(fullClassName(classType))) {
+			if (classType.isExtern
+				|| buildConstrainedClassNames.exists(fullClassName(classType))
+				|| specs.exists(fullClassName(classType))) {
 				continue;
 			}
 			if (hasGeneratedVirtualCarrier(classType) && !isHaxeExceptionClass(classType)) {
@@ -8637,7 +8670,10 @@ class GoCompiler {
 		pointer type, in deterministic name order.
 	**/
 	function dynamicStdEnumTypeCases():Array<GoSwitchCase> {
-		var enums = projectEnums.copy();
+		var enums = [
+			for (enumType in projectEnums)
+				if (!buildConstrainedEnumNames.exists(fullEnumName(enumType))) enumType
+		];
 		enums.sort(function(a, b) return Reflect.compare(fullEnumName(a), fullEnumName(b)));
 		return [
 			for (enumType in enums)
@@ -8866,7 +8902,10 @@ class GoCompiler {
 	function stdIsOfTypeDynamicClassExpr(valueExpr:GoExpr, targetClass:ClassType):GoExpr {
 		var related = new Array<{typeName:String, usesVirtualReceiver:Bool}>();
 		var seen = new Map<String, Bool>();
-		var candidates = projectClasses.copy();
+		var candidates = [
+			for (classType in projectClasses)
+				if (!buildConstrainedClassNames.exists(fullClassName(classType))) classType
+		];
 		if (!hasProjectClassNamed(candidates, fullClassName(targetClass))) {
 			candidates.push(targetClass);
 		}
