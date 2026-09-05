@@ -5373,6 +5373,29 @@ class GoCompiler {
 		return fallbackType != "any" ? fallbackType : scalarGoType(payloadType);
 	}
 
+	/**
+		Returns whether an asserted enum payload uses a nil-capable Go type.
+
+		Why: Haxe reference values can be null even when `Null<T>` is erased during
+		typing. A direct Go assertion on a stored nil interface panics before Haxe
+		code can test the extracted payload for null.
+
+		What: Recognize the Go reference carriers emitted by this compiler.
+
+		How: Keep value carriers on the direct assertion path and route pointers,
+		maps, slices, functions, interfaces, and channels through the existing
+		nil-safe assertion expression.
+	**/
+	function enumPayloadGoTypeCanBeNil(goType:String):Bool {
+		return StringTools.startsWith(goType, "*")
+			|| StringTools.startsWith(goType, "map[")
+			|| StringTools.startsWith(goType, "[]")
+			|| StringTools.startsWith(goType, "func(")
+			|| StringTools.startsWith(goType, "interface{")
+			|| StringTools.startsWith(goType, "chan ")
+			|| StringTools.startsWith(goType, "<-chan ");
+	}
+
 	function registerOptionalPrimitiveParam(variable:TVar, isOptionalPrimitive:Bool):Void {
 		if (!isOptionalPrimitive) {
 			return;
@@ -5959,9 +5982,9 @@ class GoCompiler {
 			case TEnumParameter(target, constructor, index):
 				var payload = GoExpr.GoIndex(GoExpr.GoSelector(lowerExpr(target).expr, "params"), GoExpr.GoIntLiteral(index));
 				var payloadType = enumPayloadStorageGoType(constructor, index, expr.t);
-				var needsNilSafePortablePayload = isAdmittedPortableFacadeEnumType(target.t);
+				var needsNilSafePayload = isAdmittedPortableFacadeEnumType(target.t) || enumPayloadGoTypeCanBeNil(payloadType);
 				{
-					expr: payloadType == "any" ? payload : needsNilSafePortablePayload ? lowerNullableAwareTypeAssertExpr(payload,
+					expr: payloadType == "any" ? payload : needsNilSafePayload ? lowerNullableAwareTypeAssertExpr(payload,
 						expr.t) : GoExpr.GoTypeAssert(payload, payloadType),
 					isStringLike: isStringType(expr.t)
 				};
