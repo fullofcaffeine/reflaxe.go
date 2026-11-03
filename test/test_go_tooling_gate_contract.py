@@ -26,7 +26,7 @@ class GoToolingGateContractTest(unittest.TestCase):
     def test_runner_pins_tools_and_declares_every_release_scope(self) -> None:
         runner = RUNNER.read_text(encoding="utf-8")
 
-        self.assertIn('STATICCHECK_VERSION = "v0.7.0"', runner)
+        self.assertIn('STATICCHECK_VERSION = "v0.8.2"', runner)
         self.assertIn("runtime/hxrt", runner)
         self.assertIn("test/snapshot/stdlib/sys_thread_runtime_direct/intended", runner)
         self.assertIn("test/snapshot/go_native/channel_try_recv/intended", runner)
@@ -102,7 +102,7 @@ class GoToolingGateContractTest(unittest.TestCase):
         policy = POLICY_DOC.read_text(encoding="utf-8")
         self.assertIn("# Go Tooling Release Gates", policy)
         self.assertIn("npm run security:go-tooling", policy)
-        self.assertIn("Staticcheck 2026.1 (`v0.7.0`)", policy)
+        self.assertIn("Staticcheck 2026.2.2 (`v0.8.2`)", policy)
         self.assertIn("`SA*`", policy)
         self.assertIn("`stdmethods`", policy)
         self.assertIn("no test retries", policy)
