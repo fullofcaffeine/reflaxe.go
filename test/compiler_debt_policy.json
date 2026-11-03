@@ -61,10 +61,10 @@
     },
     "runtime_reflection_boundary": {
       "classification": "required",
-      "how": "Keep reflection inside small tested hxrt helpers, including JSON's active-container cycle detector, and ratchet each file independently so unrelated runtime modules cannot acquire it silently.",
+      "how": "Keep reflection inside small tested hxrt helpers, including JSON's active-container cycle detector, and ratchet each file independently so unrelated runtime modules cannot acquire it silently. Function construction uses only ValueOf, Kind and IsNil; invocation and identity comparison remain typed and reflection-free. The boundary is covered by runtime/hxrt/function_test.go and can be removed if generated native imports validate null before entering a statically constrained callable constructor.",
       "owner": "hxrt runtime",
-      "what": "Go reflect package imports and selectors used by checked-in hxrt helpers for dynamic nil checks, reference identity, cyclic JSON container detection, and generated enum-carrier recognition.",
-      "why": "Go interface values can contain typed nils and non-comparable reference values, JSON normalization must recognize repeated maps, slices, and Array carriers before recursing, and erased Haxe enums need a narrow structural predicate; plain interface operations cannot preserve those contracts safely."
+      "what": "Go reflect package imports and selectors used by checked-in hxrt helpers for dynamic nil checks, reference identity, cyclic JSON container detection, and generated enum-carrier recognition. Function carrier construction also validates that a generic payload is a non-null Go callable before assigning source identity.",
+      "why": "Go interface values can contain typed nils and non-comparable reference values, JSON normalization must recognize repeated maps, slices, and Array carriers before recursing, and erased Haxe enums need a narrow structural predicate; plain interface operations cannot preserve those contracts safely. Go has no type constraint covering arbitrary function signatures; a bounded construction check rejects non-functions and preserves typed nil without inspecting code addresses."
     },
     "runtime_unsafe_boundary": {
       "classification": "required",
@@ -2133,6 +2133,30 @@
       "exception_id": "runtime_reflection_boundary",
       "file": "runtime/hxrt/equality.go",
       "max_count": 9,
+      "metric": "go_reflection",
+      "owner": "runtime_hxrt",
+      "profile": "shared",
+      "surface": "runtime"
+    },
+    {
+      "capability": "dynamic_values",
+      "classification": "required",
+      "context": "<import>",
+      "exception_id": "runtime_reflection_boundary",
+      "file": "runtime/hxrt/function.go",
+      "max_count": 1,
+      "metric": "go_reflection",
+      "owner": "runtime_hxrt",
+      "profile": "shared",
+      "surface": "runtime"
+    },
+    {
+      "capability": "dynamic_values",
+      "classification": "required",
+      "context": "<module>",
+      "exception_id": "runtime_reflection_boundary",
+      "file": "runtime/hxrt/function.go",
+      "max_count": 2,
       "metric": "go_reflection",
       "owner": "runtime_hxrt",
       "profile": "shared",
