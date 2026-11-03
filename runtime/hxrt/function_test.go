@@ -47,7 +47,13 @@ func TestFunctionNullTransportAndGuard(t *testing.T) {
 		t.Fatal("null identity must be independent of the callable signature")
 	}
 	caught := false
-	TryCatch(func() { FunctionCall(null)(1) }, func(value any) { caught = true })
+	TryCatch(func() { FunctionCall(null)(1) }, func(value any) {
+		caught = true
+		message, ok := value.(*string)
+		if !ok || *message != "Cannot call null" {
+			t.Fatalf("null failure must match the pinned Haxe interpreter: %v", value)
+		}
+	})
 	if !caught {
 		t.Fatal("null invocation must enter a Haxe catch")
 	}
