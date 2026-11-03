@@ -4911,7 +4911,15 @@ class GoCompiler {
 				true;
 			case TBlock(exprs): exprs.length > 0 && exprAlwaysTerminates(exprs[exprs.length - 1]);
 			case TIf(_, thenBranch, elseBranch): elseBranch != null && exprAlwaysTerminates(thenBranch) && exprAlwaysTerminates(elseBranch);
-			case TTry(tryExpr, catches): exprAlwaysTerminates(tryExpr) && Lambda.foreach(catches, entry -> exprAlwaysTerminates(entry.expr));
+			case TTry(tryExpr, catches):
+				var allTerminate = exprAlwaysTerminates(tryExpr);
+				if (allTerminate)
+					for (entry in catches)
+						if (!exprAlwaysTerminates(entry.expr)) {
+							allTerminate = false;
+							break;
+						}
+				allTerminate;
 			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
 				exprAlwaysTerminates(inner);
 			case _:
