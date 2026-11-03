@@ -1,6 +1,6 @@
 # Supported Toolchain Policy
 
-Effective date: 2026-08-19
+Effective date: 2026-11-03
 
 Machine-readable source: [toolchain-policy.json](toolchain-policy.json)
 
@@ -38,8 +38,8 @@ does not establish production or security support.
 | --- | --- | --- | --- | --- |
 | Haxe compiler | `4.3.7` | `4.3.7` | `4.3.7` | Exact current stable Haxe compiler used by the target and semantic baselines. |
 | Generated Go language floor | `1.22` | n/a | n/a | Language and module semantics permitted in generated `go.mod`; not a patched build-toolchain claim. |
-| Go build and test toolchain | `1.25.13` and `1.26.6` | `1.26.6` | `1.25.13`, `1.26.6` | Exact approved patches from the two current upstream-supported Go release lines. |
-| Node repository tooling | latest patch of `24` | latest patch of `24` | `24` | Active LTS line for npm and release tooling. |
+| Go build and test toolchain | `1.26.10` and `1.27.3` | `1.27.3` | `1.26.10`, `1.27.3` | Exact approved patches from the two current upstream-supported Go release lines. |
+| Node repository tooling | latest patch of `24` | latest patch of `24` | `24` | Maintenance LTS line for npm and release tooling. |
 | npm lock and CI executor | exact `packageManager` value | exact `packageManager` value | `npm@11.16.0` | One reviewed npm version generates and consumes the lock; `package.json` owns the exact value. |
 
 The upstream authorities checked for this policy are:
@@ -47,7 +47,7 @@ The upstream authorities checked for this policy are:
 - [Go release history and support policy](https://go.dev/doc/devel/release):
   each major release remains supported until two newer major releases exist;
 - [Node.js release schedule](https://github.com/nodejs/Release): Node 24 is
-  Active LTS on the effective date; and
+  Maintenance LTS on the effective date; and
 - [Haxe download list](https://haxe.org/download/list/): Haxe 4.3.7 is the
   current stable release.
 
@@ -71,6 +71,13 @@ The previous patches had reachable standard-library findings in `net/url`,
 `crypto/tls`, `encoding/asn1`, and `net/http`. The fail-closed dependency audit
 rejected them before release evidence could be accepted.
 
+The 2026-11-03 refresh moves CI to Go 1.26.10 and 1.27.3. Go 1.25 is no
+longer an upstream-supported line. The dependency audit found reachable
+standard-library vulnerabilities on the previous pins, including
+[GO-2026-6809](https://pkg.go.dev/vuln/GO-2026-6809), which is fixed in both
+new pins. This changes build and security evidence; generated modules keep
+the Go 1.22 language floor. Node 24 remains supported in Maintenance LTS.
+
 Setting `check-latest: true` on a wildcard was considered and rejected for
 release evidence. It would avoid preferring an older matching cache entry, but
 it would also let the concrete toolchain change without a repository change.
@@ -81,9 +88,9 @@ allowing only the reviewed patch to satisfy the request.
 
 ## How CI Applies It
 
-1. The quality matrix runs Linux on the exact approved Go 1.25 and 1.26
+1. The quality matrix runs Linux on the exact approved Go 1.26 and 1.27
    patches.
-2. The recommended lane runs Linux and macOS on the exact approved Go 1.26
+2. The recommended lane runs Linux and macOS on the exact approved Go 1.27
    patch.
 3. Harness, security, performance, example-artifact, and release jobs use the
    recommended supported line unless a separate matrix is the subject of the
