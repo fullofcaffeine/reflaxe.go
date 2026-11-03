@@ -45,7 +45,7 @@ runs exactly these commands:
 3. `go vet -stdmethods=false ./...`; and
 4. `staticcheck -checks=SA* ./...`.
 
-Staticcheck 2026.1 (`v0.7.0`) is installed from an exact module version. The
+Staticcheck 2026.2.2 (`v0.8.2`) is installed from an exact module version. The
 runner rejects a binary that reports another version. `SA*` is the complete
 Staticcheck correctness family. Style and simplification checks are outside
 this lane because generated identifiers and mechanical code shape are owned by
