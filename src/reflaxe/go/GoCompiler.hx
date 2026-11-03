@@ -3955,7 +3955,7 @@ class GoCompiler {
 				// Arrow bodies can carry an implicit return around a block that already
 				// returns explicitly. Preserve that escaping control flow as statements;
 				// it never produces a value for the outer return to evaluate.
-				if (value != null && exprAlwaysTerminates(value)) {
+				if (value != null && exprContainsReturn(value) && exprAlwaysTerminates(value)) {
 					return lowerToStatements(value);
 				}
 				var redirect = currentReturnRedirect();
