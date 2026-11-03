@@ -53,15 +53,21 @@ func main() {
 	var rawRtti any = Reflect_field(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Demo")}, hxrt.StringFromLiteral("__rtti"))
 	parsed := New_haxe__rtti__XmlParser().__hx_this.processElement(Xml_parse(hxrt.StdString(rawRtti)).__hx_this.firstElement())
 	if parsed.tag == 1 {
-		_g := parsed.params[0].(map[string]any)
-		c := _g
-		var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("parsedPath="), func(hx_obj_12 map[string]any) *string {
-			hx_field_13 := hx_obj_12["path"]
-			if hx_field_13 == nil {
-				var hx_zero_14 *string
-				return hx_zero_14
+		_g := func(hx_value_12 any) map[string]any {
+			if hx_value_12 == nil {
+				var hx_zero_13 map[string]any
+				return hx_zero_13
 			}
-			return hx_field_13.(*string)
+			return hx_value_12.(map[string]any)
+		}(parsed.params[0])
+		c := _g
+		var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("parsedPath="), func(hx_obj_14 map[string]any) *string {
+			hx_field_15 := hx_obj_14["path"]
+			if hx_field_15 == nil {
+				var hx_zero_16 *string
+				return hx_zero_16
+			}
+			return hx_field_15.(*string)
 		}(c)))
 		hxrt.Println(v_2)
 	} else {
