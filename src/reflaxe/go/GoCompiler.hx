@@ -3952,6 +3952,12 @@ class GoCompiler {
 			case TTry(tryExpr, catches):
 				lowerTryCatchStmt(tryExpr, catches);
 			case TReturn(value):
+				// Arrow bodies can carry an implicit return around a block that already
+				// returns explicitly. Preserve that escaping control flow as statements;
+				// it never produces a value for the outer return to evaluate.
+				if (value != null && exprAlwaysTerminates(value)) {
+					return lowerToStatements(value);
+				}
 				var redirect = currentReturnRedirect();
 				if (redirect != null) {
 					var redirected = new Array<GoStmt>();
@@ -4892,12 +4898,20 @@ class GoCompiler {
 		};
 	}
 
+	/**
+		What: Conservatively recognizes expressions with no normal fallthrough.
+		Why: Guard facts and nested returns must distinguish escaping control flow
+		from expressions that still produce a value for their enclosing statement.
+		How: Follow transparent wrappers and final block statements, requiring every
+		if branch and every try/catch path to terminate. Unknown shapes remain false.
+	**/
 	function exprAlwaysTerminates(expr:TypedExpr):Bool {
 		return switch (expr.expr) {
 			case TReturn(_) | TThrow(_):
 				true;
 			case TBlock(exprs): exprs.length > 0 && exprAlwaysTerminates(exprs[exprs.length - 1]);
 			case TIf(_, thenBranch, elseBranch): elseBranch != null && exprAlwaysTerminates(thenBranch) && exprAlwaysTerminates(elseBranch);
+			case TTry(tryExpr, catches): exprAlwaysTerminates(tryExpr) && Lambda.foreach(catches, entry -> exprAlwaysTerminates(entry.expr));
 			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
 				exprAlwaysTerminates(inner);
 			case _:
