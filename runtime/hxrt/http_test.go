@@ -1318,6 +1318,8 @@ func TestHttpRequestTimeoutAndIdleConnectionCleanupAreBounded(t *testing.T) {
 	})
 
 	t.Run("slow progress can exceed the total timeout", func(t *testing.T) {
+		// Keep progress below 500 ms while the total exceeds it. The direct
+		// deadline contract below proves reset behavior without scheduler timing.
 		server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
 			response.Header().Set("Content-Length", "4")
 			response.WriteHeader(http.StatusOK)
@@ -1325,20 +1327,20 @@ func TestHttpRequestTimeoutAndIdleConnectionCleanupAreBounded(t *testing.T) {
 			for _, chunk := range []byte("slow") {
 				_, _ = response.Write([]byte{chunk})
 				flusher.Flush()
-				time.Sleep(30 * time.Millisecond)
+				time.Sleep(200 * time.Millisecond)
 			}
 		}))
 		defer server.Close()
 
 		started := time.Now()
-		result := HttpRequestExecute(HttpRequestNew(httpTestString(server.URL), false, nil, 0.05))
+		result := HttpRequestExecute(HttpRequestNew(httpTestString(server.URL), false, nil, 0.5))
 		if err := HttpResponseError(result); err != nil {
 			t.Fatalf("slow-progress error = %q, want nil", *err)
 		}
 		if got := string(byteViewRaw(HttpResponseBody(result))); got != "slow" {
 			t.Fatalf("slow-progress body = %q, want slow", got)
 		}
-		if elapsed := time.Since(started); elapsed <= 50*time.Millisecond {
+		if elapsed := time.Since(started); elapsed <= 500*time.Millisecond {
 			t.Fatalf("slow-progress request took %s, want longer than one timeout budget", elapsed)
 		}
 	})
@@ -1748,5 +1750,50 @@ func TestHttpExchangeRetainsOnlyBoundedReadChunks(t *testing.T) {
 	HttpExchangeClose(exchange)
 	if got := body.closed.Load(); got != 1 {
 		t.Fatalf("response body close count = %d, want 1", got)
+	}
+}
+
+// Record the transport boundary without a live clock deadline or network peer.
+// Embedding net.Conn leaves unrelated methods unavailable: this contract only
+// permits the body reader to reset the read deadline.
+type httpReadDeadlineRecorder struct {
+	net.Conn
+	deadlines []time.Time
+}
+
+func (connection *httpReadDeadlineRecorder) SetReadDeadline(deadline time.Time) error {
+	connection.deadlines = append(connection.deadlines, deadline)
+	return nil
+}
+
+func TestHttpBodyReadRefreshesProgressDeadline(t *testing.T) {
+	for _, timed := range []bool{false, true} {
+		connection := &httpReadDeadlineRecorder{}
+		const budget = 500 * time.Millisecond
+		exchange := &HttpExchange{
+			connection: connection,
+			timeout:    budget,
+			timed:      timed,
+			response:   &http.Response{Body: io.NopCloser(strings.NewReader("slow"))},
+		}
+		for index, want := range []byte("slow") {
+			before := time.Now()
+			result := HttpExchangeReadResponseChunk(exchange, 1)
+			after := time.Now()
+			if result.err != nil || result.eof || !bytes.Equal(byteViewRaw(result.body), []byte{want}) {
+				t.Fatalf("timed=%v read %d = %#v, want byte %q", timed, index, result, want)
+			}
+			if len(connection.deadlines) != index+1 {
+				t.Fatalf("timed=%v read %d did not reset its own deadline", timed, index)
+			}
+			deadline := connection.deadlines[index]
+			if timed {
+				if deadline.Before(before.Add(budget)) || deadline.After(after.Add(budget)) {
+					t.Fatalf("read %d deadline %s is not based on this read", index, deadline)
+				}
+			} else if !deadline.IsZero() {
+				t.Fatalf("untimed read %d retained a deadline", index)
+			}
+		}
 	}
 }
