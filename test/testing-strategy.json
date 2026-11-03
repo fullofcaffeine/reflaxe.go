@@ -12,27 +12,69 @@
         "Ordinary Haxe source preserves the exact operation/member semantics admitted by the compatibility manifest on its named toolchain and platform matrix.",
         "The portable preset is the default product path; a green native or example lane cannot widen this claim."
       ],
-      "authoredInputs": ["ordinary Haxe source without target-native APIs"],
-      "producedOutputs": ["generated Go modules", "portable semantic and compatibility reports"],
-      "supportedProfiles": ["portable", "metal"],
-      "testedProfiles": ["portable", "metal"],
+      "authoredInputs": [
+        "ordinary Haxe source without target-native APIs"
+      ],
+      "producedOutputs": [
+        "generated Go modules",
+        "portable semantic and compatibility reports"
+      ],
+      "supportedProfiles": [
+        "portable",
+        "metal"
+      ],
+      "testedProfiles": [
+        "portable",
+        "metal"
+      ],
       "profileQualifications": {
         "portable": "Default portable semantic evidence.",
         "metal": "Portable semantic preset-invariance evidence only; it is not Go-native API evidence."
       },
-      "focusedOwners": ["snapshot-portable", "negative-diagnostics", "portable-policy"],
-      "verticalOwners": ["semantic-diff-portable", "portable-example-smoke", "isolated-haxelib-smoke", "official-haxe-target-smoke", "official-haxe-target-inventory"],
-      "realRuntimeOrSystemOwners": ["semantic-diff-portable", "portable-example-smoke", "official-haxe-target-smoke", "official-haxe-target-inventory"],
-      "examples": ["portable_beta", "profile_storyboard", "tui_todo", "incident_api", "pulseforge", "fluxproxy"],
+      "focusedOwners": [
+        "snapshot-portable",
+        "negative-diagnostics",
+        "portable-policy"
+      ],
+      "verticalOwners": [
+        "semantic-diff-portable",
+        "portable-example-smoke",
+        "isolated-haxelib-smoke",
+        "official-haxe-target-smoke",
+        "official-haxe-target-inventory"
+      ],
+      "realRuntimeOrSystemOwners": [
+        "semantic-diff-portable",
+        "portable-example-smoke",
+        "official-haxe-target-smoke",
+        "official-haxe-target-inventory"
+      ],
+      "examples": [
+        "portable_beta",
+        "profile_storyboard",
+        "tui_todo",
+        "incident_api",
+        "pulseforge",
+        "fluxproxy"
+      ],
       "upstreamOracleAndPin": [
         "Haxe 4.3.7 behavior through --interp where the same source has a faithful portable contract",
         "docs/toolchain-policy.json",
         "test/portable_conformance_tier1.json"
       ],
-      "adaptations": ["repository-owned portable Tier 1 mapping", "three-family pinned official target smoke with explicitly recorded target and assertion adapters", "complete pinned tests/unit owner inventory with provenance-recorded typed harness adapters"],
-      "knownSkips": ["480 applicable owners are explicitly blocked by named compiler, generated-Go, runtime, environment, compile-only-observer, or harness-support gaps"],
+      "adaptations": [
+        "repository-owned portable Tier 1 mapping",
+        "three-family pinned official target smoke with explicitly recorded target and assertion adapters",
+        "complete pinned tests/unit owner inventory with provenance-recorded typed harness adapters"
+      ],
+      "knownSkips": [
+        "480 applicable owners are explicitly blocked by named compiler, generated-Go, runtime, environment, compile-only-observer, or harness-support gaps"
+      ],
       "quarantines": [],
-      "selectorOwnership": ["portable-compiler", "portable-provenance"],
+      "selectorOwnership": [
+        "portable-compiler",
+        "portable-provenance"
+      ],
       "fullBackstopCommand": "npm run test:ci",
       "releaseCommand": "npm run release:readiness",
       "lastCleanProof": "commit 7188fea2, CI Harness run 30666284175 and CI - Quality run 30666284172",
@@ -53,23 +95,61 @@
         "Typed go.* APIs, extern metadata, and @:goNative boundaries behave as proved by their own fixtures.",
         "Metal is a convenience policy preset, not a second semantic product and not portable-conformance evidence."
       ],
-      "authoredInputs": ["Haxe modules with explicit typed Go-native authority"],
-      "producedOutputs": ["typed Go API calls", "native policy reports"],
-      "supportedProfiles": ["portable", "metal"],
-      "testedProfiles": ["portable", "metal"],
-      "focusedOwners": ["snapshot-go-native", "native-boundary-negatives", "metal-policy"],
-      "verticalOwners": ["go-native-example-smoke", "goextern-fixtures"],
-      "realRuntimeOrSystemOwners": ["go-native-example-smoke", "go-tooling"],
-      "examples": ["interop_smoke", "worker_pool_select", "pulseforge", "fluxproxy"],
-      "upstreamOracleAndPin": ["Go language and standard-library contracts for the exact supported Go versions", "docs/toolchain-policy.json"],
-      "adaptations": ["typed extern and framework-owned go.* facades"],
-      "knownSkips": ["complete governed native capability matrix"],
+      "authoredInputs": [
+        "Haxe modules with explicit typed Go-native authority"
+      ],
+      "producedOutputs": [
+        "typed Go API calls",
+        "native policy reports"
+      ],
+      "supportedProfiles": [
+        "portable",
+        "metal"
+      ],
+      "testedProfiles": [
+        "portable",
+        "metal"
+      ],
+      "focusedOwners": [
+        "snapshot-go-native",
+        "native-boundary-negatives",
+        "metal-policy"
+      ],
+      "verticalOwners": [
+        "go-native-example-smoke",
+        "goextern-fixtures"
+      ],
+      "realRuntimeOrSystemOwners": [
+        "go-native-example-smoke",
+        "go-tooling"
+      ],
+      "examples": [
+        "interop_smoke",
+        "worker_pool_select",
+        "pulseforge",
+        "fluxproxy"
+      ],
+      "upstreamOracleAndPin": [
+        "Go language and standard-library contracts for the exact supported Go versions",
+        "docs/toolchain-policy.json"
+      ],
+      "adaptations": [
+        "typed extern and framework-owned go.* facades"
+      ],
+      "knownSkips": [
+        "complete governed native capability matrix"
+      ],
       "quarantines": [],
-      "selectorOwnership": ["go-native-metal", "go-tooling"],
+      "selectorOwnership": [
+        "go-native-metal",
+        "go-tooling"
+      ],
       "fullBackstopCommand": "npm run test:ci && npm run security:go-tooling",
       "releaseCommand": "npm run release:readiness",
       "lastCleanProof": "commit 7188fea2, CI Harness run 30666284175",
-      "residualRisks": ["Whole go.* classes and unlisted ABI shapes are not admitted by nearby portable evidence."],
+      "residualRisks": [
+        "Whole go.* classes and unlisted ABI shapes are not admitted by nearby portable evidence."
+      ],
       "officialHaxeTargetSuiteApplies": false
     },
     {
@@ -82,23 +162,67 @@
         "Staged std behavior and typed hxrt resource ownership are supported only for operations named by the compatibility manifest.",
         "Compile-only and cross-build results do not become runtime admission."
       ],
-      "authoredInputs": ["ordinary staged Haxe overrides", "typed hxrt calls"],
-      "producedOutputs": ["generated staged-stdlib code", "selectively copied hxrt files"],
-      "supportedProfiles": ["portable", "metal"],
-      "testedProfiles": ["portable", "metal"],
-      "focusedOwners": ["hxrt-go-tests", "stdlib-contracts", "runtime-slicing"],
-      "verticalOwners": ["semantic-diff-portable", "runtime-snapshot-smokes", "stdlib-go-test-sweep"],
-      "realRuntimeOrSystemOwners": ["hxrt-race-checkptr", "runtime-snapshot-smokes", "network-loopback"],
-      "examples": ["portable_beta", "incident_api", "tui_todo", "pulseforge", "fluxproxy"],
-      "upstreamOracleAndPin": ["Haxe 4.3.7 std behavior where differential execution is faithful", "Go runtime invariants", "docs/stdlib-provenance-ledger.json"],
-      "adaptations": ["canonical std/go/_std overrides and typed std/hxrt bindings"],
-      "knownSkips": ["target-sensitive surfaces intentionally kept out of semantic diff", "runtime admission outside named platforms"],
+      "authoredInputs": [
+        "ordinary staged Haxe overrides",
+        "typed hxrt calls"
+      ],
+      "producedOutputs": [
+        "generated staged-stdlib code",
+        "selectively copied hxrt files"
+      ],
+      "supportedProfiles": [
+        "portable",
+        "metal"
+      ],
+      "testedProfiles": [
+        "portable",
+        "metal"
+      ],
+      "focusedOwners": [
+        "hxrt-go-tests",
+        "stdlib-contracts",
+        "runtime-slicing"
+      ],
+      "verticalOwners": [
+        "semantic-diff-portable",
+        "runtime-snapshot-smokes",
+        "stdlib-go-test-sweep"
+      ],
+      "realRuntimeOrSystemOwners": [
+        "hxrt-race-checkptr",
+        "runtime-snapshot-smokes",
+        "network-loopback"
+      ],
+      "examples": [
+        "portable_beta",
+        "incident_api",
+        "tui_todo",
+        "pulseforge",
+        "fluxproxy"
+      ],
+      "upstreamOracleAndPin": [
+        "Haxe 4.3.7 std behavior where differential execution is faithful",
+        "Go runtime invariants",
+        "docs/stdlib-provenance-ledger.json"
+      ],
+      "adaptations": [
+        "canonical std/go/_std overrides and typed std/hxrt bindings"
+      ],
+      "knownSkips": [
+        "target-sensitive surfaces intentionally kept out of semantic diff",
+        "runtime admission outside named platforms"
+      ],
       "quarantines": [],
-      "selectorOwnership": ["runtime-stdlib", "portable-provenance"],
+      "selectorOwnership": [
+        "runtime-stdlib",
+        "portable-provenance"
+      ],
       "fullBackstopCommand": "npm run test:ci",
       "releaseCommand": "npm run release:readiness",
       "lastCleanProof": "commit 7188fea2, CI Harness run 30666284175 and supported-Go tooling jobs",
-      "residualRisks": ["Snapshot/runtime evidence and semantic-diff evidence remain distinct support levels."],
+      "residualRisks": [
+        "Snapshot/runtime evidence and semantic-diff evidence remain distinct support levels."
+      ],
       "officialHaxeTargetSuiteApplies": false
     },
     {
@@ -111,23 +235,57 @@
         "Exact negative diagnostics, deterministic compiler reports, and documented developer commands behave as their own tests show.",
         "No source-map claim exists unless an explicit source-map owner is added here."
       ],
-      "authoredInputs": ["invalid Haxe programs", "compiler policy inputs", "developer CLI invocations"],
-      "producedOutputs": ["diagnostics", "JSON/Markdown reports", "generated-source correlation"],
-      "supportedProfiles": ["portable", "metal"],
-      "testedProfiles": ["portable", "metal"],
-      "focusedOwners": ["negative-diagnostics", "report-schema", "compiler-debt"],
-      "verticalOwners": ["generated-output-confinement", "developer-wrapper-contracts", "managed-development-watch"],
-      "realRuntimeOrSystemOwners": ["isolated-haxelib-smoke", "haxe-go-watch-tracer"],
+      "authoredInputs": [
+        "invalid Haxe programs",
+        "compiler policy inputs",
+        "developer CLI invocations"
+      ],
+      "producedOutputs": [
+        "diagnostics",
+        "JSON/Markdown reports",
+        "generated-source correlation"
+      ],
+      "supportedProfiles": [
+        "portable",
+        "metal"
+      ],
+      "testedProfiles": [
+        "portable",
+        "metal"
+      ],
+      "focusedOwners": [
+        "negative-diagnostics",
+        "report-schema",
+        "compiler-debt"
+      ],
+      "verticalOwners": [
+        "generated-output-confinement",
+        "developer-wrapper-contracts",
+        "managed-development-watch"
+      ],
+      "realRuntimeOrSystemOwners": [
+        "isolated-haxelib-smoke",
+        "haxe-go-watch-tracer"
+      ],
       "examples": [],
-      "upstreamOracleAndPin": ["manually authored exact diagnostic substrings", "versioned report schemas"],
+      "upstreamOracleAndPin": [
+        "manually authored exact diagnostic substrings",
+        "versioned report schemas"
+      ],
       "adaptations": [],
-      "knownSkips": ["source maps are not a current public admission"],
+      "knownSkips": [
+        "source maps are not a current public admission"
+      ],
       "quarantines": [],
-      "selectorOwnership": ["diagnostics-tooling"],
+      "selectorOwnership": [
+        "diagnostics-tooling"
+      ],
       "fullBackstopCommand": "npm test",
       "releaseCommand": "npm run release:readiness",
       "lastCleanProof": "commit 7188fea2, CI Harness run 30666284175",
-      "residualRisks": ["Windows process lifecycle remains compile-only; undeclared custom macro inputs require an explicit --watch-dir."],
+      "residualRisks": [
+        "Windows process lifecycle remains compile-only; undeclared custom macro inputs require an explicit --watch-dir."
+      ],
       "officialHaxeTargetSuiteApplies": false
     },
     {
@@ -141,23 +299,65 @@
         "An example proves only its listed profiles, product surfaces, and execution mode.",
         "Only release-bearing lanes may publish portable-beta operation evidence, and every operation must resolve to a release-admitted compatibility entry."
       ],
-      "authoredInputs": ["installed haxelib package", "maintained example Haxe programs"],
-      "producedOutputs": ["consumer Go modules", "example binaries and stdout", "release artifacts"],
-      "supportedProfiles": ["portable", "metal"],
-      "testedProfiles": ["portable", "metal"],
-      "focusedOwners": ["package-layout", "example-manifest"],
-      "verticalOwners": ["isolated-haxelib-smoke", "all-examples"],
-      "realRuntimeOrSystemOwners": ["all-examples", "example-binary-matrix"],
-      "examples": ["portable_beta", "fluxproxy", "incident_api", "interop_smoke", "profile_storyboard", "pulseforge", "tui_todo", "worker_pool_select"],
-      "upstreamOracleAndPin": ["manually reviewed expected/*.stdout", "public package layout and release policy"],
-      "adaptations": ["CI HXML variants exercise declared application variants"],
-      "knownSkips": ["no external third-party downstream corpus yet"],
+      "authoredInputs": [
+        "installed haxelib package",
+        "maintained example Haxe programs"
+      ],
+      "producedOutputs": [
+        "consumer Go modules",
+        "example binaries and stdout",
+        "release artifacts"
+      ],
+      "supportedProfiles": [
+        "portable",
+        "metal"
+      ],
+      "testedProfiles": [
+        "portable",
+        "metal"
+      ],
+      "focusedOwners": [
+        "package-layout",
+        "example-manifest"
+      ],
+      "verticalOwners": [
+        "isolated-haxelib-smoke",
+        "all-examples"
+      ],
+      "realRuntimeOrSystemOwners": [
+        "all-examples",
+        "example-binary-matrix"
+      ],
+      "examples": [
+        "portable_beta",
+        "fluxproxy",
+        "incident_api",
+        "interop_smoke",
+        "profile_storyboard",
+        "pulseforge",
+        "tui_todo",
+        "worker_pool_select"
+      ],
+      "upstreamOracleAndPin": [
+        "manually reviewed expected/*.stdout",
+        "public package layout and release policy"
+      ],
+      "adaptations": [
+        "CI HXML variants exercise declared application variants"
+      ],
+      "knownSkips": [
+        "no external third-party downstream corpus yet"
+      ],
       "quarantines": [],
-      "selectorOwnership": ["package-examples"],
+      "selectorOwnership": [
+        "package-examples"
+      ],
       "fullBackstopCommand": "npm run test:examples && npm run test:haxelib-release-install",
       "releaseCommand": "npm run release:dry-run",
       "lastCleanProof": "commit 7188fea2, Examples Artifacts run 30666284200 and CI Harness run 30666284175",
-      "residualRisks": ["Cross-built example binaries are compile evidence unless their target OS executes them."],
+      "residualRisks": [
+        "Cross-built example binaries are compile evidence unless their target OS executes them."
+      ],
       "officialHaxeTargetSuiteApplies": false
     }
   ],
@@ -208,8 +408,8 @@
   "portfolio": {
     "method": "Count stable behavior owners, not files, assertions, or CI minutes. Overlapping owners are not forced into a percentage.",
     "currentInventory": {
-      "snapshotOwners": 338,
-      "portableSemanticDiffOwners": 157,
+      "snapshotOwners": 339,
+      "portableSemanticDiffOwners": 158,
       "laneSemanticDiffOwners": 1,
       "exampleProfileOwners": 13,
       "strictStdlibModules": 55,
@@ -223,7 +423,13 @@
   },
   "affectedSelection": {
     "mode": "observation",
-    "alwaysRunOwners": ["strategy-contract", "portable-tracer-smoke", "official-haxe-target-smoke", "harness-failure-propagation", "portable-provenance"],
+    "alwaysRunOwners": [
+      "strategy-contract",
+      "portable-tracer-smoke",
+      "official-haxe-target-smoke",
+      "harness-failure-propagation",
+      "portable-provenance"
+    ],
     "unknownPathsExpandToFull": true,
     "fullBackstop": "npm run test:ci",
     "selectorMissPolicy": "Any R4 failure that should have been selected is recorded as a selector miss, expands the responsible owner mapping, and resets its observation window.",
@@ -232,106 +438,341 @@
   "testOwners": [
     {
       "id": "strategy-contract",
-      "surfaces": ["diagnostics-tooling", "package-downstream-examples"],
-      "patterns": ["test/testing-strategy.json", "examples/qa-manifest.json", "docs/testing-strategy.md", "test/run-test-plan.py", "test/git_changes.py", "test/test_testing_strategy_contract.py", "test/test_changed_snapshot_selection.py"],
-      "commands": ["npm run test:strategy"],
-      "rings": ["R0", "R2", "R4", "R5"],
+      "surfaces": [
+        "diagnostics-tooling",
+        "package-downstream-examples"
+      ],
+      "patterns": [
+        "test/testing-strategy.json",
+        "examples/qa-manifest.json",
+        "docs/testing-strategy.md",
+        "test/run-test-plan.py",
+        "test/git_changes.py",
+        "test/test_testing_strategy_contract.py",
+        "test/test_changed_snapshot_selection.py"
+      ],
+      "commands": [
+        "npm run test:strategy"
+      ],
+      "rings": [
+        "R0",
+        "R2",
+        "R4",
+        "R5"
+      ],
       "alwaysRun": true
     },
     {
       "id": "portable-tracer-smoke",
-      "surfaces": ["portable-compiler", "runtime-stdlib", "package-downstream-examples"],
-      "patterns": ["src/reflaxe/go/**", "std/go/_std/**", "std/hxrt/**", "runtime/hxrt/**", "examples/tui_todo/**", "test/test_existing_module_preservation.py", "test/test_existing_module_package_output.py", "test/test_existing_module_structured_build.py"],
-      "commands": ["npm run test:smoke", "npm run test:existing-module-preservation", "npm run test:existing-module-package-output", "npm run test:existing-module-structured-build"],
-      "rings": ["R1", "R2", "R4", "R5"],
+      "surfaces": [
+        "portable-compiler",
+        "runtime-stdlib",
+        "package-downstream-examples"
+      ],
+      "patterns": [
+        "src/reflaxe/go/**",
+        "std/go/_std/**",
+        "std/hxrt/**",
+        "runtime/hxrt/**",
+        "examples/tui_todo/**",
+        "test/test_existing_module_preservation.py",
+        "test/test_existing_module_package_output.py",
+        "test/test_existing_module_structured_build.py"
+      ],
+      "commands": [
+        "npm run test:smoke",
+        "npm run test:existing-module-preservation",
+        "npm run test:existing-module-package-output",
+        "npm run test:existing-module-structured-build"
+      ],
+      "rings": [
+        "R1",
+        "R2",
+        "R4",
+        "R5"
+      ],
       "alwaysRun": true
     },
     {
       "id": "official-haxe-target-smoke",
-      "surfaces": ["portable-compiler"],
-      "patterns": ["test/official_haxe_target_smoke/**", "test/run-official-haxe-target-smoke.py", "test/test_official_haxe_target_smoke_contract.py", "docs/official-haxe-target-smoke.md", "src/reflaxe/go/**", "std/go/_std/**", "std/hxrt/**", "runtime/hxrt/**", "scripts/release/package-haxelib.sh"],
-      "commands": ["npm run test:official-haxe-smoke"],
-      "rings": ["R1", "R2", "R4", "R5"],
+      "surfaces": [
+        "portable-compiler"
+      ],
+      "patterns": [
+        "test/official_haxe_target_smoke/**",
+        "test/run-official-haxe-target-smoke.py",
+        "test/test_official_haxe_target_smoke_contract.py",
+        "docs/official-haxe-target-smoke.md",
+        "src/reflaxe/go/**",
+        "std/go/_std/**",
+        "std/hxrt/**",
+        "runtime/hxrt/**",
+        "scripts/release/package-haxelib.sh"
+      ],
+      "commands": [
+        "npm run test:official-haxe-smoke"
+      ],
+      "rings": [
+        "R1",
+        "R2",
+        "R4",
+        "R5"
+      ],
       "alwaysRun": true
     },
     {
       "id": "official-haxe-target-inventory",
-      "surfaces": ["portable-compiler"],
-      "patterns": ["test/official_haxe_target_inventory/**", "test/run-official-haxe-target-inventory.py", "test/test_official_haxe_target_inventory_contract.py", "docs/official-haxe-target-inventory.md", "src/reflaxe/go/**", "std/go/_std/**", "std/hxrt/**", "runtime/hxrt/**", "scripts/release/package-haxelib.sh"],
-      "commands": ["npm run test:official-haxe-inventory"],
-      "rings": ["R4", "R5"],
+      "surfaces": [
+        "portable-compiler"
+      ],
+      "patterns": [
+        "test/official_haxe_target_inventory/**",
+        "test/run-official-haxe-target-inventory.py",
+        "test/test_official_haxe_target_inventory_contract.py",
+        "docs/official-haxe-target-inventory.md",
+        "src/reflaxe/go/**",
+        "std/go/_std/**",
+        "std/hxrt/**",
+        "runtime/hxrt/**",
+        "scripts/release/package-haxelib.sh"
+      ],
+      "commands": [
+        "npm run test:official-haxe-inventory"
+      ],
+      "rings": [
+        "R4",
+        "R5"
+      ],
       "alwaysRun": false
     },
     {
       "id": "harness-failure-propagation",
-      "surfaces": ["portable-compiler", "diagnostics-tooling"],
-      "patterns": ["test/run-*.py", "test/test_*harness*.py", "package.json", ".github/workflows/**"],
-      "commands": ["python3 test/test_post_generation_build_runner.py", "python3 test/test_semantic_diff_harness_contract.py"],
-      "rings": ["R0", "R2", "R4", "R5"],
+      "surfaces": [
+        "portable-compiler",
+        "diagnostics-tooling"
+      ],
+      "patterns": [
+        "test/run-*.py",
+        "test/test_*harness*.py",
+        "package.json",
+        ".github/workflows/**"
+      ],
+      "commands": [
+        "python3 test/test_post_generation_build_runner.py",
+        "python3 test/test_semantic_diff_harness_contract.py"
+      ],
+      "rings": [
+        "R0",
+        "R2",
+        "R4",
+        "R5"
+      ],
       "alwaysRun": true
     },
     {
       "id": "portable-provenance",
-      "surfaces": ["portable-compiler", "runtime-stdlib"],
-      "patterns": ["test/portable_*.json", "test/upstream_std_*", "docs/stdlib-provenance-ledger.json", "scripts/ci/*stdlib*", "docs/toolchain-policy.json"],
-      "commands": ["npm run test:stdlib:governance", "npm run test:stdlib-inventory", "npm run compatibility:verify"],
-      "rings": ["R2", "R4", "R5"],
+      "surfaces": [
+        "portable-compiler",
+        "runtime-stdlib"
+      ],
+      "patterns": [
+        "test/portable_*.json",
+        "test/upstream_std_*",
+        "docs/stdlib-provenance-ledger.json",
+        "scripts/ci/*stdlib*",
+        "docs/toolchain-policy.json"
+      ],
+      "commands": [
+        "npm run test:stdlib:governance",
+        "npm run test:stdlib-inventory",
+        "npm run compatibility:verify"
+      ],
+      "rings": [
+        "R2",
+        "R4",
+        "R5"
+      ],
       "alwaysRun": true
     },
     {
       "id": "portable-compiler",
-      "surfaces": ["portable-compiler"],
-      "patterns": ["src/reflaxe/go/**", "test/snapshot/core/**", "test/snapshot/negative/**", "test/semantic_diff/**", "test/semantic_diff_lanes/**", "docs/portable-*.md"],
-      "commands": ["npm test", "npm run test:semantic-diff"],
-      "rings": ["R0", "R2", "R4", "R5"],
+      "surfaces": [
+        "portable-compiler"
+      ],
+      "patterns": [
+        "src/reflaxe/go/**",
+        "test/snapshot/core/**",
+        "test/snapshot/negative/**",
+        "test/semantic_diff/**",
+        "test/semantic_diff_lanes/**",
+        "docs/portable-*.md"
+      ],
+      "commands": [
+        "npm test",
+        "npm run test:semantic-diff"
+      ],
+      "rings": [
+        "R0",
+        "R2",
+        "R4",
+        "R5"
+      ],
       "alwaysRun": false
     },
     {
       "id": "go-native-metal",
-      "surfaces": ["go-native-metal"],
-      "patterns": ["std/go/**", "test/snapshot/go_native/**", "tools/goextern/**", "docs/goextern.md", "docs/native-policy-presets.md", "docs/profiles.md"],
-      "excludePatterns": ["std/go/_std/**"],
-      "commands": ["npm run test:go-native", "npm run test:goextern", "npm run test:examples:metal-boundary"],
-      "rings": ["R0", "R2", "R3", "R4", "R5"],
+      "surfaces": [
+        "go-native-metal"
+      ],
+      "patterns": [
+        "std/go/**",
+        "test/snapshot/go_native/**",
+        "tools/goextern/**",
+        "docs/goextern.md",
+        "docs/native-policy-presets.md",
+        "docs/profiles.md"
+      ],
+      "excludePatterns": [
+        "std/go/_std/**"
+      ],
+      "commands": [
+        "npm run test:go-native",
+        "npm run test:goextern",
+        "npm run test:examples:metal-boundary"
+      ],
+      "rings": [
+        "R0",
+        "R2",
+        "R3",
+        "R4",
+        "R5"
+      ],
       "alwaysRun": false
     },
     {
       "id": "runtime-stdlib",
-      "surfaces": ["runtime-stdlib"],
-      "patterns": ["runtime/hxrt/**", "std/hxrt/**", "std/go/_std/**", "test/snapshot/stdlib/**", "test/snapshot/sys/**", "test/semantic_diff/**"],
-      "commands": ["go test ./runtime/hxrt", "npm run test:stdlib-sweep:go-test", "npm run test:semantic-diff"],
-      "rings": ["R0", "R2", "R3", "R4", "R5"],
+      "surfaces": [
+        "runtime-stdlib"
+      ],
+      "patterns": [
+        "runtime/hxrt/**",
+        "std/hxrt/**",
+        "std/go/_std/**",
+        "test/snapshot/stdlib/**",
+        "test/snapshot/sys/**",
+        "test/semantic_diff/**"
+      ],
+      "commands": [
+        "go test ./runtime/hxrt",
+        "npm run test:stdlib-sweep:go-test",
+        "npm run test:semantic-diff"
+      ],
+      "rings": [
+        "R0",
+        "R2",
+        "R3",
+        "R4",
+        "R5"
+      ],
       "alwaysRun": false
     },
     {
       "id": "diagnostics-tooling",
-      "surfaces": ["diagnostics-tooling"],
-      "patterns": ["test/snapshot/negative/**", "scripts/dev/**", "templates/basic/scripts/dev/**", "templates/basic/package.json", "docs/defines-reference.md", "docs/compiler-debt-ratchet.md", "docs/development-watch-loop.md", "test/test_dev_watch.py", "test/*policy*.json"],
-      "commands": ["npm run test:negative", "npm run test:compiler-debt", "npm run test:dev-watch"],
-      "rings": ["R0", "R2", "R4", "R5"],
+      "surfaces": [
+        "diagnostics-tooling"
+      ],
+      "patterns": [
+        "test/snapshot/negative/**",
+        "scripts/dev/**",
+        "templates/basic/scripts/dev/**",
+        "templates/basic/package.json",
+        "docs/defines-reference.md",
+        "docs/compiler-debt-ratchet.md",
+        "docs/development-watch-loop.md",
+        "test/test_dev_watch.py",
+        "test/*policy*.json"
+      ],
+      "commands": [
+        "npm run test:negative",
+        "npm run test:compiler-debt",
+        "npm run test:dev-watch"
+      ],
+      "rings": [
+        "R0",
+        "R2",
+        "R4",
+        "R5"
+      ],
       "alwaysRun": false
     },
     {
       "id": "package-examples",
-      "surfaces": ["package-downstream-examples"],
-      "patterns": ["examples/**", "templates/**", "haxelib.json", "scripts/release/**", "test/test_haxelib_*.py", ".github/workflows/examples-artifacts.yml"],
-      "commands": ["npm run test:examples", "npm run test:haxelib-release-install"],
-      "rings": ["R1", "R2", "R3", "R4", "R5"],
+      "surfaces": [
+        "package-downstream-examples"
+      ],
+      "patterns": [
+        "examples/**",
+        "templates/**",
+        "haxelib.json",
+        "scripts/release/**",
+        "test/test_haxelib_*.py",
+        ".github/workflows/examples-artifacts.yml"
+      ],
+      "commands": [
+        "npm run test:examples",
+        "npm run test:haxelib-release-install"
+      ],
+      "rings": [
+        "R1",
+        "R2",
+        "R3",
+        "R4",
+        "R5"
+      ],
       "alwaysRun": false
     },
     {
       "id": "release-cross-cutting",
-      "surfaces": ["portable-compiler", "go-native-metal", "runtime-stdlib", "diagnostics-tooling", "package-downstream-examples"],
-      "patterns": ["release/**", ".github/workflows/**", "package.json", "package-lock.json", "haxelib.json", "docs/compatibility-support-source.json", "docs/public-contract.md", "docs/semver-lifecycle-policy.md"],
-      "commands": ["npm run test:release-contracts", "npm run release:readiness"],
-      "rings": ["R2", "R4", "R5"],
+      "surfaces": [
+        "portable-compiler",
+        "go-native-metal",
+        "runtime-stdlib",
+        "diagnostics-tooling",
+        "package-downstream-examples"
+      ],
+      "patterns": [
+        "release/**",
+        ".github/workflows/**",
+        "package.json",
+        "package-lock.json",
+        "haxelib.json",
+        "docs/compatibility-support-source.json",
+        "docs/public-contract.md",
+        "docs/semver-lifecycle-policy.md"
+      ],
+      "commands": [
+        "npm run test:release-contracts",
+        "npm run release:readiness"
+      ],
+      "rings": [
+        "R2",
+        "R4",
+        "R5"
+      ],
       "alwaysRun": false,
       "expandsToFull": true
     }
   ],
   "highRiskReview": {
     "distinctFromImplementation": true,
-    "requiredFor": ["compiler representation", "runtime or ABI", "package publication", "security", "migration", "public claim"],
+    "requiredFor": [
+      "compiler representation",
+      "runtime or ABI",
+      "package publication",
+      "security",
+      "migration",
+      "public claim"
+    ],
     "questions": [
       "Was the test red for the intended reason?",
       "Is the oracle independent?",
