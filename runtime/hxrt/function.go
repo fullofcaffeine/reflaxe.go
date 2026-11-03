@@ -73,7 +73,7 @@ func AdaptFunction[F, G any](source *Function[F], call G) *Function[G] {
 // panics still follow the existing exception boundary unchanged.
 func FunctionCall[F any](value *Function[F]) F {
 	if value == nil {
-		Throw(StringFromLiteral("Cannot call null function"))
+		Throw(StringFromLiteral("Cannot call null"))
 	}
 	return value.call
 }
