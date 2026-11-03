@@ -1,7 +1,7 @@
 /**
 	What
-	Proves iterator state/ordering plus the supported closure capture, callback,
-	and identity subset that current haxe.go preserves.
+	Checks iterator state/ordering and the required portable closure capture,
+	callback, identity, and null-call behavior against the Haxe interpreter.
 
 	Why
 	Replacing an iterator with a Go `range` loop can duplicate evaluation or
@@ -12,9 +12,9 @@
 	The same source runs through the Haxe interpreter and reflaxe.go. Typed and
 	`Dynamic` values share the fixture so native-eligible and fallback signatures
 	are checked against one source oracle. Identity covers aliases, distinct
-	closure instances, and repeated access to one receiver. Different-receiver
-	method identity remains the explicit `haxe_go-vfp.7.11` blocker, so this
-	fixture does not grant `haxe.Function` admission.
+	closure instances, array and generic reuse, and same/different receiver
+	method bindings. These are regressions for `haxe_go-vfp.7.11`; passing this
+	fixture alone does not grant `haxe.Function` admission.
 **/
 class PortableIterator {
 	final values:Array<Int>;
@@ -72,6 +72,10 @@ class Main {
 		};
 	}
 
+	static function reuse<T>(value:T):T {
+		return value;
+	}
+
 	static function main() {
 		var evaluations = 0;
 		final values = [1, 2];
@@ -110,6 +114,11 @@ class Main {
 		Sys.println("closure.identity=" + Reflect.compareMethods(firstAccumulator, firstAlias) + ":"
 			+ Reflect.compareMethods(firstAccumulator, secondAccumulator));
 
+		final callbacks:Array<Int->Int> = [firstAccumulator, firstAlias, secondAccumulator];
+		Sys.println("closure.container-identity=" + Reflect.compareMethods(callbacks[0], callbacks[1]) + ":"
+			+ Reflect.compareMethods(callbacks[0], callbacks[2]));
+		Sys.println("closure.generic-identity=" + Reflect.compareMethods(firstAccumulator, reuse(firstAlias)));
+
 		final firstCounter = new PortableCounter(1);
 		final firstMethod = firstCounter.add;
 		final firstMethodAlias = firstMethod;
@@ -118,7 +127,19 @@ class Main {
 		Sys.println("closure.bound=" + firstMethod(2) + ":" + firstCounter.value);
 		Sys.println("closure.method-identity=" + Reflect.compareMethods(firstMethod, firstMethodAlias) + ":"
 			+ Reflect.compareMethods(firstMethod, sameMethodAgain));
+		final secondCounter = new PortableCounter(firstCounter.value);
+		Sys.println("closure.receiver-identity=" + Reflect.compareMethods(firstMethod, secondCounter.add));
 		Sys.println("closure.null-identity=" + Reflect.compareMethods(null, null));
+
+		final missingCallback:Null<Void->Void> = null;
+		var nullCallCaught = false;
+		try {
+			missingCallback();
+		} catch (_:Dynamic) {
+			// The fixture observes Haxe's catch-all exception boundary, not its payload shape.
+			nullCallCaught = true;
+		}
+		Sys.println("closure.null-call-caught=" + nullCallCaught);
 
 		final loopCallbacks:Array<Void->Int> = [];
 		for (index in 0...3) {
