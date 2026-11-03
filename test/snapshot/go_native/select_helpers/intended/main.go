@@ -58,11 +58,23 @@ func main() {
 	var hx_switch_5 *string
 	switch _g_6.tag {
 	case 0:
-		_g_7 := _g_6.params[0].(*string)
+		_g_7 := func(hx_value_6 any) *string {
+			if hx_value_6 == nil {
+				var hx_zero_7 *string
+				return hx_zero_7
+			}
+			return hx_value_6.(*string)
+		}(_g_6.params[0])
 		value_2 := _g_7
 		hx_switch_5 = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("left:"), value_2)
 	case 1:
-		_g_8 := _g_6.params[0].(*string)
+		_g_8 := func(hx_value_8 any) *string {
+			if hx_value_8 == nil {
+				var hx_zero_9 *string
+				return hx_zero_9
+			}
+			return hx_value_8.(*string)
+		}(_g_6.params[0])
 		value_3 := _g_8
 		hx_switch_5 = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("right:"), value_3)
 	case 2:
@@ -73,16 +85,16 @@ func main() {
 	sendTwoA := go__concurrency_newChan__int_95e97e5e(1)
 	sendTwoB := go__concurrency_newChan__int_95e97e5e(1)
 	_g_9 := go___Select_send2_Int_Int(sendTwoA, 11, sendTwoB, 22)
-	var hx_switch_6 *string
+	var hx_switch_10 *string
 	switch _g_9.tag {
 	case 0:
-		hx_switch_6 = hxrt.StringFromLiteral("a")
+		hx_switch_10 = hxrt.StringFromLiteral("a")
 	case 1:
-		hx_switch_6 = hxrt.StringFromLiteral("b")
+		hx_switch_10 = hxrt.StringFromLiteral("b")
 	case 2:
-		hx_switch_6 = hxrt.StringFromLiteral("none")
+		hx_switch_10 = hxrt.StringFromLiteral("none")
 	}
-	sendTwo := hx_switch_6
+	sendTwo := hx_switch_10
 	sendTwoValues := hxrt.StringConcatAny(hxrt.StringConcatAny(go__concurrency_recvOr__int_95e97e5e(sendTwoA.__hx_native, -1), hxrt.StringFromLiteral(",")), go__concurrency_recvOr__int_95e97e5e(sendTwoB.__hx_native, -1))
 	hxrt.Println(any(sendTwo))
 	hxrt.Println(any(sendTwoValues))

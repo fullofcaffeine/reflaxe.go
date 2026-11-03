@@ -52,19 +52,19 @@
       "4.3.7"
     ],
     "go": [
-      "1.25.13",
-      "1.26.6"
+      "1.26.10",
+      "1.27.3"
     ],
     "node": [
       "24"
     ]
   },
   "requiredSecurityGates": [
-    "dependency-audit:go1.25.13",
-    "dependency-audit:go1.26.6",
+    "dependency-audit:go1.26.10",
+    "dependency-audit:go1.27.3",
     "gitleaks",
-    "go-tooling:go1.25.13",
-    "go-tooling:go1.26.6"
+    "go-tooling:go1.26.10",
+    "go-tooling:go1.27.3"
   ],
   "requiredArtifactRoles": [
     "checksum",

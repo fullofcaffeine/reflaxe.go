@@ -50,25 +50,43 @@ func haxe___CallStack__CallStack_Impl__itemToString(item *haxe__StackItem) *stri
 	case 0:
 		hx_switch_4 = hxrt.StringFromLiteral("a C function")
 	case 1:
-		_g := item.params[0].(*string)
+		_g := func(hx_value_5 any) *string {
+			if hx_value_5 == nil {
+				var hx_zero_6 *string
+				return hx_zero_6
+			}
+			return hx_value_5.(*string)
+		}(item.params[0])
 		m := _g
 		hx_switch_4 = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("module "), m)
 	case 2:
-		_g_1 := item.params[0].(*haxe__StackItem)
-		_g1 := item.params[1].(*string)
+		_g_1 := func(hx_value_7 any) *haxe__StackItem {
+			if hx_value_7 == nil {
+				var hx_zero_8 *haxe__StackItem
+				return hx_zero_8
+			}
+			return hx_value_7.(*haxe__StackItem)
+		}(item.params[0])
+		_g1 := func(hx_value_9 any) *string {
+			if hx_value_9 == nil {
+				var hx_zero_10 *string
+				return hx_zero_10
+			}
+			return hx_value_9.(*string)
+		}(item.params[1])
 		_g2 := item.params[2].(int)
 		var _g3 any = item.params[3]
 		inner := _g_1
 		file := _g1
 		line := _g2
 		var column any = _g3
-		var hx_if_5 *string
+		var hx_if_11 *string
 		if inner == nil {
-			hx_if_5 = file
+			hx_if_11 = file
 		} else {
-			hx_if_5 = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(haxe___CallStack__CallStack_Impl__itemToString(inner), hxrt.StringFromLiteral(" (")), file)
+			hx_if_11 = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(haxe___CallStack__CallStack_Impl__itemToString(inner), hxrt.StringFromLiteral(" (")), file)
 		}
-		rendered := hx_if_5
+		rendered := hx_if_11
 		rendered = hxrt.StringConcatStringPtr(rendered, hxrt.StringConcatAny(hxrt.StringFromLiteral(" line "), line))
 		if hxrt.IntFromNullableAny(column) > 0 {
 			rendered = hxrt.StringConcatStringPtr(rendered, hxrt.StringConcatAny(hxrt.StringFromLiteral(" column "), column))
@@ -78,18 +96,30 @@ func haxe___CallStack__CallStack_Impl__itemToString(item *haxe__StackItem) *stri
 		}
 		hx_switch_4 = rendered
 	case 3:
-		_g_2 := item.params[0].(*string)
-		_g1_1 := item.params[1].(*string)
+		_g_2 := func(hx_value_12 any) *string {
+			if hx_value_12 == nil {
+				var hx_zero_13 *string
+				return hx_zero_13
+			}
+			return hx_value_12.(*string)
+		}(item.params[0])
+		_g1_1 := func(hx_value_14 any) *string {
+			if hx_value_14 == nil {
+				var hx_zero_15 *string
+				return hx_zero_15
+			}
+			return hx_value_14.(*string)
+		}(item.params[1])
 		classname := _g_2
 		method := _g1_1
 		hx_switch_4 = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(func() *string {
-			var hx_if_6 *string
+			var hx_if_16 *string
 			if hxrt.StringEqualStringPtr(classname, nil) {
-				hx_if_6 = hxrt.StringFromLiteral("<unknown>")
+				hx_if_16 = hxrt.StringFromLiteral("<unknown>")
 			} else {
-				hx_if_6 = classname
+				hx_if_16 = classname
 			}
-			return hx_if_6
+			return hx_if_16
 		}(), hxrt.StringFromLiteral(".")), method)
 	case 4:
 		var _g_3 any = item.params[0]
@@ -108,20 +138,20 @@ func haxe___CallStack__CallStack_Impl__subtract(this1 *hxrt.Array, stack any) an
 func haxe___CallStack__CallStack_Impl__toString(stack any) *string {
 	out := hxrt.StringFromLiteral("")
 	_g := 0
-	_g1 := func(hx_value_7 any) *hxrt.Array {
-		if hx_value_7 == nil {
-			var hx_zero_8 *hxrt.Array
-			return hx_zero_8
+	_g1 := func(hx_value_17 any) *hxrt.Array {
+		if hx_value_17 == nil {
+			var hx_zero_18 *hxrt.Array
+			return hx_zero_18
 		}
-		return hx_value_7.(*hxrt.Array)
+		return hx_value_17.(*hxrt.Array)
 	}(stack)
 	for _g < _g1.Len() {
-		item := func(hx_value_9 any) *haxe__StackItem {
-			if hx_value_9 == nil {
-				var hx_zero_10 *haxe__StackItem
-				return hx_zero_10
+		item := func(hx_value_19 any) *haxe__StackItem {
+			if hx_value_19 == nil {
+				var hx_zero_20 *haxe__StackItem
+				return hx_zero_20
 			}
-			return hx_value_9.(*haxe__StackItem)
+			return hx_value_19.(*haxe__StackItem)
 		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		out = hxrt.StringConcatStringPtr(out, hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("\nCalled from "), haxe___CallStack__CallStack_Impl__itemToString(item)))

@@ -15,7 +15,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-STATICCHECK_VERSION = "v0.7.0"
+STATICCHECK_VERSION = "v0.8.2"
 DEFAULT_COMMAND_TIMEOUT_SECONDS = 6 * 60
 
 
@@ -318,7 +318,7 @@ def install_or_resolve_staticcheck(
         duration_seconds=duration,
         output=output,
     )
-    if result != "pass" or f"({STATICCHECK_VERSION})" not in output:
+    if result != "pass" or f"({STATICCHECK_VERSION.removeprefix('v')})" not in output:
         return None, {
             "result": "fail",
             "reason": f"staticcheck must report exact version {STATICCHECK_VERSION}",

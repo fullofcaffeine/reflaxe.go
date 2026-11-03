@@ -8,7 +8,13 @@ func main() {
 	var hx_switch_1 any
 	switch left.tag {
 	case 0:
-		_g := left.params[0].(*string)
+		_g := func(hx_value_2 any) *string {
+			if hx_value_2 == nil {
+				var hx_zero_3 *string
+				return hx_zero_3
+			}
+			return hx_value_2.(*string)
+		}(left.params[0])
 		value := _g
 		hx_switch_1 = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("left="), value)
 	case 1:
@@ -18,17 +24,23 @@ func main() {
 	}
 	var v any = hx_switch_1
 	hxrt.Println(v)
-	var hx_switch_2 any
+	var hx_switch_4 any
 	switch right.tag {
 	case 0:
-		_g_2 := right.params[0].(*string)
+		_g_2 := func(hx_value_5 any) *string {
+			if hx_value_5 == nil {
+				var hx_zero_6 *string
+				return hx_zero_6
+			}
+			return hx_value_5.(*string)
+		}(right.params[0])
 		value_2 := _g_2
-		hx_switch_2 = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("left="), value_2)
+		hx_switch_4 = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("left="), value_2)
 	case 1:
 		_g_3 := right.params[0].(int)
 		value_3 := _g_3
-		hx_switch_2 = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("right="), hxrt.StdString(value_3))
+		hx_switch_4 = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("right="), hxrt.StdString(value_3))
 	}
-	var v_1 any = hx_switch_2
+	var v_1 any = hx_switch_4
 	hxrt.Println(v_1)
 }

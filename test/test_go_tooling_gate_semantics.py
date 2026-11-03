@@ -31,6 +31,7 @@ class GoToolingGateSemanticsTest(unittest.TestCase):
         *,
         go_fail_match: str = "",
         staticcheck_fail: bool = False,
+        staticcheck_version: str = "0.8.2",
         go_sleep_match: str = "",
         go_sleep_target: str = "",
         go_sleep_seconds: int = 5,
@@ -51,7 +52,7 @@ class GoToolingGateSemanticsTest(unittest.TestCase):
 set -euo pipefail
 printf 'args=%s\\n' "$*" >>"$FAKE_GO_LOG"
 if [[ "$1" == "version" ]]; then
-  printf 'go version go1.26.6 linux/amd64\\n'
+  printf 'go version go1.27.3 linux/amd64\\n'
   exit 0
 fi
 if [[ -n "${FAKE_GO_SLEEP_MATCH:-}" && "$*" == *"$FAKE_GO_SLEEP_MATCH"* && ( -z "${FAKE_GO_SLEEP_TARGET:-}" || "${PWD##*/}" == "$FAKE_GO_SLEEP_TARGET" ) ]]; then
@@ -73,7 +74,7 @@ printf 'synthetic go tooling success\\n'
 set -euo pipefail
 printf 'args=%s\\n' "$*" >>"$FAKE_STATICCHECK_LOG"
 if [[ "$1" == "-version" ]]; then
-  printf 'staticcheck 2026.1 (v0.7.0)\\n'
+  printf 'staticcheck 2026.2.2 (%s)\\n' "$FAKE_STATICCHECK_VERSION"
   exit 0
 fi
 if [[ "${FAKE_STATICCHECK_FAIL:-0}" == "1" ]]; then
@@ -100,6 +101,7 @@ printf 'synthetic staticcheck success\\n'
                 "FAKE_GO_SLEEP_TARGET": go_sleep_target,
                 "FAKE_GO_SLEEP_SECONDS": str(go_sleep_seconds),
                 "FAKE_STATICCHECK_FAIL": "1" if staticcheck_fail else "0",
+                "FAKE_STATICCHECK_VERSION": staticcheck_version,
             }
         )
         proc = subprocess.run(
@@ -139,6 +141,13 @@ printf 'synthetic staticcheck success\\n'
         self.assertTrue(all(run["result"] == "pass" for run in manifest["runs"]))
         self.assertIn("PASS", (report_dir / "summary.md").read_text(encoding="utf-8"))
         self.assertEqual(len(list((report_dir / "reports").glob("*.txt"))), len(expected_runs))
+
+    def test_different_staticcheck_version_fails_before_analysis(self) -> None:
+        proc, _, _, staticcheck_log = self.run_with_fake_tools(staticcheck_version="0.8.20")
+
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        self.assertIn("must report exact version v0.8.2", proc.stderr)
+        self.assertNotIn("-checks=SA*", staticcheck_log.read_text(encoding="utf-8"))
 
     def test_race_failure_is_not_retried_or_downgraded(self) -> None:
         proc, report_dir, go_log, _ = self.run_with_fake_tools(go_fail_match="-race")
