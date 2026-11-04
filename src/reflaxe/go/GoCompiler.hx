@@ -11115,9 +11115,9 @@ class GoCompiler {
 		if (isStringType(toType)) {
 			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [expr]);
 		}
-		if (GoType.parse(toGoType).functionCarrierSignature() != null)
-			return valueRecovery.recover(expr, GoType.parse(toGoType));
-		return expr;
+		// Reference destinations need real typed storage too. In particular, class
+		// recovery retains the canonical subclass rather than asserting its base pointer.
+		return recoverStoredGoValue(expr, GoType.parse(toGoType));
 	}
 
 	/**
