@@ -118,6 +118,12 @@ class GoRecoveryAvailability {
 		return {value: value, dependencies: dependencies};
 	}
 
+	/** Parse mapped type text only while a branch is collecting physical dependencies. */
+	public function requireMappedType(typeName:String):Void {
+		if (captures.length > 0)
+			requireType(GoType.parse(typeName));
+	}
+
 	public function requireType(type:GoType):Void {
 		require(TypeReference(type));
 	}

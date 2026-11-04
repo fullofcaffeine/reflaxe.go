@@ -9,6 +9,9 @@ import reflaxe.go.ast.GoAST.GoTypeSwitchCase;
 import reflaxe.go.ast.GoAST.GoStmt;
 import reflaxe.go.ast.GoAST.GoSwitchCase;
 import reflaxe.go.ast.GoCompositeElement;
+import reflaxe.go.ast.GoType;
+import reflaxe.go.compiler.GoRecoveryDispatch.GoRecoveryCasePlan;
+import reflaxe.go.compiler.GoRecoveryDispatch.GoGuardedRecoveryDeclaration;
 
 /** Typed compiler services used to construct source-retaining structural views. */
 private typedef GoStructuralObjectConfig = {
@@ -28,11 +31,15 @@ private typedef GoStructuralObjectConfig = {
 **/
 class GoStructuralObjectLowering {
 	final config:GoStructuralObjectConfig;
+	final availability:GoRecoveryAvailability;
+	final dispatcher:GoRecoveryDispatch;
 	var needsRecovery = false;
 	var frozen = false;
 
-	public function new(config:GoStructuralObjectConfig) {
+	public function new(availability:GoRecoveryAvailability, config:GoStructuralObjectConfig) {
 		this.config = config;
+		this.availability = availability;
+		this.dispatcher = new GoRecoveryDispatch(availability);
 	}
 
 	/** Reset per-compilation admission plans; no runtime registry is introduced. */
@@ -51,6 +58,8 @@ class GoStructuralObjectLowering {
 		if (frozen && !needsRecovery)
 			Context.fatalError("Structural recovery discovered after freeze", Context.currentPos());
 		needsRecovery = true;
+		availability.noteHelper("hx_structural_recover", GoType.functionType([GoType.parse("any")], [GoType.parse("hxrt.Anonymous")]));
+		availability.requireHelper("hx_structural_recover");
 		return GoExpr.GoCall(GoExpr.GoIdent("hx_structural_recover"), [value]);
 	}
 
@@ -65,27 +74,34 @@ class GoStructuralObjectLowering {
 		reachable generated class retains its physical stored members, including
 		fields outside the first narrow view. Missing fields remain absent.
 	**/
-	public function emitRecoveries(classes:Array<ClassType>):Array<GoDecl> {
+	public function emitRecoveries(classes:Array<ClassType>):Array<GoGuardedRecoveryDeclaration> {
 		if (!needsRecovery)
 			return [];
-		var cases = new Array<GoTypeSwitchCase>();
+		var cases = new Array<GoRecoveryCasePlan>();
 		for (source in classes) {
 			if (source.isExtern || source.isInterface)
 				continue;
 			for (type in Context.getModule(source.module))
 				switch (type) {
 					case TInst(ref, _) if (ref.get().name == source.name):
-						cases.push({typeName: config.sourceGoType(type), body: [GoStmt.GoReturn(classView(GoExpr.GoIdent("source"), type, source))]});
+						var captured = availability.capture(() -> classView(GoExpr.GoIdent("source"), type, source));
+						cases.push({sourceType: config.sourceGoType(type), body: [GoStmt.GoReturn(captured.value)], dependencies: captured.dependencies});
 					case _:
 				}
 		}
 		var fallback = [
 			GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromValue"), [GoExpr.GoIdent("value")]))
 		];
-		var body = cases.length == 0 ? fallback : [GoStmt.GoTypeSwitch(GoExpr.GoIdent("value"), "source", cases, fallback)];
-		return [
-			GoDecl.GoFuncDecl("hx_structural_recover", null, [{name: "value", typeName: "any"}], ["hxrt.Anonymous"], body)
-		];
+		var plan = dispatcher.lower({
+			symbol: "hx_structural_recover",
+			params: [{name: "value", typeName: "any"}],
+			result: GoType.parse("hxrt.Anonymous"),
+			prefix: [],
+			input: GoExpr.GoIdent("value"),
+			cases: cases,
+			fallback: fallback
+		});
+		return plan == null ? [] : plan;
 	}
 
 	/** Admit generated class sources; anonymous width projections need no new view. */
@@ -112,6 +128,7 @@ class GoStructuralObjectLowering {
 		var reads = new Array<GoSwitchCase>();
 		var writes = new Array<GoSwitchCase>();
 		for (member in sourceMembers(source)) {
+			availability.requireMappedType(config.sourceGoType(member.type));
 			if (source.isInterface)
 				switch (member.kind) {
 					case FMethod(MethNormal) | FMethod(MethInline):

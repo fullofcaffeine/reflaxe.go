@@ -50,7 +50,7 @@ class GoRecoverySelectionContract {
 		owner.noteHelper("recover_node", GoType.parse("func(any) *Node"));
 		var captured = owner.capture(() -> {
 			owner.requireHelper("recover_node");
-			owner.requireType(GoType.parse("*first.Item"));
+			owner.requireMappedType("*first.Item");
 			return 42;
 		});
 		var complete = owner.conditionFor(captured.dependencies);

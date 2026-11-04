@@ -3,7 +3,7 @@ package main
 import "snapshot/hxrt"
 
 func Reflect_callMethod(o any, func_ any, args *hxrt.Array) any {
-	return hxrt.ReflectCallMethod(func_, args.ValuesCopy())
+	return reflaxe__go___internal__CompilerReflect_callMethod(func_, args.ValuesCopy())
 }
 
 func Reflect_compare(a any, b any) int {
