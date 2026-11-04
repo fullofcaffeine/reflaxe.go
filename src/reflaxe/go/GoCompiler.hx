@@ -3996,7 +3996,7 @@ class GoCompiler {
 					var redirected = new Array<GoStmt>();
 					if (value != null) {
 						var loweredReturn = redirect.valueName != null
-							&& redirect.valueType != null ? lowerStoredExprWithExpectedType(value, redirect.valueType) : lowerExprWithPrefix(value);
+							&& redirect.valueType != null ? lowerReturnedExprWithExpectedType(value, redirect.valueType) : lowerExprWithPrefix(value);
 						var returnExpr = loweredReturn.expr;
 						redirected = redirected.concat(loweredReturn.prefix);
 						if (redirect.valueName != null && redirect.valueType != null) {
@@ -4014,7 +4014,7 @@ class GoCompiler {
 					];
 				} else {
 					var expectedReturnType = currentFunctionReturnType();
-					var loweredReturn = expectedReturnType == null ? lowerExprWithPrefix(value) : lowerStoredExprWithExpectedType(value, expectedReturnType);
+					var loweredReturn = expectedReturnType == null ? lowerExprWithPrefix(value) : lowerReturnedExprWithExpectedType(value, expectedReturnType);
 					var returnExpr = loweredReturn.expr;
 					var returnStmt = GoStmt.GoReturn(returnExpr);
 					if (loweredReturn.prefix.length > 0) {
@@ -7331,7 +7331,7 @@ class GoCompiler {
 			var paramType = callParamType(callee.t, index);
 			var emittedParamType = emittedCallParamType(callee, index);
 			var nullablePrimitiveArg = paramType != null
-				&& isNullablePrimitiveType(paramType) ? lowerNullablePrimitiveCallArgExpr(arg) : null;
+				&& isNullablePrimitiveType(paramType) ? lowerNullablePrimitiveStorageExpr(arg) : null;
 			var loweredArg = nullablePrimitiveArg == null ? (paramType == null ? lowerCallArgExpr(arg) : lowerCallArgExprForExpectedType(arg,
 				paramType)) : nullablePrimitiveArg;
 			if (paramType != null) {
@@ -8349,17 +8349,18 @@ class GoCompiler {
 		return materializeExprWithPrefix(lowerStoredExprWithExpectedType(expr, paramType), paramType).expr;
 	}
 
-	function lowerNullablePrimitiveCallArgExpr(expr:TypedExpr):Null<GoExpr> {
+	/** Preserve a nullable local or parameter's raw storage at a nullable destination. */
+	function lowerNullablePrimitiveStorageExpr(expr:TypedExpr):Null<GoExpr> {
 		return switch (expr.expr) {
 			case TLocal(variable):
 				(registeredOptionalPrimitiveParamGoType(variable) != null
 					|| valueStorageGoType(variable.t) == "any") ? GoExpr.GoIdent(localVarName(variable)) : null;
 			case TMeta(_, inner):
-				lowerNullablePrimitiveCallArgExpr(inner);
+				lowerNullablePrimitiveStorageExpr(inner);
 			case TParenthesis(inner):
-				lowerNullablePrimitiveCallArgExpr(inner);
+				lowerNullablePrimitiveStorageExpr(inner);
 			case TCast(inner, _):
-				lowerNullablePrimitiveCallArgExpr(inner);
+				lowerNullablePrimitiveStorageExpr(inner);
 			case _:
 				null;
 		};
@@ -10887,6 +10888,12 @@ class GoCompiler {
 		structural upcasting.
 	**/
 	function lowerExprWithExpectedUpcast(source:TypedExpr, targetType:Type):LoweredExprWithPrefix {
+		if (isNullablePrimitiveType(targetType)) {
+			var stored = lowerNullablePrimitiveStorageExpr(source);
+			if (stored != null) {
+				return {prefix: [], expr: stored, isStringLike: false};
+			}
+		}
 		var expectedThrow = lowerExpectedThrowExpr(source, targetType);
 		if (expectedThrow != null) {
 			return expectedThrow;
@@ -10911,6 +10918,27 @@ class GoCompiler {
 		return {
 			prefix: lowered.prefix,
 			expr: adapted,
+			isStringLike: lowered.isStringLike
+		};
+	}
+
+	/**
+		What: Restores primitive storage at ordinary and redirected return boundaries.
+		Why: An inferred nullable local can remain Go any even when Haxe permits its
+		value in an Int, Float or Bool return. Nullable results must keep that storage.
+		How: Reuse stored-value lowering, then recover only an erased, non-narrowed
+		primitive source when the destination promises a concrete primitive.
+	**/
+	function lowerReturnedExprWithExpectedType(source:TypedExpr, targetType:Type):LoweredExprWithPrefix {
+		var lowered = lowerStoredExprWithExpectedType(source, targetType);
+		var recoverPrimitive = !isNullablePrimitiveType(targetType)
+			&& (isIntType(targetType) || isFloatType(targetType) || isBoolType(targetType))
+			&& !isSharedArrayElementExpr(source)
+			&& nonNullPrimitiveExprGoType(source) == null
+			&& (exprBackedByAny(source) || shouldForceAnyCoerce(source.t, targetType));
+		return {
+			prefix: lowered.prefix,
+			expr: recoverPrimitive ? coerceAnyExprToType(lowered.expr, source.t, targetType, true) : lowered.expr,
 			isStringLike: lowered.isStringLike
 		};
 	}

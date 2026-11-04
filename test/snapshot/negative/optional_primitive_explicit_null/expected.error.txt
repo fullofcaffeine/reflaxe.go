@@ -1,0 +1,1 @@
+On static platforms, null can't be used as basic type Int
