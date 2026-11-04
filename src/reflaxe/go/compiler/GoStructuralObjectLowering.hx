@@ -36,30 +36,30 @@ class GoStructuralObjectLowering {
 
 	/** Admit generated class sources; anonymous width projections need no new view. */
 	public function coerce(value:GoExpr, fromType:Type, toType:Type):Null<GoExpr> {
-		var target = switch (Context.follow(toType)) {
-			case TAnonymous(ref): ref.get();
-			case _: null;
-		};
-		var anonymousSource = switch (Context.follow(fromType)) {
-			case TAnonymous(ref): ref.get();
-			case _: null;
-		};
+		var target = GoTypeMapper.anonymousFields(toType);
+		var anonymousSource = GoTypeMapper.anonymousFields(fromType);
 		if (target != null && anonymousSource != null)
 			return adaptAnonymous(value, anonymousSource, target);
 		var source = switch (Context.follow(fromType)) {
 			case TInst(ref, _): ref.get();
 			case _: null;
 		};
-		if (target == null || source == null || source.isExtern || source.isInterface)
+		if (target == null || source == null || source.isExtern)
 			return null;
 		var sourceName = config.freshTempName("hx_structural_source");
 		var sourceExpr = GoExpr.GoIdent(sourceName);
 		var reads = new Array<GoSwitchCase>();
 		var writes = new Array<GoSwitchCase>();
-		for (destination in target.fields) {
+		for (destination in target) {
 			var member = findMember(source, destination.name);
 			if (member == null)
 				return null;
+			if (source.isInterface)
+				switch (member.kind) {
+					case FMethod(MethNormal) | FMethod(MethInline):
+					case _:
+						return null;
+				}
 			var read = config.readMember(sourceExpr, source, member, destination.type);
 			reads.push({values: [GoExpr.GoStringLiteral(destination.name)], body: [GoStmt.GoReturn(fieldValue(read))]});
 			var write = config.writeMember(sourceExpr, source, member, destination.type, GoExpr.GoIdent("incoming"));
@@ -85,10 +85,10 @@ class GoStructuralObjectLowering {
 		Width-only projections reuse storage. Changed callback signatures adapt each
 		read value rather than retaining a snapshot of a mutable source slot.
 	**/
-	function adaptAnonymous(value:GoExpr, from:AnonType, to:AnonType):GoExpr {
+	function adaptAnonymous(value:GoExpr, from:Array<ClassField>, to:Array<ClassField>):GoExpr {
 		var changed = new Array<{source:ClassField, target:ClassField}>();
-		for (destination in to.fields) {
-			for (source in from.fields) {
+		for (destination in to) {
+			for (source in from) {
 				if (source.name == destination.name && config.sourceGoType(source.type) != config.sourceGoType(destination.type)) {
 					changed.push({source: source, target: destination});
 					break;
@@ -134,6 +134,12 @@ class GoStructuralObjectLowering {
 		for (field in source.fields.get())
 			if (field.name == name)
 				return field;
+		if (source.isInterface)
+			for (parent in source.interfaces) {
+				var field = findMember(parent.t.get(), name);
+				if (field != null)
+					return field;
+			}
 		return source.superClass == null ? null : findMember(source.superClass.t.get(), name);
 	}
 

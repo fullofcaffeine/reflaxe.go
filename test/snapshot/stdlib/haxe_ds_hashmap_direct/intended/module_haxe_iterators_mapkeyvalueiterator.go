@@ -1,52 +1,58 @@
 package main
 
+import "snapshot/hxrt"
+
 type I_haxe__iterators__MapKeyValueIterator interface {
 	hasNext() bool
-	next() map[string]any
+	next() hxrt.Anonymous
 }
 
 type haxe__iterators__MapKeyValueIterator struct {
 	__hx_this I_haxe__iterators__MapKeyValueIterator
 	map_      haxe__IMap
-	keys      map[string]any
+	keys      hxrt.Anonymous
+}
+
+func (self *haxe__iterators__MapKeyValueIterator) HxFunctionReceiver() any {
+	return self.__hx_this
 }
 
 func New_haxe__iterators__MapKeyValueIterator(map_ haxe__IMap) *haxe__iterators__MapKeyValueIterator {
 	self := &haxe__iterators__MapKeyValueIterator{}
 	self.__hx_this = self
 	self.map_ = map_
-	self.keys = func(hx_value_1 any) map[string]any {
-		if hx_value_1 == nil {
-			var hx_zero_2 map[string]any
-			return hx_zero_2
-		}
-		return hx_value_1.(map[string]any)
-	}(map_.keys())
+	self.keys = map_.keys()
 	return self
 }
 
 func (self *haxe__iterators__MapKeyValueIterator) hasNext() bool {
-	return func(hx_obj_3 map[string]any) func() bool {
-		hx_field_4 := hx_obj_3["hasNext"]
-		if hx_field_4 == nil {
-			var hx_zero_5 func() bool
-			return hx_zero_5
-		}
-		return hx_field_4.(func() bool)
-	}(self.keys)()
+	return func() bool {
+		var hx_callable_4 *hxrt.Function[func() bool] = func(hx_obj_1 hxrt.Anonymous) *hxrt.Function[func() bool] {
+			hx_field_2 := hxrt.AnonymousGet(hx_obj_1, "hasNext")
+			if hx_field_2 == nil {
+				var hx_zero_3 *hxrt.Function[func() bool]
+				return hx_zero_3
+			}
+			return hx_field_2.(*hxrt.Function[func() bool])
+		}(self.keys)
+		return hxrt.FunctionCall(hx_callable_4)()
+	}()
 }
 
-func (self *haxe__iterators__MapKeyValueIterator) next() map[string]any {
-	var key any = func(hx_obj_6 map[string]any) func() any {
-		hx_field_7 := hx_obj_6["next"]
-		if hx_field_7 == nil {
-			var hx_zero_8 func() any
-			return hx_zero_8
-		}
-		return hx_field_7.(func() any)
-	}(self.keys)()
+func (self *haxe__iterators__MapKeyValueIterator) next() hxrt.Anonymous {
+	var key any = func() any {
+		var hx_callable_8 *hxrt.Function[func() any] = func(hx_obj_5 hxrt.Anonymous) *hxrt.Function[func() any] {
+			hx_field_6 := hxrt.AnonymousGet(hx_obj_5, "next")
+			if hx_field_6 == nil {
+				var hx_zero_7 *hxrt.Function[func() any]
+				return hx_zero_7
+			}
+			return hx_field_6.(*hxrt.Function[func() any])
+		}(self.keys)
+		return hxrt.FunctionCall(hx_callable_8)()
+	}()
 	hx_obj_9 := map[string]any{}
 	hx_obj_9["key"] = key
 	hx_obj_9["value"] = self.map_.getIMap(key)
-	return hx_obj_9
+	return hxrt.AnonymousFromMap(hx_obj_9)
 }
