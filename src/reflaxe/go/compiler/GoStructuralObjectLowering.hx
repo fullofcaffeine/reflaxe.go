@@ -4,6 +4,9 @@ package reflaxe.go.compiler;
 import haxe.macro.Context;
 import haxe.macro.Type;
 import reflaxe.go.ast.GoAST.GoExpr;
+import reflaxe.go.ast.GoAST.GoDecl;
+import reflaxe.go.ast.GoAST.GoTypeSwitchCase;
+import haxe.macro.TypeTools;
 import reflaxe.go.ast.GoAST.GoStmt;
 import reflaxe.go.ast.GoAST.GoSwitchCase;
 import reflaxe.go.ast.GoCompositeElement;
@@ -29,9 +32,69 @@ private typedef GoStructuralObjectConfig = {
 **/
 class GoStructuralObjectLowering {
 	final config:GoStructuralObjectConfig;
+	final recoveries:Array<{key:String, target:Type, symbol:String}> = [];
 
 	public function new(config:GoStructuralObjectConfig) {
 		this.config = config;
+	}
+
+	/** Reset per-compilation admission plans; no runtime registry is introduced. */
+	public function reset():Void {
+		recoveries.resize(0);
+	}
+
+	/** Recover erased values through a finite compiler-owned target-shape resolver. */
+	public function recover(value:GoExpr, target:Type):GoExpr {
+		var key = TypeTools.toString(target);
+		var symbol:Null<String> = null;
+		for (plan in recoveries)
+			if (plan.key == key) {
+				symbol = plan.symbol;
+				break;
+			}
+		if (symbol == null) {
+			symbol = "hx_structural_recover_" + recoveries.length;
+			recoveries.push({key: key, target: target, symbol: symbol});
+		}
+		return GoExpr.GoCall(GoExpr.GoIdent(symbol), [value]);
+	}
+
+	/**
+		Emit only reachable generated carriers which Haxe can unify with the requested
+		shape. Their fields use the same typed live plan as direct structural coercion;
+		already structural values and null retain the runtime storage recovery path.
+	**/
+	public function emitRecoveries(classes:Array<ClassType>):Array<GoDecl> {
+		var declarations = new Array<GoDecl>();
+		var sources = new Array<Type>();
+		for (source in classes) {
+			if (source.isExtern || source.isInterface)
+				continue;
+			for (type in Context.getModule(source.module))
+				switch (type) {
+					case TInst(ref, _) if (ref.get().name == source.name):
+						sources.push(type);
+					case _:
+				}
+		}
+		var index = 0;
+		while (index < recoveries.length) {
+			var plan = recoveries[index++];
+			var cases = new Array<GoTypeSwitchCase>();
+			for (source in sources) {
+				if (!Context.unify(source, plan.target))
+					continue;
+				var view = coerce(GoExpr.GoIdent("source"), source, plan.target);
+				if (view != null)
+					cases.push({typeName: config.sourceGoType(source), body: [GoStmt.GoReturn(view)]});
+			}
+			var fallback = [
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromValue"), [GoExpr.GoIdent("value")]))
+			];
+			var body = cases.length == 0 ? fallback : [GoStmt.GoTypeSwitch(GoExpr.GoIdent("value"), "source", cases, fallback)];
+			declarations.push(GoDecl.GoFuncDecl(plan.symbol, null, [{name: "value", typeName: "any"}], ["hxrt.Anonymous"], body));
+		}
+		return declarations;
 	}
 
 	/** Admit generated class sources; anonymous width projections need no new view. */

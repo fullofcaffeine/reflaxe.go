@@ -38,7 +38,7 @@ func New_haxe__iterators__HashMapKeyValueIterator(map_ *haxe__ds__HashMap) *haxe
 		}()
 	})
 	hx_obj_1["next"] = hxrt.NewFunction(func() hxrt.Anonymous {
-		return hxrt.AnonymousFromValue(_gthis.keysByHash.__hx_this.get(func() int {
+		return hx_structural_recover_1(_gthis.keysByHash.__hx_this.get(func() int {
 			var hx_callable_9 *hxrt.Function[func() int] = func(hx_obj_6 hxrt.Anonymous) *hxrt.Function[func() int] {
 				hx_field_7 := hxrt.AnonymousGet(hx_obj_6, "next")
 				if hx_field_7 == nil {
