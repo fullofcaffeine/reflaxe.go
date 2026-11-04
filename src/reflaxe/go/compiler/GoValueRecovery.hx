@@ -186,13 +186,15 @@ class GoValueRecovery {
 			])),
 			GoStmt.GoReturn(GoExpr.GoNil)
 		];
-		return GoDecl.GoFuncDecl(demand.symbol, null, [{name: "value", typeName: "any"}], [target.carrier], [
+		var body = [
 			GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("value"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null),
 			GoStmt.GoTypeSwitch(GoExpr.GoIdent("value"), "exact", [exact], null),
 			GoStmt.GoVarDecl("origin", "any", GoExpr.GoCall(GoExpr.GoIdent("hxrt.FunctionOrigin"), [GoExpr.GoIdent("value")]), true),
-			GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("origin"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null),
-			GoStmt.GoTypeSwitch(GoExpr.GoIdent("origin"), "source", cases, failure)
-		]);
+			GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("origin"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null)
+		];
+		// Null-only programs have no producer cases and must not bind an unused variable.
+		return GoDecl.GoFuncDecl(demand.symbol, null, [{name: "value", typeName: "any"}], [target.carrier],
+			body.concat(cases.length == 0 ? failure : [GoStmt.GoTypeSwitch(GoExpr.GoIdent("origin"), "source", cases, failure)]));
 	}
 
 	/** Explicit reflection and Dynamic calls share typed argument recovery. */
@@ -239,9 +241,17 @@ class GoValueRecovery {
 		var fallback = [
 			GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.ReflectCallMethod"), [GoExpr.GoIdent("value"), arguments]))
 		];
-		return GoDecl.GoFuncDecl(requireInvocation(), null, [{name: "value", typeName: "any"}, {name: "arguments", typeName: "[]any"}], ["any"], [
-			GoStmt.GoTypeSwitch(GoExpr.GoCall(GoExpr.GoIdent("hxrt.FunctionOrigin"), [GoExpr.GoIdent("value")]), "source", cases, fallback)
-		]);
+		var body = [
+			GoStmt.GoVarDecl("origin", "any", GoExpr.GoCall(GoExpr.GoIdent("hxrt.FunctionOrigin"), [GoExpr.GoIdent("value")]), true),
+			GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("origin"), GoExpr.GoNil), [
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [
+					GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("Cannot call null")])
+				])),
+				GoStmt.GoReturn(GoExpr.GoNil)
+			], null)
+		];
+		return GoDecl.GoFuncDecl(requireInvocation(), null, [{name: "value", typeName: "any"}, {name: "arguments", typeName: "[]any"}], ["any"],
+			body.concat(cases.length == 0 ? fallback : [GoStmt.GoTypeSwitch(GoExpr.GoIdent("origin"), "source", cases, fallback)]));
 	}
 
 	function admitsArity(source:GoFunctionSignature, target:GoFunctionSignature):Bool {

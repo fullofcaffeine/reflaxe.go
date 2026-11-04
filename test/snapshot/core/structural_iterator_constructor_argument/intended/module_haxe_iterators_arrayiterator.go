@@ -18,8 +18,20 @@ func (self *haxe__iterators__ArrayIterator) HxFunctionReceiver() any {
 }
 
 func New_haxe__iterators__ArrayIterator(array *hxrt.Array) *haxe__iterators__ArrayIterator {
+	return hx_init_haxe__iterators__ArrayIterator(hx_alloc_haxe__iterators__ArrayIterator(nil), array)
+}
+
+func hx_alloc_haxe__iterators__ArrayIterator(owner any) *haxe__iterators__ArrayIterator {
 	self := &haxe__iterators__ArrayIterator{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__iterators__ArrayIterator)
+	}
+	return self
+}
+
+func hx_init_haxe__iterators__ArrayIterator(self *haxe__iterators__ArrayIterator, array *hxrt.Array) *haxe__iterators__ArrayIterator {
 	self.current = 0
 	self.array = array
 	return self

@@ -47,10 +47,10 @@ type I_Xml interface {
 	set(att *string, value *string)
 	remove(att *string)
 	exists(att *string) bool
-	attributes() map[string]any
-	iterator() map[string]any
-	elements() map[string]any
-	elementsNamed(name *string) map[string]any
+	attributes() hxrt.Anonymous
+	iterator() hxrt.Anonymous
+	elements() hxrt.Anonymous
+	elementsNamed(name *string) hxrt.Anonymous
 	firstChild() *Xml
 	firstElement() *Xml
 	addChild(x *Xml)
@@ -70,9 +70,25 @@ type Xml struct {
 	attributeMap *haxe__ds__StringMap
 }
 
+func (self *Xml) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_Xml(nodeType any) *Xml {
+	return hx_init_Xml(hx_alloc_Xml(nil), nodeType)
+}
+
+func hx_alloc_Xml(owner any) *Xml {
 	self := &Xml{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_Xml)
+	}
+	return self
+}
+
+func hx_init_Xml(self *Xml, nodeType any) *Xml {
 	self.nodeType = nodeType
 	self.children = hxrt.NewArray()
 	self.attributeMap = New_haxe__ds__StringMap()
@@ -163,98 +179,125 @@ func (self *Xml) exists(att *string) bool {
 	}(this1.(*haxe__ds__StringMap).__hx_this.exists(att))
 }
 
-func (self *Xml) attributes() map[string]any {
+func (self *Xml) attributes() hxrt.Anonymous {
 	if !hxrt.HaxeEqual(self.nodeType, Xml_Element) {
 		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(self.nodeType))))
 	}
 	var this1 haxe__IMap = self.attributeMap
-	return func(hx_value_8 any) map[string]any {
-		if hx_value_8 == nil {
-			var hx_zero_9 map[string]any
-			return hx_zero_9
-		}
-		return hx_value_8.(map[string]any)
-	}(this1.(*haxe__ds__StringMap).__hx_this.keys())
+	return this1.(*haxe__ds__StringMap).__hx_this.keys()
 }
 
-func (self *Xml) iterator() map[string]any {
+func (self *Xml) iterator() hxrt.Anonymous {
 	self.__hx_this.ensureElementType()
-	return func() map[string]any {
-		hx_structural_array_10 := self.children
-		hx_structural_array_index_11 := 0
-		hx_structural_iterator_map_12 := map[string]any{}
-		hx_structural_iterator_map_12["hasNext"] = func() bool {
-			return (hx_structural_array_index_11 < hx_structural_array_10.Len())
-		}
-		hx_structural_iterator_map_12["next"] = func() *Xml {
-			hx_structural_array_value_13 := hx_structural_array_10.Get(hx_structural_array_index_11)
-			hx_structural_array_index_11 = (hx_structural_array_index_11 + 1)
-			return func(hx_value_14 any) *Xml {
-				if hx_value_14 == nil {
-					var hx_zero_15 *Xml
-					return hx_zero_15
-				}
-				return hx_value_14.(*Xml)
-			}(any(hx_structural_array_value_13))
-		}
-		return hx_structural_iterator_map_12
-	}()
+	_this := self.children
+	return func(hx_structural_source_8 *haxe__iterators__ArrayIterator) hxrt.Anonymous {
+		return hxrt.NewAnonymousView(hx_structural_source_8, func(name string) hxrt.AnonymousField {
+			switch name {
+			case "array":
+				return hxrt.AnonymousField{Value: hx_structural_source_8.array, Found: true}
+			case "current":
+				return hxrt.AnonymousField{Value: hx_structural_source_8.current, Found: true}
+			case "hasNext":
+				return hxrt.AnonymousField{Value: func() *hxrt.Function[func() bool] {
+					hx_receiver_11 := hx_structural_source_8
+					return hxrt.BoundFunction(func() bool {
+						return hx_receiver_11.__hx_this.hasNext()
+					}, func() any {
+						return hx_receiver_11.__hx_this
+					}, "hasNext")
+				}(), Found: true}
+			case "next":
+				return hxrt.AnonymousField{Value: func() *hxrt.Function[func() any] {
+					hx_receiver_12 := hx_structural_source_8
+					return hxrt.BoundFunction(func() any {
+						return hx_receiver_12.__hx_this.next()
+					}, func() any {
+						return hx_receiver_12.__hx_this
+					}, "next")
+				}(), Found: true}
+			}
+			return hxrt.AnonymousField{}
+		}, func(name string, incoming any) bool {
+			switch name {
+			case "current":
+				hx_structural_source_8.current = func(hx_value_9 any) int {
+					if hx_value_9 == nil {
+						var hx_zero_10 int
+						return hx_zero_10
+					}
+					return hx_value_9.(int)
+				}(incoming)
+				return true
+			}
+			return false
+		})
+	}(New_haxe__iterators__ArrayIterator(_this))
 }
 
-func (self *Xml) elements() map[string]any {
+func (self *Xml) elements() hxrt.Anonymous {
 	self.__hx_this.ensureElementType()
 	_g := hxrt.NewArray()
 	_g1 := 0
 	_g2 := self.children
 	for _g1 < _g2.Len() {
-		child := func(hx_value_16 any) *Xml {
-			if hx_value_16 == nil {
-				var hx_zero_17 *Xml
-				return hx_zero_17
-			}
-			return hx_value_16.(*Xml)
-		}(_g2.Get(_g1))
+		child := hx_recover_class_0(_g2.Get(_g1))
 		_g1 = int(int32((_g1 + 1)))
 		if hxrt.HaxeEqual(child.nodeType, Xml_Element) {
 			_g.Push(child)
 		}
 	}
 	ret := _g
-	return func() map[string]any {
-		hx_structural_array_19 := ret
-		hx_structural_array_index_20 := 0
-		hx_structural_iterator_map_21 := map[string]any{}
-		hx_structural_iterator_map_21["hasNext"] = func() bool {
-			return (hx_structural_array_index_20 < hx_structural_array_19.Len())
-		}
-		hx_structural_iterator_map_21["next"] = func() *Xml {
-			hx_structural_array_value_22 := hx_structural_array_19.Get(hx_structural_array_index_20)
-			hx_structural_array_index_20 = (hx_structural_array_index_20 + 1)
-			return func(hx_value_23 any) *Xml {
-				if hx_value_23 == nil {
-					var hx_zero_24 *Xml
-					return hx_zero_24
-				}
-				return hx_value_23.(*Xml)
-			}(any(hx_structural_array_value_22))
-		}
-		return hx_structural_iterator_map_21
-	}()
+	return func(hx_structural_source_14 *haxe__iterators__ArrayIterator) hxrt.Anonymous {
+		return hxrt.NewAnonymousView(hx_structural_source_14, func(name string) hxrt.AnonymousField {
+			switch name {
+			case "array":
+				return hxrt.AnonymousField{Value: hx_structural_source_14.array, Found: true}
+			case "current":
+				return hxrt.AnonymousField{Value: hx_structural_source_14.current, Found: true}
+			case "hasNext":
+				return hxrt.AnonymousField{Value: func() *hxrt.Function[func() bool] {
+					hx_receiver_17 := hx_structural_source_14
+					return hxrt.BoundFunction(func() bool {
+						return hx_receiver_17.__hx_this.hasNext()
+					}, func() any {
+						return hx_receiver_17.__hx_this
+					}, "hasNext")
+				}(), Found: true}
+			case "next":
+				return hxrt.AnonymousField{Value: func() *hxrt.Function[func() any] {
+					hx_receiver_18 := hx_structural_source_14
+					return hxrt.BoundFunction(func() any {
+						return hx_receiver_18.__hx_this.next()
+					}, func() any {
+						return hx_receiver_18.__hx_this
+					}, "next")
+				}(), Found: true}
+			}
+			return hxrt.AnonymousField{}
+		}, func(name string, incoming any) bool {
+			switch name {
+			case "current":
+				hx_structural_source_14.current = func(hx_value_15 any) int {
+					if hx_value_15 == nil {
+						var hx_zero_16 int
+						return hx_zero_16
+					}
+					return hx_value_15.(int)
+				}(incoming)
+				return true
+			}
+			return false
+		})
+	}(New_haxe__iterators__ArrayIterator(ret))
 }
 
-func (self *Xml) elementsNamed(name *string) map[string]any {
+func (self *Xml) elementsNamed(name *string) hxrt.Anonymous {
 	self.__hx_this.ensureElementType()
 	_g := hxrt.NewArray()
 	_g1 := 0
 	_g2 := self.children
 	for _g1 < _g2.Len() {
-		child := func(hx_value_25 any) *Xml {
-			if hx_value_25 == nil {
-				var hx_zero_26 *Xml
-				return hx_zero_26
-			}
-			return hx_value_25.(*Xml)
-		}(_g2.Get(_g1))
+		child := hx_recover_class_0(_g2.Get(_g1))
 		_g1 = int(int32((_g1 + 1)))
 		if hxrt.HaxeEqual(child.nodeType, Xml_Element) && hxrt.StringEqualStringPtr(func() *string {
 			if !hxrt.HaxeEqual(child.nodeType, Xml_Element) {
@@ -266,43 +309,59 @@ func (self *Xml) elementsNamed(name *string) map[string]any {
 		}
 	}
 	ret := _g
-	return func() map[string]any {
-		hx_structural_array_28 := ret
-		hx_structural_array_index_29 := 0
-		hx_structural_iterator_map_30 := map[string]any{}
-		hx_structural_iterator_map_30["hasNext"] = func() bool {
-			return (hx_structural_array_index_29 < hx_structural_array_28.Len())
-		}
-		hx_structural_iterator_map_30["next"] = func() *Xml {
-			hx_structural_array_value_31 := hx_structural_array_28.Get(hx_structural_array_index_29)
-			hx_structural_array_index_29 = (hx_structural_array_index_29 + 1)
-			return func(hx_value_32 any) *Xml {
-				if hx_value_32 == nil {
-					var hx_zero_33 *Xml
-					return hx_zero_33
-				}
-				return hx_value_32.(*Xml)
-			}(any(hx_structural_array_value_31))
-		}
-		return hx_structural_iterator_map_30
-	}()
+	return func(hx_structural_source_20 *haxe__iterators__ArrayIterator) hxrt.Anonymous {
+		return hxrt.NewAnonymousView(hx_structural_source_20, func(name string) hxrt.AnonymousField {
+			switch name {
+			case "array":
+				return hxrt.AnonymousField{Value: hx_structural_source_20.array, Found: true}
+			case "current":
+				return hxrt.AnonymousField{Value: hx_structural_source_20.current, Found: true}
+			case "hasNext":
+				return hxrt.AnonymousField{Value: func() *hxrt.Function[func() bool] {
+					hx_receiver_23 := hx_structural_source_20
+					return hxrt.BoundFunction(func() bool {
+						return hx_receiver_23.__hx_this.hasNext()
+					}, func() any {
+						return hx_receiver_23.__hx_this
+					}, "hasNext")
+				}(), Found: true}
+			case "next":
+				return hxrt.AnonymousField{Value: func() *hxrt.Function[func() any] {
+					hx_receiver_24 := hx_structural_source_20
+					return hxrt.BoundFunction(func() any {
+						return hx_receiver_24.__hx_this.next()
+					}, func() any {
+						return hx_receiver_24.__hx_this
+					}, "next")
+				}(), Found: true}
+			}
+			return hxrt.AnonymousField{}
+		}, func(name string, incoming any) bool {
+			switch name {
+			case "current":
+				hx_structural_source_20.current = func(hx_value_21 any) int {
+					if hx_value_21 == nil {
+						var hx_zero_22 int
+						return hx_zero_22
+					}
+					return hx_value_21.(int)
+				}(incoming)
+				return true
+			}
+			return false
+		})
+	}(New_haxe__iterators__ArrayIterator(ret))
 }
 
 func (self *Xml) firstChild() *Xml {
 	self.__hx_this.ensureElementType()
-	var hx_if_36 *Xml
+	var hx_if_25 *Xml
 	if self.children.Len() == 0 {
-		hx_if_36 = nil
+		hx_if_25 = nil
 	} else {
-		hx_if_36 = func(hx_value_34 any) *Xml {
-			if hx_value_34 == nil {
-				var hx_zero_35 *Xml
-				return hx_zero_35
-			}
-			return hx_value_34.(*Xml)
-		}(self.children.Get(0))
+		hx_if_25 = hx_recover_class_0(self.children.Get(0))
 	}
-	return hx_if_36
+	return hx_if_25
 }
 
 func (self *Xml) firstElement() *Xml {
@@ -310,13 +369,7 @@ func (self *Xml) firstElement() *Xml {
 	_g := 0
 	_g1 := self.children
 	for _g < _g1.Len() {
-		child := func(hx_value_37 any) *Xml {
-			if hx_value_37 == nil {
-				var hx_zero_38 *Xml
-				return hx_zero_38
-			}
-			return hx_value_37.(*Xml)
-		}(_g1.Get(_g))
+		child := hx_recover_class_0(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if hxrt.HaxeEqual(child.nodeType, Xml_Element) {
 			return child
@@ -330,24 +383,24 @@ func (self *Xml) addChild(x *Xml) {
 	if x.parent != nil {
 		x.parent.__hx_this.removeChild(x)
 	}
-	hx_arr_39 := self.children
-	hx_arr_39.Push(x)
+	hx_arr_26 := self.children
+	hx_arr_26.Push(x)
 	x.parent = self
 }
 
 func (self *Xml) removeChild(x *Xml) bool {
 	self.__hx_this.ensureElementType()
 	if func() bool {
-		hx_arr_40 := self.children
-		var hx_remove_value_41 any = x
-		hx_remove_index_42 := 0
-		for hx_remove_index_42 < hx_arr_40.Len() {
-			hx_remove_element_43 := hx_arr_40.Get(hx_remove_index_42)
-			if hxrt.HaxeEqual(hx_remove_element_43, hx_remove_value_41) {
-				hx_arr_40.RemoveAt(hx_remove_index_42)
+		hx_arr_27 := self.children
+		var hx_remove_value_28 any = x
+		hx_remove_index_29 := 0
+		for hx_remove_index_29 < hx_arr_27.Len() {
+			hx_remove_element_30 := hx_arr_27.Get(hx_remove_index_29)
+			if hxrt.HaxeEqual(hx_remove_element_30, hx_remove_value_28) {
+				hx_arr_27.RemoveAt(hx_remove_index_29)
 				return true
 			}
-			hx_remove_index_42 = (hx_remove_index_42 + 1)
+			hx_remove_index_29 = (hx_remove_index_29 + 1)
 		}
 		return false
 	}() {
@@ -361,25 +414,25 @@ func (self *Xml) insertChild(x *Xml, pos int) {
 	self.__hx_this.ensureElementType()
 	if x.parent != nil {
 		func() bool {
-			hx_arr_44 := x.parent.children
-			var hx_remove_value_45 any = x
-			hx_remove_index_46 := 0
-			for hx_remove_index_46 < hx_arr_44.Len() {
-				hx_remove_element_47 := hx_arr_44.Get(hx_remove_index_46)
-				if hxrt.HaxeEqual(hx_remove_element_47, hx_remove_value_45) {
-					hx_arr_44.RemoveAt(hx_remove_index_46)
+			hx_arr_31 := x.parent.children
+			var hx_remove_value_32 any = x
+			hx_remove_index_33 := 0
+			for hx_remove_index_33 < hx_arr_31.Len() {
+				hx_remove_element_34 := hx_arr_31.Get(hx_remove_index_33)
+				if hxrt.HaxeEqual(hx_remove_element_34, hx_remove_value_32) {
+					hx_arr_31.RemoveAt(hx_remove_index_33)
 					return true
 				}
-				hx_remove_index_46 = (hx_remove_index_46 + 1)
+				hx_remove_index_33 = (hx_remove_index_33 + 1)
 			}
 			return false
 		}()
 	}
 	func() {
-		hx_arr_48 := self.children
-		hx_insert_position_49 := pos
-		var hx_insert_value_50 any = x
-		hx_arr_48.Insert(hx_insert_position_49, hx_insert_value_50)
+		hx_arr_35 := self.children
+		hx_insert_position_36 := pos
+		var hx_insert_value_37 any = x
+		hx_arr_35.Insert(hx_insert_position_36, hx_insert_value_37)
 	}()
 	x.parent = self
 }

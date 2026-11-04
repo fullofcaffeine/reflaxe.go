@@ -19,65 +19,1481 @@ var Demo_field *string = hxrt.StringFromLiteral("value")
 
 func main() {
 	info := haxe__rtti__Rtti_getRtti(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Demo")})
-	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("path="), func(hx_obj_1 map[string]any) *string {
-		hx_field_2 := hx_obj_1["path"]
-		if hx_field_2 == nil {
-			var hx_zero_3 *string
-			return hx_zero_3
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("path="), func(hx_value_1 any) *string {
+		if hx_value_1 == nil {
+			var hx_zero_2 *string
+			return hx_zero_2
 		}
-		return hx_field_2.(*string)
-	}(info)))
+		return hx_value_1.(*string)
+	}(hxrt.AnonymousGet(info, "path"))))
 	hxrt.Println(v)
-	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("staticType="), haxe__rtti__CTypeTools_toString(func(hx_obj_9 map[string]any) *haxe__rtti__CType {
-		hx_field_10 := hx_obj_9["type"]
-		if hx_field_10 == nil {
-			var hx_zero_11 *haxe__rtti__CType
-			return hx_zero_11
-		}
-		return hx_field_10.(*haxe__rtti__CType)
-	}(func(hx_value_7 any) map[string]any {
-		if hx_value_7 == nil {
-			var hx_zero_8 map[string]any
-			return hx_zero_8
-		}
-		return hx_value_7.(map[string]any)
-	}(func(hx_obj_4 map[string]any) *hxrt.Array {
-		hx_field_5 := hx_obj_4["statics"]
-		if hx_field_5 == nil {
-			var hx_zero_6 *hxrt.Array
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("staticType="), haxe__rtti__CTypeTools_toString(func(hx_value_5 any) *haxe__rtti__CType {
+		if hx_value_5 == nil {
+			var hx_zero_6 *haxe__rtti__CType
 			return hx_zero_6
 		}
-		return hx_field_5.(*hxrt.Array)
-	}(info).Get(0))))))
+		return hx_value_5.(*haxe__rtti__CType)
+	}(hxrt.AnonymousGet(hx_structural_recover(func(hx_value_3 any) *hxrt.Array {
+		if hx_value_3 == nil {
+			var hx_zero_4 *hxrt.Array
+			return hx_zero_4
+		}
+		return hx_value_3.(*hxrt.Array)
+	}(hxrt.AnonymousGet(info, "statics")).Get(0)), "type")))))
 	hxrt.Println(v_1)
 	var rawRtti any = Reflect_field(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Demo")}, hxrt.StringFromLiteral("__rtti"))
 	parsed := New_haxe__rtti__XmlParser().__hx_this.processElement(Xml_parse(hxrt.StdString(rawRtti)).__hx_this.firstElement())
 	if parsed.tag == 1 {
-		_g := func(hx_value_12 any) map[string]any {
-			if hx_value_12 == nil {
-				var hx_zero_13 map[string]any
-				return hx_zero_13
-			}
-			return hx_value_12.(map[string]any)
-		}(parsed.params[0])
+		_g := hx_structural_recover(parsed.params[0])
 		c := _g
-		var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("parsedPath="), func(hx_obj_14 map[string]any) *string {
-			hx_field_15 := hx_obj_14["path"]
-			if hx_field_15 == nil {
-				var hx_zero_16 *string
-				return hx_zero_16
+		var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("parsedPath="), func(hx_value_7 any) *string {
+			if hx_value_7 == nil {
+				var hx_zero_8 *string
+				return hx_zero_8
 			}
-			return hx_field_15.(*string)
-		}(c)))
+			return hx_value_7.(*string)
+		}(hxrt.AnonymousGet(c, "path"))))
 		hxrt.Println(v_2)
 	} else {
 		hxrt.Println(any(hxrt.StringFromLiteral("parsed=unexpected")))
 	}
 }
 
+func hx_structural_recover(value any) hxrt.Anonymous {
+	switch source := value.(type) {
+	case *haxe___Int64_____Int64:
+		return func(hx_structural_source_473 *haxe___Int64_____Int64) hxrt.Anonymous {
+			return hxrt.NewAnonymousView(hx_structural_source_473, func(name string) hxrt.AnonymousField {
+				switch name {
+				case "high":
+					return hxrt.AnonymousField{Value: hx_structural_source_473.high, Found: true}
+				case "low":
+					return hxrt.AnonymousField{Value: hx_structural_source_473.low, Found: true}
+				}
+				return hxrt.AnonymousField{}
+			}, func(name string, incoming any) bool {
+				switch name {
+				case "high":
+					hx_structural_source_473.high = func(hx_value_474 any) int {
+						if hx_value_474 == nil {
+							var hx_zero_475 int
+							return hx_zero_475
+						}
+						return hx_value_474.(int)
+					}(incoming)
+					return true
+				case "low":
+					hx_structural_source_473.low = func(hx_value_476 any) int {
+						if hx_value_476 == nil {
+							var hx_zero_477 int
+							return hx_zero_477
+						}
+						return hx_value_476.(int)
+					}(incoming)
+					return true
+				}
+				return false
+			})
+		}(source)
+	case *haxe__rtti__XmlParser:
+		return func(hx_structural_source_478 *haxe__rtti__XmlParser) hxrt.Anonymous {
+			return hxrt.NewAnonymousView(hx_structural_source_478, func(name string) hxrt.AnonymousField {
+				switch name {
+				case "root":
+					return hxrt.AnonymousField{Value: hx_structural_source_478.root, Found: true}
+				case "curplatform":
+					return hxrt.AnonymousField{Value: hx_structural_source_478.curplatform, Found: true}
+				case "sort":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*hxrt.Array)] {
+						hx_receiver_483 := hx_structural_source_478
+						return hxrt.BoundFunction(func(l *hxrt.Array) {
+							hx_receiver_483.__hx_this.sort(l)
+						}, func() any {
+							return hx_receiver_483.__hx_this
+						}, "sort")
+					}(), Found: true}
+				case "sortFields":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*hxrt.Array)] {
+						hx_receiver_484 := hx_structural_source_478
+						return hxrt.BoundFunction(func(a *hxrt.Array) {
+							hx_receiver_484.__hx_this.sortFields(a)
+						}, func() any {
+							return hx_receiver_484.__hx_this
+						}, "sortFields")
+					}(), Found: true}
+				case "process":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml, *string)] {
+						hx_receiver_485 := hx_structural_source_478
+						return hxrt.BoundFunction(func(x *Xml, platform *string) {
+							hx_receiver_485.__hx_this.process(x, platform)
+						}, func() any {
+							return hx_receiver_485.__hx_this
+						}, "process")
+					}(), Found: true}
+				case "mergeRights":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous) bool] {
+						hx_receiver_486 := hx_structural_source_478
+						return hxrt.BoundFunction(func(f1 hxrt.Anonymous, f2 hxrt.Anonymous) bool {
+							return hx_receiver_486.__hx_this.mergeRights(f1, f2)
+						}, func() any {
+							return hx_receiver_486.__hx_this
+						}, "mergeRights")
+					}(), Found: true}
+				case "mergeDoc":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous) bool] {
+						hx_receiver_487 := hx_structural_source_478
+						return hxrt.BoundFunction(func(f1 hxrt.Anonymous, f2 hxrt.Anonymous) bool {
+							return hx_receiver_487.__hx_this.mergeDoc(f1, f2)
+						}, func() any {
+							return hx_receiver_487.__hx_this
+						}, "mergeDoc")
+					}(), Found: true}
+				case "mergeFields":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous) bool] {
+						hx_receiver_488 := hx_structural_source_478
+						return hxrt.BoundFunction(func(f hxrt.Anonymous, f2 hxrt.Anonymous) bool {
+							return hx_receiver_488.__hx_this.mergeFields(f, f2)
+						}, func() any {
+							return hx_receiver_488.__hx_this
+						}, "mergeFields")
+					}(), Found: true}
+				case "newField":
+					return hxrt.AnonymousField{Value: hxrt.ReadDynamicFunction(hx_structural_source_478.newField), Found: true}
+				case "mergeClasses":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous) bool] {
+						hx_receiver_489 := hx_structural_source_478
+						return hxrt.BoundFunction(func(c hxrt.Anonymous, c2 hxrt.Anonymous) bool {
+							return hx_receiver_489.__hx_this.mergeClasses(c, c2)
+						}, func() any {
+							return hx_receiver_489.__hx_this
+						}, "mergeClasses")
+					}(), Found: true}
+				case "mergeEnums":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous) bool] {
+						hx_receiver_490 := hx_structural_source_478
+						return hxrt.BoundFunction(func(e hxrt.Anonymous, e2 hxrt.Anonymous) bool {
+							return hx_receiver_490.__hx_this.mergeEnums(e, e2)
+						}, func() any {
+							return hx_receiver_490.__hx_this
+						}, "mergeEnums")
+					}(), Found: true}
+				case "mergeTypedefs":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous) bool] {
+						hx_receiver_491 := hx_structural_source_478
+						return hxrt.BoundFunction(func(t hxrt.Anonymous, t2 hxrt.Anonymous) bool {
+							return hx_receiver_491.__hx_this.mergeTypedefs(t, t2)
+						}, func() any {
+							return hx_receiver_491.__hx_this
+						}, "mergeTypedefs")
+					}(), Found: true}
+				case "mergeAbstracts":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous) bool] {
+						hx_receiver_492 := hx_structural_source_478
+						return hxrt.BoundFunction(func(a hxrt.Anonymous, a2 hxrt.Anonymous) bool {
+							return hx_receiver_492.__hx_this.mergeAbstracts(a, a2)
+						}, func() any {
+							return hx_receiver_492.__hx_this
+						}, "mergeAbstracts")
+					}(), Found: true}
+				case "merge":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*haxe__rtti__TypeTree)] {
+						hx_receiver_493 := hx_structural_source_478
+						return hxrt.BoundFunction(func(t *haxe__rtti__TypeTree) {
+							hx_receiver_493.__hx_this.merge(t)
+						}, func() any {
+							return hx_receiver_493.__hx_this
+						}, "merge")
+					}(), Found: true}
+				case "mkPath":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*string) *string] {
+						hx_receiver_494 := hx_structural_source_478
+						return hxrt.BoundFunction(func(p *string) *string {
+							return hx_receiver_494.__hx_this.mkPath(p)
+						}, func() any {
+							return hx_receiver_494.__hx_this
+						}, "mkPath")
+					}(), Found: true}
+				case "mkTypeParams":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*string) *hxrt.Array] {
+						hx_receiver_495 := hx_structural_source_478
+						return hxrt.BoundFunction(func(p *string) *hxrt.Array {
+							return hx_receiver_495.__hx_this.mkTypeParams(p)
+						}, func() any {
+							return hx_receiver_495.__hx_this
+						}, "mkTypeParams")
+					}(), Found: true}
+				case "mkRights":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*string) *haxe__rtti__Rights] {
+						hx_receiver_496 := hx_structural_source_478
+						return hxrt.BoundFunction(func(r *string) *haxe__rtti__Rights {
+							return hx_receiver_496.__hx_this.mkRights(r)
+						}, func() any {
+							return hx_receiver_496.__hx_this
+						}, "mkRights")
+					}(), Found: true}
+				case "xroot":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml)] {
+						hx_receiver_497 := hx_structural_source_478
+						return hxrt.BoundFunction(func(x *Xml) {
+							hx_receiver_497.__hx_this.xroot(x)
+						}, func() any {
+							return hx_receiver_497.__hx_this
+						}, "xroot")
+					}(), Found: true}
+				case "processElement":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml) *haxe__rtti__TypeTree] {
+						hx_receiver_498 := hx_structural_source_478
+						return hxrt.BoundFunction(func(x *Xml) *haxe__rtti__TypeTree {
+							return hx_receiver_498.__hx_this.processElement(x)
+						}, func() any {
+							return hx_receiver_498.__hx_this
+						}, "processElement")
+					}(), Found: true}
+				case "xmeta":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml) *hxrt.Array] {
+						hx_receiver_499 := hx_structural_source_478
+						return hxrt.BoundFunction(func(x *Xml) *hxrt.Array {
+							return hx_receiver_499.__hx_this.xmeta(x)
+						}, func() any {
+							return hx_receiver_499.__hx_this
+						}, "xmeta")
+					}(), Found: true}
+				case "xoverloads":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml) *hxrt.Array] {
+						hx_receiver_500 := hx_structural_source_478
+						return hxrt.BoundFunction(func(x *Xml) *hxrt.Array {
+							return hx_receiver_500.__hx_this.xoverloads(x)
+						}, func() any {
+							return hx_receiver_500.__hx_this
+						}, "xoverloads")
+					}(), Found: true}
+				case "xpath":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml) hxrt.Anonymous] {
+						hx_receiver_501 := hx_structural_source_478
+						return hxrt.BoundFunction(func(x *Xml) hxrt.Anonymous {
+							return hx_receiver_501.__hx_this.xpath(x)
+						}, func() any {
+							return hx_receiver_501.__hx_this
+						}, "xpath")
+					}(), Found: true}
+				case "xclass":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml) hxrt.Anonymous] {
+						hx_receiver_502 := hx_structural_source_478
+						return hxrt.BoundFunction(func(x *Xml) hxrt.Anonymous {
+							return hx_receiver_502.__hx_this.xclass(x)
+						}, func() any {
+							return hx_receiver_502.__hx_this
+						}, "xclass")
+					}(), Found: true}
+				case "xclassfield":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml, any) hxrt.Anonymous] {
+						hx_receiver_503 := hx_structural_source_478
+						return hxrt.BoundFunction(func(x *Xml, defPublic any) hxrt.Anonymous {
+							if defPublic == nil {
+								defPublic = false
+							}
+							return hx_receiver_503.__hx_this.xclassfield(x, func(hx_value_504 any) bool {
+								if hx_value_504 == nil {
+									var hx_zero_505 bool
+									return hx_zero_505
+								}
+								return hx_value_504.(bool)
+							}(any(defPublic)))
+						}, func() any {
+							return hx_receiver_503.__hx_this
+						}, "xclassfield")
+					}(), Found: true}
+				case "xenum":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml) hxrt.Anonymous] {
+						hx_receiver_506 := hx_structural_source_478
+						return hxrt.BoundFunction(func(x *Xml) hxrt.Anonymous {
+							return hx_receiver_506.__hx_this.xenum(x)
+						}, func() any {
+							return hx_receiver_506.__hx_this
+						}, "xenum")
+					}(), Found: true}
+				case "xenumfield":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml) hxrt.Anonymous] {
+						hx_receiver_507 := hx_structural_source_478
+						return hxrt.BoundFunction(func(x *Xml) hxrt.Anonymous {
+							return hx_receiver_507.__hx_this.xenumfield(x)
+						}, func() any {
+							return hx_receiver_507.__hx_this
+						}, "xenumfield")
+					}(), Found: true}
+				case "xabstract":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml) hxrt.Anonymous] {
+						hx_receiver_508 := hx_structural_source_478
+						return hxrt.BoundFunction(func(x *Xml) hxrt.Anonymous {
+							return hx_receiver_508.__hx_this.xabstract(x)
+						}, func() any {
+							return hx_receiver_508.__hx_this
+						}, "xabstract")
+					}(), Found: true}
+				case "xtypedef":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml) hxrt.Anonymous] {
+						hx_receiver_509 := hx_structural_source_478
+						return hxrt.BoundFunction(func(x *Xml) hxrt.Anonymous {
+							return hx_receiver_509.__hx_this.xtypedef(x)
+						}, func() any {
+							return hx_receiver_509.__hx_this
+						}, "xtypedef")
+					}(), Found: true}
+				case "xtype":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml) *haxe__rtti__CType] {
+						hx_receiver_510 := hx_structural_source_478
+						return hxrt.BoundFunction(func(x *Xml) *haxe__rtti__CType {
+							return hx_receiver_510.__hx_this.xtype(x)
+						}, func() any {
+							return hx_receiver_510.__hx_this
+						}, "xtype")
+					}(), Found: true}
+				case "xtypeparams":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml) *hxrt.Array] {
+						hx_receiver_511 := hx_structural_source_478
+						return hxrt.BoundFunction(func(x *Xml) *hxrt.Array {
+							return hx_receiver_511.__hx_this.xtypeparams(x)
+						}, func() any {
+							return hx_receiver_511.__hx_this
+						}, "xtypeparams")
+					}(), Found: true}
+				case "defplat":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() *hxrt.Array] {
+						hx_receiver_512 := hx_structural_source_478
+						return hxrt.BoundFunction(func() *hxrt.Array {
+							return hx_receiver_512.__hx_this.defplat()
+						}, func() any {
+							return hx_receiver_512.__hx_this
+						}, "defplat")
+					}(), Found: true}
+				case "joinStringArray":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*hxrt.Array, *string) *string] {
+						hx_receiver_513 := hx_structural_source_478
+						return hxrt.BoundFunction(func(values *hxrt.Array, separator *string) *string {
+							return hx_receiver_513.__hx_this.joinStringArray(values, separator)
+						}, func() any {
+							return hx_receiver_513.__hx_this
+						}, "joinStringArray")
+					}(), Found: true}
+				case "splitString":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*string, *string) *hxrt.Array] {
+						hx_receiver_514 := hx_structural_source_478
+						return hxrt.BoundFunction(func(value *string, separator *string) *hxrt.Array {
+							return hx_receiver_514.__hx_this.splitString(value, separator)
+						}, func() any {
+							return hx_receiver_514.__hx_this
+						}, "splitString")
+					}(), Found: true}
+				case "findSeparator":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*string, *string, int) int] {
+						hx_receiver_515 := hx_structural_source_478
+						return hxrt.BoundFunction(func(value *string, separator *string, start int) int {
+							return hx_receiver_515.__hx_this.findSeparator(value, separator, start)
+						}, func() any {
+							return hx_receiver_515.__hx_this
+						}, "findSeparator")
+					}(), Found: true}
+				case "requireAttr":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml, *string) *string] {
+						hx_receiver_516 := hx_structural_source_478
+						return hxrt.BoundFunction(func(x *Xml, name *string) *string {
+							return hx_receiver_516.__hx_this.requireAttr(x, name)
+						}, func() any {
+							return hx_receiver_516.__hx_this
+						}, "requireAttr")
+					}(), Found: true}
+				case "hasNamedElement":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml, *string) bool] {
+						hx_receiver_517 := hx_structural_source_478
+						return hxrt.BoundFunction(func(x *Xml, name *string) bool {
+							return hx_receiver_517.__hx_this.hasNamedElement(x, name)
+						}, func() any {
+							return hx_receiver_517.__hx_this
+						}, "hasNamedElement")
+					}(), Found: true}
+				case "requireNamedElement":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml, *string) *Xml] {
+						hx_receiver_518 := hx_structural_source_478
+						return hxrt.BoundFunction(func(x *Xml, name *string) *Xml {
+							return hx_receiver_518.__hx_this.requireNamedElement(x, name)
+						}, func() any {
+							return hx_receiver_518.__hx_this
+						}, "requireNamedElement")
+					}(), Found: true}
+				case "requireFirstElement":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml) *Xml] {
+						hx_receiver_519 := hx_structural_source_478
+						return hxrt.BoundFunction(func(x *Xml) *Xml {
+							return hx_receiver_519.__hx_this.requireFirstElement(x)
+						}, func() any {
+							return hx_receiver_519.__hx_this
+						}, "requireFirstElement")
+					}(), Found: true}
+				case "nodeDisplayName":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml) *string] {
+						hx_receiver_520 := hx_structural_source_478
+						return hxrt.BoundFunction(func(x *Xml) *string {
+							return hx_receiver_520.__hx_this.nodeDisplayName(x)
+						}, func() any {
+							return hx_receiver_520.__hx_this
+						}, "nodeDisplayName")
+					}(), Found: true}
+				case "elementName":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml) *string] {
+						hx_receiver_521 := hx_structural_source_478
+						return hxrt.BoundFunction(func(x *Xml) *string {
+							return hx_receiver_521.__hx_this.elementName(x)
+						}, func() any {
+							return hx_receiver_521.__hx_this
+						}, "elementName")
+					}(), Found: true}
+				case "innerData":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml) *string] {
+						hx_receiver_522 := hx_structural_source_478
+						return hxrt.BoundFunction(func(x *Xml) *string {
+							return hx_receiver_522.__hx_this.innerData(x)
+						}, func() any {
+							return hx_receiver_522.__hx_this
+						}, "innerData")
+					}(), Found: true}
+				case "innerHTML":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml) *string] {
+						hx_receiver_523 := hx_structural_source_478
+						return hxrt.BoundFunction(func(x *Xml) *string {
+							return hx_receiver_523.__hx_this.innerHTML(x)
+						}, func() any {
+							return hx_receiver_523.__hx_this
+						}, "innerHTML")
+					}(), Found: true}
+				case "parseIntString":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*string) int] {
+						hx_receiver_524 := hx_structural_source_478
+						return hxrt.BoundFunction(func(value *string) int {
+							return hx_receiver_524.__hx_this.parseIntString(value)
+						}, func() any {
+							return hx_receiver_524.__hx_this
+						}, "parseIntString")
+					}(), Found: true}
+				}
+				return hxrt.AnonymousField{}
+			}, func(name string, incoming any) bool {
+				switch name {
+				case "root":
+					hx_structural_source_478.root = func(hx_value_479 any) *hxrt.Array {
+						if hx_value_479 == nil {
+							var hx_zero_480 *hxrt.Array
+							return hx_zero_480
+						}
+						return hx_value_479.(*hxrt.Array)
+					}(incoming)
+					return true
+				case "curplatform":
+					hx_structural_source_478.curplatform = func(hx_value_481 any) *string {
+						if hx_value_481 == nil {
+							var hx_zero_482 *string
+							return hx_zero_482
+						}
+						return hx_value_481.(*string)
+					}(incoming)
+					return true
+				case "newField":
+					hx_structural_source_478.newField = hx_recover_callable_4(incoming)
+					return true
+				}
+				return false
+			})
+		}(source)
+	case *Xml:
+		return func(hx_structural_source_525 *Xml) hxrt.Anonymous {
+			return hxrt.NewAnonymousView(hx_structural_source_525, func(name string) hxrt.AnonymousField {
+				switch name {
+				case "nodeType":
+					return hxrt.AnonymousField{Value: hx_structural_source_525.nodeType, Found: true}
+				case "nodeName":
+					return hxrt.AnonymousField{Value: hx_structural_source_525.nodeName, Found: true}
+				case "nodeValue":
+					return hxrt.AnonymousField{Value: hx_structural_source_525.nodeValue, Found: true}
+				case "parent":
+					return hxrt.AnonymousField{Value: hx_structural_source_525.parent, Found: true}
+				case "children":
+					return hxrt.AnonymousField{Value: hx_structural_source_525.children, Found: true}
+				case "attributeMap":
+					return hxrt.AnonymousField{Value: hx_structural_source_525.attributeMap, Found: true}
+				case "get_nodeName":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() *string] {
+						hx_receiver_530 := hx_structural_source_525
+						return hxrt.BoundFunction(func() *string {
+							return hx_receiver_530.__hx_this.get_nodeName()
+						}, func() any {
+							return hx_receiver_530.__hx_this
+						}, "get_nodeName")
+					}(), Found: true}
+				case "set_nodeName":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*string) *string] {
+						hx_receiver_531 := hx_structural_source_525
+						return hxrt.BoundFunction(func(v *string) *string {
+							return hx_receiver_531.__hx_this.set_nodeName(v)
+						}, func() any {
+							return hx_receiver_531.__hx_this
+						}, "set_nodeName")
+					}(), Found: true}
+				case "get_nodeValue":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() *string] {
+						hx_receiver_532 := hx_structural_source_525
+						return hxrt.BoundFunction(func() *string {
+							return hx_receiver_532.__hx_this.get_nodeValue()
+						}, func() any {
+							return hx_receiver_532.__hx_this
+						}, "get_nodeValue")
+					}(), Found: true}
+				case "set_nodeValue":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*string) *string] {
+						hx_receiver_533 := hx_structural_source_525
+						return hxrt.BoundFunction(func(v *string) *string {
+							return hx_receiver_533.__hx_this.set_nodeValue(v)
+						}, func() any {
+							return hx_receiver_533.__hx_this
+						}, "set_nodeValue")
+					}(), Found: true}
+				case "get":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*string) *string] {
+						hx_receiver_534 := hx_structural_source_525
+						return hxrt.BoundFunction(func(att *string) *string {
+							return hx_receiver_534.__hx_this.get(att)
+						}, func() any {
+							return hx_receiver_534.__hx_this
+						}, "get")
+					}(), Found: true}
+				case "set":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*string, *string)] {
+						hx_receiver_535 := hx_structural_source_525
+						return hxrt.BoundFunction(func(att *string, value *string) {
+							hx_receiver_535.__hx_this.set(att, value)
+						}, func() any {
+							return hx_receiver_535.__hx_this
+						}, "set")
+					}(), Found: true}
+				case "remove":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*string)] {
+						hx_receiver_536 := hx_structural_source_525
+						return hxrt.BoundFunction(func(att *string) {
+							hx_receiver_536.__hx_this.remove(att)
+						}, func() any {
+							return hx_receiver_536.__hx_this
+						}, "remove")
+					}(), Found: true}
+				case "exists":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*string) bool] {
+						hx_receiver_537 := hx_structural_source_525
+						return hxrt.BoundFunction(func(att *string) bool {
+							return hx_receiver_537.__hx_this.exists(att)
+						}, func() any {
+							return hx_receiver_537.__hx_this
+						}, "exists")
+					}(), Found: true}
+				case "attributes":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() hxrt.Anonymous] {
+						hx_receiver_538 := hx_structural_source_525
+						return hxrt.BoundFunction(func() hxrt.Anonymous {
+							return hx_receiver_538.__hx_this.attributes()
+						}, func() any {
+							return hx_receiver_538.__hx_this
+						}, "attributes")
+					}(), Found: true}
+				case "iterator":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() hxrt.Anonymous] {
+						hx_receiver_539 := hx_structural_source_525
+						return hxrt.BoundFunction(func() hxrt.Anonymous {
+							return hx_receiver_539.__hx_this.iterator()
+						}, func() any {
+							return hx_receiver_539.__hx_this
+						}, "iterator")
+					}(), Found: true}
+				case "elements":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() hxrt.Anonymous] {
+						hx_receiver_540 := hx_structural_source_525
+						return hxrt.BoundFunction(func() hxrt.Anonymous {
+							return hx_receiver_540.__hx_this.elements()
+						}, func() any {
+							return hx_receiver_540.__hx_this
+						}, "elements")
+					}(), Found: true}
+				case "elementsNamed":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*string) hxrt.Anonymous] {
+						hx_receiver_541 := hx_structural_source_525
+						return hxrt.BoundFunction(func(name *string) hxrt.Anonymous {
+							return hx_receiver_541.__hx_this.elementsNamed(name)
+						}, func() any {
+							return hx_receiver_541.__hx_this
+						}, "elementsNamed")
+					}(), Found: true}
+				case "firstChild":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() *Xml] {
+						hx_receiver_542 := hx_structural_source_525
+						return hxrt.BoundFunction(func() *Xml {
+							return hx_receiver_542.__hx_this.firstChild()
+						}, func() any {
+							return hx_receiver_542.__hx_this
+						}, "firstChild")
+					}(), Found: true}
+				case "firstElement":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() *Xml] {
+						hx_receiver_543 := hx_structural_source_525
+						return hxrt.BoundFunction(func() *Xml {
+							return hx_receiver_543.__hx_this.firstElement()
+						}, func() any {
+							return hx_receiver_543.__hx_this
+						}, "firstElement")
+					}(), Found: true}
+				case "addChild":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml)] {
+						hx_receiver_544 := hx_structural_source_525
+						return hxrt.BoundFunction(func(x *Xml) {
+							hx_receiver_544.__hx_this.addChild(x)
+						}, func() any {
+							return hx_receiver_544.__hx_this
+						}, "addChild")
+					}(), Found: true}
+				case "removeChild":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml) bool] {
+						hx_receiver_545 := hx_structural_source_525
+						return hxrt.BoundFunction(func(x *Xml) bool {
+							return hx_receiver_545.__hx_this.removeChild(x)
+						}, func() any {
+							return hx_receiver_545.__hx_this
+						}, "removeChild")
+					}(), Found: true}
+				case "insertChild":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml, int)] {
+						hx_receiver_546 := hx_structural_source_525
+						return hxrt.BoundFunction(func(x *Xml, pos int) {
+							hx_receiver_546.__hx_this.insertChild(x, pos)
+						}, func() any {
+							return hx_receiver_546.__hx_this
+						}, "insertChild")
+					}(), Found: true}
+				case "toString":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() *string] {
+						hx_receiver_547 := hx_structural_source_525
+						return hxrt.BoundFunction(func() *string {
+							return hx_receiver_547.__hx_this.toString()
+						}, func() any {
+							return hx_receiver_547.__hx_this
+						}, "toString")
+					}(), Found: true}
+				case "ensureElementType":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func()] {
+						hx_receiver_548 := hx_structural_source_525
+						return hxrt.BoundFunction(func() {
+							hx_receiver_548.__hx_this.ensureElementType()
+						}, func() any {
+							return hx_receiver_548.__hx_this
+						}, "ensureElementType")
+					}(), Found: true}
+				}
+				return hxrt.AnonymousField{}
+			}, func(name string, incoming any) bool {
+				switch name {
+				case "children":
+					hx_structural_source_525.children = func(hx_value_526 any) *hxrt.Array {
+						if hx_value_526 == nil {
+							var hx_zero_527 *hxrt.Array
+							return hx_zero_527
+						}
+						return hx_value_526.(*hxrt.Array)
+					}(incoming)
+					return true
+				case "attributeMap":
+					hx_structural_source_525.attributeMap = func(hx_value_528 any) *haxe__ds__StringMap {
+						if hx_value_528 == nil {
+							var hx_zero_529 *haxe__ds__StringMap
+							return hx_zero_529
+						}
+						return hx_value_528.(*haxe__ds__StringMap)
+					}(incoming)
+					return true
+				}
+				return false
+			})
+		}(source)
+	case *haxe__iterators__MapKeyValueIterator:
+		return func(hx_structural_source_549 *haxe__iterators__MapKeyValueIterator) hxrt.Anonymous {
+			return hxrt.NewAnonymousView(hx_structural_source_549, func(name string) hxrt.AnonymousField {
+				switch name {
+				case "map":
+					return hxrt.AnonymousField{Value: hx_structural_source_549.map_, Found: true}
+				case "keys":
+					return hxrt.AnonymousField{Value: hx_structural_source_549.keys, Found: true}
+				case "hasNext":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() bool] {
+						hx_receiver_552 := hx_structural_source_549
+						return hxrt.BoundFunction(func() bool {
+							return hx_receiver_552.__hx_this.hasNext()
+						}, func() any {
+							return hx_receiver_552.__hx_this
+						}, "hasNext")
+					}(), Found: true}
+				case "next":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() hxrt.Anonymous] {
+						hx_receiver_553 := hx_structural_source_549
+						return hxrt.BoundFunction(func() hxrt.Anonymous {
+							return hx_receiver_553.__hx_this.next()
+						}, func() any {
+							return hx_receiver_553.__hx_this
+						}, "next")
+					}(), Found: true}
+				}
+				return hxrt.AnonymousField{}
+			}, func(name string, incoming any) bool {
+				switch name {
+				case "map":
+					hx_structural_source_549.map_ = func(hx_value_550 any) haxe__IMap {
+						if hx_value_550 == nil {
+							var hx_zero_551 haxe__IMap
+							return hx_zero_551
+						}
+						return hx_value_550.(haxe__IMap)
+					}(hxrt.ObjectSource(incoming))
+					return true
+				case "keys":
+					hx_structural_source_549.keys = hx_structural_recover(incoming)
+					return true
+				}
+				return false
+			})
+		}(source)
+	case *haxe__ds__StringMap:
+		return func(hx_structural_source_554 *haxe__ds__StringMap) hxrt.Anonymous {
+			return hxrt.NewAnonymousView(hx_structural_source_554, func(name string) hxrt.AnonymousField {
+				switch name {
+				case "h":
+					return hxrt.AnonymousField{Value: hx_structural_source_554.h, Found: true}
+				case "set":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*string, any)] {
+						hx_receiver_557 := hx_structural_source_554
+						return hxrt.BoundFunction(func(key *string, value any) {
+							hx_receiver_557.__hx_this.set(key, value)
+						}, func() any {
+							return hx_receiver_557.__hx_this
+						}, "set")
+					}(), Found: true}
+				case "get":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*string) any] {
+						hx_receiver_558 := hx_structural_source_554
+						return hxrt.BoundFunction(func(key *string) any {
+							return hx_receiver_558.__hx_this.get(key)
+						}, func() any {
+							return hx_receiver_558.__hx_this
+						}, "get")
+					}(), Found: true}
+				case "exists":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*string) bool] {
+						hx_receiver_559 := hx_structural_source_554
+						return hxrt.BoundFunction(func(key *string) bool {
+							return hx_receiver_559.__hx_this.exists(key)
+						}, func() any {
+							return hx_receiver_559.__hx_this
+						}, "exists")
+					}(), Found: true}
+				case "remove":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*string) bool] {
+						hx_receiver_560 := hx_structural_source_554
+						return hxrt.BoundFunction(func(key *string) bool {
+							return hx_receiver_560.__hx_this.remove(key)
+						}, func() any {
+							return hx_receiver_560.__hx_this
+						}, "remove")
+					}(), Found: true}
+				case "keys":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() hxrt.Anonymous] {
+						hx_receiver_561 := hx_structural_source_554
+						return hxrt.BoundFunction(func() hxrt.Anonymous {
+							return hx_receiver_561.__hx_this.keys()
+						}, func() any {
+							return hx_receiver_561.__hx_this
+						}, "keys")
+					}(), Found: true}
+				case "iterator":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() hxrt.Anonymous] {
+						hx_receiver_562 := hx_structural_source_554
+						return hxrt.BoundFunction(func() hxrt.Anonymous {
+							return hx_receiver_562.__hx_this.iterator()
+						}, func() any {
+							return hx_receiver_562.__hx_this
+						}, "iterator")
+					}(), Found: true}
+				case "keyValueIterator":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() hxrt.Anonymous] {
+						hx_receiver_563 := hx_structural_source_554
+						return hxrt.BoundFunction(func() hxrt.Anonymous {
+							return hx_receiver_563.__hx_this.keyValueIterator()
+						}, func() any {
+							return hx_receiver_563.__hx_this
+						}, "keyValueIterator")
+					}(), Found: true}
+				case "getIMap":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(any) any] {
+						hx_receiver_564 := hx_structural_source_554
+						return hxrt.BoundFunction(func(key any) any {
+							return hx_receiver_564.__hx_this.getIMap(key)
+						}, func() any {
+							return hx_receiver_564.__hx_this
+						}, "getIMap")
+					}(), Found: true}
+				case "setIMap":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(any, any)] {
+						hx_receiver_565 := hx_structural_source_554
+						return hxrt.BoundFunction(func(key any, value any) {
+							hx_receiver_565.__hx_this.setIMap(key, value)
+						}, func() any {
+							return hx_receiver_565.__hx_this
+						}, "setIMap")
+					}(), Found: true}
+				case "existsIMap":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(any) bool] {
+						hx_receiver_566 := hx_structural_source_554
+						return hxrt.BoundFunction(func(key any) bool {
+							return hx_receiver_566.__hx_this.existsIMap(key)
+						}, func() any {
+							return hx_receiver_566.__hx_this
+						}, "existsIMap")
+					}(), Found: true}
+				case "removeIMap":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(any) bool] {
+						hx_receiver_567 := hx_structural_source_554
+						return hxrt.BoundFunction(func(key any) bool {
+							return hx_receiver_567.__hx_this.removeIMap(key)
+						}, func() any {
+							return hx_receiver_567.__hx_this
+						}, "removeIMap")
+					}(), Found: true}
+				case "copyIMap":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() haxe__IMap] {
+						hx_receiver_568 := hx_structural_source_554
+						return hxrt.BoundFunction(func() haxe__IMap {
+							return hx_receiver_568.__hx_this.copyIMap()
+						}, func() any {
+							return hx_receiver_568.__hx_this
+						}, "copyIMap")
+					}(), Found: true}
+				case "copy":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() *haxe__ds__StringMap] {
+						hx_receiver_569 := hx_structural_source_554
+						return hxrt.BoundFunction(func() *haxe__ds__StringMap {
+							return hx_receiver_569.__hx_this.copy()
+						}, func() any {
+							return hx_receiver_569.__hx_this
+						}, "copy")
+					}(), Found: true}
+				case "toString":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() *string] {
+						hx_receiver_570 := hx_structural_source_554
+						return hxrt.BoundFunction(func() *string {
+							return hx_receiver_570.__hx_this.toString()
+						}, func() any {
+							return hx_receiver_570.__hx_this
+						}, "toString")
+					}(), Found: true}
+				case "clear":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func()] {
+						hx_receiver_571 := hx_structural_source_554
+						return hxrt.BoundFunction(func() {
+							hx_receiver_571.__hx_this.clear()
+						}, func() any {
+							return hx_receiver_571.__hx_this
+						}, "clear")
+					}(), Found: true}
+				}
+				return hxrt.AnonymousField{}
+			}, func(name string, incoming any) bool {
+				switch name {
+				case "h":
+					hx_structural_source_554.h = func(hx_value_555 any) *hxrt.StringMapCell {
+						if hx_value_555 == nil {
+							var hx_zero_556 *hxrt.StringMapCell
+							return hx_zero_556
+						}
+						return hx_value_555.(*hxrt.StringMapCell)
+					}(incoming)
+					return true
+				}
+				return false
+			})
+		}(source)
+	case *haxe__xml__XmlParserException:
+		return func(hx_structural_source_572 *haxe__xml__XmlParserException) hxrt.Anonymous {
+			return hxrt.NewAnonymousView(hx_structural_source_572, func(name string) hxrt.AnonymousField {
+				switch name {
+				case "message":
+					return hxrt.AnonymousField{Value: hx_structural_source_572.message, Found: true}
+				case "lineNumber":
+					return hxrt.AnonymousField{Value: hx_structural_source_572.lineNumber, Found: true}
+				case "positionAtLine":
+					return hxrt.AnonymousField{Value: hx_structural_source_572.positionAtLine, Found: true}
+				case "position":
+					return hxrt.AnonymousField{Value: hx_structural_source_572.position, Found: true}
+				case "xml":
+					return hxrt.AnonymousField{Value: hx_structural_source_572.xml, Found: true}
+				case "toString":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() *string] {
+						hx_receiver_583 := hx_structural_source_572
+						return hxrt.BoundFunction(func() *string {
+							return hx_receiver_583.__hx_this.toString()
+						}, func() any {
+							return hx_receiver_583.__hx_this
+						}, "toString")
+					}(), Found: true}
+				}
+				return hxrt.AnonymousField{}
+			}, func(name string, incoming any) bool {
+				switch name {
+				case "message":
+					hx_structural_source_572.message = func(hx_value_573 any) *string {
+						if hx_value_573 == nil {
+							var hx_zero_574 *string
+							return hx_zero_574
+						}
+						return hx_value_573.(*string)
+					}(incoming)
+					return true
+				case "lineNumber":
+					hx_structural_source_572.lineNumber = func(hx_value_575 any) int {
+						if hx_value_575 == nil {
+							var hx_zero_576 int
+							return hx_zero_576
+						}
+						return hx_value_575.(int)
+					}(incoming)
+					return true
+				case "positionAtLine":
+					hx_structural_source_572.positionAtLine = func(hx_value_577 any) int {
+						if hx_value_577 == nil {
+							var hx_zero_578 int
+							return hx_zero_578
+						}
+						return hx_value_577.(int)
+					}(incoming)
+					return true
+				case "position":
+					hx_structural_source_572.position = func(hx_value_579 any) int {
+						if hx_value_579 == nil {
+							var hx_zero_580 int
+							return hx_zero_580
+						}
+						return hx_value_579.(int)
+					}(incoming)
+					return true
+				case "xml":
+					hx_structural_source_572.xml = func(hx_value_581 any) *string {
+						if hx_value_581 == nil {
+							var hx_zero_582 *string
+							return hx_zero_582
+						}
+						return hx_value_581.(*string)
+					}(incoming)
+					return true
+				}
+				return false
+			})
+		}(source)
+	case *haxe__xml__Printer:
+		return func(hx_structural_source_584 *haxe__xml__Printer) hxrt.Anonymous {
+			return hxrt.NewAnonymousView(hx_structural_source_584, func(name string) hxrt.AnonymousField {
+				switch name {
+				case "output":
+					return hxrt.AnonymousField{Value: hx_structural_source_584.output, Found: true}
+				case "pretty":
+					return hxrt.AnonymousField{Value: hx_structural_source_584.pretty, Found: true}
+				case "writeNode":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml, *string)] {
+						hx_receiver_587 := hx_structural_source_584
+						return hxrt.BoundFunction(func(value *Xml, tabs *string) {
+							hx_receiver_587.__hx_this.writeNode(value, tabs)
+						}, func() any {
+							return hx_receiver_587.__hx_this
+						}, "writeNode")
+					}(), Found: true}
+				case "write":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*string)] {
+						hx_receiver_588 := hx_structural_source_584
+						return hxrt.BoundFunction(func(input *string) {
+							hx_receiver_588.__hx_this.write(input)
+						}, func() any {
+							return hx_receiver_588.__hx_this
+						}, "write")
+					}(), Found: true}
+				case "newline":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func()] {
+						hx_receiver_589 := hx_structural_source_584
+						return hxrt.BoundFunction(func() {
+							hx_receiver_589.__hx_this.newline()
+						}, func() any {
+							return hx_receiver_589.__hx_this
+						}, "newline")
+					}(), Found: true}
+				case "hasChildren":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*Xml) bool] {
+						hx_receiver_590 := hx_structural_source_584
+						return hxrt.BoundFunction(func(value *Xml) bool {
+							return hx_receiver_590.__hx_this.hasChildren(value)
+						}, func() any {
+							return hx_receiver_590.__hx_this
+						}, "hasChildren")
+					}(), Found: true}
+				}
+				return hxrt.AnonymousField{}
+			}, func(name string, incoming any) bool {
+				switch name {
+				case "output":
+					hx_structural_source_584.output = hx_recover_class_2(incoming)
+					return true
+				case "pretty":
+					hx_structural_source_584.pretty = func(hx_value_585 any) bool {
+						if hx_value_585 == nil {
+							var hx_zero_586 bool
+							return hx_zero_586
+						}
+						return hx_value_585.(bool)
+					}(incoming)
+					return true
+				}
+				return false
+			})
+		}(source)
+	case *haxe__iterators__ArrayIterator:
+		return func(hx_structural_source_591 *haxe__iterators__ArrayIterator) hxrt.Anonymous {
+			return hxrt.NewAnonymousView(hx_structural_source_591, func(name string) hxrt.AnonymousField {
+				switch name {
+				case "array":
+					return hxrt.AnonymousField{Value: hx_structural_source_591.array, Found: true}
+				case "current":
+					return hxrt.AnonymousField{Value: hx_structural_source_591.current, Found: true}
+				case "hasNext":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() bool] {
+						hx_receiver_594 := hx_structural_source_591
+						return hxrt.BoundFunction(func() bool {
+							return hx_receiver_594.__hx_this.hasNext()
+						}, func() any {
+							return hx_receiver_594.__hx_this
+						}, "hasNext")
+					}(), Found: true}
+				case "next":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() any] {
+						hx_receiver_595 := hx_structural_source_591
+						return hxrt.BoundFunction(func() any {
+							return hx_receiver_595.__hx_this.next()
+						}, func() any {
+							return hx_receiver_595.__hx_this
+						}, "next")
+					}(), Found: true}
+				}
+				return hxrt.AnonymousField{}
+			}, func(name string, incoming any) bool {
+				switch name {
+				case "current":
+					hx_structural_source_591.current = func(hx_value_592 any) int {
+						if hx_value_592 == nil {
+							var hx_zero_593 int
+							return hx_zero_593
+						}
+						return hx_value_592.(int)
+					}(incoming)
+					return true
+				}
+				return false
+			})
+		}(source)
+	case *StringBuf:
+		return func(hx_structural_source_596 *StringBuf) hxrt.Anonymous {
+			return hxrt.NewAnonymousView(hx_structural_source_596, func(name string) hxrt.AnonymousField {
+				switch name {
+				case "b":
+					return hxrt.AnonymousField{Value: hx_structural_source_596.b, Found: true}
+				}
+				return hxrt.AnonymousField{}
+			}, func(name string, incoming any) bool {
+				switch name {
+				case "b":
+					hx_structural_source_596.b = func(hx_value_597 any) *string {
+						if hx_value_597 == nil {
+							var hx_zero_598 *string
+							return hx_zero_598
+						}
+						return hx_value_597.(*string)
+					}(incoming)
+					return true
+				}
+				return false
+			})
+		}(source)
+	case *haxe__iterators__StringKeyValueIterator:
+		return func(hx_structural_source_599 *haxe__iterators__StringKeyValueIterator) hxrt.Anonymous {
+			return hxrt.NewAnonymousView(hx_structural_source_599, func(name string) hxrt.AnonymousField {
+				switch name {
+				case "offset":
+					return hxrt.AnonymousField{Value: hx_structural_source_599.offset, Found: true}
+				case "s":
+					return hxrt.AnonymousField{Value: hx_structural_source_599.s, Found: true}
+				case "hasNext":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() bool] {
+						hx_receiver_604 := hx_structural_source_599
+						return hxrt.BoundFunction(func() bool {
+							return hx_receiver_604.__hx_this.hasNext()
+						}, func() any {
+							return hx_receiver_604.__hx_this
+						}, "hasNext")
+					}(), Found: true}
+				case "next":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() hxrt.Anonymous] {
+						hx_receiver_605 := hx_structural_source_599
+						return hxrt.BoundFunction(func() hxrt.Anonymous {
+							return hx_receiver_605.__hx_this.next()
+						}, func() any {
+							return hx_receiver_605.__hx_this
+						}, "next")
+					}(), Found: true}
+				}
+				return hxrt.AnonymousField{}
+			}, func(name string, incoming any) bool {
+				switch name {
+				case "offset":
+					hx_structural_source_599.offset = func(hx_value_600 any) int {
+						if hx_value_600 == nil {
+							var hx_zero_601 int
+							return hx_zero_601
+						}
+						return hx_value_600.(int)
+					}(incoming)
+					return true
+				case "s":
+					hx_structural_source_599.s = func(hx_value_602 any) *string {
+						if hx_value_602 == nil {
+							var hx_zero_603 *string
+							return hx_zero_603
+						}
+						return hx_value_602.(*string)
+					}(incoming)
+					return true
+				}
+				return false
+			})
+		}(source)
+	case *haxe__iterators__StringIterator:
+		return func(hx_structural_source_606 *haxe__iterators__StringIterator) hxrt.Anonymous {
+			return hxrt.NewAnonymousView(hx_structural_source_606, func(name string) hxrt.AnonymousField {
+				switch name {
+				case "offset":
+					return hxrt.AnonymousField{Value: hx_structural_source_606.offset, Found: true}
+				case "s":
+					return hxrt.AnonymousField{Value: hx_structural_source_606.s, Found: true}
+				case "hasNext":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() bool] {
+						hx_receiver_611 := hx_structural_source_606
+						return hxrt.BoundFunction(func() bool {
+							return hx_receiver_611.__hx_this.hasNext()
+						}, func() any {
+							return hx_receiver_611.__hx_this
+						}, "hasNext")
+					}(), Found: true}
+				case "next":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() int] {
+						hx_receiver_612 := hx_structural_source_606
+						return hxrt.BoundFunction(func() int {
+							return hx_receiver_612.__hx_this.next()
+						}, func() any {
+							return hx_receiver_612.__hx_this
+						}, "next")
+					}(), Found: true}
+				}
+				return hxrt.AnonymousField{}
+			}, func(name string, incoming any) bool {
+				switch name {
+				case "offset":
+					hx_structural_source_606.offset = func(hx_value_607 any) int {
+						if hx_value_607 == nil {
+							var hx_zero_608 int
+							return hx_zero_608
+						}
+						return hx_value_607.(int)
+					}(incoming)
+					return true
+				case "s":
+					hx_structural_source_606.s = func(hx_value_609 any) *string {
+						if hx_value_609 == nil {
+							var hx_zero_610 *string
+							return hx_zero_610
+						}
+						return hx_value_609.(*string)
+					}(incoming)
+					return true
+				}
+				return false
+			})
+		}(source)
+	case *haxe__io__Bytes:
+		return func(hx_structural_source_613 *haxe__io__Bytes) hxrt.Anonymous {
+			return hxrt.NewAnonymousView(hx_structural_source_613, func(name string) hxrt.AnonymousField {
+				switch name {
+				case "length":
+					return hxrt.AnonymousField{Value: hx_structural_source_613.length, Found: true}
+				case "b":
+					return hxrt.AnonymousField{Value: hx_structural_source_613.b, Found: true}
+				case "__hx_raw":
+					return hxrt.AnonymousField{Value: hx_structural_source_613.__hx_raw, Found: true}
+				case "__hx_rawValid":
+					return hxrt.AnonymousField{Value: hx_structural_source_613.__hx_rawValid, Found: true}
+				case "__hx_dataExposed":
+					return hxrt.AnonymousField{Value: hx_structural_source_613.__hx_dataExposed, Found: true}
+				case "get":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(int) int] {
+						hx_receiver_622 := hx_structural_source_613
+						return hxrt.BoundFunction(func(pos int) int {
+							return hx_receiver_622.__hx_this.get(pos)
+						}, func() any {
+							return hx_receiver_622.__hx_this
+						}, "get")
+					}(), Found: true}
+				case "set":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(int, int)] {
+						hx_receiver_623 := hx_structural_source_613
+						return hxrt.BoundFunction(func(pos int, value int) {
+							hx_receiver_623.__hx_this.set(pos, value)
+						}, func() any {
+							return hx_receiver_623.__hx_this
+						}, "set")
+					}(), Found: true}
+				case "blit":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(int, *haxe__io__Bytes, int, int)] {
+						hx_receiver_624 := hx_structural_source_613
+						return hxrt.BoundFunction(func(pos int, src *haxe__io__Bytes, srcpos int, len int) {
+							hx_receiver_624.__hx_this.blit(pos, src, srcpos, len)
+						}, func() any {
+							return hx_receiver_624.__hx_this
+						}, "blit")
+					}(), Found: true}
+				case "fill":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(int, int, int)] {
+						hx_receiver_625 := hx_structural_source_613
+						return hxrt.BoundFunction(func(pos int, len int, value int) {
+							hx_receiver_625.__hx_this.fill(pos, len, value)
+						}, func() any {
+							return hx_receiver_625.__hx_this
+						}, "fill")
+					}(), Found: true}
+				case "sub":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(int, int) *haxe__io__Bytes] {
+						hx_receiver_626 := hx_structural_source_613
+						return hxrt.BoundFunction(func(pos int, len int) *haxe__io__Bytes {
+							return hx_receiver_626.__hx_this.sub(pos, len)
+						}, func() any {
+							return hx_receiver_626.__hx_this
+						}, "sub")
+					}(), Found: true}
+				case "compare":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(*haxe__io__Bytes) int] {
+						hx_receiver_627 := hx_structural_source_613
+						return hxrt.BoundFunction(func(other *haxe__io__Bytes) int {
+							return hx_receiver_627.__hx_this.compare(other)
+						}, func() any {
+							return hx_receiver_627.__hx_this
+						}, "compare")
+					}(), Found: true}
+				case "getDouble":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(int) float64] {
+						hx_receiver_628 := hx_structural_source_613
+						return hxrt.BoundFunction(func(pos int) float64 {
+							return hx_receiver_628.__hx_this.getDouble(pos)
+						}, func() any {
+							return hx_receiver_628.__hx_this
+						}, "getDouble")
+					}(), Found: true}
+				case "getFloat":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(int) float64] {
+						hx_receiver_629 := hx_structural_source_613
+						return hxrt.BoundFunction(func(pos int) float64 {
+							return hx_receiver_629.__hx_this.getFloat(pos)
+						}, func() any {
+							return hx_receiver_629.__hx_this
+						}, "getFloat")
+					}(), Found: true}
+				case "setDouble":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(int, float64)] {
+						hx_receiver_630 := hx_structural_source_613
+						return hxrt.BoundFunction(func(pos int, value float64) {
+							hx_receiver_630.__hx_this.setDouble(pos, value)
+						}, func() any {
+							return hx_receiver_630.__hx_this
+						}, "setDouble")
+					}(), Found: true}
+				case "setFloat":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(int, float64)] {
+						hx_receiver_631 := hx_structural_source_613
+						return hxrt.BoundFunction(func(pos int, value float64) {
+							hx_receiver_631.__hx_this.setFloat(pos, value)
+						}, func() any {
+							return hx_receiver_631.__hx_this
+						}, "setFloat")
+					}(), Found: true}
+				case "getUInt16":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(int) int] {
+						hx_receiver_632 := hx_structural_source_613
+						return hxrt.BoundFunction(func(pos int) int {
+							return hx_receiver_632.__hx_this.getUInt16(pos)
+						}, func() any {
+							return hx_receiver_632.__hx_this
+						}, "getUInt16")
+					}(), Found: true}
+				case "setUInt16":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(int, int)] {
+						hx_receiver_633 := hx_structural_source_613
+						return hxrt.BoundFunction(func(pos int, value int) {
+							hx_receiver_633.__hx_this.setUInt16(pos, value)
+						}, func() any {
+							return hx_receiver_633.__hx_this
+						}, "setUInt16")
+					}(), Found: true}
+				case "getInt32":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(int) int] {
+						hx_receiver_634 := hx_structural_source_613
+						return hxrt.BoundFunction(func(pos int) int {
+							return hx_receiver_634.__hx_this.getInt32(pos)
+						}, func() any {
+							return hx_receiver_634.__hx_this
+						}, "getInt32")
+					}(), Found: true}
+				case "getInt64":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(int) *haxe___Int64_____Int64] {
+						hx_receiver_635 := hx_structural_source_613
+						return hxrt.BoundFunction(func(pos int) *haxe___Int64_____Int64 {
+							return hx_receiver_635.__hx_this.getInt64(pos)
+						}, func() any {
+							return hx_receiver_635.__hx_this
+						}, "getInt64")
+					}(), Found: true}
+				case "setInt32":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(int, int)] {
+						hx_receiver_636 := hx_structural_source_613
+						return hxrt.BoundFunction(func(pos int, value int) {
+							hx_receiver_636.__hx_this.setInt32(pos, value)
+						}, func() any {
+							return hx_receiver_636.__hx_this
+						}, "setInt32")
+					}(), Found: true}
+				case "setInt64":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(int, *haxe___Int64_____Int64)] {
+						hx_receiver_637 := hx_structural_source_613
+						return hxrt.BoundFunction(func(pos int, value *haxe___Int64_____Int64) {
+							hx_receiver_637.__hx_this.setInt64(pos, value)
+						}, func() any {
+							return hx_receiver_637.__hx_this
+						}, "setInt64")
+					}(), Found: true}
+				case "getString":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(int, int, *haxe__io__Encoding) *string] {
+						hx_receiver_638 := hx_structural_source_613
+						return hxrt.BoundFunction(func(pos int, len int, encoding *haxe__io__Encoding) *string {
+							return hx_receiver_638.__hx_this.getString(pos, len, encoding)
+						}, func() any {
+							return hx_receiver_638.__hx_this
+						}, "getString")
+					}(), Found: true}
+				case "readString":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func(int, int) *string] {
+						hx_receiver_639 := hx_structural_source_613
+						return hxrt.BoundFunction(func(pos int, len int) *string {
+							return hx_receiver_639.__hx_this.readString(pos, len)
+						}, func() any {
+							return hx_receiver_639.__hx_this
+						}, "readString")
+					}(), Found: true}
+				case "toString":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() *string] {
+						hx_receiver_640 := hx_structural_source_613
+						return hxrt.BoundFunction(func() *string {
+							return hx_receiver_640.__hx_this.toString()
+						}, func() any {
+							return hx_receiver_640.__hx_this
+						}, "toString")
+					}(), Found: true}
+				case "toHex":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() *string] {
+						hx_receiver_641 := hx_structural_source_613
+						return hxrt.BoundFunction(func() *string {
+							return hx_receiver_641.__hx_this.toHex()
+						}, func() any {
+							return hx_receiver_641.__hx_this
+						}, "toHex")
+					}(), Found: true}
+				case "getData":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() []int] {
+						hx_receiver_642 := hx_structural_source_613
+						return hxrt.BoundFunction(func() []int {
+							return hx_receiver_642.__hx_this.getData()
+						}, func() any {
+							return hx_receiver_642.__hx_this
+						}, "getData")
+					}(), Found: true}
+				case "__hx_nativeView":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() *hxrt.ByteView] {
+						hx_receiver_643 := hx_structural_source_613
+						return hxrt.BoundFunction(func() *hxrt.ByteView {
+							return hx_receiver_643.__hx_this.__hx_nativeView()
+						}, func() any {
+							return hx_receiver_643.__hx_this
+						}, "__hx_nativeView")
+					}(), Found: true}
+				}
+				return hxrt.AnonymousField{}
+			}, func(name string, incoming any) bool {
+				switch name {
+				case "b":
+					hx_structural_source_613.b = func(hx_value_614 any) []int {
+						if hx_value_614 == nil {
+							var hx_zero_615 []int
+							return hx_zero_615
+						}
+						return hx_value_614.([]int)
+					}(incoming)
+					return true
+				case "__hx_raw":
+					hx_structural_source_613.__hx_raw = func(hx_value_616 any) *hxrt.ByteView {
+						if hx_value_616 == nil {
+							var hx_zero_617 *hxrt.ByteView
+							return hx_zero_617
+						}
+						return hx_value_616.(*hxrt.ByteView)
+					}(incoming)
+					return true
+				case "__hx_rawValid":
+					hx_structural_source_613.__hx_rawValid = func(hx_value_618 any) bool {
+						if hx_value_618 == nil {
+							var hx_zero_619 bool
+							return hx_zero_619
+						}
+						return hx_value_618.(bool)
+					}(incoming)
+					return true
+				case "__hx_dataExposed":
+					hx_structural_source_613.__hx_dataExposed = func(hx_value_620 any) bool {
+						if hx_value_620 == nil {
+							var hx_zero_621 bool
+							return hx_zero_621
+						}
+						return hx_value_620.(bool)
+					}(incoming)
+					return true
+				}
+				return false
+			})
+		}(source)
+	default:
+		return hxrt.AnonymousFromValue(value)
+	}
+}
+
 func hxrt__generated_method_field(obj any, key string) any {
 	var receiver any
-	switch value := obj.(type) {
+	switch value := hxrt.ObjectSource(obj).(type) {
 	case *Xml:
 		if (value == nil) || (value.__hx_this == nil) {
 			return nil
@@ -89,6 +1505,11 @@ func hxrt__generated_method_field(obj any, key string) any {
 		}
 		receiver = value.__hx_this
 	case *haxe__io__Bytes:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__iterators__ArrayIterator:
 		if (value == nil) || (value.__hx_this == nil) {
 			return nil
 		}
@@ -133,6 +1554,8 @@ func hxrt__generated_method_field(obj any, key string) any {
 		return hxrt__generated_method_field__haxe__ds__StringMap(value, key)
 	case *haxe__io__Bytes:
 		return hxrt__generated_method_field__haxe__io__Bytes(value, key)
+	case *haxe__iterators__ArrayIterator:
+		return hxrt__generated_method_field__haxe__iterators__ArrayIterator(value, key)
 	case *haxe__iterators__MapKeyValueIterator:
 		return hxrt__generated_method_field__haxe__iterators__MapKeyValueIterator(value, key)
 	case *haxe__iterators__StringIterator:
@@ -156,43 +1579,176 @@ func hxrt__generated_method_field__Xml(value *Xml, key string) any {
 	}
 	switch key {
 	case "addChild":
-		return value.addChild
+		return func() *hxrt.Function[func(*Xml)] {
+			hx_receiver_644 := value
+			return hxrt.BoundFunction(func(x *Xml) {
+				hx_receiver_644.__hx_this.addChild(x)
+			}, func() any {
+				return hx_receiver_644.__hx_this
+			}, "addChild")
+		}()
 	case "attributes":
-		return value.attributes
+		return func() *hxrt.Function[func() hxrt.Anonymous] {
+			hx_receiver_645 := value
+			return hxrt.BoundFunction(func() hxrt.Anonymous {
+				return hx_receiver_645.__hx_this.attributes()
+			}, func() any {
+				return hx_receiver_645.__hx_this
+			}, "attributes")
+		}()
 	case "elements":
-		return value.elements
+		return func() *hxrt.Function[func() hxrt.Anonymous] {
+			hx_receiver_646 := value
+			return hxrt.BoundFunction(func() hxrt.Anonymous {
+				return hx_receiver_646.__hx_this.elements()
+			}, func() any {
+				return hx_receiver_646.__hx_this
+			}, "elements")
+		}()
 	case "elementsNamed":
-		return value.elementsNamed
+		return func() *hxrt.Function[func(*string) hxrt.Anonymous] {
+			hx_receiver_647 := value
+			return hxrt.BoundFunction(func(name *string) hxrt.Anonymous {
+				return hx_receiver_647.__hx_this.elementsNamed(name)
+			}, func() any {
+				return hx_receiver_647.__hx_this
+			}, "elementsNamed")
+		}()
 	case "ensureElementType":
-		return value.ensureElementType
+		return func() *hxrt.Function[func()] {
+			hx_receiver_648 := value
+			return hxrt.BoundFunction(func() {
+				hx_receiver_648.__hx_this.ensureElementType()
+			}, func() any {
+				return hx_receiver_648.__hx_this
+			}, "ensureElementType")
+		}()
 	case "exists":
-		return value.exists
+		return func() *hxrt.Function[func(*string) bool] {
+			hx_receiver_649 := value
+			return hxrt.BoundFunction(func(att *string) bool {
+				return hx_receiver_649.__hx_this.exists(att)
+			}, func() any {
+				return hx_receiver_649.__hx_this
+			}, "exists")
+		}()
 	case "firstChild":
-		return value.firstChild
+		return func() *hxrt.Function[func() *Xml] {
+			hx_receiver_650 := value
+			return hxrt.BoundFunction(func() *Xml {
+				return hx_receiver_650.__hx_this.firstChild()
+			}, func() any {
+				return hx_receiver_650.__hx_this
+			}, "firstChild")
+		}()
 	case "firstElement":
-		return value.firstElement
+		return func() *hxrt.Function[func() *Xml] {
+			hx_receiver_651 := value
+			return hxrt.BoundFunction(func() *Xml {
+				return hx_receiver_651.__hx_this.firstElement()
+			}, func() any {
+				return hx_receiver_651.__hx_this
+			}, "firstElement")
+		}()
 	case "get":
-		return value.get
+		return func() *hxrt.Function[func(*string) *string] {
+			hx_receiver_652 := value
+			return hxrt.BoundFunction(func(att *string) *string {
+				return hx_receiver_652.__hx_this.get(att)
+			}, func() any {
+				return hx_receiver_652.__hx_this
+			}, "get")
+		}()
 	case "get_nodeName":
-		return value.get_nodeName
+		return func() *hxrt.Function[func() *string] {
+			hx_receiver_653 := value
+			return hxrt.BoundFunction(func() *string {
+				return hx_receiver_653.__hx_this.get_nodeName()
+			}, func() any {
+				return hx_receiver_653.__hx_this
+			}, "get_nodeName")
+		}()
 	case "get_nodeValue":
-		return value.get_nodeValue
+		return func() *hxrt.Function[func() *string] {
+			hx_receiver_654 := value
+			return hxrt.BoundFunction(func() *string {
+				return hx_receiver_654.__hx_this.get_nodeValue()
+			}, func() any {
+				return hx_receiver_654.__hx_this
+			}, "get_nodeValue")
+		}()
 	case "insertChild":
-		return value.insertChild
+		return func() *hxrt.Function[func(*Xml, int)] {
+			hx_receiver_655 := value
+			return hxrt.BoundFunction(func(x *Xml, pos int) {
+				hx_receiver_655.__hx_this.insertChild(x, pos)
+			}, func() any {
+				return hx_receiver_655.__hx_this
+			}, "insertChild")
+		}()
 	case "iterator":
-		return value.iterator
+		return func() *hxrt.Function[func() hxrt.Anonymous] {
+			hx_receiver_656 := value
+			return hxrt.BoundFunction(func() hxrt.Anonymous {
+				return hx_receiver_656.__hx_this.iterator()
+			}, func() any {
+				return hx_receiver_656.__hx_this
+			}, "iterator")
+		}()
 	case "remove":
-		return value.remove
+		return func() *hxrt.Function[func(*string)] {
+			hx_receiver_657 := value
+			return hxrt.BoundFunction(func(att *string) {
+				hx_receiver_657.__hx_this.remove(att)
+			}, func() any {
+				return hx_receiver_657.__hx_this
+			}, "remove")
+		}()
 	case "removeChild":
-		return value.removeChild
+		return func() *hxrt.Function[func(*Xml) bool] {
+			hx_receiver_658 := value
+			return hxrt.BoundFunction(func(x *Xml) bool {
+				return hx_receiver_658.__hx_this.removeChild(x)
+			}, func() any {
+				return hx_receiver_658.__hx_this
+			}, "removeChild")
+		}()
 	case "set":
-		return value.set
+		return func() *hxrt.Function[func(*string, *string)] {
+			hx_receiver_659 := value
+			return hxrt.BoundFunction(func(att *string, value *string) {
+				hx_receiver_659.__hx_this.set(att, value)
+			}, func() any {
+				return hx_receiver_659.__hx_this
+			}, "set")
+		}()
 	case "set_nodeName":
-		return value.set_nodeName
+		return func() *hxrt.Function[func(*string) *string] {
+			hx_receiver_660 := value
+			return hxrt.BoundFunction(func(v *string) *string {
+				return hx_receiver_660.__hx_this.set_nodeName(v)
+			}, func() any {
+				return hx_receiver_660.__hx_this
+			}, "set_nodeName")
+		}()
 	case "set_nodeValue":
-		return value.set_nodeValue
+		return func() *hxrt.Function[func(*string) *string] {
+			hx_receiver_661 := value
+			return hxrt.BoundFunction(func(v *string) *string {
+				return hx_receiver_661.__hx_this.set_nodeValue(v)
+			}, func() any {
+				return hx_receiver_661.__hx_this
+			}, "set_nodeValue")
+		}()
 	case "toString":
-		return value.toString
+		return func() *hxrt.Function[func() *string] {
+			hx_receiver_662 := value
+			return hxrt.BoundFunction(func() *string {
+				return hx_receiver_662.__hx_this.toString()
+			}, func() any {
+				return hx_receiver_662.__hx_this
+			}, "toString")
+		}()
 	}
 	return nil
 }
@@ -203,35 +1759,140 @@ func hxrt__generated_method_field__haxe__ds__StringMap(value *haxe__ds__StringMa
 	}
 	switch key {
 	case "clear":
-		return value.clear
+		return func() *hxrt.Function[func()] {
+			hx_receiver_663 := value
+			return hxrt.BoundFunction(func() {
+				hx_receiver_663.__hx_this.clear()
+			}, func() any {
+				return hx_receiver_663.__hx_this
+			}, "clear")
+		}()
 	case "copy":
-		return value.copy
+		return func() *hxrt.Function[func() *haxe__ds__StringMap] {
+			hx_receiver_664 := value
+			return hxrt.BoundFunction(func() *haxe__ds__StringMap {
+				return hx_receiver_664.__hx_this.copy()
+			}, func() any {
+				return hx_receiver_664.__hx_this
+			}, "copy")
+		}()
 	case "copyIMap":
-		return value.copyIMap
+		return func() *hxrt.Function[func() haxe__IMap] {
+			hx_receiver_665 := value
+			return hxrt.BoundFunction(func() haxe__IMap {
+				return hx_receiver_665.__hx_this.copyIMap()
+			}, func() any {
+				return hx_receiver_665.__hx_this
+			}, "copyIMap")
+		}()
 	case "exists":
-		return value.exists
+		return func() *hxrt.Function[func(*string) bool] {
+			hx_receiver_666 := value
+			return hxrt.BoundFunction(func(key *string) bool {
+				return hx_receiver_666.__hx_this.exists(key)
+			}, func() any {
+				return hx_receiver_666.__hx_this
+			}, "exists")
+		}()
 	case "existsIMap":
-		return value.existsIMap
+		return func() *hxrt.Function[func(any) bool] {
+			hx_receiver_667 := value
+			return hxrt.BoundFunction(func(key any) bool {
+				return hx_receiver_667.__hx_this.existsIMap(key)
+			}, func() any {
+				return hx_receiver_667.__hx_this
+			}, "existsIMap")
+		}()
 	case "get":
-		return value.get
+		return func() *hxrt.Function[func(*string) any] {
+			hx_receiver_668 := value
+			return hxrt.BoundFunction(func(key *string) any {
+				return hx_receiver_668.__hx_this.get(key)
+			}, func() any {
+				return hx_receiver_668.__hx_this
+			}, "get")
+		}()
 	case "getIMap":
-		return value.getIMap
+		return func() *hxrt.Function[func(any) any] {
+			hx_receiver_669 := value
+			return hxrt.BoundFunction(func(key any) any {
+				return hx_receiver_669.__hx_this.getIMap(key)
+			}, func() any {
+				return hx_receiver_669.__hx_this
+			}, "getIMap")
+		}()
 	case "iterator":
-		return value.iterator
+		return func() *hxrt.Function[func() hxrt.Anonymous] {
+			hx_receiver_670 := value
+			return hxrt.BoundFunction(func() hxrt.Anonymous {
+				return hx_receiver_670.__hx_this.iterator()
+			}, func() any {
+				return hx_receiver_670.__hx_this
+			}, "iterator")
+		}()
 	case "keyValueIterator":
-		return value.keyValueIterator
+		return func() *hxrt.Function[func() hxrt.Anonymous] {
+			hx_receiver_671 := value
+			return hxrt.BoundFunction(func() hxrt.Anonymous {
+				return hx_receiver_671.__hx_this.keyValueIterator()
+			}, func() any {
+				return hx_receiver_671.__hx_this
+			}, "keyValueIterator")
+		}()
 	case "keys":
-		return value.keys
+		return func() *hxrt.Function[func() hxrt.Anonymous] {
+			hx_receiver_672 := value
+			return hxrt.BoundFunction(func() hxrt.Anonymous {
+				return hx_receiver_672.__hx_this.keys()
+			}, func() any {
+				return hx_receiver_672.__hx_this
+			}, "keys")
+		}()
 	case "remove":
-		return value.remove
+		return func() *hxrt.Function[func(*string) bool] {
+			hx_receiver_673 := value
+			return hxrt.BoundFunction(func(key *string) bool {
+				return hx_receiver_673.__hx_this.remove(key)
+			}, func() any {
+				return hx_receiver_673.__hx_this
+			}, "remove")
+		}()
 	case "removeIMap":
-		return value.removeIMap
+		return func() *hxrt.Function[func(any) bool] {
+			hx_receiver_674 := value
+			return hxrt.BoundFunction(func(key any) bool {
+				return hx_receiver_674.__hx_this.removeIMap(key)
+			}, func() any {
+				return hx_receiver_674.__hx_this
+			}, "removeIMap")
+		}()
 	case "set":
-		return value.set
+		return func() *hxrt.Function[func(*string, any)] {
+			hx_receiver_675 := value
+			return hxrt.BoundFunction(func(key *string, value any) {
+				hx_receiver_675.__hx_this.set(key, value)
+			}, func() any {
+				return hx_receiver_675.__hx_this
+			}, "set")
+		}()
 	case "setIMap":
-		return value.setIMap
+		return func() *hxrt.Function[func(any, any)] {
+			hx_receiver_676 := value
+			return hxrt.BoundFunction(func(key any, value any) {
+				hx_receiver_676.__hx_this.setIMap(key, value)
+			}, func() any {
+				return hx_receiver_676.__hx_this
+			}, "setIMap")
+		}()
 	case "toString":
-		return value.toString
+		return func() *hxrt.Function[func() *string] {
+			hx_receiver_677 := value
+			return hxrt.BoundFunction(func() *string {
+				return hx_receiver_677.__hx_this.toString()
+			}, func() any {
+				return hx_receiver_677.__hx_this
+			}, "toString")
+		}()
 	}
 	return nil
 }
@@ -242,49 +1903,230 @@ func hxrt__generated_method_field__haxe__io__Bytes(value *haxe__io__Bytes, key s
 	}
 	switch key {
 	case "__hx_nativeView":
-		return value.__hx_nativeView
+		return func() *hxrt.Function[func() *hxrt.ByteView] {
+			hx_receiver_678 := value
+			return hxrt.BoundFunction(func() *hxrt.ByteView {
+				return hx_receiver_678.__hx_this.__hx_nativeView()
+			}, func() any {
+				return hx_receiver_678.__hx_this
+			}, "__hx_nativeView")
+		}()
 	case "blit":
-		return value.blit
+		return func() *hxrt.Function[func(int, *haxe__io__Bytes, int, int)] {
+			hx_receiver_679 := value
+			return hxrt.BoundFunction(func(pos int, src *haxe__io__Bytes, srcpos int, len int) {
+				hx_receiver_679.__hx_this.blit(pos, src, srcpos, len)
+			}, func() any {
+				return hx_receiver_679.__hx_this
+			}, "blit")
+		}()
 	case "compare":
-		return value.compare
+		return func() *hxrt.Function[func(*haxe__io__Bytes) int] {
+			hx_receiver_680 := value
+			return hxrt.BoundFunction(func(other *haxe__io__Bytes) int {
+				return hx_receiver_680.__hx_this.compare(other)
+			}, func() any {
+				return hx_receiver_680.__hx_this
+			}, "compare")
+		}()
 	case "fill":
-		return value.fill
+		return func() *hxrt.Function[func(int, int, int)] {
+			hx_receiver_681 := value
+			return hxrt.BoundFunction(func(pos int, len int, value int) {
+				hx_receiver_681.__hx_this.fill(pos, len, value)
+			}, func() any {
+				return hx_receiver_681.__hx_this
+			}, "fill")
+		}()
 	case "get":
-		return value.get
+		return func() *hxrt.Function[func(int) int] {
+			hx_receiver_682 := value
+			return hxrt.BoundFunction(func(pos int) int {
+				return hx_receiver_682.__hx_this.get(pos)
+			}, func() any {
+				return hx_receiver_682.__hx_this
+			}, "get")
+		}()
 	case "getData":
-		return value.getData
+		return func() *hxrt.Function[func() []int] {
+			hx_receiver_683 := value
+			return hxrt.BoundFunction(func() []int {
+				return hx_receiver_683.__hx_this.getData()
+			}, func() any {
+				return hx_receiver_683.__hx_this
+			}, "getData")
+		}()
 	case "getDouble":
-		return value.getDouble
+		return func() *hxrt.Function[func(int) float64] {
+			hx_receiver_684 := value
+			return hxrt.BoundFunction(func(pos int) float64 {
+				return hx_receiver_684.__hx_this.getDouble(pos)
+			}, func() any {
+				return hx_receiver_684.__hx_this
+			}, "getDouble")
+		}()
 	case "getFloat":
-		return value.getFloat
+		return func() *hxrt.Function[func(int) float64] {
+			hx_receiver_685 := value
+			return hxrt.BoundFunction(func(pos int) float64 {
+				return hx_receiver_685.__hx_this.getFloat(pos)
+			}, func() any {
+				return hx_receiver_685.__hx_this
+			}, "getFloat")
+		}()
 	case "getInt32":
-		return value.getInt32
+		return func() *hxrt.Function[func(int) int] {
+			hx_receiver_686 := value
+			return hxrt.BoundFunction(func(pos int) int {
+				return hx_receiver_686.__hx_this.getInt32(pos)
+			}, func() any {
+				return hx_receiver_686.__hx_this
+			}, "getInt32")
+		}()
 	case "getInt64":
-		return value.getInt64
+		return func() *hxrt.Function[func(int) *haxe___Int64_____Int64] {
+			hx_receiver_687 := value
+			return hxrt.BoundFunction(func(pos int) *haxe___Int64_____Int64 {
+				return hx_receiver_687.__hx_this.getInt64(pos)
+			}, func() any {
+				return hx_receiver_687.__hx_this
+			}, "getInt64")
+		}()
 	case "getString":
-		return value.getString
+		return func() *hxrt.Function[func(int, int, *haxe__io__Encoding) *string] {
+			hx_receiver_688 := value
+			return hxrt.BoundFunction(func(pos int, len int, encoding *haxe__io__Encoding) *string {
+				return hx_receiver_688.__hx_this.getString(pos, len, encoding)
+			}, func() any {
+				return hx_receiver_688.__hx_this
+			}, "getString")
+		}()
 	case "getUInt16":
-		return value.getUInt16
+		return func() *hxrt.Function[func(int) int] {
+			hx_receiver_689 := value
+			return hxrt.BoundFunction(func(pos int) int {
+				return hx_receiver_689.__hx_this.getUInt16(pos)
+			}, func() any {
+				return hx_receiver_689.__hx_this
+			}, "getUInt16")
+		}()
 	case "readString":
-		return value.readString
+		return func() *hxrt.Function[func(int, int) *string] {
+			hx_receiver_690 := value
+			return hxrt.BoundFunction(func(pos int, len int) *string {
+				return hx_receiver_690.__hx_this.readString(pos, len)
+			}, func() any {
+				return hx_receiver_690.__hx_this
+			}, "readString")
+		}()
 	case "set":
-		return value.set
+		return func() *hxrt.Function[func(int, int)] {
+			hx_receiver_691 := value
+			return hxrt.BoundFunction(func(pos int, value int) {
+				hx_receiver_691.__hx_this.set(pos, value)
+			}, func() any {
+				return hx_receiver_691.__hx_this
+			}, "set")
+		}()
 	case "setDouble":
-		return value.setDouble
+		return func() *hxrt.Function[func(int, float64)] {
+			hx_receiver_692 := value
+			return hxrt.BoundFunction(func(pos int, value float64) {
+				hx_receiver_692.__hx_this.setDouble(pos, value)
+			}, func() any {
+				return hx_receiver_692.__hx_this
+			}, "setDouble")
+		}()
 	case "setFloat":
-		return value.setFloat
+		return func() *hxrt.Function[func(int, float64)] {
+			hx_receiver_693 := value
+			return hxrt.BoundFunction(func(pos int, value float64) {
+				hx_receiver_693.__hx_this.setFloat(pos, value)
+			}, func() any {
+				return hx_receiver_693.__hx_this
+			}, "setFloat")
+		}()
 	case "setInt32":
-		return value.setInt32
+		return func() *hxrt.Function[func(int, int)] {
+			hx_receiver_694 := value
+			return hxrt.BoundFunction(func(pos int, value int) {
+				hx_receiver_694.__hx_this.setInt32(pos, value)
+			}, func() any {
+				return hx_receiver_694.__hx_this
+			}, "setInt32")
+		}()
 	case "setInt64":
-		return value.setInt64
+		return func() *hxrt.Function[func(int, *haxe___Int64_____Int64)] {
+			hx_receiver_695 := value
+			return hxrt.BoundFunction(func(pos int, value *haxe___Int64_____Int64) {
+				hx_receiver_695.__hx_this.setInt64(pos, value)
+			}, func() any {
+				return hx_receiver_695.__hx_this
+			}, "setInt64")
+		}()
 	case "setUInt16":
-		return value.setUInt16
+		return func() *hxrt.Function[func(int, int)] {
+			hx_receiver_696 := value
+			return hxrt.BoundFunction(func(pos int, value int) {
+				hx_receiver_696.__hx_this.setUInt16(pos, value)
+			}, func() any {
+				return hx_receiver_696.__hx_this
+			}, "setUInt16")
+		}()
 	case "sub":
-		return value.sub
+		return func() *hxrt.Function[func(int, int) *haxe__io__Bytes] {
+			hx_receiver_697 := value
+			return hxrt.BoundFunction(func(pos int, len int) *haxe__io__Bytes {
+				return hx_receiver_697.__hx_this.sub(pos, len)
+			}, func() any {
+				return hx_receiver_697.__hx_this
+			}, "sub")
+		}()
 	case "toHex":
-		return value.toHex
+		return func() *hxrt.Function[func() *string] {
+			hx_receiver_698 := value
+			return hxrt.BoundFunction(func() *string {
+				return hx_receiver_698.__hx_this.toHex()
+			}, func() any {
+				return hx_receiver_698.__hx_this
+			}, "toHex")
+		}()
 	case "toString":
-		return value.toString
+		return func() *hxrt.Function[func() *string] {
+			hx_receiver_699 := value
+			return hxrt.BoundFunction(func() *string {
+				return hx_receiver_699.__hx_this.toString()
+			}, func() any {
+				return hx_receiver_699.__hx_this
+			}, "toString")
+		}()
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__haxe__iterators__ArrayIterator(value *haxe__iterators__ArrayIterator, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "hasNext":
+		return func() *hxrt.Function[func() bool] {
+			hx_receiver_700 := value
+			return hxrt.BoundFunction(func() bool {
+				return hx_receiver_700.__hx_this.hasNext()
+			}, func() any {
+				return hx_receiver_700.__hx_this
+			}, "hasNext")
+		}()
+	case "next":
+		return func() *hxrt.Function[func() any] {
+			hx_receiver_701 := value
+			return hxrt.BoundFunction(func() any {
+				return hx_receiver_701.__hx_this.next()
+			}, func() any {
+				return hx_receiver_701.__hx_this
+			}, "next")
+		}()
 	}
 	return nil
 }
@@ -295,9 +2137,23 @@ func hxrt__generated_method_field__haxe__iterators__MapKeyValueIterator(value *h
 	}
 	switch key {
 	case "hasNext":
-		return value.hasNext
+		return func() *hxrt.Function[func() bool] {
+			hx_receiver_702 := value
+			return hxrt.BoundFunction(func() bool {
+				return hx_receiver_702.__hx_this.hasNext()
+			}, func() any {
+				return hx_receiver_702.__hx_this
+			}, "hasNext")
+		}()
 	case "next":
-		return value.next
+		return func() *hxrt.Function[func() hxrt.Anonymous] {
+			hx_receiver_703 := value
+			return hxrt.BoundFunction(func() hxrt.Anonymous {
+				return hx_receiver_703.__hx_this.next()
+			}, func() any {
+				return hx_receiver_703.__hx_this
+			}, "next")
+		}()
 	}
 	return nil
 }
@@ -308,9 +2164,23 @@ func hxrt__generated_method_field__haxe__iterators__StringIterator(value *haxe__
 	}
 	switch key {
 	case "hasNext":
-		return value.hasNext
+		return func() *hxrt.Function[func() bool] {
+			hx_receiver_704 := value
+			return hxrt.BoundFunction(func() bool {
+				return hx_receiver_704.__hx_this.hasNext()
+			}, func() any {
+				return hx_receiver_704.__hx_this
+			}, "hasNext")
+		}()
 	case "next":
-		return value.next
+		return func() *hxrt.Function[func() int] {
+			hx_receiver_705 := value
+			return hxrt.BoundFunction(func() int {
+				return hx_receiver_705.__hx_this.next()
+			}, func() any {
+				return hx_receiver_705.__hx_this
+			}, "next")
+		}()
 	}
 	return nil
 }
@@ -321,9 +2191,23 @@ func hxrt__generated_method_field__haxe__iterators__StringKeyValueIterator(value
 	}
 	switch key {
 	case "hasNext":
-		return value.hasNext
+		return func() *hxrt.Function[func() bool] {
+			hx_receiver_706 := value
+			return hxrt.BoundFunction(func() bool {
+				return hx_receiver_706.__hx_this.hasNext()
+			}, func() any {
+				return hx_receiver_706.__hx_this
+			}, "hasNext")
+		}()
 	case "next":
-		return value.next
+		return func() *hxrt.Function[func() hxrt.Anonymous] {
+			hx_receiver_707 := value
+			return hxrt.BoundFunction(func() hxrt.Anonymous {
+				return hx_receiver_707.__hx_this.next()
+			}, func() any {
+				return hx_receiver_707.__hx_this
+			}, "next")
+		}()
 	}
 	return nil
 }
@@ -334,85 +2218,374 @@ func hxrt__generated_method_field__haxe__rtti__XmlParser(value *haxe__rtti__XmlP
 	}
 	switch key {
 	case "defplat":
-		return value.defplat
+		return func() *hxrt.Function[func() *hxrt.Array] {
+			hx_receiver_708 := value
+			return hxrt.BoundFunction(func() *hxrt.Array {
+				return hx_receiver_708.__hx_this.defplat()
+			}, func() any {
+				return hx_receiver_708.__hx_this
+			}, "defplat")
+		}()
 	case "elementName":
-		return value.elementName
+		return func() *hxrt.Function[func(*Xml) *string] {
+			hx_receiver_709 := value
+			return hxrt.BoundFunction(func(x *Xml) *string {
+				return hx_receiver_709.__hx_this.elementName(x)
+			}, func() any {
+				return hx_receiver_709.__hx_this
+			}, "elementName")
+		}()
 	case "findSeparator":
-		return value.findSeparator
+		return func() *hxrt.Function[func(*string, *string, int) int] {
+			hx_receiver_710 := value
+			return hxrt.BoundFunction(func(value *string, separator *string, start int) int {
+				return hx_receiver_710.__hx_this.findSeparator(value, separator, start)
+			}, func() any {
+				return hx_receiver_710.__hx_this
+			}, "findSeparator")
+		}()
 	case "hasNamedElement":
-		return value.hasNamedElement
+		return func() *hxrt.Function[func(*Xml, *string) bool] {
+			hx_receiver_711 := value
+			return hxrt.BoundFunction(func(x *Xml, name *string) bool {
+				return hx_receiver_711.__hx_this.hasNamedElement(x, name)
+			}, func() any {
+				return hx_receiver_711.__hx_this
+			}, "hasNamedElement")
+		}()
 	case "innerData":
-		return value.innerData
+		return func() *hxrt.Function[func(*Xml) *string] {
+			hx_receiver_712 := value
+			return hxrt.BoundFunction(func(x *Xml) *string {
+				return hx_receiver_712.__hx_this.innerData(x)
+			}, func() any {
+				return hx_receiver_712.__hx_this
+			}, "innerData")
+		}()
 	case "innerHTML":
-		return value.innerHTML
+		return func() *hxrt.Function[func(*Xml) *string] {
+			hx_receiver_713 := value
+			return hxrt.BoundFunction(func(x *Xml) *string {
+				return hx_receiver_713.__hx_this.innerHTML(x)
+			}, func() any {
+				return hx_receiver_713.__hx_this
+			}, "innerHTML")
+		}()
 	case "joinStringArray":
-		return value.joinStringArray
+		return func() *hxrt.Function[func(*hxrt.Array, *string) *string] {
+			hx_receiver_714 := value
+			return hxrt.BoundFunction(func(values *hxrt.Array, separator *string) *string {
+				return hx_receiver_714.__hx_this.joinStringArray(values, separator)
+			}, func() any {
+				return hx_receiver_714.__hx_this
+			}, "joinStringArray")
+		}()
 	case "merge":
-		return value.merge
+		return func() *hxrt.Function[func(*haxe__rtti__TypeTree)] {
+			hx_receiver_715 := value
+			return hxrt.BoundFunction(func(t *haxe__rtti__TypeTree) {
+				hx_receiver_715.__hx_this.merge(t)
+			}, func() any {
+				return hx_receiver_715.__hx_this
+			}, "merge")
+		}()
 	case "mergeAbstracts":
-		return value.mergeAbstracts
+		return func() *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous) bool] {
+			hx_receiver_716 := value
+			return hxrt.BoundFunction(func(a hxrt.Anonymous, a2 hxrt.Anonymous) bool {
+				return hx_receiver_716.__hx_this.mergeAbstracts(a, a2)
+			}, func() any {
+				return hx_receiver_716.__hx_this
+			}, "mergeAbstracts")
+		}()
 	case "mergeClasses":
-		return value.mergeClasses
+		return func() *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous) bool] {
+			hx_receiver_717 := value
+			return hxrt.BoundFunction(func(c hxrt.Anonymous, c2 hxrt.Anonymous) bool {
+				return hx_receiver_717.__hx_this.mergeClasses(c, c2)
+			}, func() any {
+				return hx_receiver_717.__hx_this
+			}, "mergeClasses")
+		}()
 	case "mergeDoc":
-		return value.mergeDoc
+		return func() *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous) bool] {
+			hx_receiver_718 := value
+			return hxrt.BoundFunction(func(f1 hxrt.Anonymous, f2 hxrt.Anonymous) bool {
+				return hx_receiver_718.__hx_this.mergeDoc(f1, f2)
+			}, func() any {
+				return hx_receiver_718.__hx_this
+			}, "mergeDoc")
+		}()
 	case "mergeEnums":
-		return value.mergeEnums
+		return func() *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous) bool] {
+			hx_receiver_719 := value
+			return hxrt.BoundFunction(func(e hxrt.Anonymous, e2 hxrt.Anonymous) bool {
+				return hx_receiver_719.__hx_this.mergeEnums(e, e2)
+			}, func() any {
+				return hx_receiver_719.__hx_this
+			}, "mergeEnums")
+		}()
 	case "mergeFields":
-		return value.mergeFields
+		return func() *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous) bool] {
+			hx_receiver_720 := value
+			return hxrt.BoundFunction(func(f hxrt.Anonymous, f2 hxrt.Anonymous) bool {
+				return hx_receiver_720.__hx_this.mergeFields(f, f2)
+			}, func() any {
+				return hx_receiver_720.__hx_this
+			}, "mergeFields")
+		}()
 	case "mergeRights":
-		return value.mergeRights
+		return func() *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous) bool] {
+			hx_receiver_721 := value
+			return hxrt.BoundFunction(func(f1 hxrt.Anonymous, f2 hxrt.Anonymous) bool {
+				return hx_receiver_721.__hx_this.mergeRights(f1, f2)
+			}, func() any {
+				return hx_receiver_721.__hx_this
+			}, "mergeRights")
+		}()
 	case "mergeTypedefs":
-		return value.mergeTypedefs
+		return func() *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous) bool] {
+			hx_receiver_722 := value
+			return hxrt.BoundFunction(func(t hxrt.Anonymous, t2 hxrt.Anonymous) bool {
+				return hx_receiver_722.__hx_this.mergeTypedefs(t, t2)
+			}, func() any {
+				return hx_receiver_722.__hx_this
+			}, "mergeTypedefs")
+		}()
 	case "mkPath":
-		return value.mkPath
+		return func() *hxrt.Function[func(*string) *string] {
+			hx_receiver_723 := value
+			return hxrt.BoundFunction(func(p *string) *string {
+				return hx_receiver_723.__hx_this.mkPath(p)
+			}, func() any {
+				return hx_receiver_723.__hx_this
+			}, "mkPath")
+		}()
 	case "mkRights":
-		return value.mkRights
+		return func() *hxrt.Function[func(*string) *haxe__rtti__Rights] {
+			hx_receiver_724 := value
+			return hxrt.BoundFunction(func(r *string) *haxe__rtti__Rights {
+				return hx_receiver_724.__hx_this.mkRights(r)
+			}, func() any {
+				return hx_receiver_724.__hx_this
+			}, "mkRights")
+		}()
 	case "mkTypeParams":
-		return value.mkTypeParams
+		return func() *hxrt.Function[func(*string) *hxrt.Array] {
+			hx_receiver_725 := value
+			return hxrt.BoundFunction(func(p *string) *hxrt.Array {
+				return hx_receiver_725.__hx_this.mkTypeParams(p)
+			}, func() any {
+				return hx_receiver_725.__hx_this
+			}, "mkTypeParams")
+		}()
 	case "nodeDisplayName":
-		return value.nodeDisplayName
+		return func() *hxrt.Function[func(*Xml) *string] {
+			hx_receiver_726 := value
+			return hxrt.BoundFunction(func(x *Xml) *string {
+				return hx_receiver_726.__hx_this.nodeDisplayName(x)
+			}, func() any {
+				return hx_receiver_726.__hx_this
+			}, "nodeDisplayName")
+		}()
 	case "parseIntString":
-		return value.parseIntString
+		return func() *hxrt.Function[func(*string) int] {
+			hx_receiver_727 := value
+			return hxrt.BoundFunction(func(value *string) int {
+				return hx_receiver_727.__hx_this.parseIntString(value)
+			}, func() any {
+				return hx_receiver_727.__hx_this
+			}, "parseIntString")
+		}()
 	case "process":
-		return value.process
+		return func() *hxrt.Function[func(*Xml, *string)] {
+			hx_receiver_728 := value
+			return hxrt.BoundFunction(func(x *Xml, platform *string) {
+				hx_receiver_728.__hx_this.process(x, platform)
+			}, func() any {
+				return hx_receiver_728.__hx_this
+			}, "process")
+		}()
 	case "processElement":
-		return value.processElement
+		return func() *hxrt.Function[func(*Xml) *haxe__rtti__TypeTree] {
+			hx_receiver_729 := value
+			return hxrt.BoundFunction(func(x *Xml) *haxe__rtti__TypeTree {
+				return hx_receiver_729.__hx_this.processElement(x)
+			}, func() any {
+				return hx_receiver_729.__hx_this
+			}, "processElement")
+		}()
 	case "requireAttr":
-		return value.requireAttr
+		return func() *hxrt.Function[func(*Xml, *string) *string] {
+			hx_receiver_730 := value
+			return hxrt.BoundFunction(func(x *Xml, name *string) *string {
+				return hx_receiver_730.__hx_this.requireAttr(x, name)
+			}, func() any {
+				return hx_receiver_730.__hx_this
+			}, "requireAttr")
+		}()
 	case "requireFirstElement":
-		return value.requireFirstElement
+		return func() *hxrt.Function[func(*Xml) *Xml] {
+			hx_receiver_731 := value
+			return hxrt.BoundFunction(func(x *Xml) *Xml {
+				return hx_receiver_731.__hx_this.requireFirstElement(x)
+			}, func() any {
+				return hx_receiver_731.__hx_this
+			}, "requireFirstElement")
+		}()
 	case "requireNamedElement":
-		return value.requireNamedElement
+		return func() *hxrt.Function[func(*Xml, *string) *Xml] {
+			hx_receiver_732 := value
+			return hxrt.BoundFunction(func(x *Xml, name *string) *Xml {
+				return hx_receiver_732.__hx_this.requireNamedElement(x, name)
+			}, func() any {
+				return hx_receiver_732.__hx_this
+			}, "requireNamedElement")
+		}()
 	case "sort":
-		return value.sort
+		return func() *hxrt.Function[func(*hxrt.Array)] {
+			hx_receiver_733 := value
+			return hxrt.BoundFunction(func(l *hxrt.Array) {
+				hx_receiver_733.__hx_this.sort(l)
+			}, func() any {
+				return hx_receiver_733.__hx_this
+			}, "sort")
+		}()
 	case "sortFields":
-		return value.sortFields
+		return func() *hxrt.Function[func(*hxrt.Array)] {
+			hx_receiver_734 := value
+			return hxrt.BoundFunction(func(a *hxrt.Array) {
+				hx_receiver_734.__hx_this.sortFields(a)
+			}, func() any {
+				return hx_receiver_734.__hx_this
+			}, "sortFields")
+		}()
 	case "splitString":
-		return value.splitString
+		return func() *hxrt.Function[func(*string, *string) *hxrt.Array] {
+			hx_receiver_735 := value
+			return hxrt.BoundFunction(func(value *string, separator *string) *hxrt.Array {
+				return hx_receiver_735.__hx_this.splitString(value, separator)
+			}, func() any {
+				return hx_receiver_735.__hx_this
+			}, "splitString")
+		}()
 	case "xabstract":
-		return value.xabstract
+		return func() *hxrt.Function[func(*Xml) hxrt.Anonymous] {
+			hx_receiver_736 := value
+			return hxrt.BoundFunction(func(x *Xml) hxrt.Anonymous {
+				return hx_receiver_736.__hx_this.xabstract(x)
+			}, func() any {
+				return hx_receiver_736.__hx_this
+			}, "xabstract")
+		}()
 	case "xclass":
-		return value.xclass
+		return func() *hxrt.Function[func(*Xml) hxrt.Anonymous] {
+			hx_receiver_737 := value
+			return hxrt.BoundFunction(func(x *Xml) hxrt.Anonymous {
+				return hx_receiver_737.__hx_this.xclass(x)
+			}, func() any {
+				return hx_receiver_737.__hx_this
+			}, "xclass")
+		}()
 	case "xclassfield":
-		return value.xclassfield
+		return func() *hxrt.Function[func(*Xml, any) hxrt.Anonymous] {
+			hx_receiver_738 := value
+			return hxrt.BoundFunction(func(x *Xml, defPublic any) hxrt.Anonymous {
+				if defPublic == nil {
+					defPublic = false
+				}
+				return hx_receiver_738.__hx_this.xclassfield(x, func(hx_value_739 any) bool {
+					if hx_value_739 == nil {
+						var hx_zero_740 bool
+						return hx_zero_740
+					}
+					return hx_value_739.(bool)
+				}(any(defPublic)))
+			}, func() any {
+				return hx_receiver_738.__hx_this
+			}, "xclassfield")
+		}()
 	case "xenum":
-		return value.xenum
+		return func() *hxrt.Function[func(*Xml) hxrt.Anonymous] {
+			hx_receiver_741 := value
+			return hxrt.BoundFunction(func(x *Xml) hxrt.Anonymous {
+				return hx_receiver_741.__hx_this.xenum(x)
+			}, func() any {
+				return hx_receiver_741.__hx_this
+			}, "xenum")
+		}()
 	case "xenumfield":
-		return value.xenumfield
+		return func() *hxrt.Function[func(*Xml) hxrt.Anonymous] {
+			hx_receiver_742 := value
+			return hxrt.BoundFunction(func(x *Xml) hxrt.Anonymous {
+				return hx_receiver_742.__hx_this.xenumfield(x)
+			}, func() any {
+				return hx_receiver_742.__hx_this
+			}, "xenumfield")
+		}()
 	case "xmeta":
-		return value.xmeta
+		return func() *hxrt.Function[func(*Xml) *hxrt.Array] {
+			hx_receiver_743 := value
+			return hxrt.BoundFunction(func(x *Xml) *hxrt.Array {
+				return hx_receiver_743.__hx_this.xmeta(x)
+			}, func() any {
+				return hx_receiver_743.__hx_this
+			}, "xmeta")
+		}()
 	case "xoverloads":
-		return value.xoverloads
+		return func() *hxrt.Function[func(*Xml) *hxrt.Array] {
+			hx_receiver_744 := value
+			return hxrt.BoundFunction(func(x *Xml) *hxrt.Array {
+				return hx_receiver_744.__hx_this.xoverloads(x)
+			}, func() any {
+				return hx_receiver_744.__hx_this
+			}, "xoverloads")
+		}()
 	case "xpath":
-		return value.xpath
+		return func() *hxrt.Function[func(*Xml) hxrt.Anonymous] {
+			hx_receiver_745 := value
+			return hxrt.BoundFunction(func(x *Xml) hxrt.Anonymous {
+				return hx_receiver_745.__hx_this.xpath(x)
+			}, func() any {
+				return hx_receiver_745.__hx_this
+			}, "xpath")
+		}()
 	case "xroot":
-		return value.xroot
+		return func() *hxrt.Function[func(*Xml)] {
+			hx_receiver_746 := value
+			return hxrt.BoundFunction(func(x *Xml) {
+				hx_receiver_746.__hx_this.xroot(x)
+			}, func() any {
+				return hx_receiver_746.__hx_this
+			}, "xroot")
+		}()
 	case "xtype":
-		return value.xtype
+		return func() *hxrt.Function[func(*Xml) *haxe__rtti__CType] {
+			hx_receiver_747 := value
+			return hxrt.BoundFunction(func(x *Xml) *haxe__rtti__CType {
+				return hx_receiver_747.__hx_this.xtype(x)
+			}, func() any {
+				return hx_receiver_747.__hx_this
+			}, "xtype")
+		}()
 	case "xtypedef":
-		return value.xtypedef
+		return func() *hxrt.Function[func(*Xml) hxrt.Anonymous] {
+			hx_receiver_748 := value
+			return hxrt.BoundFunction(func(x *Xml) hxrt.Anonymous {
+				return hx_receiver_748.__hx_this.xtypedef(x)
+			}, func() any {
+				return hx_receiver_748.__hx_this
+			}, "xtypedef")
+		}()
 	case "xtypeparams":
-		return value.xtypeparams
+		return func() *hxrt.Function[func(*Xml) *hxrt.Array] {
+			hx_receiver_749 := value
+			return hxrt.BoundFunction(func(x *Xml) *hxrt.Array {
+				return hx_receiver_749.__hx_this.xtypeparams(x)
+			}, func() any {
+				return hx_receiver_749.__hx_this
+			}, "xtypeparams")
+		}()
 	}
 	return nil
 }
@@ -423,13 +2596,41 @@ func hxrt__generated_method_field__haxe__xml__Printer(value *haxe__xml__Printer,
 	}
 	switch key {
 	case "hasChildren":
-		return value.hasChildren
+		return func() *hxrt.Function[func(*Xml) bool] {
+			hx_receiver_750 := value
+			return hxrt.BoundFunction(func(value *Xml) bool {
+				return hx_receiver_750.__hx_this.hasChildren(value)
+			}, func() any {
+				return hx_receiver_750.__hx_this
+			}, "hasChildren")
+		}()
 	case "newline":
-		return value.newline
+		return func() *hxrt.Function[func()] {
+			hx_receiver_751 := value
+			return hxrt.BoundFunction(func() {
+				hx_receiver_751.__hx_this.newline()
+			}, func() any {
+				return hx_receiver_751.__hx_this
+			}, "newline")
+		}()
 	case "write":
-		return value.write
+		return func() *hxrt.Function[func(*string)] {
+			hx_receiver_752 := value
+			return hxrt.BoundFunction(func(input *string) {
+				hx_receiver_752.__hx_this.write(input)
+			}, func() any {
+				return hx_receiver_752.__hx_this
+			}, "write")
+		}()
 	case "writeNode":
-		return value.writeNode
+		return func() *hxrt.Function[func(*Xml, *string)] {
+			hx_receiver_753 := value
+			return hxrt.BoundFunction(func(value *Xml, tabs *string) {
+				hx_receiver_753.__hx_this.writeNode(value, tabs)
+			}, func() any {
+				return hx_receiver_753.__hx_this
+			}, "writeNode")
+		}()
 	}
 	return nil
 }
@@ -440,7 +2641,14 @@ func hxrt__generated_method_field__haxe__xml__XmlParserException(value *haxe__xm
 	}
 	switch key {
 	case "toString":
-		return value.toString
+		return func() *hxrt.Function[func() *string] {
+			hx_receiver_754 := value
+			return hxrt.BoundFunction(func() *string {
+				return hx_receiver_754.__hx_this.toString()
+			}, func() any {
+				return hx_receiver_754.__hx_this
+			}, "toString")
+		}()
 	}
 	return nil
 }
@@ -474,6 +2682,12 @@ func hxrt_typeCreateEmpty__haxe__ds__StringMap() *haxe__ds__StringMap {
 
 func hxrt_typeCreateEmpty__haxe__io__Bytes() *haxe__io__Bytes {
 	instance := &haxe__io__Bytes{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__iterators__ArrayIterator() *haxe__iterators__ArrayIterator {
+	instance := &haxe__iterators__ArrayIterator{}
 	instance.__hx_this = instance
 	return instance
 }
@@ -686,6 +2900,8 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 		return hxrt_typeCallAny(New_haxe__io__Bytes, args)
 	case "haxe.io.FPHelper":
 		return nil, false
+	case "haxe.iterators.ArrayIterator":
+		return hxrt_typeCallAny(New_haxe__iterators__ArrayIterator, args)
 	case "haxe.iterators.MapKeyValueIterator":
 		return hxrt_typeCallAny(New_haxe__iterators__MapKeyValueIterator, args)
 	case "haxe.iterators.StringIterator":
@@ -725,6 +2941,8 @@ func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 		return hxrt_typeCreateEmpty__haxe__ds__StringMap(), true
 	case "haxe.io.Bytes":
 		return hxrt_typeCreateEmpty__haxe__io__Bytes(), true
+	case "haxe.iterators.ArrayIterator":
+		return hxrt_typeCreateEmpty__haxe__iterators__ArrayIterator(), true
 	case "haxe.iterators.MapKeyValueIterator":
 		return hxrt_typeCreateEmpty__haxe__iterators__MapKeyValueIterator(), true
 	case "haxe.iterators.StringIterator":
@@ -1156,6 +3374,7 @@ func hxrt_typeCreateEnumInstance(enumName string, constructorName string, constr
 }
 
 func Type_getClass(o any) any {
+	o = hxrt.ObjectSource(o)
 	if hxrt.AnyEqualsNull(o) {
 		return nil
 	}
@@ -1198,6 +3417,11 @@ func Type_getClass(o any) any {
 			return nil
 		}
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.io.Bytes")}
+	case *haxe__iterators__ArrayIterator:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.iterators.ArrayIterator")}
 	case *haxe__iterators__MapKeyValueIterator:
 		if value == nil {
 			return nil
@@ -1319,6 +3543,8 @@ func Type_getSuperClass(c any) any {
 		return nil
 	case "haxe.io.FPHelper":
 		return nil
+	case "haxe.iterators.ArrayIterator":
+		return nil
 	case "haxe.iterators.MapKeyValueIterator":
 		return nil
 	case "haxe.iterators.StringIterator":
@@ -1392,6 +3618,8 @@ func Type_getClassFields(c any) *hxrt.Array {
 		return hxrt.NewArray(hxrt.StringFromLiteral("__hx_fromNativeView"), hxrt.StringFromLiteral("alloc"), hxrt.StringFromLiteral("fastGet"), hxrt.StringFromLiteral("ofData"), hxrt.StringFromLiteral("ofHex"), hxrt.StringFromLiteral("ofString"), hxrt.StringFromLiteral("rawNativeUsesUtf16LE"))
 	case "haxe.io.FPHelper":
 		return hxrt.NewArray(hxrt.StringFromLiteral("doubleToI64"), hxrt.StringFromLiteral("floatToI32"), hxrt.StringFromLiteral("i32ToFloat"), hxrt.StringFromLiteral("i64ToDouble"))
+	case "haxe.iterators.ArrayIterator":
+		return hxrt.NewArray()
 	case "haxe.iterators.MapKeyValueIterator":
 		return hxrt.NewArray()
 	case "haxe.iterators.StringIterator":
@@ -1457,6 +3685,8 @@ func Type_getInstanceFields(c any) *hxrt.Array {
 		return hxrt.NewArray(hxrt.StringFromLiteral("__hx_dataExposed"), hxrt.StringFromLiteral("__hx_nativeView"), hxrt.StringFromLiteral("__hx_raw"), hxrt.StringFromLiteral("__hx_rawValid"), hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("blit"), hxrt.StringFromLiteral("compare"), hxrt.StringFromLiteral("fill"), hxrt.StringFromLiteral("get"), hxrt.StringFromLiteral("getData"), hxrt.StringFromLiteral("getDouble"), hxrt.StringFromLiteral("getFloat"), hxrt.StringFromLiteral("getInt32"), hxrt.StringFromLiteral("getInt64"), hxrt.StringFromLiteral("getString"), hxrt.StringFromLiteral("getUInt16"), hxrt.StringFromLiteral("length"), hxrt.StringFromLiteral("readString"), hxrt.StringFromLiteral("set"), hxrt.StringFromLiteral("setDouble"), hxrt.StringFromLiteral("setFloat"), hxrt.StringFromLiteral("setInt32"), hxrt.StringFromLiteral("setInt64"), hxrt.StringFromLiteral("setUInt16"), hxrt.StringFromLiteral("sub"), hxrt.StringFromLiteral("toHex"), hxrt.StringFromLiteral("toString"))
 	case "haxe.io.FPHelper":
 		return hxrt.NewArray()
+	case "haxe.iterators.ArrayIterator":
+		return hxrt.NewArray(hxrt.StringFromLiteral("array"), hxrt.StringFromLiteral("current"), hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("next"))
 	case "haxe.iterators.MapKeyValueIterator":
 		return hxrt.NewArray(hxrt.StringFromLiteral("hasNext"), hxrt.StringFromLiteral("keys"), hxrt.StringFromLiteral("map"), hxrt.StringFromLiteral("next"))
 	case "haxe.iterators.StringIterator":
@@ -1529,6 +3759,8 @@ func Type_resolveClass(name *string) any {
 	case "haxe.io.Bytes":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.io.FPHelper":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.iterators.ArrayIterator":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "haxe.iterators.MapKeyValueIterator":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
@@ -1885,6 +4117,10 @@ func Type_allEnums(e any) *hxrt.Array {
 }
 
 func Type_typeof(v any) *ValueType {
+	v = hxrt.ObjectSource(v)
+	if hxrt.ReflectIsFunction(v) {
+		return ValueType_TFunction
+	}
 	if hxrt.AnyEqualsNull(v) {
 		return ValueType_TNull
 	}
@@ -1915,8 +4151,6 @@ func Type_typeof(v any) *ValueType {
 		return ValueType_TNull
 	}
 	switch ref.Kind() {
-	case reflect.Func:
-		return ValueType_TFunction
 	case reflect.Slice, reflect.Array:
 		return ValueType_TClass(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Array")})
 	case reflect.Map, reflect.Struct, reflect.Interface, reflect.Pointer:
@@ -1952,7 +4186,7 @@ func hxrt_typeClassMetadataField(value any, key string) (any, bool) {
 func reflaxe__go___internal__CompilerReflect_generatedField(object any, field *string) any {
 	key := *hxrt.StdString(field)
 	var receiver any
-	switch value := object.(type) {
+	switch value := hxrt.ObjectSource(object).(type) {
 	case *StringBuf:
 		if (value == nil) || (value.__hx_this == nil) {
 			return nil
@@ -1974,6 +4208,11 @@ func reflaxe__go___internal__CompilerReflect_generatedField(object any, field *s
 		}
 		receiver = value.__hx_this
 	case *haxe__io__Bytes:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__iterators__ArrayIterator:
 		if (value == nil) || (value.__hx_this == nil) {
 			return nil
 		}
@@ -2022,6 +4261,8 @@ func reflaxe__go___internal__CompilerReflect_generatedField(object any, field *s
 		return hxrt__generated_field_lookup__haxe__ds__StringMap(value, key)
 	case *haxe__io__Bytes:
 		return hxrt__generated_field_lookup__haxe__io__Bytes(value, key)
+	case *haxe__iterators__ArrayIterator:
+		return hxrt__generated_field_lookup__haxe__iterators__ArrayIterator(value, key)
 	case *haxe__iterators__MapKeyValueIterator:
 		return hxrt__generated_field_lookup__haxe__iterators__MapKeyValueIterator(value, key)
 	case *haxe__iterators__StringIterator:
@@ -2042,7 +4283,7 @@ func reflaxe__go___internal__CompilerReflect_generatedField(object any, field *s
 func reflaxe__go___internal__CompilerReflect_hasGeneratedField(object any, field *string) bool {
 	key := *hxrt.StdString(field)
 	var receiver any
-	switch value := object.(type) {
+	switch value := hxrt.ObjectSource(object).(type) {
 	case *StringBuf:
 		if (value == nil) || (value.__hx_this == nil) {
 			return false
@@ -2064,6 +4305,11 @@ func reflaxe__go___internal__CompilerReflect_hasGeneratedField(object any, field
 		}
 		receiver = value.__hx_this
 	case *haxe__io__Bytes:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__iterators__ArrayIterator:
 		if (value == nil) || (value.__hx_this == nil) {
 			return false
 		}
@@ -2112,6 +4358,8 @@ func reflaxe__go___internal__CompilerReflect_hasGeneratedField(object any, field
 		return hxrt__generated_field_has__haxe__ds__StringMap(value, key)
 	case *haxe__io__Bytes:
 		return hxrt__generated_field_has__haxe__io__Bytes(value, key)
+	case *haxe__iterators__ArrayIterator:
+		return hxrt__generated_field_has__haxe__iterators__ArrayIterator(value, key)
 	case *haxe__iterators__MapKeyValueIterator:
 		return hxrt__generated_field_has__haxe__iterators__MapKeyValueIterator(value, key)
 	case *haxe__iterators__StringIterator:
@@ -2132,7 +4380,7 @@ func reflaxe__go___internal__CompilerReflect_hasGeneratedField(object any, field
 func reflaxe__go___internal__CompilerReflect_setGeneratedField(object any, field *string, incoming any) bool {
 	key := *hxrt.StdString(field)
 	var receiver any
-	switch value := object.(type) {
+	switch value := hxrt.ObjectSource(object).(type) {
 	case *StringBuf:
 		if (value == nil) || (value.__hx_this == nil) {
 			return false
@@ -2154,6 +4402,11 @@ func reflaxe__go___internal__CompilerReflect_setGeneratedField(object any, field
 		}
 		receiver = value.__hx_this
 	case *haxe__io__Bytes:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__iterators__ArrayIterator:
 		if (value == nil) || (value.__hx_this == nil) {
 			return false
 		}
@@ -2202,6 +4455,8 @@ func reflaxe__go___internal__CompilerReflect_setGeneratedField(object any, field
 		return hxrt__generated_field_set__haxe__ds__StringMap(value, key, incoming)
 	case *haxe__io__Bytes:
 		return hxrt__generated_field_set__haxe__io__Bytes(value, key, incoming)
+	case *haxe__iterators__ArrayIterator:
+		return hxrt__generated_field_set__haxe__iterators__ArrayIterator(value, key, incoming)
 	case *haxe__iterators__MapKeyValueIterator:
 		return hxrt__generated_field_set__haxe__iterators__MapKeyValueIterator(value, key, incoming)
 	case *haxe__iterators__StringIterator:
@@ -2221,7 +4476,7 @@ func reflaxe__go___internal__CompilerReflect_setGeneratedField(object any, field
 
 func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.Array {
 	var receiver any
-	switch value := object.(type) {
+	switch value := hxrt.ObjectSource(object).(type) {
 	case *StringBuf:
 		if (value == nil) || (value.__hx_this == nil) {
 			return nil
@@ -2243,6 +4498,11 @@ func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.A
 		}
 		receiver = value.__hx_this
 	case *haxe__io__Bytes:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__iterators__ArrayIterator:
 		if (value == nil) || (value.__hx_this == nil) {
 			return nil
 		}
@@ -2291,6 +4551,8 @@ func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.A
 		return hxrt.NewArray(hxrt.StringFromLiteral("h"))
 	case *haxe__io__Bytes:
 		return hxrt.NewArray(hxrt.StringFromLiteral("length"), hxrt.StringFromLiteral("b"), hxrt.StringFromLiteral("__hx_raw"), hxrt.StringFromLiteral("__hx_rawValid"), hxrt.StringFromLiteral("__hx_dataExposed"))
+	case *haxe__iterators__ArrayIterator:
+		return hxrt.NewArray(hxrt.StringFromLiteral("array"), hxrt.StringFromLiteral("current"))
 	case *haxe__iterators__MapKeyValueIterator:
 		return hxrt.NewArray(hxrt.StringFromLiteral("map"), hxrt.StringFromLiteral("keys"))
 	case *haxe__iterators__StringIterator:
@@ -2314,7 +4576,7 @@ func hxrt__generated_field_lookup__StringBuf(value *StringBuf, key string) any {
 	}
 	switch key {
 	case "b":
-		return value.b
+		return hxrt.ReadStoredField(value.b)
 	}
 	return nil
 }
@@ -2358,13 +4620,13 @@ func hxrt__generated_field_lookup__Xml(value *Xml, key string) any {
 	}
 	switch key {
 	case "attributeMap":
-		return value.attributeMap
+		return hxrt.ReadStoredField(value.attributeMap)
 	case "children":
-		return value.children
+		return hxrt.ReadStoredField(value.children)
 	case "nodeType":
-		return value.nodeType
+		return hxrt.ReadStoredField(value.nodeType)
 	case "parent":
-		return value.parent
+		return hxrt.ReadStoredField(value.parent)
 	}
 	return nil
 }
@@ -2453,9 +4715,9 @@ func hxrt__generated_field_lookup__haxe___Int64_____Int64(value *haxe___Int64___
 	}
 	switch key {
 	case "high":
-		return value.high
+		return hxrt.ReadStoredField(value.high)
 	case "low":
-		return value.low
+		return hxrt.ReadStoredField(value.low)
 	}
 	return nil
 }
@@ -2514,7 +4776,7 @@ func hxrt__generated_field_lookup__haxe__ds__StringMap(value *haxe__ds__StringMa
 	}
 	switch key {
 	case "h":
-		return value.h
+		return hxrt.ReadStoredField(value.h)
 	}
 	return nil
 }
@@ -2558,15 +4820,15 @@ func hxrt__generated_field_lookup__haxe__io__Bytes(value *haxe__io__Bytes, key s
 	}
 	switch key {
 	case "__hx_dataExposed":
-		return value.__hx_dataExposed
+		return hxrt.ReadStoredField(value.__hx_dataExposed)
 	case "__hx_raw":
-		return value.__hx_raw
+		return hxrt.ReadStoredField(value.__hx_raw)
 	case "__hx_rawValid":
-		return value.__hx_rawValid
+		return hxrt.ReadStoredField(value.__hx_rawValid)
 	case "b":
-		return value.b
+		return hxrt.ReadStoredField(value.b)
 	case "length":
-		return value.length
+		return hxrt.ReadStoredField(value.length)
 	}
 	return nil
 }
@@ -2664,15 +4926,76 @@ func hxrt__generated_field_set__haxe__io__Bytes(value *haxe__io__Bytes, key stri
 	return false
 }
 
+func hxrt__generated_field_lookup__haxe__iterators__ArrayIterator(value *haxe__iterators__ArrayIterator, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "array":
+		return hxrt.ReadStoredField(value.array)
+	case "current":
+		return hxrt.ReadStoredField(value.current)
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__haxe__iterators__ArrayIterator(value *haxe__iterators__ArrayIterator, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "array":
+		return true
+	case "current":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__haxe__iterators__ArrayIterator(value *haxe__iterators__ArrayIterator, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "array":
+		if incoming == nil {
+			var zero *hxrt.Array
+			value.array = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *hxrt.Array:
+			value.array = typed
+			return true
+		default:
+			return false
+		}
+	case "current":
+		if incoming == nil {
+			var zero int
+			value.current = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case int:
+			value.current = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
 func hxrt__generated_field_lookup__haxe__iterators__MapKeyValueIterator(value *haxe__iterators__MapKeyValueIterator, key string) any {
 	if value == nil {
 		return nil
 	}
 	switch key {
 	case "keys":
-		return value.keys
+		return hxrt.ReadStoredField(value.keys)
 	case "map":
-		return value.map_
+		return hxrt.ReadStoredField(value.map_)
 	}
 	return nil
 }
@@ -2697,12 +5020,12 @@ func hxrt__generated_field_set__haxe__iterators__MapKeyValueIterator(value *haxe
 	switch key {
 	case "keys":
 		if incoming == nil {
-			var zero map[string]any
+			var zero hxrt.Anonymous
 			value.keys = zero
 			return true
 		}
 		switch typed := incoming.(type) {
-		case map[string]any:
+		case hxrt.Anonymous:
 			value.keys = typed
 			return true
 		default:
@@ -2731,9 +5054,9 @@ func hxrt__generated_field_lookup__haxe__iterators__StringIterator(value *haxe__
 	}
 	switch key {
 	case "offset":
-		return value.offset
+		return hxrt.ReadStoredField(value.offset)
 	case "s":
-		return value.s
+		return hxrt.ReadStoredField(value.s)
 	}
 	return nil
 }
@@ -2792,9 +5115,9 @@ func hxrt__generated_field_lookup__haxe__iterators__StringKeyValueIterator(value
 	}
 	switch key {
 	case "offset":
-		return value.offset
+		return hxrt.ReadStoredField(value.offset)
 	case "s":
-		return value.s
+		return hxrt.ReadStoredField(value.s)
 	}
 	return nil
 }
@@ -2853,11 +5176,11 @@ func hxrt__generated_field_lookup__haxe__rtti__XmlParser(value *haxe__rtti__XmlP
 	}
 	switch key {
 	case "curplatform":
-		return value.curplatform
+		return hxrt.ReadStoredField(value.curplatform)
 	case "newField":
-		return value.newField
+		return hxrt.ReadStoredField(value.newField)
 	case "root":
-		return value.root
+		return hxrt.ReadStoredField(value.root)
 	}
 	return nil
 }
@@ -2896,18 +5219,11 @@ func hxrt__generated_field_set__haxe__rtti__XmlParser(value *haxe__rtti__XmlPars
 			return false
 		}
 	case "newField":
-		if incoming == nil {
-			var zero func(map[string]any, map[string]any)
-			value.newField = zero
+		if (hxrt.FunctionOrigin(incoming) == nil) || hxrt.ReflectIsFunction(incoming) {
+			value.newField = hx_recover_callable_4(incoming)
 			return true
 		}
-		switch typed := incoming.(type) {
-		case func(map[string]any, map[string]any):
-			value.newField = typed
-			return true
-		default:
-			return false
-		}
+		return false
 	case "root":
 		if incoming == nil {
 			var zero *hxrt.Array
@@ -2931,9 +5247,9 @@ func hxrt__generated_field_lookup__haxe__xml__Printer(value *haxe__xml__Printer,
 	}
 	switch key {
 	case "output":
-		return value.output
+		return hxrt.ReadStoredField(value.output)
 	case "pretty":
-		return value.pretty
+		return hxrt.ReadStoredField(value.pretty)
 	}
 	return nil
 }
@@ -2992,15 +5308,15 @@ func hxrt__generated_field_lookup__haxe__xml__XmlParserException(value *haxe__xm
 	}
 	switch key {
 	case "lineNumber":
-		return value.lineNumber
+		return hxrt.ReadStoredField(value.lineNumber)
 	case "message":
-		return value.message
+		return hxrt.ReadStoredField(value.message)
 	case "position":
-		return value.position
+		return hxrt.ReadStoredField(value.position)
 	case "positionAtLine":
-		return value.positionAtLine
+		return hxrt.ReadStoredField(value.positionAtLine)
 	case "xml":
-		return value.xml
+		return hxrt.ReadStoredField(value.xml)
 	}
 	return nil
 }
@@ -3132,5 +5448,1499 @@ func reflaxe__go___internal__CompilerReflect_isEnumValue(value any) bool {
 		return (enumValue != nil)
 	default:
 		return false
+	}
+}
+
+func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []any) any {
+	origin := hxrt.FunctionOrigin(value)
+	if origin == nil {
+		hxrt.Throw(hxrt.StringFromLiteral("Cannot call null"))
+		return nil
+	}
+	switch source := origin.(type) {
+	case *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous)]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		hxrt.FunctionCall(source)(hx_structural_recover(argument_0), hx_structural_recover(argument_1))
+		return nil
+	case *hxrt.Function[func(*haxe__rtti__TypeTree, *haxe__rtti__TypeTree) int]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		return hxrt.FunctionCall(source)(func(hx_value_755 any) *haxe__rtti__TypeTree {
+			if hx_value_755 == nil {
+				var hx_zero_756 *haxe__rtti__TypeTree
+				return hx_zero_756
+			}
+			return hx_value_755.(*haxe__rtti__TypeTree)
+		}(any(argument_0)), func(hx_value_757 any) *haxe__rtti__TypeTree {
+			if hx_value_757 == nil {
+				var hx_zero_758 *haxe__rtti__TypeTree
+				return hx_zero_758
+			}
+			return hx_value_757.(*haxe__rtti__TypeTree)
+		}(any(argument_1)))
+	case *hxrt.Function[func(any, any) int]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		return hxrt.FunctionCall(source)(argument_0, argument_1)
+	case *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous) int]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		return hxrt.FunctionCall(source)(hx_structural_recover(argument_0), hx_structural_recover(argument_1))
+	case *hxrt.Function[func() bool]:
+		return hxrt.FunctionCall(source)()
+	case *hxrt.Function[func() any]:
+		return hxrt.FunctionCall(source)()
+	case *hxrt.Function[func(...any) any]:
+		var argument_0 []any = nil
+		for index, argument := range arguments {
+			if index >= 0 {
+				argument_0 = append(argument_0, argument)
+			}
+		}
+		return hxrt.FunctionCall(source)(argument_0...)
+	case *hxrt.Function[func() *string]:
+		return hxrt.FunctionCall(source)()
+	case *hxrt.Function[func() hxrt.Anonymous]:
+		return hxrt.FunctionCall(source)()
+	case *hxrt.Function[func(*hxrt.Array)]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		hxrt.FunctionCall(source)(func(hx_value_759 any) *hxrt.Array {
+			if hx_value_759 == nil {
+				var hx_zero_760 *hxrt.Array
+				return hx_zero_760
+			}
+			return hx_value_759.(*hxrt.Array)
+		}(any(argument_0)))
+		return nil
+	case *hxrt.Function[func(*Xml, *string)]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		hxrt.FunctionCall(source)(hx_recover_class_0(argument_0), func(hx_value_761 any) *string {
+			if hx_value_761 == nil {
+				var hx_zero_762 *string
+				return hx_zero_762
+			}
+			return hx_value_761.(*string)
+		}(any(argument_1)))
+		return nil
+	case *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous) bool]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		return hxrt.FunctionCall(source)(hx_structural_recover(argument_0), hx_structural_recover(argument_1))
+	case *hxrt.Function[func(*haxe__rtti__TypeTree)]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		hxrt.FunctionCall(source)(func(hx_value_763 any) *haxe__rtti__TypeTree {
+			if hx_value_763 == nil {
+				var hx_zero_764 *haxe__rtti__TypeTree
+				return hx_zero_764
+			}
+			return hx_value_763.(*haxe__rtti__TypeTree)
+		}(any(argument_0)))
+		return nil
+	case *hxrt.Function[func(*string) *string]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		return hxrt.FunctionCall(source)(func(hx_value_765 any) *string {
+			if hx_value_765 == nil {
+				var hx_zero_766 *string
+				return hx_zero_766
+			}
+			return hx_value_765.(*string)
+		}(any(argument_0)))
+	case *hxrt.Function[func(*string) *hxrt.Array]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		return hxrt.FunctionCall(source)(func(hx_value_767 any) *string {
+			if hx_value_767 == nil {
+				var hx_zero_768 *string
+				return hx_zero_768
+			}
+			return hx_value_767.(*string)
+		}(any(argument_0)))
+	case *hxrt.Function[func(*string) *haxe__rtti__Rights]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		return hxrt.FunctionCall(source)(func(hx_value_769 any) *string {
+			if hx_value_769 == nil {
+				var hx_zero_770 *string
+				return hx_zero_770
+			}
+			return hx_value_769.(*string)
+		}(any(argument_0)))
+	case *hxrt.Function[func(*Xml)]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		hxrt.FunctionCall(source)(hx_recover_class_0(argument_0))
+		return nil
+	case *hxrt.Function[func(*Xml) *haxe__rtti__TypeTree]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		return hxrt.FunctionCall(source)(hx_recover_class_0(argument_0))
+	case *hxrt.Function[func(*Xml) *hxrt.Array]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		return hxrt.FunctionCall(source)(hx_recover_class_0(argument_0))
+	case *hxrt.Function[func(*Xml) hxrt.Anonymous]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		return hxrt.FunctionCall(source)(hx_recover_class_0(argument_0))
+	case *hxrt.Function[func(*Xml, any) hxrt.Anonymous]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		return hxrt.FunctionCall(source)(hx_recover_class_0(argument_0), argument_1)
+	case *hxrt.Function[func(*Xml) *haxe__rtti__CType]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		return hxrt.FunctionCall(source)(hx_recover_class_0(argument_0))
+	case *hxrt.Function[func() *hxrt.Array]:
+		return hxrt.FunctionCall(source)()
+	case *hxrt.Function[func(*hxrt.Array, *string) *string]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		return hxrt.FunctionCall(source)(func(hx_value_771 any) *hxrt.Array {
+			if hx_value_771 == nil {
+				var hx_zero_772 *hxrt.Array
+				return hx_zero_772
+			}
+			return hx_value_771.(*hxrt.Array)
+		}(any(argument_0)), func(hx_value_773 any) *string {
+			if hx_value_773 == nil {
+				var hx_zero_774 *string
+				return hx_zero_774
+			}
+			return hx_value_773.(*string)
+		}(any(argument_1)))
+	case *hxrt.Function[func(*string, *string) *hxrt.Array]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		return hxrt.FunctionCall(source)(func(hx_value_775 any) *string {
+			if hx_value_775 == nil {
+				var hx_zero_776 *string
+				return hx_zero_776
+			}
+			return hx_value_775.(*string)
+		}(any(argument_0)), func(hx_value_777 any) *string {
+			if hx_value_777 == nil {
+				var hx_zero_778 *string
+				return hx_zero_778
+			}
+			return hx_value_777.(*string)
+		}(any(argument_1)))
+	case *hxrt.Function[func(*string, *string, int) int]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		var argument_2 any = nil
+		if 2 < len(arguments) {
+			argument_2 = arguments[2]
+		}
+		return hxrt.FunctionCall(source)(func(hx_value_779 any) *string {
+			if hx_value_779 == nil {
+				var hx_zero_780 *string
+				return hx_zero_780
+			}
+			return hx_value_779.(*string)
+		}(any(argument_0)), func(hx_value_781 any) *string {
+			if hx_value_781 == nil {
+				var hx_zero_782 *string
+				return hx_zero_782
+			}
+			return hx_value_781.(*string)
+		}(any(argument_1)), func(hx_value_783 any) int {
+			if hx_value_783 == nil {
+				var hx_zero_784 int
+				return hx_zero_784
+			}
+			return hx_value_783.(int)
+		}(any(argument_2)))
+	case *hxrt.Function[func(*Xml, *string) *string]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		return hxrt.FunctionCall(source)(hx_recover_class_0(argument_0), func(hx_value_785 any) *string {
+			if hx_value_785 == nil {
+				var hx_zero_786 *string
+				return hx_zero_786
+			}
+			return hx_value_785.(*string)
+		}(any(argument_1)))
+	case *hxrt.Function[func(*Xml, *string) bool]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		return hxrt.FunctionCall(source)(hx_recover_class_0(argument_0), func(hx_value_787 any) *string {
+			if hx_value_787 == nil {
+				var hx_zero_788 *string
+				return hx_zero_788
+			}
+			return hx_value_787.(*string)
+		}(any(argument_1)))
+	case *hxrt.Function[func(*Xml, *string) *Xml]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		return hxrt.FunctionCall(source)(hx_recover_class_0(argument_0), func(hx_value_789 any) *string {
+			if hx_value_789 == nil {
+				var hx_zero_790 *string
+				return hx_zero_790
+			}
+			return hx_value_789.(*string)
+		}(any(argument_1)))
+	case *hxrt.Function[func(*Xml) *Xml]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		return hxrt.FunctionCall(source)(hx_recover_class_0(argument_0))
+	case *hxrt.Function[func(*Xml) *string]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		return hxrt.FunctionCall(source)(hx_recover_class_0(argument_0))
+	case *hxrt.Function[func(*string) int]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		return hxrt.FunctionCall(source)(func(hx_value_791 any) *string {
+			if hx_value_791 == nil {
+				var hx_zero_792 *string
+				return hx_zero_792
+			}
+			return hx_value_791.(*string)
+		}(any(argument_0)))
+	case *hxrt.Function[func(*string, *string)]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		hxrt.FunctionCall(source)(func(hx_value_793 any) *string {
+			if hx_value_793 == nil {
+				var hx_zero_794 *string
+				return hx_zero_794
+			}
+			return hx_value_793.(*string)
+		}(any(argument_0)), func(hx_value_795 any) *string {
+			if hx_value_795 == nil {
+				var hx_zero_796 *string
+				return hx_zero_796
+			}
+			return hx_value_795.(*string)
+		}(any(argument_1)))
+		return nil
+	case *hxrt.Function[func(*string)]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		hxrt.FunctionCall(source)(func(hx_value_797 any) *string {
+			if hx_value_797 == nil {
+				var hx_zero_798 *string
+				return hx_zero_798
+			}
+			return hx_value_797.(*string)
+		}(any(argument_0)))
+		return nil
+	case *hxrt.Function[func(*string) bool]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		return hxrt.FunctionCall(source)(func(hx_value_799 any) *string {
+			if hx_value_799 == nil {
+				var hx_zero_800 *string
+				return hx_zero_800
+			}
+			return hx_value_799.(*string)
+		}(any(argument_0)))
+	case *hxrt.Function[func(*string) hxrt.Anonymous]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		return hxrt.FunctionCall(source)(func(hx_value_801 any) *string {
+			if hx_value_801 == nil {
+				var hx_zero_802 *string
+				return hx_zero_802
+			}
+			return hx_value_801.(*string)
+		}(any(argument_0)))
+	case *hxrt.Function[func() *Xml]:
+		return hxrt.FunctionCall(source)()
+	case *hxrt.Function[func(*Xml) bool]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		return hxrt.FunctionCall(source)(hx_recover_class_0(argument_0))
+	case *hxrt.Function[func(*Xml, int)]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		hxrt.FunctionCall(source)(hx_recover_class_0(argument_0), func(hx_value_803 any) int {
+			if hx_value_803 == nil {
+				var hx_zero_804 int
+				return hx_zero_804
+			}
+			return hx_value_803.(int)
+		}(any(argument_1)))
+		return nil
+	case *hxrt.Function[func()]:
+		hxrt.FunctionCall(source)()
+		return nil
+	case *hxrt.Function[func(*string, any)]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		hxrt.FunctionCall(source)(func(hx_value_805 any) *string {
+			if hx_value_805 == nil {
+				var hx_zero_806 *string
+				return hx_zero_806
+			}
+			return hx_value_805.(*string)
+		}(any(argument_0)), argument_1)
+		return nil
+	case *hxrt.Function[func(*string) any]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		return hxrt.FunctionCall(source)(func(hx_value_807 any) *string {
+			if hx_value_807 == nil {
+				var hx_zero_808 *string
+				return hx_zero_808
+			}
+			return hx_value_807.(*string)
+		}(any(argument_0)))
+	case *hxrt.Function[func(any) any]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		return hxrt.FunctionCall(source)(argument_0)
+	case *hxrt.Function[func(any, any)]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		hxrt.FunctionCall(source)(argument_0, argument_1)
+		return nil
+	case *hxrt.Function[func(any) bool]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		return hxrt.FunctionCall(source)(argument_0)
+	case *hxrt.Function[func() haxe__IMap]:
+		return hxrt.FunctionCall(source)()
+	case *hxrt.Function[func() *haxe__ds__StringMap]:
+		return hxrt.FunctionCall(source)()
+	case *hxrt.Function[func() int]:
+		return hxrt.FunctionCall(source)()
+	case *hxrt.Function[func(int) int]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		return hxrt.FunctionCall(source)(func(hx_value_809 any) int {
+			if hx_value_809 == nil {
+				var hx_zero_810 int
+				return hx_zero_810
+			}
+			return hx_value_809.(int)
+		}(any(argument_0)))
+	case *hxrt.Function[func(int, int)]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		hxrt.FunctionCall(source)(func(hx_value_811 any) int {
+			if hx_value_811 == nil {
+				var hx_zero_812 int
+				return hx_zero_812
+			}
+			return hx_value_811.(int)
+		}(any(argument_0)), func(hx_value_813 any) int {
+			if hx_value_813 == nil {
+				var hx_zero_814 int
+				return hx_zero_814
+			}
+			return hx_value_813.(int)
+		}(any(argument_1)))
+		return nil
+	case *hxrt.Function[func(int, *haxe__io__Bytes, int, int)]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		var argument_2 any = nil
+		if 2 < len(arguments) {
+			argument_2 = arguments[2]
+		}
+		var argument_3 any = nil
+		if 3 < len(arguments) {
+			argument_3 = arguments[3]
+		}
+		hxrt.FunctionCall(source)(func(hx_value_815 any) int {
+			if hx_value_815 == nil {
+				var hx_zero_816 int
+				return hx_zero_816
+			}
+			return hx_value_815.(int)
+		}(any(argument_0)), hx_recover_class_3(argument_1), func(hx_value_817 any) int {
+			if hx_value_817 == nil {
+				var hx_zero_818 int
+				return hx_zero_818
+			}
+			return hx_value_817.(int)
+		}(any(argument_2)), func(hx_value_819 any) int {
+			if hx_value_819 == nil {
+				var hx_zero_820 int
+				return hx_zero_820
+			}
+			return hx_value_819.(int)
+		}(any(argument_3)))
+		return nil
+	case *hxrt.Function[func(int, int, int)]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		var argument_2 any = nil
+		if 2 < len(arguments) {
+			argument_2 = arguments[2]
+		}
+		hxrt.FunctionCall(source)(func(hx_value_821 any) int {
+			if hx_value_821 == nil {
+				var hx_zero_822 int
+				return hx_zero_822
+			}
+			return hx_value_821.(int)
+		}(any(argument_0)), func(hx_value_823 any) int {
+			if hx_value_823 == nil {
+				var hx_zero_824 int
+				return hx_zero_824
+			}
+			return hx_value_823.(int)
+		}(any(argument_1)), func(hx_value_825 any) int {
+			if hx_value_825 == nil {
+				var hx_zero_826 int
+				return hx_zero_826
+			}
+			return hx_value_825.(int)
+		}(any(argument_2)))
+		return nil
+	case *hxrt.Function[func(int, int) *haxe__io__Bytes]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		return hxrt.FunctionCall(source)(func(hx_value_827 any) int {
+			if hx_value_827 == nil {
+				var hx_zero_828 int
+				return hx_zero_828
+			}
+			return hx_value_827.(int)
+		}(any(argument_0)), func(hx_value_829 any) int {
+			if hx_value_829 == nil {
+				var hx_zero_830 int
+				return hx_zero_830
+			}
+			return hx_value_829.(int)
+		}(any(argument_1)))
+	case *hxrt.Function[func(*haxe__io__Bytes) int]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		return hxrt.FunctionCall(source)(hx_recover_class_3(argument_0))
+	case *hxrt.Function[func(int) float64]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		return hxrt.FunctionCall(source)(func(hx_value_831 any) int {
+			if hx_value_831 == nil {
+				var hx_zero_832 int
+				return hx_zero_832
+			}
+			return hx_value_831.(int)
+		}(any(argument_0)))
+	case *hxrt.Function[func(int, float64)]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		hxrt.FunctionCall(source)(func(hx_value_833 any) int {
+			if hx_value_833 == nil {
+				var hx_zero_834 int
+				return hx_zero_834
+			}
+			return hx_value_833.(int)
+		}(any(argument_0)), func(hx_value_835 any) float64 {
+			if hx_value_835 == nil {
+				var hx_zero_836 float64
+				return hx_zero_836
+			}
+			return hx_value_835.(float64)
+		}(any(argument_1)))
+		return nil
+	case *hxrt.Function[func(int) *haxe___Int64_____Int64]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		return hxrt.FunctionCall(source)(func(hx_value_837 any) int {
+			if hx_value_837 == nil {
+				var hx_zero_838 int
+				return hx_zero_838
+			}
+			return hx_value_837.(int)
+		}(any(argument_0)))
+	case *hxrt.Function[func(int, *haxe___Int64_____Int64)]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		hxrt.FunctionCall(source)(func(hx_value_839 any) int {
+			if hx_value_839 == nil {
+				var hx_zero_840 int
+				return hx_zero_840
+			}
+			return hx_value_839.(int)
+		}(any(argument_0)), hx_recover_class_4(argument_1))
+		return nil
+	case *hxrt.Function[func(int, int, *haxe__io__Encoding) *string]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		var argument_2 any = nil
+		if 2 < len(arguments) {
+			argument_2 = arguments[2]
+		}
+		return hxrt.FunctionCall(source)(func(hx_value_841 any) int {
+			if hx_value_841 == nil {
+				var hx_zero_842 int
+				return hx_zero_842
+			}
+			return hx_value_841.(int)
+		}(any(argument_0)), func(hx_value_843 any) int {
+			if hx_value_843 == nil {
+				var hx_zero_844 int
+				return hx_zero_844
+			}
+			return hx_value_843.(int)
+		}(any(argument_1)), func(hx_value_845 any) *haxe__io__Encoding {
+			if hx_value_845 == nil {
+				var hx_zero_846 *haxe__io__Encoding
+				return hx_zero_846
+			}
+			return hx_value_845.(*haxe__io__Encoding)
+		}(any(argument_2)))
+	case *hxrt.Function[func(int, int) *string]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		var argument_1 any = nil
+		if 1 < len(arguments) {
+			argument_1 = arguments[1]
+		}
+		return hxrt.FunctionCall(source)(func(hx_value_847 any) int {
+			if hx_value_847 == nil {
+				var hx_zero_848 int
+				return hx_zero_848
+			}
+			return hx_value_847.(int)
+		}(any(argument_0)), func(hx_value_849 any) int {
+			if hx_value_849 == nil {
+				var hx_zero_850 int
+				return hx_zero_850
+			}
+			return hx_value_849.(int)
+		}(any(argument_1)))
+	case *hxrt.Function[func() []int]:
+		return hxrt.FunctionCall(source)()
+	case *hxrt.Function[func() *hxrt.ByteView]:
+		return hxrt.FunctionCall(source)()
+	default:
+		return hxrt.ReflectCallMethod(value, arguments)
+	}
+}
+
+func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
+	if value == nil {
+		return nil
+	}
+	switch exact := value.(type) {
+	case *hxrt.Function[func() bool]:
+		return exact
+	}
+	origin := hxrt.FunctionOrigin(value)
+	if origin == nil {
+		return nil
+	}
+	switch source := origin.(type) {
+	case *hxrt.Function[func() bool]:
+		return source
+	case *hxrt.Function[func() any]:
+		return hxrt.ProjectFunction(source, func() bool {
+			return func(hx_value_851 any) bool {
+				if hx_value_851 == nil {
+					var hx_zero_852 bool
+					return hx_zero_852
+				}
+				return hx_value_851.(bool)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	case *hxrt.Function[func(...any) any]:
+		return hxrt.ProjectFunction(source, func() bool {
+			return func(hx_value_853 any) bool {
+				if hx_value_853 == nil {
+					var hx_zero_854 bool
+					return hx_zero_854
+				}
+				return hx_value_853.(bool)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	case *hxrt.Function[func() *string]:
+		return hxrt.ProjectFunction(source, func() bool {
+			return func(hx_value_855 any) bool {
+				if hx_value_855 == nil {
+					var hx_zero_856 bool
+					return hx_zero_856
+				}
+				return hx_value_855.(bool)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	case *hxrt.Function[func() hxrt.Anonymous]:
+		return hxrt.ProjectFunction(source, func() bool {
+			return func(hx_value_857 any) bool {
+				if hx_value_857 == nil {
+					var hx_zero_858 bool
+					return hx_zero_858
+				}
+				return hx_value_857.(bool)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	case *hxrt.Function[func() *hxrt.Array]:
+		return hxrt.ProjectFunction(source, func() bool {
+			return func(hx_value_859 any) bool {
+				if hx_value_859 == nil {
+					var hx_zero_860 bool
+					return hx_zero_860
+				}
+				return hx_value_859.(bool)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	case *hxrt.Function[func() *Xml]:
+		return hxrt.ProjectFunction(source, func() bool {
+			return func(hx_value_861 any) bool {
+				if hx_value_861 == nil {
+					var hx_zero_862 bool
+					return hx_zero_862
+				}
+				return hx_value_861.(bool)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	case *hxrt.Function[func()]:
+		return hxrt.ProjectFunction(source, func() bool {
+			hxrt.FunctionCall(source)()
+			return func(hx_value_863 any) bool {
+				if hx_value_863 == nil {
+					var hx_zero_864 bool
+					return hx_zero_864
+				}
+				return hx_value_863.(bool)
+			}(any(nil))
+		})
+	case *hxrt.Function[func() haxe__IMap]:
+		return hxrt.ProjectFunction(source, func() bool {
+			return func(hx_value_865 any) bool {
+				if hx_value_865 == nil {
+					var hx_zero_866 bool
+					return hx_zero_866
+				}
+				return hx_value_865.(bool)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	case *hxrt.Function[func() *haxe__ds__StringMap]:
+		return hxrt.ProjectFunction(source, func() bool {
+			return func(hx_value_867 any) bool {
+				if hx_value_867 == nil {
+					var hx_zero_868 bool
+					return hx_zero_868
+				}
+				return hx_value_867.(bool)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	case *hxrt.Function[func() int]:
+		return hxrt.ProjectFunction(source, func() bool {
+			return func(hx_value_869 any) bool {
+				if hx_value_869 == nil {
+					var hx_zero_870 bool
+					return hx_zero_870
+				}
+				return hx_value_869.(bool)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	case *hxrt.Function[func() []int]:
+		return hxrt.ProjectFunction(source, func() bool {
+			return func(hx_value_871 any) bool {
+				if hx_value_871 == nil {
+					var hx_zero_872 bool
+					return hx_zero_872
+				}
+				return hx_value_871.(bool)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	case *hxrt.Function[func() *hxrt.ByteView]:
+		return hxrt.ProjectFunction(source, func() bool {
+			return func(hx_value_873 any) bool {
+				if hx_value_873 == nil {
+					var hx_zero_874 bool
+					return hx_zero_874
+				}
+				return hx_value_873.(bool)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	default:
+		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
+		return nil
+	}
+}
+
+func hx_recover_callable_1(value any) *hxrt.Function[func() *Xml] {
+	if value == nil {
+		return nil
+	}
+	switch exact := value.(type) {
+	case *hxrt.Function[func() *Xml]:
+		return exact
+	}
+	origin := hxrt.FunctionOrigin(value)
+	if origin == nil {
+		return nil
+	}
+	switch source := origin.(type) {
+	case *hxrt.Function[func() bool]:
+		return hxrt.ProjectFunction(source, func() *Xml {
+			return hx_recover_class_0(hxrt.FunctionCall(source)())
+		})
+	case *hxrt.Function[func() any]:
+		return hxrt.ProjectFunction(source, func() *Xml {
+			return hx_recover_class_0(hxrt.FunctionCall(source)())
+		})
+	case *hxrt.Function[func(...any) any]:
+		return hxrt.ProjectFunction(source, func() *Xml {
+			return hx_recover_class_0(hxrt.FunctionCall(source)())
+		})
+	case *hxrt.Function[func() *string]:
+		return hxrt.ProjectFunction(source, func() *Xml {
+			return hx_recover_class_0(hxrt.FunctionCall(source)())
+		})
+	case *hxrt.Function[func() hxrt.Anonymous]:
+		return hxrt.ProjectFunction(source, func() *Xml {
+			return hx_recover_class_0(hxrt.FunctionCall(source)())
+		})
+	case *hxrt.Function[func() *hxrt.Array]:
+		return hxrt.ProjectFunction(source, func() *Xml {
+			return hx_recover_class_0(hxrt.FunctionCall(source)())
+		})
+	case *hxrt.Function[func() *Xml]:
+		return source
+	case *hxrt.Function[func()]:
+		return hxrt.ProjectFunction(source, func() *Xml {
+			hxrt.FunctionCall(source)()
+			return hx_recover_class_0(nil)
+		})
+	case *hxrt.Function[func() haxe__IMap]:
+		return hxrt.ProjectFunction(source, func() *Xml {
+			return hx_recover_class_0(hxrt.FunctionCall(source)())
+		})
+	case *hxrt.Function[func() *haxe__ds__StringMap]:
+		return hxrt.ProjectFunction(source, func() *Xml {
+			return hx_recover_class_0(hxrt.FunctionCall(source)())
+		})
+	case *hxrt.Function[func() int]:
+		return hxrt.ProjectFunction(source, func() *Xml {
+			return hx_recover_class_0(hxrt.FunctionCall(source)())
+		})
+	case *hxrt.Function[func() []int]:
+		return hxrt.ProjectFunction(source, func() *Xml {
+			return hx_recover_class_0(hxrt.FunctionCall(source)())
+		})
+	case *hxrt.Function[func() *hxrt.ByteView]:
+		return hxrt.ProjectFunction(source, func() *Xml {
+			return hx_recover_class_0(hxrt.FunctionCall(source)())
+		})
+	default:
+		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
+		return nil
+	}
+}
+
+func hx_recover_callable_2(value any) *hxrt.Function[func() any] {
+	if value == nil {
+		return nil
+	}
+	switch exact := value.(type) {
+	case *hxrt.Function[func() any]:
+		return exact
+	}
+	origin := hxrt.FunctionOrigin(value)
+	if origin == nil {
+		return nil
+	}
+	switch source := origin.(type) {
+	case *hxrt.Function[func() bool]:
+		return hxrt.ProjectFunction(source, func() any {
+			return hxrt.FunctionCall(source)()
+		})
+	case *hxrt.Function[func() any]:
+		return source
+	case *hxrt.Function[func(...any) any]:
+		return hxrt.ProjectFunction(source, func() any {
+			return hxrt.FunctionCall(source)()
+		})
+	case *hxrt.Function[func() *string]:
+		return hxrt.ProjectFunction(source, func() any {
+			return hxrt.FunctionCall(source)()
+		})
+	case *hxrt.Function[func() hxrt.Anonymous]:
+		return hxrt.ProjectFunction(source, func() any {
+			return hxrt.FunctionCall(source)()
+		})
+	case *hxrt.Function[func() *hxrt.Array]:
+		return hxrt.ProjectFunction(source, func() any {
+			return hxrt.FunctionCall(source)()
+		})
+	case *hxrt.Function[func() *Xml]:
+		return hxrt.ProjectFunction(source, func() any {
+			return hxrt.FunctionCall(source)()
+		})
+	case *hxrt.Function[func()]:
+		return hxrt.ProjectFunction(source, func() any {
+			hxrt.FunctionCall(source)()
+			return nil
+		})
+	case *hxrt.Function[func() haxe__IMap]:
+		return hxrt.ProjectFunction(source, func() any {
+			return hxrt.FunctionCall(source)()
+		})
+	case *hxrt.Function[func() *haxe__ds__StringMap]:
+		return hxrt.ProjectFunction(source, func() any {
+			return hxrt.FunctionCall(source)()
+		})
+	case *hxrt.Function[func() int]:
+		return hxrt.ProjectFunction(source, func() any {
+			return hxrt.FunctionCall(source)()
+		})
+	case *hxrt.Function[func() []int]:
+		return hxrt.ProjectFunction(source, func() any {
+			return hxrt.FunctionCall(source)()
+		})
+	case *hxrt.Function[func() *hxrt.ByteView]:
+		return hxrt.ProjectFunction(source, func() any {
+			return hxrt.FunctionCall(source)()
+		})
+	default:
+		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
+		return nil
+	}
+}
+
+func hx_recover_callable_3(value any) *hxrt.Function[func() *string] {
+	if value == nil {
+		return nil
+	}
+	switch exact := value.(type) {
+	case *hxrt.Function[func() *string]:
+		return exact
+	}
+	origin := hxrt.FunctionOrigin(value)
+	if origin == nil {
+		return nil
+	}
+	switch source := origin.(type) {
+	case *hxrt.Function[func() bool]:
+		return hxrt.ProjectFunction(source, func() *string {
+			return func(hx_value_875 any) *string {
+				if hx_value_875 == nil {
+					var hx_zero_876 *string
+					return hx_zero_876
+				}
+				return hx_value_875.(*string)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	case *hxrt.Function[func() any]:
+		return hxrt.ProjectFunction(source, func() *string {
+			return func(hx_value_877 any) *string {
+				if hx_value_877 == nil {
+					var hx_zero_878 *string
+					return hx_zero_878
+				}
+				return hx_value_877.(*string)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	case *hxrt.Function[func(...any) any]:
+		return hxrt.ProjectFunction(source, func() *string {
+			return func(hx_value_879 any) *string {
+				if hx_value_879 == nil {
+					var hx_zero_880 *string
+					return hx_zero_880
+				}
+				return hx_value_879.(*string)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	case *hxrt.Function[func() *string]:
+		return source
+	case *hxrt.Function[func() hxrt.Anonymous]:
+		return hxrt.ProjectFunction(source, func() *string {
+			return func(hx_value_881 any) *string {
+				if hx_value_881 == nil {
+					var hx_zero_882 *string
+					return hx_zero_882
+				}
+				return hx_value_881.(*string)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	case *hxrt.Function[func() *hxrt.Array]:
+		return hxrt.ProjectFunction(source, func() *string {
+			return func(hx_value_883 any) *string {
+				if hx_value_883 == nil {
+					var hx_zero_884 *string
+					return hx_zero_884
+				}
+				return hx_value_883.(*string)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	case *hxrt.Function[func() *Xml]:
+		return hxrt.ProjectFunction(source, func() *string {
+			return func(hx_value_885 any) *string {
+				if hx_value_885 == nil {
+					var hx_zero_886 *string
+					return hx_zero_886
+				}
+				return hx_value_885.(*string)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	case *hxrt.Function[func()]:
+		return hxrt.ProjectFunction(source, func() *string {
+			hxrt.FunctionCall(source)()
+			return func(hx_value_887 any) *string {
+				if hx_value_887 == nil {
+					var hx_zero_888 *string
+					return hx_zero_888
+				}
+				return hx_value_887.(*string)
+			}(any(nil))
+		})
+	case *hxrt.Function[func() haxe__IMap]:
+		return hxrt.ProjectFunction(source, func() *string {
+			return func(hx_value_889 any) *string {
+				if hx_value_889 == nil {
+					var hx_zero_890 *string
+					return hx_zero_890
+				}
+				return hx_value_889.(*string)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	case *hxrt.Function[func() *haxe__ds__StringMap]:
+		return hxrt.ProjectFunction(source, func() *string {
+			return func(hx_value_891 any) *string {
+				if hx_value_891 == nil {
+					var hx_zero_892 *string
+					return hx_zero_892
+				}
+				return hx_value_891.(*string)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	case *hxrt.Function[func() int]:
+		return hxrt.ProjectFunction(source, func() *string {
+			return func(hx_value_893 any) *string {
+				if hx_value_893 == nil {
+					var hx_zero_894 *string
+					return hx_zero_894
+				}
+				return hx_value_893.(*string)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	case *hxrt.Function[func() []int]:
+		return hxrt.ProjectFunction(source, func() *string {
+			return func(hx_value_895 any) *string {
+				if hx_value_895 == nil {
+					var hx_zero_896 *string
+					return hx_zero_896
+				}
+				return hx_value_895.(*string)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	case *hxrt.Function[func() *hxrt.ByteView]:
+		return hxrt.ProjectFunction(source, func() *string {
+			return func(hx_value_897 any) *string {
+				if hx_value_897 == nil {
+					var hx_zero_898 *string
+					return hx_zero_898
+				}
+				return hx_value_897.(*string)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	default:
+		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
+		return nil
+	}
+}
+
+func hx_recover_callable_4(value any) *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous)] {
+	if value == nil {
+		return nil
+	}
+	switch exact := value.(type) {
+	case *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous)]:
+		return exact
+	}
+	origin := hxrt.FunctionOrigin(value)
+	if origin == nil {
+		return nil
+	}
+	switch source := origin.(type) {
+	case *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous)]:
+		return source
+	case *hxrt.Function[func(*haxe__rtti__TypeTree, *haxe__rtti__TypeTree) int]:
+		return hxrt.ProjectFunction(source, func(arg_0 hxrt.Anonymous, arg_1 hxrt.Anonymous) {
+			hxrt.FunctionCall(source)(func(hx_value_899 any) *haxe__rtti__TypeTree {
+				if hx_value_899 == nil {
+					var hx_zero_900 *haxe__rtti__TypeTree
+					return hx_zero_900
+				}
+				return hx_value_899.(*haxe__rtti__TypeTree)
+			}(any(arg_0)), func(hx_value_901 any) *haxe__rtti__TypeTree {
+				if hx_value_901 == nil {
+					var hx_zero_902 *haxe__rtti__TypeTree
+					return hx_zero_902
+				}
+				return hx_value_901.(*haxe__rtti__TypeTree)
+			}(any(arg_1)))
+		})
+	case *hxrt.Function[func(any, any) int]:
+		return hxrt.ProjectFunction(source, func(arg_0 hxrt.Anonymous, arg_1 hxrt.Anonymous) {
+			hxrt.FunctionCall(source)(arg_0, arg_1)
+		})
+	case *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous) int]:
+		return hxrt.ProjectFunction(source, func(arg_0 hxrt.Anonymous, arg_1 hxrt.Anonymous) {
+			hxrt.FunctionCall(source)(arg_0, arg_1)
+		})
+	case *hxrt.Function[func(...any) any]:
+		return hxrt.ProjectFunction(source, func(arg_0 hxrt.Anonymous, arg_1 hxrt.Anonymous) {
+			hxrt.FunctionCall(source)(arg_0, arg_1)
+		})
+	case *hxrt.Function[func(*Xml, *string)]:
+		return hxrt.ProjectFunction(source, func(arg_0 hxrt.Anonymous, arg_1 hxrt.Anonymous) {
+			hxrt.FunctionCall(source)(hx_recover_class_0(arg_0), func(hx_value_903 any) *string {
+				if hx_value_903 == nil {
+					var hx_zero_904 *string
+					return hx_zero_904
+				}
+				return hx_value_903.(*string)
+			}(any(arg_1)))
+		})
+	case *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous) bool]:
+		return hxrt.ProjectFunction(source, func(arg_0 hxrt.Anonymous, arg_1 hxrt.Anonymous) {
+			hxrt.FunctionCall(source)(arg_0, arg_1)
+		})
+	case *hxrt.Function[func(*Xml, any) hxrt.Anonymous]:
+		return hxrt.ProjectFunction(source, func(arg_0 hxrt.Anonymous, arg_1 hxrt.Anonymous) {
+			hxrt.FunctionCall(source)(hx_recover_class_0(arg_0), arg_1)
+		})
+	case *hxrt.Function[func(*hxrt.Array, *string) *string]:
+		return hxrt.ProjectFunction(source, func(arg_0 hxrt.Anonymous, arg_1 hxrt.Anonymous) {
+			hxrt.FunctionCall(source)(func(hx_value_905 any) *hxrt.Array {
+				if hx_value_905 == nil {
+					var hx_zero_906 *hxrt.Array
+					return hx_zero_906
+				}
+				return hx_value_905.(*hxrt.Array)
+			}(any(arg_0)), func(hx_value_907 any) *string {
+				if hx_value_907 == nil {
+					var hx_zero_908 *string
+					return hx_zero_908
+				}
+				return hx_value_907.(*string)
+			}(any(arg_1)))
+		})
+	case *hxrt.Function[func(*string, *string) *hxrt.Array]:
+		return hxrt.ProjectFunction(source, func(arg_0 hxrt.Anonymous, arg_1 hxrt.Anonymous) {
+			hxrt.FunctionCall(source)(func(hx_value_909 any) *string {
+				if hx_value_909 == nil {
+					var hx_zero_910 *string
+					return hx_zero_910
+				}
+				return hx_value_909.(*string)
+			}(any(arg_0)), func(hx_value_911 any) *string {
+				if hx_value_911 == nil {
+					var hx_zero_912 *string
+					return hx_zero_912
+				}
+				return hx_value_911.(*string)
+			}(any(arg_1)))
+		})
+	case *hxrt.Function[func(*Xml, *string) *string]:
+		return hxrt.ProjectFunction(source, func(arg_0 hxrt.Anonymous, arg_1 hxrt.Anonymous) {
+			hxrt.FunctionCall(source)(hx_recover_class_0(arg_0), func(hx_value_913 any) *string {
+				if hx_value_913 == nil {
+					var hx_zero_914 *string
+					return hx_zero_914
+				}
+				return hx_value_913.(*string)
+			}(any(arg_1)))
+		})
+	case *hxrt.Function[func(*Xml, *string) bool]:
+		return hxrt.ProjectFunction(source, func(arg_0 hxrt.Anonymous, arg_1 hxrt.Anonymous) {
+			hxrt.FunctionCall(source)(hx_recover_class_0(arg_0), func(hx_value_915 any) *string {
+				if hx_value_915 == nil {
+					var hx_zero_916 *string
+					return hx_zero_916
+				}
+				return hx_value_915.(*string)
+			}(any(arg_1)))
+		})
+	case *hxrt.Function[func(*Xml, *string) *Xml]:
+		return hxrt.ProjectFunction(source, func(arg_0 hxrt.Anonymous, arg_1 hxrt.Anonymous) {
+			hxrt.FunctionCall(source)(hx_recover_class_0(arg_0), func(hx_value_917 any) *string {
+				if hx_value_917 == nil {
+					var hx_zero_918 *string
+					return hx_zero_918
+				}
+				return hx_value_917.(*string)
+			}(any(arg_1)))
+		})
+	case *hxrt.Function[func(*string, *string)]:
+		return hxrt.ProjectFunction(source, func(arg_0 hxrt.Anonymous, arg_1 hxrt.Anonymous) {
+			hxrt.FunctionCall(source)(func(hx_value_919 any) *string {
+				if hx_value_919 == nil {
+					var hx_zero_920 *string
+					return hx_zero_920
+				}
+				return hx_value_919.(*string)
+			}(any(arg_0)), func(hx_value_921 any) *string {
+				if hx_value_921 == nil {
+					var hx_zero_922 *string
+					return hx_zero_922
+				}
+				return hx_value_921.(*string)
+			}(any(arg_1)))
+		})
+	case *hxrt.Function[func(*Xml, int)]:
+		return hxrt.ProjectFunction(source, func(arg_0 hxrt.Anonymous, arg_1 hxrt.Anonymous) {
+			hxrt.FunctionCall(source)(hx_recover_class_0(arg_0), func(hx_value_923 any) int {
+				if hx_value_923 == nil {
+					var hx_zero_924 int
+					return hx_zero_924
+				}
+				return hx_value_923.(int)
+			}(any(arg_1)))
+		})
+	case *hxrt.Function[func(*string, any)]:
+		return hxrt.ProjectFunction(source, func(arg_0 hxrt.Anonymous, arg_1 hxrt.Anonymous) {
+			hxrt.FunctionCall(source)(func(hx_value_925 any) *string {
+				if hx_value_925 == nil {
+					var hx_zero_926 *string
+					return hx_zero_926
+				}
+				return hx_value_925.(*string)
+			}(any(arg_0)), arg_1)
+		})
+	case *hxrt.Function[func(any, any)]:
+		return hxrt.ProjectFunction(source, func(arg_0 hxrt.Anonymous, arg_1 hxrt.Anonymous) {
+			hxrt.FunctionCall(source)(arg_0, arg_1)
+		})
+	case *hxrt.Function[func(int, int)]:
+		return hxrt.ProjectFunction(source, func(arg_0 hxrt.Anonymous, arg_1 hxrt.Anonymous) {
+			hxrt.FunctionCall(source)(func(hx_value_927 any) int {
+				if hx_value_927 == nil {
+					var hx_zero_928 int
+					return hx_zero_928
+				}
+				return hx_value_927.(int)
+			}(any(arg_0)), func(hx_value_929 any) int {
+				if hx_value_929 == nil {
+					var hx_zero_930 int
+					return hx_zero_930
+				}
+				return hx_value_929.(int)
+			}(any(arg_1)))
+		})
+	case *hxrt.Function[func(int, int) *haxe__io__Bytes]:
+		return hxrt.ProjectFunction(source, func(arg_0 hxrt.Anonymous, arg_1 hxrt.Anonymous) {
+			hxrt.FunctionCall(source)(func(hx_value_931 any) int {
+				if hx_value_931 == nil {
+					var hx_zero_932 int
+					return hx_zero_932
+				}
+				return hx_value_931.(int)
+			}(any(arg_0)), func(hx_value_933 any) int {
+				if hx_value_933 == nil {
+					var hx_zero_934 int
+					return hx_zero_934
+				}
+				return hx_value_933.(int)
+			}(any(arg_1)))
+		})
+	case *hxrt.Function[func(int, float64)]:
+		return hxrt.ProjectFunction(source, func(arg_0 hxrt.Anonymous, arg_1 hxrt.Anonymous) {
+			hxrt.FunctionCall(source)(func(hx_value_935 any) int {
+				if hx_value_935 == nil {
+					var hx_zero_936 int
+					return hx_zero_936
+				}
+				return hx_value_935.(int)
+			}(any(arg_0)), func(hx_value_937 any) float64 {
+				if hx_value_937 == nil {
+					var hx_zero_938 float64
+					return hx_zero_938
+				}
+				return hx_value_937.(float64)
+			}(any(arg_1)))
+		})
+	case *hxrt.Function[func(int, *haxe___Int64_____Int64)]:
+		return hxrt.ProjectFunction(source, func(arg_0 hxrt.Anonymous, arg_1 hxrt.Anonymous) {
+			hxrt.FunctionCall(source)(func(hx_value_939 any) int {
+				if hx_value_939 == nil {
+					var hx_zero_940 int
+					return hx_zero_940
+				}
+				return hx_value_939.(int)
+			}(any(arg_0)), hx_recover_class_4(arg_1))
+		})
+	case *hxrt.Function[func(int, int) *string]:
+		return hxrt.ProjectFunction(source, func(arg_0 hxrt.Anonymous, arg_1 hxrt.Anonymous) {
+			hxrt.FunctionCall(source)(func(hx_value_941 any) int {
+				if hx_value_941 == nil {
+					var hx_zero_942 int
+					return hx_zero_942
+				}
+				return hx_value_941.(int)
+			}(any(arg_0)), func(hx_value_943 any) int {
+				if hx_value_943 == nil {
+					var hx_zero_944 int
+					return hx_zero_944
+				}
+				return hx_value_943.(int)
+			}(any(arg_1)))
+		})
+	default:
+		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
+		return nil
+	}
+}
+
+func hx_recover_class_0(value any) *Xml {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *Xml:
+		return source
+	default:
+		return value.(*Xml)
+	}
+}
+
+func hx_recover_class_1(value any) *haxe__ds__StringMap {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ds__StringMap:
+		return source
+	default:
+		return value.(*haxe__ds__StringMap)
+	}
+}
+
+func hx_recover_class_2(value any) *StringBuf {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *StringBuf:
+		return source
+	default:
+		return value.(*StringBuf)
+	}
+}
+
+func hx_recover_class_3(value any) *haxe__io__Bytes {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__io__Bytes:
+		return source
+	default:
+		return value.(*haxe__io__Bytes)
+	}
+}
+
+func hx_recover_class_4(value any) *haxe___Int64_____Int64 {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe___Int64_____Int64:
+		return source
+	default:
+		return value.(*haxe___Int64_____Int64)
 	}
 }
