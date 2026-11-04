@@ -32,5 +32,25 @@ def main() -> None:
                     raise AssertionError(f"tags={tags!r}: exit={result.returncode}\n{result.stdout}{result.stderr}")
 
 
+    fixture = ROOT / "test/snapshot/core/conditional_nominal_type_test"
+    reference = subprocess.run(["haxe", "-cp", str(fixture), "-main", "Main", "--interp"],
+                               cwd=ROOT, text=True, capture_output=True, check=True, timeout=120)
+    if reference.stdout != "1\n":
+        raise AssertionError(f"Haxe nominal authority changed: {reference.stdout}{reference.stderr}")
+    with tempfile.TemporaryDirectory(prefix="conditional-nominal-runtime-") as temporary:
+        output = Path(temporary) / "out"
+        subprocess.run([
+            "haxe", "-cp", str(fixture), "-lib", "reflaxe.go", "-main", "Main",
+            "-D", f"go_output={output}", "-D", "go_no_build",
+            "-D", "reflaxe_go_strict_examples", "-D", "reflaxe.dont_output_metadata_id",
+        ], cwd=ROOT, check=True, timeout=120)
+        for tags, expected in [("", "0\n"), ("exception_probe", "1\n")]:
+            print(f"Conditional nominal membership: tags={tags!r}", flush=True)
+            result = subprocess.run(["go", "run", "-tags", tags, "."], cwd=output,
+                                    text=True, capture_output=True, timeout=180)
+            if result.returncode or result.stdout != expected:
+                raise AssertionError(f"tags={tags!r}: exit={result.returncode}\n{result.stdout}{result.stderr}")
+
+
 if __name__ == "__main__":
     main()

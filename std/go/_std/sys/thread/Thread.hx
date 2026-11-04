@@ -69,8 +69,13 @@ class Thread {
 
 	/** Arbitrary thrown payloads cross this boundary once; Haxe owns the message. */
 	static function reportUncaught(value:Any):Void {
-		var exception = @:privateAccess haxe.Exception.caught(value);
-		NativeThread.writeStderr("Uncaught exception " + exception.message + "\n");
+		try {
+			var exception = @:privateAccess haxe.Exception.caught(value);
+			NativeThread.writeStderr("Uncaught exception " + exception.message + "\n");
+		} catch (_:Dynamic) {
+			// Do not format the secondary failure: its getter may also throw.
+			NativeThread.writeStderr("Uncaught exception (message unavailable)\n");
+		}
 	}
 
 	private static function processEvents():Void {

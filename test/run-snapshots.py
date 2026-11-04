@@ -634,6 +634,12 @@ def run_case(case: SnapshotCase, args: argparse.Namespace) -> CaseResult:
                     if actual != expected:
                         duration = time.monotonic() - started
                         return CaseResult(case.case_id, False, duration, step, "stdout mismatch")
+                    expected_stderr = case.case_path / "expected.stderr"
+                    if expected_stderr.exists():
+                        expected = expected_stderr.read_text(encoding="utf-8").replace("\r\n", "\n")
+                        if run_proc.stderr.replace("\r\n", "\n") != expected:
+                            duration = time.monotonic() - started
+                            return CaseResult(case.case_id, False, duration, step, "stderr mismatch")
 
         duration = time.monotonic() - started
         return CaseResult(case.case_id, True, duration, "done", "ok")
