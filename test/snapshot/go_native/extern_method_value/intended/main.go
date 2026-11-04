@@ -10,6 +10,9 @@ func main() {
 	now := time.Now()
 	unix := func() *hxrt.Function[func() int] {
 		hx_extern_method_1 := now.Unix
+		if hx_extern_method_1 == nil {
+			return nil
+		}
 		return hxrt.NewFunction(func() int {
 			return int(hx_extern_method_1())
 		})
@@ -22,12 +25,18 @@ func main() {
 	originalPrefix := hxrt.StdString(logger.Prefix())
 	setPrefix := func() *hxrt.Function[func(*string)] {
 		hx_extern_method_2 := logger.SetPrefix
+		if hx_extern_method_2 == nil {
+			return nil
+		}
 		return hxrt.NewFunction(func(hx_extern_arg_3 *string) {
 			hx_extern_method_2(*hxrt.StdString(hx_extern_arg_3))
 		})
 	}()
 	getPrefix := func() *hxrt.Function[func() *string] {
 		hx_extern_method_4 := logger.Prefix
+		if hx_extern_method_4 == nil {
+			return nil
+		}
 		return hxrt.NewFunction(func() *string {
 			return hxrt.StdString(hx_extern_method_4())
 		})
