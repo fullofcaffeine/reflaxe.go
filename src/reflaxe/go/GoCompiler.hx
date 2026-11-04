@@ -1340,6 +1340,8 @@ class GoCompiler {
 				false;
 			case GoSelector(target, field): selectorTargetUsesImportAlias(target,
 					alias) || selectorMatchesQualifiedSymbol(target, field, alias) || exprUsesImportAlias(target, alias);
+			case GoInstantiate(target, arguments): exprUsesImportAlias(target,
+					alias) || Lambda.exists(arguments, argument -> typeNameUsesImportAlias(argument, alias));
 			case GoIndex(target, index): exprUsesImportAlias(target, alias) || exprUsesImportAlias(index, alias);
 			case GoSlice(target, start, end): exprUsesImportAlias(target,
 					alias) || (start != null && exprUsesImportAlias(start, alias)) || (end != null && exprUsesImportAlias(end, alias));
@@ -7333,11 +7335,14 @@ class GoCompiler {
 			return null;
 		}
 
-		// Native generic declarations are not standalone Go values until instantiated.
-		// A typed wrapper calls the declaration so Go infers its native type arguments
-		// from the applied Haxe signature without erasing them to generic Haxe storage.
+		// A native generic declaration must be instantiated before it is a Go value.
+		// Recover type arguments from the applied Haxe signature, including results.
 		var genericDeclaration = field.params.length > 0 && appliedType != null;
-		return lowerImportedFunctionValue(GoExpr.GoSelector(target, selector), genericDeclaration ? appliedType : field.type, genericDeclaration);
+		var value = GoExpr.GoSelector(target, selector);
+		if (genericDeclaration) {
+			value = instantiateImportedGeneric(value, field, appliedType, field.pos);
+		}
+		return lowerImportedFunctionValue(value, genericDeclaration ? appliedType : field.type, genericDeclaration);
 	}
 
 	/**
@@ -7375,6 +7380,15 @@ class GoCompiler {
 			case _:
 				null;
 		};
+	}
+
+	/** Recover native generic arguments before Haxe's generic storage erases them. */
+	function instantiateImportedGeneric(value:GoExpr, field:Null<ClassField>, appliedType:Type, pos:Position):GoExpr {
+		if (field == null || field.params.length == 0) {
+			return value;
+		}
+		var arguments = reflaxe.go.compiler.GoExternTypeArguments.resolve(field, appliedType, pos);
+		return arguments.length == 0 ? value : GoExpr.GoInstantiate(value, [for (argument in arguments) nativeCallbackStorageType(argument)]);
 	}
 
 	function importedExternMethodValueNeedsStringAdapter(type:Type):Bool {
@@ -7762,6 +7776,9 @@ class GoCompiler {
 		}
 
 		var loweredCallee = lowerDirectCallee(callee);
+		if (isGoImportExternCall(callee) && !isHxrtImportExternCall(callee)) {
+			loweredCallee = instantiateImportedGeneric(loweredCallee, externCallField(callee), callee.t, callee.pos);
+		}
 		var erasedCall = typeToGoType(callee.t) == "any";
 		var callExpr:GoExpr = erasedCall ? valueRecovery.invoke(loweredCallee,
 			GoExpr.GoCompositeLiteral("[]any",
@@ -10071,6 +10088,10 @@ class GoCompiler {
 	}
 
 	function shouldAssertGenericCallResult(callee:TypedExpr, returnType:Type):Bool {
+		// Imported APIs own their native result ABI. Haxe generic storage recovery
+		// must not assert a native string (or other concrete result) as a carrier.
+		if (isGoImportExternCall(callee) && !isHxrtImportExternCall(callee))
+			return false;
 		if (isFunctionValueCall(callee) && !isGoImportExternCall(callee))
 			return false;
 		if (typeToGoType(returnType) == "any") {
@@ -10745,7 +10766,8 @@ class GoCompiler {
 					case TFun(_, _): true;
 					case _: false;
 				}));
-		var anyNullComparison = nullComparison && (isAnyLikeType(left.t) || isAnyLikeType(right.t));
+		var anyNullComparison = nullComparison
+			&& (isAnyLikeType(left.t) || isAnyLikeType(right.t) || isErasedFieldRead(left) || isErasedFieldRead(right));
 		var floatMode = isFloatType(left.t) || isFloatType(right.t) || isFloatType(resultType) || isNullableFloatType(left.t)
 			|| isNullableFloatType(right.t) || isNullableFloatType(resultType);
 		var int32Mode = isInt32SemanticType(left.t, left.pos)
@@ -11786,6 +11808,23 @@ class GoCompiler {
 				lowerOptionalPrimitiveNilComparisonExpr(inner);
 			case _:
 				null;
+		};
+	}
+
+	/**
+		What: Recognizes nominal fields whose declaration uses erased storage.
+		Why: A concrete applied field type can still hold a typed nil inside Go
+		`any`; direct interface comparison then disagrees with Haxe null equality.
+		How: Consult the source declaration, excluding native and method fields.
+		Keep this query local to null comparison so other recovery remains owned
+		by its existing typed boundary.
+	**/
+	function isErasedFieldRead(expr:TypedExpr):Bool {
+		return switch (expr.expr) {
+			case TField(_, FStatic(owner, field)) | TField(_, FInstance(owner, _, field)): !owner.get()
+					.isExtern && !isMethodField(field.get()) && valueStorageGoType(field.get().type) == "any";
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _): isErasedFieldRead(inner);
+			case _: false;
 		};
 	}
 

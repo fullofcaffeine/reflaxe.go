@@ -409,6 +409,8 @@ class GoASTPrinter {
 			case GoStringLiteral(value): '"' + escapeString(value) + '"';
 			case GoNil: "nil";
 			case GoSelector(target, field): printExpr(target) + "." + field;
+			case GoInstantiate(target, arguments):
+				printExpr(target) + "[" + [for (argument in arguments) argument.render()].join(", ") + "]";
 			case GoIndex(target, index): printExpr(target) + "[" + printExpr(index) + "]";
 			case GoSlice(target, start, end):
 				var startCode = start == null ? "" : printExpr(start);

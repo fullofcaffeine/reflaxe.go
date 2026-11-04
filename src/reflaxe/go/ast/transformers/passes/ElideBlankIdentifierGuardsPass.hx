@@ -365,7 +365,7 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 		switch (expr) {
 			case GoExpr.GoIdent(name):
 				addRead(resolveBinding(name));
-			case GoExpr.GoSelector(target, _):
+			case GoExpr.GoSelector(target, _) | GoExpr.GoInstantiate(target, _):
 				collectExprReads(target);
 			case GoExpr.GoIndex(target, index):
 				collectExprReads(target);
@@ -427,7 +427,7 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 	function collectLValueReads(expr:GoExpr):Void {
 		switch (expr) {
 			case GoExpr.GoIdent(_):
-			case GoExpr.GoSelector(target, _):
+			case GoExpr.GoSelector(target, _) | GoExpr.GoInstantiate(target, _):
 				collectExprReads(target);
 			case GoExpr.GoIndex(target, index):
 				collectExprReads(target);
@@ -707,6 +707,8 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 		return switch (expr) {
 			case GoExpr.GoSelector(target, field):
 				GoExpr.GoSelector(rewriteExpr(target), field);
+			case GoExpr.GoInstantiate(target, arguments):
+				GoExpr.GoInstantiate(rewriteExpr(target), arguments);
 			case GoExpr.GoIndex(target, index):
 				GoExpr.GoIndex(rewriteExpr(target), rewriteExpr(index));
 			case GoExpr.GoSlice(target, start, end):
