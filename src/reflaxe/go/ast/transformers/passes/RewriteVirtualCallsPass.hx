@@ -210,6 +210,11 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 			case GoStmt.GoReturn(expr):
 				GoStmt.GoReturn(expr == null ? null : rewriteExpr(expr, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers,
 					leafReturnCallTargets));
+			case GoStmt.GoReturnValues(values):
+				GoStmt.GoReturnValues([
+					for (value in values)
+						rewriteExpr(value, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets)
+				]);
 			case _:
 				stmt;
 		};

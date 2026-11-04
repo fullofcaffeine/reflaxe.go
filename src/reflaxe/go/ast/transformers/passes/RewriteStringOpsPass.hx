@@ -104,6 +104,8 @@ class RewriteStringOpsPass implements IGoASTPass {
 				GoStmt.GoSelect(rewrittenCases);
 			case GoStmt.GoReturn(expr):
 				GoStmt.GoReturn(expr == null ? null : rewriteExpr(expr));
+			case GoStmt.GoReturnValues(values):
+				GoStmt.GoReturnValues([for (value in values) rewriteExpr(value)]);
 			case _:
 				stmt;
 		};
