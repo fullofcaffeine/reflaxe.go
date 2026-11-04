@@ -1,12 +1,13 @@
 class Main {
-	static function make():(?Int) -> Int {
-		return function(value:Int = 9):Int {
-			Sys.println(value);
-			return value;
+	static function make():(?Null<Int>) -> Int {
+		return function(value:Null<Int> = 9):Int {
+			final result:Int = value == null ? 9 : value;
+			Sys.println(result);
+			return result;
 		};
 	}
 
-	static function invoke(callback:(?Int) -> Void) {
+	static function invoke(callback:(?Null<Int>) -> Void) {
 		callback();
 		callback(null);
 		callback(0);
