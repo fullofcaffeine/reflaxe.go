@@ -82,17 +82,7 @@ func (self *haxe__io__Input) readBytes(bytes *haxe__io__Bytes, pos int, len int)
 		hx_exception_4 := haxe__Exception_caught(hx_caught_3)
 		hx_payload_5 := haxe__Exception_catchValue(hx_caught_3)
 		_ = hx_exception_4
-		if func(hx_value any) bool {
-			switch hx_carrier := hx_value.(type) {
-			case *haxe__io__Eof:
-				if hx_carrier == nil {
-					return false
-				}
-				return true
-			default:
-				return false
-			}
-		}(hxrt.ObjectSource(hxrt.ObjectSource(hx_payload_5))) {
+		if hx_is_nominal_2(hx_payload_5) {
 			var hx_tmp *haxe__io__Eof = hx_recover_class_3(hx_payload_5)
 			_ = hx_tmp
 		} else {
@@ -131,17 +121,7 @@ func (self *haxe__io__Input) readAll(bufsize any) *haxe__io__Bytes {
 		hx_exception_7 := haxe__Exception_caught(hx_caught_6)
 		hx_payload_8 := haxe__Exception_catchValue(hx_caught_6)
 		_ = hx_exception_7
-		if func(hx_value any) bool {
-			switch hx_carrier := hx_value.(type) {
-			case *haxe__io__Eof:
-				if hx_carrier == nil {
-					return false
-				}
-				return true
-			default:
-				return false
-			}
-		}(hxrt.ObjectSource(hxrt.ObjectSource(hx_payload_8))) {
+		if hx_is_nominal_2(hx_payload_8) {
 			var hx_tmp *haxe__io__Eof = hx_recover_class_3(hx_payload_8)
 			_ = hx_tmp
 		} else {
@@ -199,17 +179,7 @@ func (self *haxe__io__Input) readLine() *string {
 		hx_exception_10 := haxe__Exception_caught(hx_caught_9)
 		hx_payload_11 := haxe__Exception_catchValue(hx_caught_9)
 		_ = hx_exception_10
-		if func(hx_value any) bool {
-			switch hx_carrier := hx_value.(type) {
-			case *haxe__io__Eof:
-				if hx_carrier == nil {
-					return false
-				}
-				return true
-			default:
-				return false
-			}
-		}(hxrt.ObjectSource(hxrt.ObjectSource(hx_payload_11))) {
+		if hx_is_nominal_2(hx_payload_11) {
 			var error *haxe__io__Eof = hx_recover_class_3(hx_payload_11)
 			result = buffer.__hx_this.getBytes().__hx_this.toString()
 			if hxrt.StringLengthStringPtr(result) == 0 {

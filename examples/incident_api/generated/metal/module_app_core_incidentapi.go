@@ -78,23 +78,7 @@ func (self *app__core__IncidentApi) createIncident(body *string) *app__http__Htt
 		hx_exception_2 := haxe__Exception_caught(hx_caught_1)
 		hx_payload_3 := haxe__Exception_catchValue(hx_caught_1)
 		_ = hx_payload_3
-		if func(hx_value any) bool {
-			switch hx_carrier := hx_value.(type) {
-			case *app__core__IncidentRequestException:
-				if hx_carrier == nil {
-					return false
-				}
-				return true
-			case *haxe__Exception:
-				if hx_carrier == nil {
-					return false
-				}
-				_, hx_ok := hx_carrier.__hx_this.(*app__core__IncidentRequestException)
-				return hx_ok
-			default:
-				return false
-			}
-		}(hxrt.ObjectSource(hxrt.ObjectSource(hx_exception_2))) {
+		if hx_is_nominal_0(hx_exception_2) {
 			var error *app__core__IncidentRequestException = hx_recover_class_1(hx_exception_2)
 			response = app__http__HttpResponse_json(400, hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("{\"error\":\""), error.code), hxrt.StringFromLiteral("\"}")))
 		} else {

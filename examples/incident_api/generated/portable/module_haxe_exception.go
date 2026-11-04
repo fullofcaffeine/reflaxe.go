@@ -89,23 +89,7 @@ func (self *haxe__Exception) String() string {
 }
 
 func haxe__Exception_catchValue(value any) any {
-	if func(hx_value any) bool {
-		switch hx_carrier := hx_value.(type) {
-		case *haxe__Exception:
-			if hx_carrier == nil {
-				return false
-			}
-			_, hx_ok := hx_carrier.__hx_this.(*haxe__ValueException)
-			return hx_ok
-		case *haxe__ValueException:
-			if hx_carrier == nil {
-				return false
-			}
-			return true
-		default:
-			return false
-		}
-	}(hxrt.ObjectSource(hxrt.ObjectSource(value))) {
+	if hx_is_nominal_2(value) {
 		wrapped := hx_recover_class_5(hx_recover_class_5(value))
 		return wrapped.value
 	}
@@ -113,37 +97,7 @@ func haxe__Exception_catchValue(value any) any {
 }
 
 func haxe__Exception_caught(value any) *haxe__Exception {
-	if func(hx_value any) bool {
-		switch hx_carrier := hx_value.(type) {
-		case *app__core__IncidentRequestException:
-			if hx_carrier == nil {
-				return false
-			}
-			return true
-		case *haxe__Exception:
-			if hx_carrier == nil {
-				return false
-			}
-			return true
-		case *haxe__ValueException:
-			if hx_carrier == nil {
-				return false
-			}
-			return true
-		case *haxe__exceptions__NotImplementedException:
-			if hx_carrier == nil {
-				return false
-			}
-			return true
-		case *haxe__exceptions__PosException:
-			if hx_carrier == nil {
-				return false
-			}
-			return true
-		default:
-			return false
-		}
-	}(hxrt.ObjectSource(hxrt.ObjectSource(value))) {
+	if hx_is_nominal_3(value) {
 		return hx_recover_class_0(value)
 	}
 	return func(hx_value *haxe__ValueException) *haxe__Exception {
@@ -155,37 +109,7 @@ func haxe__Exception_caught(value any) *haxe__Exception {
 }
 
 func haxe__Exception_thrown(value any) any {
-	if func(hx_value any) bool {
-		switch hx_carrier := hx_value.(type) {
-		case *app__core__IncidentRequestException:
-			if hx_carrier == nil {
-				return false
-			}
-			return true
-		case *haxe__Exception:
-			if hx_carrier == nil {
-				return false
-			}
-			return true
-		case *haxe__ValueException:
-			if hx_carrier == nil {
-				return false
-			}
-			return true
-		case *haxe__exceptions__NotImplementedException:
-			if hx_carrier == nil {
-				return false
-			}
-			return true
-		case *haxe__exceptions__PosException:
-			if hx_carrier == nil {
-				return false
-			}
-			return true
-		default:
-			return false
-		}
-	}(hxrt.ObjectSource(hxrt.ObjectSource(value))) {
+	if hx_is_nominal_3(value) {
 		return value
 	}
 	return New_haxe__ValueException(value, nil, nil)
