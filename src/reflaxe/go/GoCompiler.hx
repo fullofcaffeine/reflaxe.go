@@ -7600,7 +7600,8 @@ class GoCompiler {
 				// Optional callable arguments already crossed the applied parameter ABI
 				// in lowerCallArgExprForExpectedType; do not adapt the original type twice.
 				var loweredArgType = paramType != null && functionTypeHasOptionalArgs(paramType) ? paramType : arg.t;
-				loweredArg = adaptErasedFunctionCallArg(loweredArg, loweredArgType, emittedParamType);
+				loweredArg = isAnonymousObjectType(emittedParamType) ? upcastIfNeeded(loweredArg, paramType == null ? arg.t : paramType,
+					emittedParamType) : adaptErasedFunctionCallArg(loweredArg, loweredArgType, emittedParamType);
 			}
 			loweredArg = normalizeExternCallArg(callee, loweredArg, paramType, index);
 			loweredArg = normalizeExternVariadicRestArg(callee, arg, loweredArg, index);

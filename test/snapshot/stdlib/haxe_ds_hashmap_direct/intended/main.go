@@ -11,6 +11,10 @@ type Key struct {
 	id        int
 }
 
+func (self *Key) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_Key(id int) *Key {
 	self := &Key{}
 	self.__hx_this = self

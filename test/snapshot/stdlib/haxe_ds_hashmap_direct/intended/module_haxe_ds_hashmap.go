@@ -3,12 +3,12 @@ package main
 import "snapshot/hxrt"
 
 type I_haxe__ds__HashMap interface {
-	set(k interface{ hashCode() int }, v any)
-	get(k interface{ hashCode() int }) any
-	exists(k interface{ hashCode() int }) bool
-	remove(k interface{ hashCode() int }) bool
-	keys() map[string]any
-	iterator() map[string]any
+	set(k hxrt.Anonymous, v any)
+	get(k hxrt.Anonymous) any
+	exists(k hxrt.Anonymous) bool
+	remove(k hxrt.Anonymous) bool
+	keys() hxrt.Anonymous
+	iterator() hxrt.Anonymous
 	keyValueIterator() *haxe__iterators__HashMapKeyValueIterator
 	copy() *haxe__ds__HashMap
 	clear()
@@ -20,6 +20,10 @@ type haxe__ds__HashMap struct {
 	valuesByHash *haxe__ds__IntMap
 }
 
+func (self *haxe__ds__HashMap) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe__ds__HashMap() *haxe__ds__HashMap {
 	self := &haxe__ds__HashMap{}
 	self.__hx_this = self
@@ -28,114 +32,148 @@ func New_haxe__ds__HashMap() *haxe__ds__HashMap {
 	return self
 }
 
-func (self *haxe__ds__HashMap) set(k interface{ hashCode() int }, v any) {
-	hash := k.hashCode()
+func (self *haxe__ds__HashMap) set(k hxrt.Anonymous, v any) {
+	hash := func() int {
+		var hx_callable_4 *hxrt.Function[func() int] = func(hx_obj_1 hxrt.Anonymous) *hxrt.Function[func() int] {
+			hx_field_2 := hxrt.AnonymousGet(hx_obj_1, "hashCode")
+			if hx_field_2 == nil {
+				var hx_zero_3 *hxrt.Function[func() int]
+				return hx_zero_3
+			}
+			return hx_field_2.(*hxrt.Function[func() int])
+		}(k)
+		return hxrt.FunctionCall(hx_callable_4)()
+	}()
 	self.keysByHash.__hx_this.set(hash, k)
 	self.valuesByHash.__hx_this.set(hash, v)
 }
 
-func (self *haxe__ds__HashMap) get(k interface{ hashCode() int }) any {
-	return self.valuesByHash.__hx_this.get(k.hashCode())
+func (self *haxe__ds__HashMap) get(k hxrt.Anonymous) any {
+	return self.valuesByHash.__hx_this.get(func() int {
+		var hx_callable_8 *hxrt.Function[func() int] = func(hx_obj_5 hxrt.Anonymous) *hxrt.Function[func() int] {
+			hx_field_6 := hxrt.AnonymousGet(hx_obj_5, "hashCode")
+			if hx_field_6 == nil {
+				var hx_zero_7 *hxrt.Function[func() int]
+				return hx_zero_7
+			}
+			return hx_field_6.(*hxrt.Function[func() int])
+		}(k)
+		return hxrt.FunctionCall(hx_callable_8)()
+	}())
 }
 
-func (self *haxe__ds__HashMap) exists(k interface{ hashCode() int }) bool {
-	return func(hx_value_1 any) bool {
-		if hx_value_1 == nil {
-			var hx_zero_2 bool
-			return hx_zero_2
+func (self *haxe__ds__HashMap) exists(k hxrt.Anonymous) bool {
+	return func(hx_value_13 any) bool {
+		if hx_value_13 == nil {
+			var hx_zero_14 bool
+			return hx_zero_14
 		}
-		return hx_value_1.(bool)
-	}(self.valuesByHash.__hx_this.exists(k.hashCode()))
+		return hx_value_13.(bool)
+	}(self.valuesByHash.__hx_this.exists(func() int {
+		var hx_callable_12 *hxrt.Function[func() int] = func(hx_obj_9 hxrt.Anonymous) *hxrt.Function[func() int] {
+			hx_field_10 := hxrt.AnonymousGet(hx_obj_9, "hashCode")
+			if hx_field_10 == nil {
+				var hx_zero_11 *hxrt.Function[func() int]
+				return hx_zero_11
+			}
+			return hx_field_10.(*hxrt.Function[func() int])
+		}(k)
+		return hxrt.FunctionCall(hx_callable_12)()
+	}()))
 }
 
-func (self *haxe__ds__HashMap) remove(k interface{ hashCode() int }) bool {
-	hash := k.hashCode()
-	func(hx_value_3 any) bool {
-		if hx_value_3 == nil {
-			var hx_zero_4 bool
-			return hx_zero_4
+func (self *haxe__ds__HashMap) remove(k hxrt.Anonymous) bool {
+	hash := func() int {
+		var hx_callable_18 *hxrt.Function[func() int] = func(hx_obj_15 hxrt.Anonymous) *hxrt.Function[func() int] {
+			hx_field_16 := hxrt.AnonymousGet(hx_obj_15, "hashCode")
+			if hx_field_16 == nil {
+				var hx_zero_17 *hxrt.Function[func() int]
+				return hx_zero_17
+			}
+			return hx_field_16.(*hxrt.Function[func() int])
+		}(k)
+		return hxrt.FunctionCall(hx_callable_18)()
+	}()
+	func(hx_value_19 any) bool {
+		if hx_value_19 == nil {
+			var hx_zero_20 bool
+			return hx_zero_20
 		}
-		return hx_value_3.(bool)
+		return hx_value_19.(bool)
 	}(self.valuesByHash.__hx_this.remove(hash))
-	return func(hx_value_5 any) bool {
-		if hx_value_5 == nil {
-			var hx_zero_6 bool
-			return hx_zero_6
+	return func(hx_value_21 any) bool {
+		if hx_value_21 == nil {
+			var hx_zero_22 bool
+			return hx_zero_22
 		}
-		return hx_value_5.(bool)
+		return hx_value_21.(bool)
 	}(self.keysByHash.__hx_this.remove(hash))
 }
 
-func (self *haxe__ds__HashMap) keys() map[string]any {
+func (self *haxe__ds__HashMap) keys() hxrt.Anonymous {
 	_gthis := self
-	hashes := func(hx_value_7 any) map[string]any {
-		if hx_value_7 == nil {
-			var hx_zero_8 map[string]any
-			return hx_zero_8
-		}
-		return hx_value_7.(map[string]any)
-	}(self.keysByHash.__hx_this.keys())
-	hx_obj_9 := map[string]any{}
-	hx_obj_9["hasNext"] = func() bool {
-		return func(hx_obj_10 map[string]any) func() bool {
-			hx_field_11 := hx_obj_10["hasNext"]
-			if hx_field_11 == nil {
-				var hx_zero_12 func() bool
-				return hx_zero_12
-			}
-			return hx_field_11.(func() bool)
-		}(hashes)()
-	}
-	hx_obj_9["next"] = func() interface{ hashCode() int } {
-		return func(hx_value_16 any) interface{ hashCode() int } {
-			if hx_value_16 == nil {
-				var hx_zero_17 interface{ hashCode() int }
-				return hx_zero_17
-			}
-			return hx_value_16.(interface{ hashCode() int })
-		}(_gthis.keysByHash.__hx_this.get(func(hx_obj_13 map[string]any) func() int {
-			hx_field_14 := hx_obj_13["next"]
-			if hx_field_14 == nil {
-				var hx_zero_15 func() int
-				return hx_zero_15
-			}
-			return hx_field_14.(func() int)
-		}(hashes)()))
-	}
-	return hx_obj_9
+	hashes := self.keysByHash.__hx_this.keys()
+	hx_obj_23 := map[string]any{}
+	hx_obj_23["hasNext"] = hxrt.NewFunction(func() bool {
+		return func() bool {
+			var hx_callable_27 *hxrt.Function[func() bool] = func(hx_obj_24 hxrt.Anonymous) *hxrt.Function[func() bool] {
+				hx_field_25 := hxrt.AnonymousGet(hx_obj_24, "hasNext")
+				if hx_field_25 == nil {
+					var hx_zero_26 *hxrt.Function[func() bool]
+					return hx_zero_26
+				}
+				return hx_field_25.(*hxrt.Function[func() bool])
+			}(hashes)
+			return hxrt.FunctionCall(hx_callable_27)()
+		}()
+	})
+	hx_obj_23["next"] = hxrt.NewFunction(func() hxrt.Anonymous {
+		return hxrt.AnonymousFromValue(_gthis.keysByHash.__hx_this.get(func() int {
+			var hx_callable_31 *hxrt.Function[func() int] = func(hx_obj_28 hxrt.Anonymous) *hxrt.Function[func() int] {
+				hx_field_29 := hxrt.AnonymousGet(hx_obj_28, "next")
+				if hx_field_29 == nil {
+					var hx_zero_30 *hxrt.Function[func() int]
+					return hx_zero_30
+				}
+				return hx_field_29.(*hxrt.Function[func() int])
+			}(hashes)
+			return hxrt.FunctionCall(hx_callable_31)()
+		}()))
+	})
+	return hxrt.AnonymousFromMap(hx_obj_23)
 }
 
-func (self *haxe__ds__HashMap) iterator() map[string]any {
+func (self *haxe__ds__HashMap) iterator() hxrt.Anonymous {
 	_gthis := self
-	hashes := func(hx_value_18 any) map[string]any {
-		if hx_value_18 == nil {
-			var hx_zero_19 map[string]any
-			return hx_zero_19
-		}
-		return hx_value_18.(map[string]any)
-	}(self.valuesByHash.__hx_this.keys())
-	hx_obj_20 := map[string]any{}
-	hx_obj_20["hasNext"] = func() bool {
-		return func(hx_obj_21 map[string]any) func() bool {
-			hx_field_22 := hx_obj_21["hasNext"]
-			if hx_field_22 == nil {
-				var hx_zero_23 func() bool
-				return hx_zero_23
-			}
-			return hx_field_22.(func() bool)
-		}(hashes)()
-	}
-	hx_obj_20["next"] = func() any {
-		return _gthis.valuesByHash.__hx_this.get(func(hx_obj_24 map[string]any) func() int {
-			hx_field_25 := hx_obj_24["next"]
-			if hx_field_25 == nil {
-				var hx_zero_26 func() int
-				return hx_zero_26
-			}
-			return hx_field_25.(func() int)
-		}(hashes)())
-	}
-	return hx_obj_20
+	hashes := self.valuesByHash.__hx_this.keys()
+	hx_obj_33 := map[string]any{}
+	hx_obj_33["hasNext"] = hxrt.NewFunction(func() bool {
+		return func() bool {
+			var hx_callable_37 *hxrt.Function[func() bool] = func(hx_obj_34 hxrt.Anonymous) *hxrt.Function[func() bool] {
+				hx_field_35 := hxrt.AnonymousGet(hx_obj_34, "hasNext")
+				if hx_field_35 == nil {
+					var hx_zero_36 *hxrt.Function[func() bool]
+					return hx_zero_36
+				}
+				return hx_field_35.(*hxrt.Function[func() bool])
+			}(hashes)
+			return hxrt.FunctionCall(hx_callable_37)()
+		}()
+	})
+	hx_obj_33["next"] = hxrt.NewFunction(func() any {
+		return _gthis.valuesByHash.__hx_this.get(func() int {
+			var hx_callable_41 *hxrt.Function[func() int] = func(hx_obj_38 hxrt.Anonymous) *hxrt.Function[func() int] {
+				hx_field_39 := hxrt.AnonymousGet(hx_obj_38, "next")
+				if hx_field_39 == nil {
+					var hx_zero_40 *hxrt.Function[func() int]
+					return hx_zero_40
+				}
+				return hx_field_39.(*hxrt.Function[func() int])
+			}(hashes)
+			return hxrt.FunctionCall(hx_callable_41)()
+		}())
+	})
+	return hxrt.AnonymousFromMap(hx_obj_33)
 }
 
 func (self *haxe__ds__HashMap) keyValueIterator() *haxe__iterators__HashMapKeyValueIterator {
@@ -144,36 +182,30 @@ func (self *haxe__ds__HashMap) keyValueIterator() *haxe__iterators__HashMapKeyVa
 
 func (self *haxe__ds__HashMap) copy() *haxe__ds__HashMap {
 	copied := New_haxe__ds__HashMap()
-	hash := func(hx_value_27 any) map[string]any {
-		if hx_value_27 == nil {
-			var hx_zero_28 map[string]any
-			return hx_zero_28
-		}
-		return hx_value_27.(map[string]any)
-	}(self.keysByHash.__hx_this.keys())
-	for func(hx_obj_29 map[string]any) func() bool {
-		hx_field_30 := hx_obj_29["hasNext"]
-		if hx_field_30 == nil {
-			var hx_zero_31 func() bool
-			return hx_zero_31
-		}
-		return hx_field_30.(func() bool)
-	}(hash)() {
-		hash_1 := func(hx_obj_32 map[string]any) func() int {
-			hx_field_33 := hx_obj_32["next"]
-			if hx_field_33 == nil {
-				var hx_zero_34 func() int
-				return hx_zero_34
+	hash := self.keysByHash.__hx_this.keys()
+	for func() bool {
+		var hx_callable_45 *hxrt.Function[func() bool] = func(hx_obj_42 hxrt.Anonymous) *hxrt.Function[func() bool] {
+			hx_field_43 := hxrt.AnonymousGet(hx_obj_42, "hasNext")
+			if hx_field_43 == nil {
+				var hx_zero_44 *hxrt.Function[func() bool]
+				return hx_zero_44
 			}
-			return hx_field_33.(func() int)
-		}(hash)()
-		copied.keysByHash.__hx_this.set(hash_1, func(hx_value_35 any) interface{ hashCode() int } {
-			if hx_value_35 == nil {
-				var hx_zero_36 interface{ hashCode() int }
-				return hx_zero_36
-			}
-			return hx_value_35.(interface{ hashCode() int })
-		}(self.keysByHash.__hx_this.get(hash_1)))
+			return hx_field_43.(*hxrt.Function[func() bool])
+		}(hash)
+		return hxrt.FunctionCall(hx_callable_45)()
+	}() {
+		hash_1 := func() int {
+			var hx_callable_49 *hxrt.Function[func() int] = func(hx_obj_46 hxrt.Anonymous) *hxrt.Function[func() int] {
+				hx_field_47 := hxrt.AnonymousGet(hx_obj_46, "next")
+				if hx_field_47 == nil {
+					var hx_zero_48 *hxrt.Function[func() int]
+					return hx_zero_48
+				}
+				return hx_field_47.(*hxrt.Function[func() int])
+			}(hash)
+			return hxrt.FunctionCall(hx_callable_49)()
+		}()
+		copied.keysByHash.__hx_this.set(hash_1, hxrt.AnonymousFromValue(self.keysByHash.__hx_this.get(hash_1)))
 		copied.valuesByHash.__hx_this.set(hash_1, self.valuesByHash.__hx_this.get(hash_1))
 	}
 	return copied
@@ -186,13 +218,16 @@ func (self *haxe__ds__HashMap) clear() {
 	hxrt.IntMapClear(_this_1.h)
 }
 
-func haxe__ds__HashMap_hashOf(key map[string]any) int {
-	return func(hx_obj_37 map[string]any) func() int {
-		hx_field_38 := hx_obj_37["hashCode"]
-		if hx_field_38 == nil {
-			var hx_zero_39 func() int
-			return hx_zero_39
-		}
-		return hx_field_38.(func() int)
-	}(key)()
+func haxe__ds__HashMap_hashOf(key hxrt.Anonymous) int {
+	return func() int {
+		var hx_callable_54 *hxrt.Function[func() int] = func(hx_obj_51 hxrt.Anonymous) *hxrt.Function[func() int] {
+			hx_field_52 := hxrt.AnonymousGet(hx_obj_51, "hashCode")
+			if hx_field_52 == nil {
+				var hx_zero_53 *hxrt.Function[func() int]
+				return hx_zero_53
+			}
+			return hx_field_52.(*hxrt.Function[func() int])
+		}(key)
+		return hxrt.FunctionCall(hx_callable_54)()
+	}()
 }

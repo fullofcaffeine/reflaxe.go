@@ -248,14 +248,42 @@ class GoTypeMapper {
 		return isBoolType(type) || isIntType(type) || isHaxeInt32Type(type) || isFloatType(type);
 	}
 
-	public static function isAnonymousObjectType(type:Type):Bool {
-		var followed = Context.follow(type);
-		return switch (followed) {
-			case TAnonymous(_):
-				true;
-			case _:
-				false;
+	/** Structural constraints and concrete anonymous values share one storage contract. */
+	public static function anonymousFields(type:Type):Null<Array<ClassField>> {
+		return switch (Context.follow(type)) {
+			case TAnonymous(ref): ref.get().fields;
+			case TInst(ref, _): switch (ref.get().kind) {
+					case KTypeParameter(constraints): anonymousConstraintFields(constraints);
+					case _: null;
+				}
+			case _: null;
 		};
+	}
+
+	/** Merge only fully structural constraint sets; nominal constraints keep their owner. */
+	static function anonymousConstraintFields(constraints:Array<Type>):Null<Array<ClassField>> {
+		if (constraints == null || constraints.length == 0)
+			return null;
+		var fields = new Array<ClassField>();
+		var names = new Map<String, Bool>();
+		for (constraint in constraints) {
+			var current = switch (Context.follow(constraint)) {
+				case TAnonymous(ref): ref.get().fields;
+				case _: null;
+			};
+			if (current == null)
+				return null;
+			for (field in current)
+				if (!names.exists(field.name)) {
+					names.set(field.name, true);
+					fields.push(field);
+				}
+		}
+		return fields;
+	}
+
+	public static function isAnonymousObjectType(type:Type):Bool {
+		return anonymousFields(type) != null;
 	}
 
 	public static function isArrayType(type:Type):Bool {
@@ -670,70 +698,15 @@ class GoTypeMapper {
 	}
 
 	/**
-		What
-		Maps a constrained Haxe type parameter to a Go type.
-
-		Why
-		Most type parameters still erase to `any` on `haxe.go`, but some staged-stdlib
-		surfaces depend on method-only constraints such as `K:{function hashCode():Int;}`.
-		Erasing those to `any` breaks direct method dispatch and forces incorrect
-		reflective fallbacks.
-
-		How
-		When the constraint set is a method-only anonymous structure, synthesize a local
-		Go interface with matching method signatures. Otherwise, keep the existing `any`
-		fallback.
+		What: Map structural type constraints to the shared anonymous boundary.
+		Why: A constraint admits both generated methods and map-backed callbacks;
+		a Go method interface cannot represent both without losing source semantics.
+		How: Recognize fully anonymous constraint sets and keep other erasure intact.
 	**/
 	static function typeParameterGoType(classType:ClassType, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):String {
 		return switch (classType.kind) {
-			case KTypeParameter(constraints):
-				var mapped = anonymousMethodConstraintGoType(constraints, classTypeName, enumTypeName);
-				mapped == null ? "any" : mapped;
-			case _:
-				"any";
-		};
-	}
-
-	static function anonymousMethodConstraintGoType(constraints:Array<Type>, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):Null<String> {
-		if (constraints == null || constraints.length == 0) {
-			return null;
-		}
-
-		var signatures = new Map<String, String>();
-		for (constraint in constraints) {
-			switch (Context.follow(constraint)) {
-				case TAnonymous(anonRef):
-					for (field in anonRef.get().fields) {
-						var signature = constraintMethodSignature(field, classTypeName, enumTypeName);
-						if (signature == null) {
-							return null;
-						}
-						signatures.set(GoNaming.normalizeIdent(field.name), signature);
-					}
-				case _:
-					return null;
-			}
-		}
-
-		var ordered = [for (signature in signatures) signature];
-		if (ordered.length == 0) {
-			return null;
-		}
-		ordered.sort(Reflect.compare);
-		return "interface{" + ordered.join("; ") + "}";
-	}
-
-	static function constraintMethodSignature(field:ClassField, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):Null<String> {
-		return switch (Context.follow(field.type)) {
-			case TFun(args, returnType):
-				var params = [
-					for (arg in args)
-						functionParameterStorageGoType(arg, classTypeName, enumTypeName)
-				].join(", ");
-				var returnSuffix = isVoidType(returnType) ? "" : " " + scalarGoType(returnType, classTypeName, enumTypeName);
-				GoNaming.normalizeIdent(field.name) + "(" + params + ")" + returnSuffix;
-			case _:
-				null;
+			case KTypeParameter(constraints): anonymousConstraintFields(constraints) == null ? "any" : "hxrt.Anonymous";
+			case _: "any";
 		};
 	}
 
