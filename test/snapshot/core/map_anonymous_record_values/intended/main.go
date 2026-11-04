@@ -4,71 +4,63 @@ import "snapshot/hxrt"
 
 func main() {
 	entries := New_haxe__ds__StringMap()
-	entries.__hx_this.set(hxrt.StringFromLiteral("first"), func() map[string]any {
+	entries.__hx_this.set(hxrt.StringFromLiteral("first"), func() hxrt.Anonymous {
 		hx_obj_1 := map[string]any{}
 		hx_obj_1["name"] = hxrt.StringFromLiteral("alpha")
 		hx_obj_1["count"] = 3
-		return hx_obj_1
+		return hxrt.AnonymousFromMap(hx_obj_1)
 	}())
 	_g := hxrt.NewArray()
-	entry := func(hx_erased_iterator_2 map[string]any) map[string]any {
-		hx_erased_iterator_has_next_3 := hx_erased_iterator_2["hasNext"].(func() bool)
-		hx_erased_iterator_next_4 := hx_erased_iterator_2["next"].(func() any)
+	entry := func(hx_erased_iterator_2 hxrt.Anonymous) hxrt.Anonymous {
+		hx_erased_iterator_has_next_3 := hxrt.AnonymousGet(hx_erased_iterator_2, "hasNext").(*hxrt.Function[func() bool])
+		hx_erased_iterator_next_4 := hxrt.AnonymousGet(hx_erased_iterator_2, "next").(*hxrt.Function[func() any])
 		hx_applied_iterator_5 := map[string]any{}
-		hx_applied_iterator_5["hasNext"] = func() bool {
-			return hx_erased_iterator_has_next_3()
-		}
-		hx_applied_iterator_5["next"] = func() map[string]any {
-			return func(hx_value_6 any) map[string]any {
-				if hx_value_6 == nil {
-					var hx_zero_7 map[string]any
-					return hx_zero_7
-				}
-				return hx_value_6.(map[string]any)
-			}(hx_erased_iterator_next_4())
-		}
-		return hx_applied_iterator_5
+		hx_applied_iterator_5["hasNext"] = hx_erased_iterator_has_next_3
+		hx_applied_iterator_5["next"] = hxrt.AdaptFunction(hx_erased_iterator_next_4, func() hxrt.Anonymous {
+			return hxrt.AnonymousFromValue(hxrt.FunctionCall(hx_erased_iterator_next_4)())
+		})
+		return hxrt.AnonymousFromMap(hx_applied_iterator_5)
 	}(entries.__hx_this.iterator())
-	for func(hx_obj_8 map[string]any) func() bool {
-		hx_field_9 := hx_obj_8["hasNext"]
-		if hx_field_9 == nil {
-			var hx_zero_10 func() bool
-			return hx_zero_10
-		}
-		return hx_field_9.(func() bool)
-	}(entry)() {
-		entry_1 := func(hx_obj_11 map[string]any) func() map[string]any {
-			hx_field_12 := hx_obj_11["next"]
-			if hx_field_12 == nil {
-				var hx_zero_13 func() map[string]any
-				return hx_zero_13
+	for func() bool {
+		var hx_callable_9 *hxrt.Function[func() bool] = func(hx_obj_6 hxrt.Anonymous) *hxrt.Function[func() bool] {
+			hx_field_7 := hxrt.AnonymousGet(hx_obj_6, "hasNext")
+			if hx_field_7 == nil {
+				var hx_zero_8 *hxrt.Function[func() bool]
+				return hx_zero_8
 			}
-			return hx_field_12.(func() map[string]any)
-		}(entry)()
+			return hx_field_7.(*hxrt.Function[func() bool])
+		}(entry)
+		return hxrt.FunctionCall(hx_callable_9)()
+	}() {
+		entry_1 := func() hxrt.Anonymous {
+			var hx_callable_13 *hxrt.Function[func() hxrt.Anonymous] = func(hx_obj_10 hxrt.Anonymous) *hxrt.Function[func() hxrt.Anonymous] {
+				hx_field_11 := hxrt.AnonymousGet(hx_obj_10, "next")
+				if hx_field_11 == nil {
+					var hx_zero_12 *hxrt.Function[func() hxrt.Anonymous]
+					return hx_zero_12
+				}
+				return hx_field_11.(*hxrt.Function[func() hxrt.Anonymous])
+			}(entry)
+			return hxrt.FunctionCall(hx_callable_13)()
+		}()
 		_g.Push(entry_1)
 	}
 	copied := _g
-	entry_2 := func(hx_value_15 any) map[string]any {
-		if hx_value_15 == nil {
-			var hx_zero_16 map[string]any
-			return hx_zero_16
+	entry_2 := hxrt.AnonymousFromValue(copied.Get(0))
+	var v any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), func(hx_obj_15 hxrt.Anonymous) *string {
+		hx_field_16 := hxrt.AnonymousGet(hx_obj_15, "name")
+		if hx_field_16 == nil {
+			var hx_zero_17 *string
+			return hx_zero_17
 		}
-		return hx_value_15.(map[string]any)
-	}(copied.Get(0))
-	var v any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), func(hx_obj_17 map[string]any) *string {
-		hx_field_18 := hx_obj_17["name"]
-		if hx_field_18 == nil {
-			var hx_zero_19 *string
-			return hx_zero_19
+		return hx_field_16.(*string)
+	}(entry_2)), hxrt.StringFromLiteral(":")), func(hx_obj_18 hxrt.Anonymous) int {
+		hx_field_19 := hxrt.AnonymousGet(hx_obj_18, "count")
+		if hx_field_19 == nil {
+			var hx_zero_20 int
+			return hx_zero_20
 		}
-		return hx_field_18.(*string)
-	}(entry_2)), hxrt.StringFromLiteral(":")), func(hx_obj_20 map[string]any) int {
-		hx_field_21 := hx_obj_20["count"]
-		if hx_field_21 == nil {
-			var hx_zero_22 int
-			return hx_zero_22
-		}
-		return hx_field_21.(int)
+		return hx_field_19.(int)
 	}(entry_2)))
 	hxrt.Println(v)
 }

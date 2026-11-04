@@ -67,7 +67,7 @@ class GoTypeMapper {
 			case TEnum(enumRef, _):
 				"*" + enumTypeName(enumRef.get());
 			case TAnonymous(_):
-				"map[string]any";
+				"hxrt.Anonymous";
 			case TAbstract(abstractRef, params):
 				var abstractType = abstractRef.get();
 				var mapped = abstractGoType(abstractType, params, classTypeName, enumTypeName);
@@ -386,7 +386,7 @@ class GoTypeMapper {
 			case TEnum(enumRef, _):
 				"*" + enumTypeName(enumRef.get());
 			case TAnonymous(_):
-				"map[string]any";
+				"hxrt.Anonymous";
 			case TAbstract(abstractRef, params):
 				var abstractType = abstractRef.get();
 				var mapped = abstractGoType(abstractType, params, classTypeName, enumTypeName);

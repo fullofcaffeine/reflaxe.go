@@ -19,6 +19,7 @@ package reflaxe.go.compiler;
 enum abstract GoHxrtFeatureId(String) to String {
 	var HxrtCore = "core";
 	var HxrtFunction = "function";
+	var HxrtAnonymous = "anonymous";
 	var HxrtArray = "array";
 	var HxrtArraySort = "array_sort";
 	var HxrtString = "string";
@@ -74,6 +75,7 @@ enum abstract GoHxrtFeatureId(String) to String {
 **/
 class GoHxrtFeatureAnalyzer {
 	public static inline final FEATURE_CORE:GoHxrtFeatureId = GoHxrtFeatureId.HxrtCore;
+	public static inline final FEATURE_ANONYMOUS:GoHxrtFeatureId = GoHxrtFeatureId.HxrtAnonymous;
 	public static inline final FEATURE_FUNCTION:GoHxrtFeatureId = GoHxrtFeatureId.HxrtFunction;
 	public static inline final FEATURE_ARRAY:GoHxrtFeatureId = GoHxrtFeatureId.HxrtArray;
 	public static inline final FEATURE_ARRAY_SORT:GoHxrtFeatureId = GoHxrtFeatureId.HxrtArraySort;
@@ -113,6 +115,7 @@ class GoHxrtFeatureAnalyzer {
 	static final FEATURE_ORDER:Array<String> = [
 		FEATURE_CORE,
 		FEATURE_FUNCTION,
+		FEATURE_ANONYMOUS,
 		FEATURE_ARRAY,
 		FEATURE_ARRAY_SORT,
 		FEATURE_STRING,
@@ -420,6 +423,8 @@ class GoHxrtFeatureAnalyzer {
 
 	static function featureDependencies(feature:String):Array<String> {
 		return switch (feature) {
+			case FEATURE_ANONYMOUS:
+				[FEATURE_STRING];
 			case FEATURE_FUNCTION:
 				[FEATURE_STRING, FEATURE_EXCEPTION];
 			case FEATURE_ARRAY:
@@ -493,6 +498,8 @@ class GoHxrtFeatureAnalyzer {
 		return switch (feature) {
 			case FEATURE_CORE:
 				["hxrt.go", "core.go"];
+			case FEATURE_ANONYMOUS:
+				["anonymous.go"];
 			case FEATURE_FUNCTION:
 				["function.go"];
 			case FEATURE_ARRAY:
