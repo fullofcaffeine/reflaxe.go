@@ -9,6 +9,10 @@ type haxe___Int64_____Int64 struct {
 	low       int
 }
 
+func (self *haxe___Int64_____Int64) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe___Int64_____Int64(high int, low int) *haxe___Int64_____Int64 {
 	self := &haxe___Int64_____Int64{}
 	self.__hx_this = self

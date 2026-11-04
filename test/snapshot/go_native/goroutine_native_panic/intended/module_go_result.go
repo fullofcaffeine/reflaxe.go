@@ -15,6 +15,10 @@ type go___Result struct {
 	errorValue *go___Error
 }
 
+func (self *go___Result) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_go___Result(value any, errorValue *go___Error) *go___Result {
 	self := &go___Result{}
 	self.__hx_this = self

@@ -1,0 +1,173 @@
+package main
+
+import "snapshot/hxrt"
+
+func haxe__ds__ArraySort_doMerge(a *hxrt.Array, cmp *hxrt.Function[func(any, any) int], from int, pivot int, to int, len1 int, len2 int) {
+	var first_cut int
+	var second_cut int
+	var len11 int
+	var len22 int
+	var new_mid int
+	if (len1 == 0) || (len2 == 0) {
+		return
+	}
+	if int((hxrt.Int32Wrap(len1) + hxrt.Int32Wrap(len2))) == 2 {
+		if func() int {
+			var hx_callable_1 *hxrt.Function[func(any, any) int] = cmp
+			var hx_argument_2 any = a.Get(pivot)
+			var hx_argument_3 any = a.Get(from)
+			return hxrt.FunctionCall(hx_callable_1)(hx_argument_2, hx_argument_3)
+		}() < 0 {
+			haxe__ds__ArraySort_swap(a, pivot, from)
+		}
+		return
+	}
+	if len1 > len2 {
+		len11 = int((hxrt.Int32Wrap(len1) >> uint(1)))
+		first_cut = int((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(len11)))
+		second_cut = haxe__ds__ArraySort_lower(a, cmp, pivot, to, first_cut)
+		len22 = int((hxrt.Int32Wrap(second_cut) - hxrt.Int32Wrap(pivot)))
+	} else {
+		len22 = int((hxrt.Int32Wrap(len2) >> uint(1)))
+		second_cut = int((hxrt.Int32Wrap(pivot) + hxrt.Int32Wrap(len22)))
+		first_cut = haxe__ds__ArraySort_upper(a, cmp, from, pivot, second_cut)
+		len11 = int((hxrt.Int32Wrap(first_cut) - hxrt.Int32Wrap(from)))
+	}
+	haxe__ds__ArraySort_rotate(a, cmp, first_cut, pivot, second_cut)
+	new_mid = int((hxrt.Int32Wrap(first_cut) + hxrt.Int32Wrap(len22)))
+	haxe__ds__ArraySort_doMerge(a, cmp, from, first_cut, new_mid, len11, len22)
+	haxe__ds__ArraySort_doMerge(a, cmp, new_mid, second_cut, to, int((hxrt.Int32Wrap(len1) - hxrt.Int32Wrap(len11))), int((hxrt.Int32Wrap(len2) - hxrt.Int32Wrap(len22))))
+}
+
+func haxe__ds__ArraySort_gcd(m int, n int) int {
+	for n != 0 {
+		t := int((hxrt.Int32Wrap(m) % hxrt.Int32Wrap(n)))
+		m = n
+		n = t
+	}
+	return m
+}
+
+func haxe__ds__ArraySort_lower(a *hxrt.Array, cmp *hxrt.Function[func(any, any) int], from int, to int, val int) int {
+	len := int((hxrt.Int32Wrap(to) - hxrt.Int32Wrap(from)))
+	var half int
+	var mid int
+	for len > 0 {
+		half = int((hxrt.Int32Wrap(len) >> uint(1)))
+		mid = int((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(half)))
+		if func() int {
+			var hx_callable_4 *hxrt.Function[func(any, any) int] = cmp
+			var hx_argument_5 any = a.Get(mid)
+			var hx_argument_6 any = a.Get(val)
+			return hxrt.FunctionCall(hx_callable_4)(hx_argument_5, hx_argument_6)
+		}() < 0 {
+			from = int((hxrt.Int32Wrap(mid) + hxrt.Int32Wrap(1)))
+			len = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(len) - hxrt.Int32Wrap(half)))) - hxrt.Int32Wrap(1)))
+		} else {
+			len = half
+		}
+	}
+	return from
+}
+
+func haxe__ds__ArraySort_rec(a *hxrt.Array, cmp *hxrt.Function[func(any, any) int], from int, to int) {
+	middle := int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(to)))) >> uint(1)))
+	if int((hxrt.Int32Wrap(to) - hxrt.Int32Wrap(from))) < 12 {
+		if to <= from {
+			return
+		}
+		_g := int((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(1)))
+		_g1 := to
+		for _g < _g1 {
+			hx_post_7 := _g
+			_g = int(int32((_g + 1)))
+			i := hx_post_7
+			j := i
+			for j > from {
+				if func() int {
+					var hx_callable_8 *hxrt.Function[func(any, any) int] = cmp
+					var hx_argument_9 any = a.Get(j)
+					var hx_argument_10 any = a.Get(int((hxrt.Int32Wrap(j) - hxrt.Int32Wrap(1))))
+					return hxrt.FunctionCall(hx_callable_8)(hx_argument_9, hx_argument_10)
+				}() < 0 {
+					haxe__ds__ArraySort_swap(a, int((hxrt.Int32Wrap(j) - hxrt.Int32Wrap(1))), j)
+				} else {
+					break
+				}
+				j = int(int32((j - 1)))
+			}
+		}
+		return
+	}
+	haxe__ds__ArraySort_rec(a, cmp, from, middle)
+	haxe__ds__ArraySort_rec(a, cmp, middle, to)
+	haxe__ds__ArraySort_doMerge(a, cmp, from, middle, to, int((hxrt.Int32Wrap(middle) - hxrt.Int32Wrap(from))), int((hxrt.Int32Wrap(to) - hxrt.Int32Wrap(middle))))
+}
+
+func haxe__ds__ArraySort_rotate(a *hxrt.Array, cmp *hxrt.Function[func(any, any) int], from int, mid int, to int) {
+	var n int
+	if (from == mid) || (mid == to) {
+		return
+	}
+	n = haxe__ds__ArraySort_gcd(int((hxrt.Int32Wrap(to) - hxrt.Int32Wrap(from))), int((hxrt.Int32Wrap(mid) - hxrt.Int32Wrap(from))))
+	for func() int {
+		hx_post_11 := n
+		n = int(int32((n - 1)))
+		return hx_post_11
+	}() != 0 {
+		var val any = a.Get(int((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(n))))
+		shift := int((hxrt.Int32Wrap(mid) - hxrt.Int32Wrap(from)))
+		p1 := int((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(n)))
+		p2 := int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(n)))) + hxrt.Int32Wrap(shift)))
+		for p2 != int((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(n))) {
+			hx_array_target_12 := a
+			hx_array_index_13 := p1
+			hx_array_target_12.Set(hx_array_index_13, a.Get(p2))
+			p1 = p2
+			if int((hxrt.Int32Wrap(to) - hxrt.Int32Wrap(p2))) > shift {
+				p2 = int((hxrt.Int32Wrap(p2) + hxrt.Int32Wrap(shift)))
+			} else {
+				p2 = int((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(int((hxrt.Int32Wrap(shift) - hxrt.Int32Wrap(int((hxrt.Int32Wrap(to) - hxrt.Int32Wrap(p2)))))))))
+			}
+		}
+		hx_array_target_14 := a
+		hx_array_index_15 := p1
+		hx_array_target_14.Set(hx_array_index_15, val)
+	}
+}
+
+func haxe__ds__ArraySort_sort(a *hxrt.Array, cmp *hxrt.Function[func(any, any) int]) {
+	haxe__ds__ArraySort_rec(a, cmp, 0, a.Len())
+}
+
+func haxe__ds__ArraySort_swap(a *hxrt.Array, i int, j int) {
+	var tmp any = a.Get(i)
+	hx_array_target_16 := a
+	hx_array_index_17 := i
+	hx_array_target_16.Set(hx_array_index_17, a.Get(j))
+	hx_array_target_18 := a
+	hx_array_index_19 := j
+	hx_array_target_18.Set(hx_array_index_19, tmp)
+}
+
+func haxe__ds__ArraySort_upper(a *hxrt.Array, cmp *hxrt.Function[func(any, any) int], from int, to int, val int) int {
+	len := int((hxrt.Int32Wrap(to) - hxrt.Int32Wrap(from)))
+	var half int
+	var mid int
+	for len > 0 {
+		half = int((hxrt.Int32Wrap(len) >> uint(1)))
+		mid = int((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(half)))
+		if func() int {
+			var hx_callable_20 *hxrt.Function[func(any, any) int] = cmp
+			var hx_argument_21 any = a.Get(val)
+			var hx_argument_22 any = a.Get(mid)
+			return hxrt.FunctionCall(hx_callable_20)(hx_argument_21, hx_argument_22)
+		}() < 0 {
+			len = half
+		} else {
+			from = int((hxrt.Int32Wrap(mid) + hxrt.Int32Wrap(1)))
+			len = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(len) - hxrt.Int32Wrap(half)))) - hxrt.Int32Wrap(1)))
+		}
+	}
+	return from
+}

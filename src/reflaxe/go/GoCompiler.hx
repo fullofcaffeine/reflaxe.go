@@ -7256,7 +7256,7 @@ class GoCompiler {
 
 		if (isStaticCall(callee, "Go", ["go"], "__goSpawn")) {
 			requireStdlibShimGroup("go_concurrency");
-			var fn = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoFuncLiteral([], [], []);
+			var fn = args.length > 0 ? nativeFunctionValue(lowerExpr(args[0]).expr) : GoExpr.GoFuncLiteral([], [], []);
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoIdent("go__concurrency_spawn"), [fn]),
 				isStringLike: false
@@ -7691,21 +7691,35 @@ class GoCompiler {
 		];
 	}
 
+	/**
+		What: Adapts one Haxe comparator to shared collection element storage.
+		Why: The sorting algorithm must reuse the supplied callback, not reevaluate
+		its factory for every comparison or discard its identity and null state.
+		How: Capture once and retain the carrier identity while narrowing each element
+		at invocation. Both staged sorting and the Haxe array runtime consume carriers.
+	**/
 	function lowerTypedComparatorToAny(comparatorExpr:GoExpr, sourceType:Type):GoExpr {
 		var targetType = arrayElementType(sourceType);
 		if (targetType == null) {
 			targetType = sourceType;
 		}
-		var targetGoType = scalarGoType(targetType);
+		var targetGoType = GoTypeMapper.functionResultStorageGoType(targetType, classTypeNameForMappedType, enumTypeName);
 		if (targetGoType == "any") {
 			return comparatorExpr;
 		}
 		var leftName = freshTempName("hx_cmp_left");
 		var rightName = freshTempName("hx_cmp_right");
+		var sourceName = freshTempName("hx_comparator");
+		var source = GoExpr.GoIdent(sourceName);
 		var leftExpr = lowerNullableAwareTypeAssertExpr(GoExpr.GoIdent(leftName), targetType);
 		var rightExpr = lowerNullableAwareTypeAssertExpr(GoExpr.GoIdent(rightName), targetType);
-		return GoExpr.GoFuncLiteral([{name: leftName, typeName: "any"}, {name: rightName, typeName: "any"}], ["int"],
-			[GoStmt.GoReturn(GoExpr.GoCall(comparatorExpr, [leftExpr, rightExpr]))]);
+		var wrapper = GoExpr.GoFuncLiteral([{name: leftName, typeName: "any"}, {name: rightName, typeName: "any"}], ["int"], [
+			GoStmt.GoReturn(GoExpr.GoCall(functionValueCallable(source), [leftExpr, rightExpr]))
+		]);
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([
+			{name: sourceName, typeName: "*hxrt.Function[func(" + targetGoType + ", " + targetGoType + ") int]"}
+		], ["*hxrt.Function[func(any, any) int]"],
+			[GoStmt.GoReturn(adaptFunctionValue(source, wrapper))]), [comparatorExpr]);
 	}
 
 	function lowerTypedGoChanCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {

@@ -13,6 +13,10 @@ type sys__thread__Thread struct {
 	events    *sys__thread__EventLoop
 }
 
+func (self *sys__thread__Thread) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_sys__thread__Thread(id int) *sys__thread__Thread {
 	self := &sys__thread__Thread{}
 	self.__hx_this = self
@@ -31,12 +35,12 @@ func (self *sys__thread__Thread) sendMessage(msg any) {
 	hxrt.ThreadSendMessage(self.__id, msg)
 }
 
-func sys__thread__Thread_create(job func()) *sys__thread__Thread {
-	return New_sys__thread__Thread(hxrt.ThreadSpawn(job))
+func sys__thread__Thread_create(job *hxrt.Function[func()]) *sys__thread__Thread {
+	return New_sys__thread__Thread(hxrt.ThreadSpawn(hxrt.FunctionNative(job)))
 }
 
-func sys__thread__Thread_createWithEventLoop(job func()) *sys__thread__Thread {
-	return New_sys__thread__Thread(hxrt.ThreadSpawnWithEventLoop(job))
+func sys__thread__Thread_createWithEventLoop(job *hxrt.Function[func()]) *sys__thread__Thread {
+	return New_sys__thread__Thread(hxrt.ThreadSpawnWithEventLoop(hxrt.FunctionNative(job)))
 }
 
 func sys__thread__Thread_current() *sys__thread__Thread {
@@ -54,6 +58,6 @@ func sys__thread__Thread_readMessage(block bool) any {
 	return hxrt.ThreadReadMessage(block)
 }
 
-func sys__thread__Thread_runWithEventLoop(job func()) {
-	hxrt.ThreadRunWithEventLoop(job)
+func sys__thread__Thread_runWithEventLoop(job *hxrt.Function[func()]) {
+	hxrt.ThreadRunWithEventLoop(hxrt.FunctionNative(job))
 }

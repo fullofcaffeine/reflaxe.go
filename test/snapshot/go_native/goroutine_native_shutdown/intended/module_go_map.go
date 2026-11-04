@@ -13,6 +13,10 @@ type go___Map struct {
 	inner     *haxe__ds__StringMap
 }
 
+func (self *go___Map) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_go___Map() *go___Map {
 	self := &go___Map{}
 	self.__hx_this = self

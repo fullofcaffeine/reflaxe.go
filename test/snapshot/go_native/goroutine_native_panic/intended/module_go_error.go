@@ -9,6 +9,10 @@ type go___Error struct {
 	message   *string
 }
 
+func (self *go___Error) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_go___Error(message *string) *go___Error {
 	self := &go___Error{}
 	self.__hx_this = self

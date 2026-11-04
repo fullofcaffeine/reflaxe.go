@@ -10,6 +10,10 @@ type sys__thread__NoEventLoopException struct {
 	__hx_exception *hxrt.ExceptionValue
 }
 
+func (self *sys__thread__NoEventLoopException) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_sys__thread__NoEventLoopException(msg *string, previous *hxrt.ExceptionValue) *sys__thread__NoEventLoopException {
 	self := &sys__thread__NoEventLoopException{}
 	self.__hx_exception = hxrt.BindException(self, msg, previous, nil)
