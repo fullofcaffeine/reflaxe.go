@@ -75,7 +75,7 @@ func main() {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "Float":
 				return func(hx_value any) bool {
 					switch hx_value.(type) {
@@ -179,7 +179,7 @@ func main() {
 		default:
 			return false
 		}
-	}(value) {
+	}(hxrt.ObjectSource(hxrt.ObjectSource(value))) {
 		hxrt.Throw(hxrt.StringFromLiteral("constrained subclass leaked into common type lookup"))
 	}
 	var feature any = New_FeatureBase()
@@ -223,7 +223,7 @@ func main() {
 
 func hxrt__generated_method_field(obj any, key string) any {
 	var receiver any
-	switch value := obj.(type) {
+	switch value := hxrt.ObjectSource(obj).(type) {
 	case *FeatureBase:
 		if (value == nil) || (value.__hx_this == nil) {
 			return nil
@@ -246,7 +246,14 @@ func hxrt__generated_method_field__FeatureBase(value *FeatureBase, key string) a
 	}
 	switch key {
 	case "label":
-		return value.label
+		return func() *hxrt.Function[func() *string] {
+			hx_receiver_2 := value
+			return hxrt.BoundFunction(func() *string {
+				return hx_receiver_2.__hx_this.label()
+			}, func() any {
+				return hx_receiver_2.__hx_this
+			}, "label")
+		}()
 	}
 	return nil
 }
@@ -531,6 +538,7 @@ func hxrt_typeCreateEnumInstance(enumName string, constructorName string, constr
 }
 
 func Type_getClass(o any) any {
+	o = hxrt.ObjectSource(o)
 	if hxrt.AnyEqualsNull(o) {
 		return nil
 	}
@@ -831,6 +839,10 @@ func Type_allEnums(e any) *hxrt.Array {
 }
 
 func Type_typeof(v any) *ValueType {
+	v = hxrt.ObjectSource(v)
+	if hxrt.ReflectIsFunction(v) {
+		return ValueType_TFunction
+	}
 	if hxrt.AnyEqualsNull(v) {
 		return ValueType_TNull
 	}
@@ -861,8 +873,6 @@ func Type_typeof(v any) *ValueType {
 		return ValueType_TNull
 	}
 	switch ref.Kind() {
-	case reflect.Func:
-		return ValueType_TFunction
 	case reflect.Slice, reflect.Array:
 		return ValueType_TClass(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Array")})
 	case reflect.Map, reflect.Struct, reflect.Interface, reflect.Pointer:
@@ -891,7 +901,7 @@ func hxrt_typeClassMetadataField(value any, key string) (any, bool) {
 func reflaxe__go___internal__CompilerReflect_generatedField(object any, field *string) any {
 	key := *hxrt.StdString(field)
 	var receiver any
-	switch value := object.(type) {
+	switch value := hxrt.ObjectSource(object).(type) {
 	case *FeatureBase:
 		if (value == nil) || (value.__hx_this == nil) {
 			return nil
@@ -911,7 +921,7 @@ func reflaxe__go___internal__CompilerReflect_generatedField(object any, field *s
 func reflaxe__go___internal__CompilerReflect_hasGeneratedField(object any, field *string) bool {
 	key := *hxrt.StdString(field)
 	var receiver any
-	switch value := object.(type) {
+	switch value := hxrt.ObjectSource(object).(type) {
 	case *FeatureBase:
 		if (value == nil) || (value.__hx_this == nil) {
 			return false
@@ -931,7 +941,7 @@ func reflaxe__go___internal__CompilerReflect_hasGeneratedField(object any, field
 func reflaxe__go___internal__CompilerReflect_setGeneratedField(object any, field *string, incoming any) bool {
 	key := *hxrt.StdString(field)
 	var receiver any
-	switch value := object.(type) {
+	switch value := hxrt.ObjectSource(object).(type) {
 	case *FeatureBase:
 		if (value == nil) || (value.__hx_this == nil) {
 			return false
@@ -950,7 +960,7 @@ func reflaxe__go___internal__CompilerReflect_setGeneratedField(object any, field
 
 func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.Array {
 	var receiver any
-	switch value := object.(type) {
+	switch value := hxrt.ObjectSource(object).(type) {
 	case *FeatureBase:
 		if (value == nil) || (value.__hx_this == nil) {
 			return nil
@@ -973,7 +983,7 @@ func hxrt__generated_field_lookup__FeatureBase(value *FeatureBase, key string) a
 	}
 	switch key {
 	case "name":
-		return value.name
+		return hxrt.ReadStoredField(value.name)
 	}
 	return nil
 }
@@ -1033,4 +1043,26 @@ func reflaxe__go___internal__CompilerReflect_generatedMethod(object any, field *
 
 func reflaxe__go___internal__CompilerReflect_isEnumValue(value any) bool {
 	return false
+}
+
+func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []any) any {
+	origin := hxrt.FunctionOrigin(value)
+	if origin == nil {
+		hxrt.Throw(hxrt.StringFromLiteral("Cannot call null"))
+		return nil
+	}
+	switch source := origin.(type) {
+	case *hxrt.Function[func(...any) any]:
+		var argument_0 []any = nil
+		for index, argument := range arguments {
+			if index >= 0 {
+				argument_0 = append(argument_0, argument)
+			}
+		}
+		return hxrt.FunctionCall(source)(argument_0...)
+	case *hxrt.Function[func() *string]:
+		return hxrt.FunctionCall(source)()
+	default:
+		return hxrt.ReflectCallMethod(value, arguments)
+	}
 }

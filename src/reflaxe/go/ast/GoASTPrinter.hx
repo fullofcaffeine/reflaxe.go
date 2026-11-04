@@ -341,6 +341,10 @@ class GoASTPrinter {
 			case GoContinue:
 				"continue";
 			case GoReturn(expr): expr == null ? "return" : "return " + printExpr(expr);
+			case GoReturnValues(values):
+				if (values.length < 2)
+					throw new haxe.Exception("multiple-value return requires at least two expressions");
+				"return " + [for (value in values) printExpr(value)].join(", ");
 		}
 	}
 

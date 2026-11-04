@@ -1,60 +1,133 @@
 package reflaxe.go.compiler;
 
 /**
-	A validated Go file-selection expression.
-
-	Why: Go build constraints have target syntax that Haxe cannot express with an
-	ordinary declaration. Free-form header text would bypass the typed output
-	boundary and could inject arbitrary source.
-	What: This value accepts only identifiers, `!`, `&&`, `||`, and balanced
-	parentheses in Go's build-constraint grammar.
-	How: A small recursive-descent validator consumes a closed token stream, then
-	renders those validated tokens with deterministic spacing.
+	Validated, factored selection conditions for generated Go files.
+	Authored tags cross the parser once; generated helpers compose the same typed
+	conditions without enumerating build configurations. Always has no header and
+	Never is omitted by the file owner; neither is rendered as a Go tag literal.
 **/
 class GoBuildConstraint {
-	final tokens:Array<GoBuildConstraintToken>;
+	final selection:GoBuildSelection;
 
-	function new(tokens:Array<GoBuildConstraintToken>) {
-		this.tokens = tokens;
+	function new(selection:GoBuildSelection) {
+		this.selection = selection;
 	}
 
 	public static function parse(source:String):GoBuildConstraint {
-		final parser = new GoBuildConstraintParser(source);
-		return new GoBuildConstraint(parser.parse());
+		return new GoBuildConstraintParser(source).parse();
 	}
 
-	public function render():String {
-		final output = new StringBuf();
-		var previous:Null<GoBuildConstraintToken> = null;
-		for (token in tokens) {
-			switch (token) {
-				case And:
-					output.add(" && ");
-				case Or:
-					output.add(" || ");
-				case RightParen:
-					output.add(")");
-				case LeftParen:
-					if (previous != null)
-						switch (previous) {
-							case Identifier(_) | RightParen: output.add(" ");
-							case _:
-						}
-					output.add("(");
-				case Not:
-					output.add("!");
-				case Identifier(value):
-					if (previous != null)
-						switch (previous) {
-							case Identifier(_) | RightParen: output.add(" ");
-							case _:
-						}
-					output.add(value);
-			}
-			previous = token;
-		}
-		return output.toString();
+	public static function always():GoBuildConstraint
+		return new GoBuildConstraint(Always);
+
+	public static function never():GoBuildConstraint
+		return new GoBuildConstraint(Never);
+
+	/** A generated tag is subject to the same closed grammar as authored input. */
+	public static function tag(name:String):GoBuildConstraint {
+		if (name == null || !~/^[A-Za-z0-9_.]+$/.match(name))
+			throw new haxe.Exception("the value is not a valid Go build constraint");
+		return new GoBuildConstraint(Tag(name));
 	}
+
+	public function isAlways():Bool
+		return switch (selection) {
+			case Always: true;
+			case _: false;
+		};
+
+	public function isNever():Bool
+		return switch (selection) {
+			case Never: true;
+			case _: false;
+		};
+
+	public function negate():GoBuildConstraint {
+		return switch (selection) {
+			case Always: never();
+			case Never: always();
+			case Negation(value): value;
+			case _: new GoBuildConstraint(Negation(this));
+		};
+	}
+
+	public function and(other:GoBuildConstraint):GoBuildConstraint
+		return combine(other, true);
+
+	public function or(other:GoBuildConstraint):GoBuildConstraint
+		return combine(other, false);
+
+	/** Canonical fact keys include constants, which cannot be Go header expressions. */
+	public function key():String {
+		return switch (selection) {
+			case Always: "@always";
+			case Never: "@never";
+			case _: render();
+		};
+	}
+
+	function combine(other:GoBuildConstraint, conjunction:Bool):GoBuildConstraint {
+		var terms = new Array<GoBuildConstraint>();
+		for (value in [this, other])
+			switch (value.selection) {
+				case Conjunction(children) if (conjunction):
+					terms = terms.concat(children);
+				case Disjunction(children) if (!conjunction):
+					terms = terms.concat(children);
+				case _:
+					terms.push(value);
+			}
+		var unique = new Map<String, GoBuildConstraint>();
+		for (term in terms) {
+			if ((conjunction && term.isNever()) || (!conjunction && term.isAlways()))
+				return conjunction ? never() : always();
+			if ((conjunction && term.isAlways()) || (!conjunction && term.isNever()))
+				continue;
+			if (unique.exists(term.negate().key()))
+				return conjunction ? never() : always();
+			unique.set(term.key(), term);
+		}
+		var keys = [for (key in unique.keys()) key];
+		keys.sort((left, right) -> left < right ? -1 : left > right ? 1 : 0);
+		var values = [for (key in keys) unique.get(key)];
+		return switch (values.length) {
+			case 0: conjunction ? always() : never();
+			case 1: values[0];
+			case _: new GoBuildConstraint(conjunction ? Conjunction(values) : Disjunction(values));
+		};
+	}
+
+	/** Render a nonconstant condition with precedence-preserving parentheses. */
+	public function render():String
+		return renderAt(0);
+
+	function renderAt(parentPrecedence:Int):String {
+		var precedence = 4;
+		var text = switch (selection) {
+			case Always | Never:
+				throw new haxe.Exception("constant build selection must be handled by the file owner");
+			case Tag(name): name;
+			case Negation(value):
+				precedence = 3;
+				"!" + value.renderAt(precedence);
+			case Conjunction(values):
+				precedence = 2;
+				[for (value in values) value.renderAt(precedence)].join(" && ");
+			case Disjunction(values):
+				precedence = 1;
+				[for (value in values) value.renderAt(precedence)].join(" || ");
+		};
+		return precedence < parentPrecedence ? "(" + text + ")" : text;
+	}
+}
+
+private enum GoBuildSelection {
+	Always;
+	Never;
+	Tag(name:String);
+	Negation(value:GoBuildConstraint);
+	Conjunction(values:Array<GoBuildConstraint>);
+	Disjunction(values:Array<GoBuildConstraint>);
 }
 
 private enum GoBuildConstraintToken {
@@ -75,14 +148,14 @@ private class GoBuildConstraintParser {
 		this.source = source == null ? "" : source;
 	}
 
-	public function parse():Array<GoBuildConstraintToken> {
+	public function parse():GoBuildConstraint {
 		tokenize();
 		if (tokens.length == 0)
 			invalid();
-		parseOr();
+		var value = parseOr();
 		if (index != tokens.length)
 			invalid();
-		return tokens.copy();
+		return value;
 	}
 
 	function tokenize():Void {
@@ -122,37 +195,39 @@ private class GoBuildConstraintParser {
 		}
 	}
 
-	function parseOr():Void {
-		parseAnd();
+	function parseOr():GoBuildConstraint {
+		var value = parseAnd();
 		while (accept(Or))
-			parseAnd();
+			value = value.or(parseAnd());
+		return value;
 	}
 
-	function parseAnd():Void {
-		parseUnary();
+	function parseAnd():GoBuildConstraint {
+		var value = parseUnary();
 		while (accept(And))
-			parseUnary();
+			value = value.and(parseUnary());
+		return value;
 	}
 
-	function parseUnary():Void {
-		if (accept(Not)) {
-			parseUnary();
-			return;
-		}
+	function parseUnary():GoBuildConstraint {
+		if (accept(Not))
+			return parseUnary().negate();
 		if (accept(LeftParen)) {
-			parseOr();
+			var value = parseOr();
 			if (!accept(RightParen))
 				invalid();
-			return;
+			return value;
 		}
 		if (index >= tokens.length)
 			invalid();
-		switch (tokens[index]) {
-			case Identifier(_):
+		return switch (tokens[index]) {
+			case Identifier(name):
 				index++;
+				GoBuildConstraint.tag(name);
 			case _:
 				invalid();
-		}
+				GoBuildConstraint.never();
+		};
 	}
 
 	function accept(expected:GoBuildConstraintToken):Bool {

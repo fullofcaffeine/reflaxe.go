@@ -292,6 +292,9 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 				if (expr != null) {
 					collectExprReads(expr);
 				}
+			case GoStmt.GoReturnValues(values):
+				for (value in values)
+					collectExprReads(value);
 		}
 	}
 
@@ -642,6 +645,8 @@ class ElideBlankIdentifierGuardsPass implements IGoASTPass {
 				stmt;
 			case GoStmt.GoReturn(expr):
 				GoStmt.GoReturn(expr == null ? null : rewriteExpr(expr));
+			case GoStmt.GoReturnValues(values):
+				GoStmt.GoReturnValues([for (value in values) rewriteExpr(value)]);
 		};
 	}
 

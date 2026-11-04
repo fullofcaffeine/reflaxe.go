@@ -18,6 +18,12 @@ typedef GoFunctionSignature = {
 	final results:Array<GoType>;
 }
 
+/** A physical named type dependency; package aliases are resolved by import ownership. */
+typedef GoNamedTypeDependency = {
+	final packageName:Null<GoPackageName>;
+	final name:String;
+}
+
 private enum GoTypeKind {
 	Builtin(value:GoBuiltinType);
 	Named(packageName:Null<GoPackageName>, name:String);
@@ -361,6 +367,47 @@ abstract GoType(GoTypeKind) {
 				return false;
 		}
 		return true;
+	}
+
+	/** Collect every physical named dependency, including nested signatures and generics. */
+	public function namedDependencies():Array<GoNamedTypeDependency> {
+		var found = new Map<String, GoNamedTypeDependency>();
+		function visit(type:GoType):Void {
+			switch (type.kind()) {
+				case Builtin(_):
+				case Named(packageName, name):
+					var key = (packageName == null ? "" : packageName.value() + ".") + name;
+					found.set(key, {packageName: packageName, name: name});
+				case Pointer(element) | Slice(element) | ArrayType(_, element) | Channel(_, element) | Variadic(element):
+					visit(element);
+				case MapType(key, value):
+					visit(key);
+					visit(value);
+				case FunctionType(params, result):
+					for (param in params)
+						visit(param);
+					if (result != null)
+						visit(result);
+				case InterfaceType(methods):
+					for (method in methods) {
+						for (param in method.params)
+							visit(param);
+						for (result in method.results)
+							visit(result);
+					}
+				case GenericType(base, arguments):
+					visit(base);
+					for (argument in arguments)
+						visit(argument);
+				case MultiResult(results):
+					for (result in results)
+						visit(result);
+			}
+		}
+		visit(new GoType(this));
+		var keys = [for (key in found.keys()) key];
+		keys.sort((left, right) -> left < right ? -1 : left > right ? 1 : 0);
+		return [for (key in keys) found.get(key)];
 	}
 
 	/** Traverse structural type nodes to discover use of an imported package. */

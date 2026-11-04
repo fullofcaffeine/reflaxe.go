@@ -606,6 +606,9 @@ class GoCompiler {
 				continue;
 			}
 
+			var moduleConstraint = moduleBuildConstraints.get(moduleName);
+			if (moduleConstraint != null && moduleConstraint.isNever())
+				continue;
 			var fileDecls = moduleFileDecls.copy();
 			var candidateImports = moduleImports.copy();
 			var relativePath = moduleFilePath(moduleName, usedFileNames);
@@ -767,8 +770,8 @@ class GoCompiler {
 		final source = GoASTPrinter.printFile(filtered);
 		return {
 			relativePath: relativePath,
-			contents: buildConstraint == null ? source : '//go:build ${buildConstraint.render()}\n\n' + source
-		};
+			contents: buildConstraint == null
+			|| buildConstraint.isAlways() ? source : '//go:build ${buildConstraint.render()}\n\n' + source};
 	}
 
 	function collectModuleBuildConstraints(classes:Array<ClassType>, enums:Array<EnumType>):Map<String, GoBuildConstraint> {
@@ -802,7 +805,7 @@ class GoCompiler {
 			Context.fatalError("@:goBuildConstraint value is not a valid Go build constraint", entry.pos);
 			return;
 		};
-		final canonical = constraint.render();
+		final canonical = constraint.key();
 		if (moduleName == mainIdentity.moduleName)
 			Context.fatalError("@:goBuildConstraint cannot constrain the selected main module", entry.pos);
 		if (rendered.exists(moduleName) && rendered.get(moduleName) != canonical)
@@ -822,10 +825,10 @@ class GoCompiler {
 		clearBoolMap(buildConstrainedClassNames);
 		clearBoolMap(buildConstrainedEnumNames);
 		for (classType in projectClasses)
-			if (moduleConstraints.exists(classType.module))
+			if (moduleConstraints.exists(classType.module) && !moduleConstraints.get(classType.module).isAlways())
 				buildConstrainedClassNames.set(fullClassName(classType), true);
 		for (enumType in projectEnums)
-			if (moduleConstraints.exists(enumType.module))
+			if (moduleConstraints.exists(enumType.module) && !moduleConstraints.get(enumType.module).isAlways())
 				buildConstrainedEnumNames.set(fullEnumName(enumType), true);
 	}
 
@@ -1192,6 +1195,14 @@ class GoCompiler {
 			case GoBreak(_), GoContinue:
 				false;
 			case GoReturn(expr): expr != null && exprUsesImportAlias(expr, alias);
+			case GoReturnValues(values):
+				var used = false;
+				for (value in values)
+					if (exprUsesImportAlias(value, alias)) {
+						used = true;
+						break;
+					}
+				used;
 		};
 	}
 
