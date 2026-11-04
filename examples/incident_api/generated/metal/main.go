@@ -5345,3 +5345,291 @@ func hx_recover_class_11(value any) *sys__net__Host {
 		return value.(*sys__net__Host)
 	}
 }
+
+func hx_is_nominal_0(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *app__core__IncidentRequestException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_1(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__io__Eof:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_2(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_3(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *app__core__IncidentRequestException:
+		return (source != nil)
+	case *haxe__exceptions__NotImplementedException:
+		return (source != nil)
+	case *haxe__ValueException:
+		return (source != nil)
+	case *haxe__Exception:
+		return (source != nil)
+	case *haxe__exceptions__PosException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_4(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *Date:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_5(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *app__core__Incident:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_6(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *app__core__IncidentApi:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_7(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *app__core__IncidentConfig:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_8(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *app__core__IncidentStore:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_9(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *app__http__HttpRequest:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_10(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *app__http__HttpResponse:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_11(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *app__http__TinyHttpServer:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_12(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe___Int64_____Int64:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_13(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__exceptions__NotImplementedException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_14(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__exceptions__NotImplementedException:
+		return (source != nil)
+	case *haxe__exceptions__PosException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_15(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__io__Bytes:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_16(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__io__BytesBuffer:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_17(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__net__SocketInput:
+		return (source != nil)
+	case *sys__io__FileInput:
+		return (source != nil)
+	case *haxe__io__Input:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_18(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__net__SocketOutput:
+		return (source != nil)
+	case *sys__io__FileOutput:
+		return (source != nil)
+	case *haxe__io__Output:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_19(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__iterators__StringIterator:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_20(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__iterators__StringKeyValueIterator:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_21(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__io__FileInput:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_22(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__io__FileOutput:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_23(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__net__Host:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_24(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__net__Socket:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_25(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__net__SocketInput:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_26(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__net__SocketOutput:
+		return (source != nil)
+	default:
+		return false
+	}
+}
