@@ -57,23 +57,7 @@ func (self *sys__thread__FixedThreadPoolWorker) loop() {
 	}, func(hx_caught_3 any) {
 		hx_exception_5 := haxe__Exception_caught(hx_caught_3)
 		hx_payload_6 := haxe__Exception_catchValue(hx_caught_3)
-		if func(hx_value any) bool {
-			switch hx_carrier := hx_value.(type) {
-			case *haxe__Exception:
-				if hx_carrier == nil {
-					return false
-				}
-				_, hx_ok := hx_carrier.__hx_this.(*sys__thread__FixedThreadPoolShutdownException)
-				return hx_ok
-			case *sys__thread__FixedThreadPoolShutdownException:
-				if hx_carrier == nil {
-					return false
-				}
-				return true
-			default:
-				return false
-			}
-		}(hxrt.ObjectSource(hxrt.ObjectSource(hx_exception_5))) {
+		if hx_is_nominal_2(hx_exception_5) {
 			var hx_tmp *sys__thread__FixedThreadPoolShutdownException = hx_recover_class_2(hx_exception_5)
 			_ = hx_tmp
 			hx_try_return_2 = true

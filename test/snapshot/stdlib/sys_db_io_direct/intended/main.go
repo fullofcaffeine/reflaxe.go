@@ -241,11 +241,11 @@ func hx_recover_class_0(value any) *haxe__Exception {
 	switch source := value.(type) {
 	case *haxe__exceptions__NotImplementedException:
 		return source.haxe__exceptions__PosException.haxe__Exception
+	case *haxe__ValueException:
+		return source.haxe__Exception
 	case *haxe__Exception:
 		return source
 	case *haxe__exceptions__PosException:
-		return source.haxe__Exception
-	case *haxe__ValueException:
 		return source.haxe__Exception
 	default:
 		return value.(*haxe__Exception)
@@ -301,5 +301,41 @@ func hx_recover_class_4(value any) *haxe__ds___List__GoListIterator {
 		return source
 	default:
 		return value.(*haxe__ds___List__GoListIterator)
+	}
+}
+
+func hx_is_nominal_0(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__io__Eof:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_1(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_2(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__exceptions__NotImplementedException:
+		return (source != nil)
+	case *haxe__ValueException:
+		return (source != nil)
+	case *haxe__Exception:
+		return (source != nil)
+	case *haxe__exceptions__PosException:
+		return (source != nil)
+	default:
+		return false
 	}
 }

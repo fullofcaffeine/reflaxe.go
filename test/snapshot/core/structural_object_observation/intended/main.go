@@ -157,17 +157,7 @@ func main() {
 	hxrt.Println(v_3)
 	var v_4 any = any(hxrt.StringEqualStringPtr(Type_getClassName(Type_getClass(view)), Type_getClassName(Type_getClass(source))))
 	hxrt.Println(v_4)
-	var v_5 any = any(func(hx_value any) bool {
-		switch hx_carrier := hx_value.(type) {
-		case *Cursor:
-			if hx_carrier == nil {
-				return false
-			}
-			return true
-		default:
-			return false
-		}
-	}(hxrt.ObjectSource(hxrt.ObjectSource(view))))
+	var v_5 any = any(hx_is_nominal_0(view))
 	hxrt.Println(v_5)
 	keys := New_haxe__ds__ObjectMap()
 	keys.__hx_this.set(source, 11)
@@ -3332,5 +3322,37 @@ func hx_recover_class_2(value any) *haxe__Exception {
 		return source.haxe__Exception
 	default:
 		return value.(*haxe__Exception)
+	}
+}
+
+func hx_is_nominal_0(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *Cursor:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_1(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_2(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__Exception:
+		return (source != nil)
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
 	}
 }

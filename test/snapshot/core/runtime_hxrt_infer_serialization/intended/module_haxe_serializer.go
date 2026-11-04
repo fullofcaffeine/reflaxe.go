@@ -440,17 +440,7 @@ func (self *haxe__Serializer) serializeEnum(value any, declaration any) {
 }
 
 func (self *haxe__Serializer) serialize(value any) {
-	if func(hx_value any) bool {
-		switch hx_carrier := hx_value.(type) {
-		case *haxe__io__Bytes:
-			if hx_carrier == nil {
-				return false
-			}
-			return true
-		default:
-			return false
-		}
-	}(hxrt.ObjectSource(hxrt.ObjectSource(value))) {
+	if hx_is_nominal_0(value) {
 		if self.useCache && self.__hx_this.serializeRef(value) {
 			return
 		}

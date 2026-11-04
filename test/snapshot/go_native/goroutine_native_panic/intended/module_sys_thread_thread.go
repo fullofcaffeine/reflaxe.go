@@ -71,8 +71,17 @@ func sys__thread__Thread_readMessage(block bool) any {
 }
 
 func sys__thread__Thread_reportUncaught(value any) {
-	exception := haxe__Exception_caught(value)
-	hxrt.ThreadWriteStderr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Uncaught exception "), exception.__hx_this.get_message()), hxrt.StringFromLiteral("\n")))
+	hxrt.TryCatch(func() {
+		exception := haxe__Exception_caught(value)
+		hxrt.ThreadWriteStderr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Uncaught exception "), exception.__hx_this.get_message()), hxrt.StringFromLiteral("\n")))
+	}, func(hx_caught_1 any) {
+		hx_exception_2 := haxe__Exception_caught(hx_caught_1)
+		hx_payload_3 := haxe__Exception_catchValue(hx_caught_1)
+		_ = hx_exception_2
+		var hx_tmp any = hx_payload_3
+		_ = hx_tmp
+		hxrt.ThreadWriteStderr(hxrt.StringFromLiteral("Uncaught exception (message unavailable)\n"))
+	})
 }
 
 func sys__thread__Thread_runWithEventLoop(job *hxrt.Function[func()]) {

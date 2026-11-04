@@ -65,17 +65,7 @@ func main() {
 					}
 				}(hx_value)
 			case "FeatureBase":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *FeatureBase:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hxrt.ObjectSource(hx_value))
+				return hx_is_nominal_0(hx_value)
 			case "Float":
 				return func(hx_value any) bool {
 					switch hx_value.(type) {
@@ -169,17 +159,7 @@ func main() {
 	}(value, target) {
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("dynamic type lookup failed")))
 	}
-	if func(hx_value any) bool {
-		switch hx_carrier := hx_value.(type) {
-		case *FeatureBase:
-			if hx_carrier == nil {
-				return false
-			}
-			return true
-		default:
-			return false
-		}
-	}(hxrt.ObjectSource(hxrt.ObjectSource(value))) {
+	if hx_is_nominal_0(value) {
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("constrained subclass leaked into common type lookup")))
 	}
 	var feature any = New_FeatureBase()
@@ -1570,5 +1550,44 @@ func hx_recover_class_1(value any) *haxe__Exception {
 		return source.haxe__Exception
 	default:
 		return value.(*haxe__Exception)
+	}
+}
+
+func hx_is_nominal_0(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *FeatureBase:
+		return (source != nil)
+	}
+	hx_recovered, hx_matched := hx_is_nominal_0__probe_0(value)
+	if hx_matched {
+		return hx_recovered
+	}
+	hx_recovered, hx_matched = hx_is_nominal_0__probe_1(value)
+	if hx_matched {
+		return hx_recovered
+	}
+	return false
+}
+
+func hx_is_nominal_1(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_2(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__Exception:
+		return (source != nil)
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
 	}
 }

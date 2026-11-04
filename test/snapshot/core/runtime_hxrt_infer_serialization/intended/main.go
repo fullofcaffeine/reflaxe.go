@@ -6756,3 +6756,35 @@ func hx_recover_class_10(value any) *haxe___Int64_____Int64 {
 		return value.(*haxe___Int64_____Int64)
 	}
 }
+
+func hx_is_nominal_0(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__io__Bytes:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_1(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_2(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__Exception:
+		return (source != nil)
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}

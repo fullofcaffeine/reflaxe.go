@@ -10,21 +10,11 @@ func main() {
 		hx_exception_2 := haxe__Exception_caught(hx_caught_1)
 		hx_payload_3 := haxe__Exception_catchValue(hx_caught_1)
 		_ = hx_payload_3
-		if func(hx_value any) bool {
-			switch hx_carrier := hx_value.(type) {
-			case *haxe__exceptions__NotImplementedException:
-				if hx_carrier == nil {
-					return false
-				}
-				return true
-			default:
-				return false
-			}
-		}(hxrt.ObjectSource(hxrt.ObjectSource(hx_exception_2))) {
+		if hx_is_nominal_0(hx_exception_2) {
 			var err *haxe__exceptions__NotImplementedException = hx_recover_class_0(hx_exception_2)
-			var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("not_impl="), err.get_message()))
+			var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("not_impl="), err.__hx_this.get_message()))
 			hxrt.Println(v)
-			var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("typed="), hxrt.StdString((err != nil))))
+			var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("typed="), hxrt.StdString(hx_is_nominal_0(err))))
 			hxrt.Println(v_1)
 		} else {
 			hxrt.Throw(hx_caught_1)
@@ -97,11 +87,47 @@ func hx_recover_class_2(value any) *haxe__Exception {
 		return source.haxe__Exception
 	case *haxe__exceptions__NotImplementedException:
 		return source.haxe__exceptions__PosException.haxe__Exception
-	case *haxe__Exception:
-		return source
 	case *haxe__ValueException:
 		return source.haxe__Exception
+	case *haxe__Exception:
+		return source
 	default:
 		return value.(*haxe__Exception)
+	}
+}
+
+func hx_is_nominal_0(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__exceptions__NotImplementedException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_1(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_2(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__exceptions__PosException:
+		return (source != nil)
+	case *haxe__exceptions__NotImplementedException:
+		return (source != nil)
+	case *haxe__ValueException:
+		return (source != nil)
+	case *haxe__Exception:
+		return (source != nil)
+	default:
+		return false
 	}
 }

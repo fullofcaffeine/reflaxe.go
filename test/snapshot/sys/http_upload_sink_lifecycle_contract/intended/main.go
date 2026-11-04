@@ -3740,20 +3740,20 @@ func hx_structural_recover(value any) hxrt.Anonymous {
 				return false
 			})
 		}(source)
-	case *haxe__exceptions__PosException:
-		return func(hx_structural_source_877 *haxe__exceptions__PosException) hxrt.Anonymous {
+	case *haxe__ValueException:
+		return func(hx_structural_source_877 *haxe__ValueException) hxrt.Anonymous {
 			return hxrt.NewAnonymousView(hx_structural_source_877, func(name string) hxrt.AnonymousField {
 				switch name {
-				case "posInfos":
-					return hxrt.AnonymousField{Value: hx_structural_source_877.posInfos, Found: true}
-				case "toString":
-					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() *string] {
+				case "value":
+					return hxrt.AnonymousField{Value: hx_structural_source_877.value, Found: true}
+				case "unwrap":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() any] {
 						hx_receiver_878 := hx_structural_source_877
-						return hxrt.BoundFunction(func() *string {
-							return hx_receiver_878.__hx_this.toString()
+						return hxrt.BoundFunction(func() any {
+							return hx_receiver_878.__hx_this.unwrap()
 						}, func() any {
 							return hx_receiver_878.__hx_this
-						}, "toString")
+						}, "unwrap")
 					}(), Found: true}
 				case "savedMessage":
 					return hxrt.AnonymousField{Value: hx_structural_source_877.savedMessage, Found: true}
@@ -3799,14 +3799,14 @@ func hx_structural_recover(value any) hxrt.Anonymous {
 							return hx_receiver_884.__hx_this
 						}, "get_native")
 					}(), Found: true}
-				case "unwrap":
-					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() any] {
+				case "toString":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() *string] {
 						hx_receiver_885 := hx_structural_source_877
-						return hxrt.BoundFunction(func() any {
-							return hx_receiver_885.__hx_this.unwrap()
+						return hxrt.BoundFunction(func() *string {
+							return hx_receiver_885.__hx_this.toString()
 						}, func() any {
 							return hx_receiver_885.__hx_this
-						}, "unwrap")
+						}, "toString")
 					}(), Found: true}
 				case "details":
 					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() *string] {
@@ -3843,20 +3843,20 @@ func hx_structural_recover(value any) hxrt.Anonymous {
 				return false
 			})
 		}(source)
-	case *haxe__ValueException:
-		return func(hx_structural_source_887 *haxe__ValueException) hxrt.Anonymous {
+	case *haxe__exceptions__PosException:
+		return func(hx_structural_source_887 *haxe__exceptions__PosException) hxrt.Anonymous {
 			return hxrt.NewAnonymousView(hx_structural_source_887, func(name string) hxrt.AnonymousField {
 				switch name {
-				case "value":
-					return hxrt.AnonymousField{Value: hx_structural_source_887.value, Found: true}
-				case "unwrap":
-					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() any] {
+				case "posInfos":
+					return hxrt.AnonymousField{Value: hx_structural_source_887.posInfos, Found: true}
+				case "toString":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() *string] {
 						hx_receiver_888 := hx_structural_source_887
-						return hxrt.BoundFunction(func() any {
-							return hx_receiver_888.__hx_this.unwrap()
+						return hxrt.BoundFunction(func() *string {
+							return hx_receiver_888.__hx_this.toString()
 						}, func() any {
 							return hx_receiver_888.__hx_this
-						}, "unwrap")
+						}, "toString")
 					}(), Found: true}
 				case "savedMessage":
 					return hxrt.AnonymousField{Value: hx_structural_source_887.savedMessage, Found: true}
@@ -3902,14 +3902,14 @@ func hx_structural_recover(value any) hxrt.Anonymous {
 							return hx_receiver_894.__hx_this
 						}, "get_native")
 					}(), Found: true}
-				case "toString":
-					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() *string] {
+				case "unwrap":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() any] {
 						hx_receiver_895 := hx_structural_source_887
-						return hxrt.BoundFunction(func() *string {
-							return hx_receiver_895.__hx_this.toString()
+						return hxrt.BoundFunction(func() any {
+							return hx_receiver_895.__hx_this.unwrap()
 						}, func() any {
 							return hx_receiver_895.__hx_this
-						}, "toString")
+						}, "unwrap")
 					}(), Found: true}
 				case "details":
 					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() *string] {
@@ -4908,9 +4908,9 @@ func hx_recover_class_2(value any) *haxe__Exception {
 		return source.haxe__exceptions__PosException.haxe__Exception
 	case *haxe__Exception:
 		return source
-	case *haxe__exceptions__PosException:
-		return source.haxe__Exception
 	case *haxe__ValueException:
+		return source.haxe__Exception
+	case *haxe__exceptions__PosException:
 		return source.haxe__Exception
 	default:
 		return value.(*haxe__Exception)
@@ -5011,5 +5011,287 @@ func hx_recover_class_9(value any) *haxe___Int64_____Int64 {
 		return source
 	default:
 		return value.(*haxe___Int64_____Int64)
+	}
+}
+
+func hx_is_nominal_0(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__io__Eof:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_1(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_2(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__exceptions__NotImplementedException:
+		return (source != nil)
+	case *haxe__Exception:
+		return (source != nil)
+	case *haxe__ValueException:
+		return (source != nil)
+	case *haxe__exceptions__PosException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_3(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *_Main__TrackingInput:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_4(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe___Int64_____Int64:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_5(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ds__StringMap:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_6(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__exceptions__NotImplementedException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_7(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__exceptions__NotImplementedException:
+		return (source != nil)
+	case *haxe__exceptions__PosException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_8(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__Http:
+		return (source != nil)
+	case *haxe__http__HttpBase:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_9(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__io__Bytes:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_10(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__io__BytesBuffer:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_11(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__io__BytesOutput:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_12(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *_Main__TrackingInput:
+		return (source != nil)
+	case *sys__net__SocketInput:
+		return (source != nil)
+	case *sys__io___Process__ProcessOutput:
+		return (source != nil)
+	case *haxe__io__Input:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_13(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__net__SocketOutput:
+		return (source != nil)
+	case *sys__io___Process__ProcessInput:
+		return (source != nil)
+	case *haxe__io__Output:
+		return (source != nil)
+	case *haxe__io__BytesOutput:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_14(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__iterators__MapKeyValueIterator:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_15(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__iterators__StringIterator:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_16(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__iterators__StringKeyValueIterator:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_17(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__Http:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_18(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__io__Process:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_19(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__io___Process__ProcessInput:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_20(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__io___Process__ProcessOutput:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_21(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__net__Host:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_22(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__net__Socket:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_23(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__net__SocketInput:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_24(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__net__SocketOutput:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_25(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__thread__Tls:
+		return (source != nil)
+	default:
+		return false
 	}
 }

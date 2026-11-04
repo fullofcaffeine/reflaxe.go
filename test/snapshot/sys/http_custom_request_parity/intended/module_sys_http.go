@@ -443,17 +443,7 @@ func (self *sys__Http) pumpUpload(exchange *hxrt.HttpExchange, upload hxrt.Anony
 		}, func(hx_caught_63 any) {
 			hx_exception_64 := haxe__Exception_caught(hx_caught_63)
 			hx_payload_65 := haxe__Exception_catchValue(hx_caught_63)
-			if func(hx_value any) bool {
-				switch hx_carrier := hx_value.(type) {
-				case *haxe__io__Eof:
-					if hx_carrier == nil {
-						return false
-					}
-					return true
-				default:
-					return false
-				}
-			}(hxrt.ObjectSource(hxrt.ObjectSource(hx_payload_65))) {
+			if hx_is_nominal_0(hx_payload_65) {
 				var hx_tmp *haxe__io__Eof = hx_recover_class_3(hx_payload_65)
 				_ = hx_tmp
 				sourceError = hxrt.StringFromLiteral("Transfer aborted")

@@ -1459,3 +1459,135 @@ func hx_recover_class_3(value any) *haxe__Exception {
 		return value.(*haxe__Exception)
 	}
 }
+
+func hx_is_nominal_0(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_1(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__Exception:
+		return (source != nil)
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_2(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *StringBuf:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_3(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *Xml:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_4(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe___Int64_____Int64:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_5(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ds__StringMap:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_6(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__io__Bytes:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_7(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__iterators__ArrayIterator:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_8(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__iterators__MapKeyValueIterator:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_9(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__iterators__StringIterator:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_10(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__iterators__StringKeyValueIterator:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_11(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__xml__Printer:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_12(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__xml__XmlParserException:
+		return (source != nil)
+	default:
+		return false
+	}
+}

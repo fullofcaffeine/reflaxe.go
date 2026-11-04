@@ -71,41 +71,13 @@ func main() {
 		return hx_value.Base
 	}(New_Child())
 	base := New_Base()
-	var v any = any(func(hx_value *Base) bool {
-		if hx_value == nil {
-			return false
-		}
-		_, ok := hx_value.__hx_this.(*Child)
-		return ok
-	}(child))
+	var v any = any(hx_is_nominal_0(child))
 	hxrt.Println(v)
-	var v_1 any = any((child != nil))
+	var v_1 any = any(hx_is_nominal_1(child))
 	hxrt.Println(v_1)
-	var v_2 any = any(func(hx_value *Base) bool {
-		if hx_value == nil {
-			return false
-		}
-		_, ok := hx_value.__hx_this.(*Child)
-		return ok
-	}(base))
+	var v_2 any = any(hx_is_nominal_0(base))
 	hxrt.Println(v_2)
-	var v_3 any = any(func(hx_value any) bool {
-		switch hx_carrier := hx_value.(type) {
-		case *Base:
-			if hx_carrier == nil {
-				return false
-			}
-			_, hx_ok := hx_carrier.__hx_this.(*Child)
-			return hx_ok
-		case *Child:
-			if hx_carrier == nil {
-				return false
-			}
-			return true
-		default:
-			return false
-		}
-	}(hxrt.ObjectSource(hxrt.ObjectSource(nil))))
+	var v_3 any = any(hx_is_nominal_0(nil))
 	hxrt.Println(v_3)
 	var v_4 any = any(true)
 	hxrt.Println(v_4)
@@ -119,4 +91,26 @@ func main() {
 	hxrt.Println(v_8)
 	var v_9 any = any(false)
 	hxrt.Println(v_9)
+}
+
+func hx_is_nominal_0(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *Child:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_1(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *Base:
+		return (source != nil)
+	case *Child:
+		return (source != nil)
+	default:
+		return false
+	}
 }
