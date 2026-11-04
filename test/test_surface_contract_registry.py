@@ -497,7 +497,18 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         self.assertIn("iterator hxrt.Anonymous", main_go)
         self.assertIn("hxrt.NewAnonymousView", main_go)
         self.assertIn("New_haxe__iterators__ArrayIterator(values)", main_go)
-        self.assertIn('hxrt.AnonymousGet(hx_obj_', main_go)
+        # Member reads recover the callable's typed signature before invocation;
+        # the receiver need not be copied to a particular temporary name.
+        self.assertRegex(
+            main_go,
+            r'\*hxrt\.Function\[func\(\) bool\] = '
+            r'hx_recover_callable_\d+\(hxrt\.AnonymousGet\(iterator, "hasNext"\)\)',
+        )
+        self.assertRegex(
+            main_go,
+            r'\*hxrt\.Function\[func\(\) int\] = '
+            r'hx_recover_callable_\d+\(hxrt\.AnonymousGet\(iterator, "next"\)\)',
+        )
         self.assertIn('case "hasNext":', main_go)
         self.assertIn('case "next":', main_go)
         observed_shapes = [
