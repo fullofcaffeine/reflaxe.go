@@ -71,11 +71,11 @@ func TestReflectRuntimeClassificationComparisonAndVarArgs(t *testing.T) {
 		}
 		return total
 	}
-	variadic, ok := ReflectMakeVarArgs(callback).(func(...any) any)
+	variadic, ok := ReflectMakeVarArgs(callback).(*Function[func(...any) any])
 	if !ok {
 		t.Fatalf("variadic type = %T", ReflectMakeVarArgs(callback))
 	}
-	if got := variadic(1, 2, 3, 4); got != 10 {
+	if got := FunctionCall(variadic)(1, 2, 3, 4); got != 10 {
 		t.Fatalf("variadic result = %#v", got)
 	}
 	if !ReflectIsFunction(callback) || !ReflectIsObject(map[string]any{}) || !ReflectIsObject(reflectTestName("text")) || ReflectIsObject("text") {

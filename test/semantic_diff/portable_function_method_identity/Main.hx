@@ -73,5 +73,6 @@ class Main {
 			+ ":"
 			+ child.callback(2));
 		Sys.println("method.static=" + identity(named, named));
+		Sys.println("method.equals=" + (named == named) + ":" + (direct == child.add) + ":" + (direct == other.add));
 	}
 }

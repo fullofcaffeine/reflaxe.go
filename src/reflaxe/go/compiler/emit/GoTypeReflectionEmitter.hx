@@ -439,6 +439,8 @@ class GoTypeReflectionEmitter {
 		allEnumsBody.push(GoStmt.GoRaw("}"));
 
 		var typeOfBody = [
+			GoStmt.GoIf(GoExpr.GoCall(GoExpr.GoIdent("hxrt.ReflectIsFunction"), [GoExpr.GoIdent("v")]),
+				[GoStmt.GoReturn(GoExpr.GoIdent("ValueType_TFunction"))], null),
 			GoStmt.GoRaw("if hxrt.AnyEqualsNull(v) {"),
 			GoStmt.GoRaw("\treturn ValueType_TNull"),
 			GoStmt.GoRaw("}"),
@@ -469,8 +471,6 @@ class GoTypeReflectionEmitter {
 			GoStmt.GoRaw("\treturn ValueType_TNull"),
 			GoStmt.GoRaw("}"),
 			GoStmt.GoRaw("switch ref.Kind() {"),
-			GoStmt.GoRaw("case reflect.Func:"),
-			GoStmt.GoRaw("\treturn ValueType_TFunction"),
 			GoStmt.GoRaw("case reflect.Slice, reflect.Array:"),
 			GoStmt.GoRaw("\treturn ValueType_TClass(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral(\"Array\")})"),
 			GoStmt.GoRaw("case reflect.Map, reflect.Struct, reflect.Interface, reflect.Pointer:"),

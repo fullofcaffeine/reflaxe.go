@@ -126,6 +126,7 @@
     "runtimeRequirement": {
       "enum": [
         "core",
+        "function",
         "array",
         "array_sort",
         "string",

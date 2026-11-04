@@ -78,6 +78,7 @@ class GoRuntimeCapabilityManifest {
 
 	static final FULL_COPY_BASE_FEATURES:Array<String> = [
 		GoHxrtFeatureAnalyzer.FEATURE_CORE,
+		GoHxrtFeatureAnalyzer.FEATURE_FUNCTION,
 		GoHxrtFeatureAnalyzer.FEATURE_STRING,
 		GoHxrtFeatureAnalyzer.FEATURE_EQUALITY,
 		GoHxrtFeatureAnalyzer.FEATURE_PRINT,
@@ -277,6 +278,7 @@ class GoRuntimeCapabilityManifest {
 	static function knownId(feature:String):Null<GoHxrtFeatureId> {
 		return switch (feature) {
 			case GoHxrtFeatureAnalyzer.FEATURE_CORE: GoHxrtFeatureId.HxrtCore;
+			case GoHxrtFeatureAnalyzer.FEATURE_FUNCTION: GoHxrtFeatureId.HxrtFunction;
 			case GoHxrtFeatureAnalyzer.FEATURE_ARRAY: GoHxrtFeatureId.HxrtArray;
 			case GoHxrtFeatureAnalyzer.FEATURE_ARRAY_SORT: GoHxrtFeatureId.HxrtArraySort;
 			case GoHxrtFeatureAnalyzer.FEATURE_STRING: GoHxrtFeatureId.HxrtString;

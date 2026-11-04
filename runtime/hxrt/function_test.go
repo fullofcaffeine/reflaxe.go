@@ -46,6 +46,9 @@ func TestFunctionNullTransportAndGuard(t *testing.T) {
 	if !sameFunctionIdentity(null, otherNull) || sameFunctionIdentity(null, NewFunction(func(int) int { return 0 })) {
 		t.Fatal("null identity must be independent of the callable signature")
 	}
+	if !ReflectCompareMethods(null, nil) || !ReflectCompareMethods(nil, null) || !HaxeEqual(null, nil) {
+		t.Fatal("typed and erased null functions must compare equally in both orders")
+	}
 	caught := false
 	TryCatch(func() { FunctionCall(null)(1) }, func(value any) {
 		caught = true
@@ -87,5 +90,82 @@ func TestFunctionNativeCallbackRetainsCapture(t *testing.T) {
 	runtime.GC()
 	if callback(2) != 9 || callback(1) != 10 {
 		t.Fatal("a retained native callback must keep the original mutable capture")
+	}
+}
+
+func TestFunctionReflectionAcrossSignatures(t *testing.T) {
+	original := NewFunction(func(value int) int { return value + 1 })
+	adapted := AdaptFunction(original, func(value int64) int64 { return int64(FunctionCall(original)(int(value))) })
+	if !ReflectCompareMethods(original, adapted) || !HaxeEqual(original, adapted) {
+		t.Fatal("reflection and erased equality must preserve adapted identity")
+	}
+	if !ReflectIsFunction(original) || ReflectIsObject(original) || len(ReflectFields(original)) != 0 {
+		t.Fatal("the runtime carrier must remain a function with hidden implementation fields")
+	}
+	if ReflectCallMethod(original, []any{4}) != 5 {
+		t.Fatal("reflective invocation must reach the typed payload")
+	}
+}
+
+func TestFunctionNamedAndReboundMethodIdentity(t *testing.T) {
+	first := NamedFunction(func() int { return 1 }, "Module.first")
+	secondRead := NamedFunction(func() int { return 1 }, "Module.first")
+	other := NamedFunction(func() int { return 1 }, "Module.other")
+	if !sameFunctionIdentity(first, secondRead) || sameFunctionIdentity(first, other) {
+		t.Fatal("declaration identity must survive reads without equating different declarations")
+	}
+	base, child := &struct{ value int }{1}, &struct{ value int }{2}
+	logical := base
+	before := BoundFunction(func() int { return logical.value }, func() any { return logical }, "read")
+	logical = child
+	after := BoundFunction(func() int { return child.value }, func() any { return child }, "read")
+	different := BoundFunction(func() int { return base.value }, func() any { return base }, "read")
+	if !sameFunctionIdentity(before, after) || sameFunctionIdentity(before, different) || FunctionCall(before)() != 2 {
+		t.Fatal("method identity and invocation must follow constructor rebinding")
+	}
+}
+
+func TestFunctionVarArgsCreationIdentity(t *testing.T) {
+	callback := NewFunction(func(arguments *Array) any { return len(arguments.Values()) })
+	values := make([]any, 2)
+	for index := range values {
+		values[index] = ReflectMakeVarArgs(callback)
+	}
+	if !ReflectCompareMethods(values[0], values[0]) || ReflectCompareMethods(values[0], values[1]) {
+		t.Fatal("each varargs factory evaluation must create one distinct function")
+	}
+	if ReflectCallMethod(values[0], []any{1, 2}) != 2 {
+		t.Fatal("varargs identity must preserve reflective invocation")
+	}
+}
+
+// Ordinary equality keeps each bound extraction distinct, while method comparison
+// deliberately identifies the same receiver and method slot.
+func TestFunctionOrdinaryEqualityAndObservation(t *testing.T) {
+	receiver := &struct{ value int }{4}
+	first := BoundFunction(func() int { return receiver.value }, func() any { return receiver }, "read")
+	second := BoundFunction(func() int { return receiver.value }, func() any { return receiver }, "read")
+	if HaxeEqual(first, second) || !HaxeEqual(first, first) || !ReflectCompareMethods(first, second) {
+		t.Fatal("ordinary equality must distinguish repeated bound method extractions")
+	}
+	named := NamedFunction(func() int { return 1 }, "Module.named")
+	again := NamedFunction(func() int { return 1 }, "Module.named")
+	if !HaxeEqual(named, again) {
+		t.Fatal("static declaration equality must survive repeated reads")
+	}
+	if got := *StdString(first); got != "#fun" {
+		t.Fatalf("function string = %q", got)
+	}
+	if got := *JsonStringify(first, nil); got != `"<fun>"` {
+		t.Fatalf("function JSON = %q", got)
+	}
+	if got := *JsonStringify(map[string]any{"call": first}, nil); got != `{}` {
+		t.Fatalf("function field JSON = %q", got)
+	}
+	if TemplateIsObject(first) {
+		t.Fatal("function carrier is not a template object")
+	}
+	if got := TemplateCall(first, nil); got != 4 {
+		t.Fatalf("template callback = %v", got)
 	}
 }

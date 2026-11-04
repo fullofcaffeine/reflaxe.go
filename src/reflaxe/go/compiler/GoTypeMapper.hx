@@ -48,7 +48,7 @@ class GoTypeMapper {
 		var followed = Context.follow(type);
 		return switch (followed) {
 			case TFun(args, returnType):
-				goFunctionType(args, returnType, classTypeName, enumTypeName);
+				"*hxrt.Function[" + goFunctionType(args, returnType, classTypeName, enumTypeName) + "]";
 			case TInst(classRef, params):
 				var classType = classRef.get();
 				if (isTypeParameterClass(classType)) {
@@ -367,7 +367,7 @@ class GoTypeMapper {
 		var followed = Context.follow(type);
 		return switch (followed) {
 			case TFun(args, returnType):
-				goFunctionType(args, returnType, classTypeName, enumTypeName);
+				"*hxrt.Function[" + goFunctionType(args, returnType, classTypeName, enumTypeName) + "]";
 			case TInst(classRef, params):
 				var classType = classRef.get();
 				if (isTypeParameterClass(classType)) {

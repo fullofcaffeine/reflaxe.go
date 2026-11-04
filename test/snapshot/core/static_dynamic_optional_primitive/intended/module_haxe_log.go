@@ -48,7 +48,7 @@ func haxe__Log_formatOutput(v any, infos map[string]any) *string {
 	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(pstr, hxrt.StringFromLiteral(": ")), str)
 }
 
-var haxe__Log_trace func(any, map[string]any) = func(v any, infos map[string]any) {
+var haxe__Log_trace *hxrt.Function[func(any, map[string]any)] = hxrt.NewFunction(func(v any, infos map[string]any) {
 	str := haxe__Log_formatOutput(v, infos)
 	hxrt.Println(any(str))
-}
+})
