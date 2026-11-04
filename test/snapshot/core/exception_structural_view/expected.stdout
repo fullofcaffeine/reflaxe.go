@@ -1,0 +1,11 @@
+message=boom
+code=7
+string=boom:7
+live=8
+same=true
+direct-previous=true
+previous=true
+native=true
+details-same=true
+details-message=true
+details-cause=true

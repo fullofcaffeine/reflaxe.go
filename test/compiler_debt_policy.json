@@ -54,7 +54,7 @@
     },
     "runtime_facade_dynamic_contract": {
       "classification": "required",
-      "how": "Localize Dynamic or Any to narrow target-layer wrappers, document surprising declarations, and convert to typed hxrt operations as early as possible.",
+      "how": "Localize Dynamic or Any to narrow target-layer wrappers, document surprising declarations, and convert to typed hxrt operations as early as possible. Thread failure callbacks carry an arbitrary thrown value to the source-owned exception formatter; the native output sink accepts only String.",
       "owner": "runtime-facing staged source",
       "what": "Dynamic values crossing staged Haxe wrappers for collections, threads, stacks, HTTP, and other runtime-backed behavior.",
       "why": "These wrappers implement generic or dynamic Haxe APIs whose stored values, callbacks, TLS slots, or exception carriers cannot be represented by one concrete target type."
@@ -78,7 +78,7 @@
       "how": "Keep dynamic values within the canonical API shape, use typed helpers internally where possible, and ratchet every staged module separately.",
       "owner": "staged standard library",
       "what": "Dynamic and Any types retained by target-specific staged implementations of standard Haxe APIs.",
-      "why": "Reflection, templates, JSON, RTTI, collections, SSL, and thread APIs expose dynamically typed values as part of their portable Haxe contract."
+      "why": "Reflection, templates, JSON, RTTI, collections, SSL, thread messages, and exception payload/native-attachment APIs expose arbitrary values as part of their portable Haxe contract. Exception message, previous link and stack state remain concrete source types."
     },
     "typed_ast_gap": {
       "classification": "avoidable",
@@ -2307,6 +2307,90 @@
       "surface": "runtime"
     },
     {
+      "capability": "dynamic_values",
+      "classification": "required",
+      "context": "<module>",
+      "exception_id": "staged_std_dynamic_contract",
+      "file": "std/go/_std/haxe/Exception.hx",
+      "max_count": 2,
+      "metric": "haxe_any",
+      "owner": "staged_std",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "dynamic_values",
+      "classification": "required",
+      "context": "catchValue",
+      "exception_id": "staged_std_dynamic_contract",
+      "file": "std/go/_std/haxe/Exception.hx",
+      "max_count": 2,
+      "metric": "haxe_any",
+      "owner": "staged_std",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "dynamic_values",
+      "classification": "required",
+      "context": "caught",
+      "exception_id": "staged_std_dynamic_contract",
+      "file": "std/go/_std/haxe/Exception.hx",
+      "max_count": 1,
+      "metric": "haxe_any",
+      "owner": "staged_std",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "dynamic_values",
+      "classification": "required",
+      "context": "get_native",
+      "exception_id": "staged_std_dynamic_contract",
+      "file": "std/go/_std/haxe/Exception.hx",
+      "max_count": 1,
+      "metric": "haxe_any",
+      "owner": "staged_std",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "dynamic_values",
+      "classification": "required",
+      "context": "new",
+      "exception_id": "staged_std_dynamic_contract",
+      "file": "std/go/_std/haxe/Exception.hx",
+      "max_count": 1,
+      "metric": "haxe_any",
+      "owner": "staged_std",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "dynamic_values",
+      "classification": "required",
+      "context": "thrown",
+      "exception_id": "staged_std_dynamic_contract",
+      "file": "std/go/_std/haxe/Exception.hx",
+      "max_count": 2,
+      "metric": "haxe_any",
+      "owner": "staged_std",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "dynamic_values",
+      "classification": "required",
+      "context": "unwrap",
+      "exception_id": "staged_std_dynamic_contract",
+      "file": "std/go/_std/haxe/Exception.hx",
+      "max_count": 1,
+      "metric": "haxe_any",
+      "owner": "staged_std",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
       "capability": "reflection",
       "classification": "required",
       "context": "callStack",
@@ -2357,9 +2441,81 @@
     {
       "capability": "dynamic_values",
       "classification": "required",
+      "context": "<module>",
+      "exception_id": "staged_std_dynamic_contract",
+      "file": "std/go/_std/haxe/ValueException.hx",
+      "max_count": 1,
+      "metric": "haxe_any",
+      "owner": "staged_std",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "dynamic_values",
+      "classification": "required",
+      "context": "new",
+      "exception_id": "staged_std_dynamic_contract",
+      "file": "std/go/_std/haxe/ValueException.hx",
+      "max_count": 2,
+      "metric": "haxe_any",
+      "owner": "staged_std",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "dynamic_values",
+      "classification": "required",
+      "context": "unwrap",
+      "exception_id": "staged_std_dynamic_contract",
+      "file": "std/go/_std/haxe/ValueException.hx",
+      "max_count": 1,
+      "metric": "haxe_any",
+      "owner": "staged_std",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "threading",
+      "classification": "required",
+      "context": "reportUncaught",
+      "exception_id": "staged_std_dynamic_contract",
+      "file": "std/go/_std/sys/thread/Thread.hx",
+      "max_count": 1,
+      "metric": "haxe_any",
+      "owner": "staged_std",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "dynamic_values",
+      "classification": "required",
       "context": "isFrameSlice",
       "exception_id": "runtime_facade_dynamic_contract",
       "file": "std/hxrt/stack/NativeStack.hx",
+      "max_count": 1,
+      "metric": "haxe_any",
+      "owner": "runtime_facade",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "threading",
+      "classification": "required",
+      "context": "spawn",
+      "exception_id": "runtime_facade_dynamic_contract",
+      "file": "std/hxrt/thread/NativeThread.hx",
+      "max_count": 1,
+      "metric": "haxe_any",
+      "owner": "runtime_facade",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "threading",
+      "classification": "required",
+      "context": "spawnWithEventLoop",
+      "exception_id": "runtime_facade_dynamic_contract",
+      "file": "std/hxrt/thread/NativeThread.hx",
       "max_count": 1,
       "metric": "haxe_any",
       "owner": "runtime_facade",

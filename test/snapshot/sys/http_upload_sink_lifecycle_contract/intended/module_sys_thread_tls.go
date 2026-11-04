@@ -13,9 +13,25 @@ type sys__thread__Tls struct {
 	value     any
 }
 
+func (self *sys__thread__Tls) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_sys__thread__Tls() *sys__thread__Tls {
+	return hx_init_sys__thread__Tls(hx_alloc_sys__thread__Tls(nil))
+}
+
+func hx_alloc_sys__thread__Tls(owner any) *sys__thread__Tls {
 	self := &sys__thread__Tls{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_sys__thread__Tls)
+	}
+	return self
+}
+
+func hx_init_sys__thread__Tls(self *sys__thread__Tls) *sys__thread__Tls {
 	self.__handle = hxrt.ThreadLocalNew()
 	return self
 }

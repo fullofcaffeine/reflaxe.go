@@ -21,9 +21,25 @@ type haxe__io__BytesBuffer struct {
 	length    int
 }
 
+func (self *haxe__io__BytesBuffer) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe__io__BytesBuffer() *haxe__io__BytesBuffer {
+	return hx_init_haxe__io__BytesBuffer(hx_alloc_haxe__io__BytesBuffer(nil))
+}
+
+func hx_alloc_haxe__io__BytesBuffer(owner any) *haxe__io__BytesBuffer {
 	self := &haxe__io__BytesBuffer{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__io__BytesBuffer)
+	}
+	return self
+}
+
+func hx_init_haxe__io__BytesBuffer(self *haxe__io__BytesBuffer) *haxe__io__BytesBuffer {
 	self.b = hxrt.BytesAllocValues(0)
 	return self
 }
@@ -67,7 +83,7 @@ func (self *haxe__io__BytesBuffer) addDouble(value float64) {
 
 func (self *haxe__io__BytesBuffer) addBytes(source *haxe__io__Bytes, pos int, len int) {
 	if ((pos < 0) || (len < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len))) > source.length) {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	self.b = hxrt.BytesBufferAddSlice(self.b, source.__hx_this.getData(), pos, len)
 }

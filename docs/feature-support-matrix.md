@@ -774,3 +774,21 @@ and closure artifacts above for the current live status.
 - `haxe.go-14as.19` is now closed end-to-end. The first wave (`Condition`, `Deque`, `IThreadPool`, `Lock`, `Mutex`, `NoEventLoopException`, `Semaphore`, `ThreadPoolException`, `Tls`) stays covered by `sys_thread_primitives_contract` and `stdlib/sys_thread_primitives_direct`, and the second wave (`Thread`, `EventLoop`, `ElasticThreadPool`, `FixedThreadPool`) is now covered by `sys_thread_runtime_contract` and `stdlib/sys_thread_runtime_direct`.
 - `haxe.go-14as.69`: direct `haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer` usage now has staged-stdlib baseline support over the runtime-backed `sys.thread.EventLoop` contract. Evidence: `stdlib/haxe_main_loop_runtime_direct`. This stays snapshot/runtime coverage for now because asynchronous timing is target-sensitive rather than a clean semantic-diff comparison.
 - No compile-only portable blocker families remain in the generated inventory. Use `test/portable_stdlib_inventory.json` plus `test/.test-cache/portable_parity_closure_summary.md` as the authoritative current list for snapshot-only and explicitly unsupported surfaces.
+
+### Source-owned exception migration
+
+`haxe.Exception` and `haxe.ValueException` now use ordinary generated Haxe
+inheritance. Their source owns messages, previous links, native attachments,
+conversion policy, saved stacks, and chained details. Both forms of catch use
+the same ordered compiler dispatch: exception catches receive the wrapper;
+other catches receive the original payload. Foreign Go panics remain outside
+Haxe catches. Portable thread diagnostics are formatted in Haxe and passed to
+a typed native output boundary.
+
+Focused contracts are `portable_exception_structural_view`,
+`portable_exception_transport`, and `portable_constructor_defaults_any_block`.
+The documented default empty-stack mode remains a limitation. Native diagnostic
+stacks must retain their construction snapshot; complete source-position parity
+and the full compiler regression gates remain required before broader readiness
+claims. This migration does not establish BeadsHX replacement or performance
+parity.

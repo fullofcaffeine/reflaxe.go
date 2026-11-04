@@ -19,6 +19,7 @@
     },
     "migrationBeads": {
       "upstream_std_override": [
+        "haxe_go-4de3",
         "haxe_go-vfp.10.5.1",
         "haxe_go-vfp.5.3",
         "haxe_go-vfp.8.7.10",
@@ -245,7 +246,7 @@
       "destination": "std/go/_std/haxe/CallStack.hx",
       "migrationBead": "haxe_go-vfp.5.3",
       "compilerShimGroups": [],
-      "notes": "Go staged target-sensitive override for haxe.CallStack, providing deterministic empty-stack fallbacks by default plus opt-in native stack diagnostics."
+      "notes": "Go staged target-sensitive override for haxe.CallStack, providing deterministic empty-stack fallbacks by default plus opt-in native stack diagnostics. subtract, equalItems and exceptionToString are adapted from HaxeFoundation/haxe tag 4.3.7, std/haxe/CallStack.hx (MIT); retain the upstream copyright and permission notice."
     },
     {
       "path": "std/go/_std/haxe/Template.hx",
@@ -1821,6 +1822,24 @@
       "migrationBead": "haxe_go-vfp.5.4",
       "compilerShimGroups": [],
       "notes": "Go typed opaque carrier for one runtime/hxrt/thread.go TLS slot, preventing staged sys.thread.Tls code from forging or reusing raw slot identities."
+    },
+    {
+      "path": "std/go/_std/haxe/Exception.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/Exception.hx",
+      "migrationBead": "haxe_go-4de3",
+      "compilerShimGroups": [],
+      "notes": "Source-owned exception state, conversion policy, previous/native identity and saved stack lifetime; the native runtime only transports tagged panics."
+    },
+    {
+      "path": "std/go/_std/haxe/ValueException.hx",
+      "provenanceKind": "repo_authored_override",
+      "ownershipClass": "upstream_std_override",
+      "destination": "std/go/_std/haxe/ValueException.hx",
+      "migrationBead": "haxe_go-4de3",
+      "compilerShimGroups": [],
+      "notes": "Source-owned arbitrary thrown-value wrapper with typed inheritance and payload recovery."
     }
   ]
 }

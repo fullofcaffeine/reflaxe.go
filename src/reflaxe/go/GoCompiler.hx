@@ -3162,7 +3162,6 @@ class GoCompiler {
 		var decls = new Array<GoDecl>();
 		var typeName = classTypeName(classType);
 		var superClass = projectSuperClass(classType);
-		var directHaxeExceptionSuper = directHaxeExceptionSuperClass(classType);
 
 		var instanceDataFields = new Array<GoParam>();
 		var instanceMethods = new Array<EmittedInstanceMethod>();
@@ -3194,12 +3193,6 @@ class GoCompiler {
 						}
 					}
 			}
-		}
-		if (directHaxeExceptionSuper && !hasStructField(instanceDataFields, "__hx_exception")) {
-			instanceDataFields.push({
-				name: "__hx_exception",
-				typeName: "*hxrt.ExceptionValue"
-			});
 		}
 
 		var ctorRef = classType.constructor;
@@ -3245,9 +3238,6 @@ class GoCompiler {
 			decls.push(lowerConstructorDecl(classType, ctorFunc, ctorRef == null ? null : ctorRef.get().type, superClass));
 			decls.push(lowerAllocationDecl(classType, superClass));
 			decls.push(lowerConstructorInitDecl(classType, ctorFunc, ctorRef == null ? null : ctorRef.get().type, superClass));
-			if (directHaxeExceptionSuper) {
-				decls.push(lowerHaxeExceptionCarrierDecl(classType));
-			}
 		} else if (requiredNominalClassTypeNames.exists(fullClassName(classType))) {
 			// What: retain the nominal Go type for a static-only Haxe class.
 			// Why: Haxe still permits that class in type positions (for example
@@ -3488,14 +3478,16 @@ class GoCompiler {
 				for (index in 0...loweredCtorBody.superArgs.length)
 					lowerConstructorArg(superClass, loweredCtorBody.superArgs[index], index)
 			];
-			body.push(GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hx_init_" + superTypeName), [superCarrier].concat(superCtorArgs))));
-		} else if (directHaxeExceptionSuperClass(classType)) {
-			var exceptionCtorArgs = loweredCtorBody.superArgs == null ? [] : [for (arg in loweredCtorBody.superArgs) lowerExpr(arg).expr];
-			while (exceptionCtorArgs.length < 3) {
-				exceptionCtorArgs.push(GoExpr.GoNil);
+			var superCtor = resolveConstructorInfo(superClass);
+			if (superCtor != null) {
+				for (index in superCtorArgs.length...superCtor.defaults.length) {
+					var fallback = superCtor.defaults[index];
+					if (fallback == null)
+						Context.fatalError("Missing required superclass constructor argument at position " + index, classType.pos);
+					superCtorArgs.push(lowerConstructorArg(superClass, fallback, index));
+				}
 			}
-			body.push(GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_exception"),
-				GoExpr.GoCall(GoExpr.GoIdent("hxrt.BindException"), [GoExpr.GoIdent("self")].concat(exceptionCtorArgs))));
+			body.push(GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hx_init_" + superTypeName), [superCarrier].concat(superCtorArgs))));
 		}
 		body = body.concat(lowerDynamicMethodInitializers(classType));
 		if (ctorFunc != null) {
@@ -3596,14 +3588,6 @@ class GoCompiler {
 			name: "self",
 			typeName: "*" + classTypeName(classType)
 		}, [], ["string"], [GoStmt.GoReturn(GoExpr.GoUnary("*", portableString))]);
-	}
-
-	function lowerHaxeExceptionCarrierDecl(classType:ClassType):GoDecl {
-		return GoDecl.GoFuncDecl("HxExceptionValue", {
-			name: "self",
-			typeName: "*" + classTypeName(classType)
-		}, [], ["*hxrt.ExceptionValue"],
-			[GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_exception"))]);
 	}
 
 	function prependLineDirective(body:Array<GoStmt>, pos:haxe.macro.Expr.Position, sourceModule:Null<String>):Void {
@@ -4193,7 +4177,7 @@ class GoCompiler {
 			case TThrow(value):
 				var loweredValue = lowerExprWithPrefix(value);
 				loweredValue.prefix.concat([
-					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [loweredValue.expr]))
+					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [exceptionSourceCall("thrown", loweredValue.expr)]))
 				]).concat(nonVoidThrowFallbackReturnStmts());
 			case TTry(tryExpr, catches):
 				lowerTryCatchStmt(tryExpr, catches);
@@ -4699,6 +4683,57 @@ class GoCompiler {
 		};
 	}
 
+	/** Resolve source-owned exception policy through the normal stdlib discovery queue. */
+	function exceptionSourceCall(member:String, value:GoExpr):GoExpr {
+		requireSourceOwnedStdlibClass("haxe.Exception");
+		var owner = classFromType(Context.getType("haxe.Exception"));
+		if (owner == null)
+			Context.fatalError("Missing source-owned exception class", Context.currentPos());
+		return GoExpr.GoCall(GoExpr.GoIdent(staticSymbol(owner, member)), [value]);
+	}
+
+	/**
+		Preserve ordered catches with separate exception and payload views. The
+		frontend supplies raw catch nodes, so both statement and expression paths
+		must use the same conversion, nominal ancestry and typed recovery rules.
+	 */
+	function lowerCatchDispatch(caughtName:String, catches:Array<{variable:TVar, body:Array<GoStmt>}>):Array<GoStmt> {
+		var raw = GoExpr.GoIdent(caughtName);
+		var exceptionName = freshTempName("hx_exception");
+		var payloadName = freshTempName("hx_payload");
+		var prefix = [
+			GoStmt.GoVarDecl(exceptionName, null, exceptionSourceCall("caught", raw), true),
+			GoStmt.GoVarDecl(payloadName, null, exceptionSourceCall("catchValue", raw), true),
+			GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(exceptionName)),
+			GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(payloadName))
+		];
+		var next = [GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [raw]))];
+		var index = catches.length;
+		while (index-- > 0) {
+			var entry = catches[index];
+			var type = entry.variable.t;
+			var name = localVarName(entry.variable);
+			var owner = classFromType(type);
+			var isException = isHaxeExceptionFamilyType(type);
+			var input = GoExpr.GoIdent(isException ? exceptionName : payloadName);
+			var wildcard = isDynamicCatchType(type) || isHaxeExceptionType(type) || typeToGoType(type) == "any";
+			var value = owner != null
+				&& !owner.isExtern ? nominalValueRecovery.recover(input, owner) : lowerNullableAwareTypeAssertExpr(input, type);
+			var body = [
+				GoStmt.GoVarDecl(name, typeToGoType(type), value, false),
+				GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(name))
+			].concat(entry.body);
+			if (wildcard) {
+				next = body;
+			} else {
+				var condition = owner != null
+					&& !owner.isExtern ? stdIsOfTypeClassExpr(input, TDynamic(null), owner) : stdIsOfTypeTypeSwitch(input, [typeToGoType(type)]);
+				next = [GoStmt.GoIf(condition, body, next)];
+			}
+		}
+		return prefix.concat(next);
+	}
+
 	function lowerTryCatchStmt(tryExpr:TypedExpr, catches:Array<{v:TVar, expr:TypedExpr}>):Array<GoStmt> {
 		var redirect:Null<ReturnRedirect> = null;
 		var redirectPrefix = new Array<GoStmt>();
@@ -4732,53 +4767,13 @@ class GoCompiler {
 		}
 
 		var caughtName = freshTempName("hx_caught");
-		var typeBindingName = freshTempName("hx_typed");
-		var typedCases = new Array<GoTypeSwitchCase>();
-		var dynamicBody:Null<Array<GoStmt>> = null;
-
-		for (index in 0...catches.length) {
-			var catchEntry = catches[index];
-			var catchVarName = localVarName(catchEntry.v);
-			var catchType = typeToGoType(catchEntry.v.t);
-			var catchExprBody = lowerStatementsWithReturnType(catchEntry.expr, voidType(), redirect);
-			var haxeExceptionCatch = isHaxeExceptionType(catchEntry.v.t);
-			var dynamicCatch = isDynamicCatchType(catchEntry.v.t) || haxeExceptionCatch || catchType == "any";
-
-			if (dynamicCatch) {
-				if (index != catches.length - 1) {
-					Context.fatalError("Dynamic catch must be the final catch clause", catchEntry.expr.pos);
+		var catchBody = lowerCatchDispatch(caughtName, [
+			for (entry in catches)
+				{
+					variable: entry.v,
+					body: lowerStatementsWithReturnType(entry.expr, voidType(), redirect)
 				}
-				var dynamicValueExpr = haxeExceptionCatch ? GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionCaught"),
-					[GoExpr.GoIdent(caughtName)]) : GoExpr.GoIdent(caughtName);
-				var dynamicValueType = haxeExceptionCatch ? "*hxrt.ExceptionValue" : "any";
-				dynamicBody = [
-					GoStmt.GoVarDecl(catchVarName, dynamicValueType, dynamicValueExpr, true),
-					GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(catchVarName))
-				].concat(catchExprBody);
-			} else {
-				typedCases.push({
-					typeName: catchType,
-					body: [
-						GoStmt.GoVarDecl(catchVarName, catchType, GoExpr.GoIdent(typeBindingName), true),
-						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(catchVarName))
-					].concat(catchExprBody)
-				});
-			}
-		}
-
-		if (dynamicBody == null) {
-			dynamicBody = [
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [GoExpr.GoIdent(caughtName)]))
-			];
-		}
-
-		var catchBody:Array<GoStmt> = if (typedCases.length == 0) {
-			dynamicBody;
-		} else {
-			[
-				GoStmt.GoTypeSwitch(GoExpr.GoIdent(caughtName), typeBindingName, typedCases, dynamicBody)
-			];
-		};
+		]);
 
 		var out = redirectPrefix.concat([
 			GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.TryCatch"), [
@@ -4986,55 +4981,12 @@ class GoCompiler {
 		}
 
 		var caughtName = freshTempName("hx_caught");
-		var typeBindingName = freshTempName("hx_typed");
-		var typedCases = new Array<GoTypeSwitchCase>();
-		var dynamicBody:Null<Array<GoStmt>> = null;
-
-		for (index in 0...catches.length) {
-			var catchEntry = catches[index];
-			var catchVarName = localVarName(catchEntry.v);
-			var catchType = typeToGoType(catchEntry.v.t);
-			var loweredCatch = lowerCallableBranch(catchEntry.expr, resultType, function() return lowerExprWithExpectedUpcast(catchEntry.expr, resultType));
-			var loweredCatchValue = loweredCatch.expr;
-			var catchExprBody = loweredCatch.prefix.concat([GoStmt.GoAssign(tempExpr, loweredCatchValue)]);
-			var haxeExceptionCatch = isHaxeExceptionType(catchEntry.v.t);
-			var dynamicCatch = isDynamicCatchType(catchEntry.v.t) || haxeExceptionCatch || catchType == "any";
-
-			if (dynamicCatch) {
-				if (index != catches.length - 1) {
-					Context.fatalError("Dynamic catch must be the final catch clause", catchEntry.expr.pos);
-				}
-				var dynamicValueExpr = haxeExceptionCatch ? GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionCaught"),
-					[GoExpr.GoIdent(caughtName)]) : GoExpr.GoIdent(caughtName);
-				var dynamicValueType = haxeExceptionCatch ? "*hxrt.ExceptionValue" : "any";
-				dynamicBody = [
-					GoStmt.GoVarDecl(catchVarName, dynamicValueType, dynamicValueExpr, true),
-					GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(catchVarName))
-				].concat(catchExprBody);
-			} else {
-				typedCases.push({
-					typeName: catchType,
-					body: [
-						GoStmt.GoVarDecl(catchVarName, catchType, GoExpr.GoIdent(typeBindingName), true),
-						GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(catchVarName))
-					].concat(catchExprBody)
-				});
+		var catchBody = lowerCatchDispatch(caughtName, [
+			for (entry in catches) {
+				var loweredCatch = lowerCallableBranch(entry.expr, resultType, function() return lowerExprWithExpectedUpcast(entry.expr, resultType));
+				{variable: entry.v, body: loweredCatch.prefix.concat([GoStmt.GoAssign(tempExpr, loweredCatch.expr)])};
 			}
-		}
-
-		if (dynamicBody == null) {
-			dynamicBody = [
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [GoExpr.GoIdent(caughtName)]))
-			];
-		}
-
-		var catchBody:Array<GoStmt> = if (typedCases.length == 0) {
-			dynamicBody;
-		} else {
-			[
-				GoStmt.GoTypeSwitch(GoExpr.GoIdent(caughtName), typeBindingName, typedCases, dynamicBody)
-			];
-		};
+		]);
 
 		return {
 			prefix: [
@@ -5464,7 +5416,7 @@ class GoCompiler {
 	function lowerThrowExprForType(value:TypedExpr, resultType:Type):LoweredExpr {
 		var loweredValue = lowerExprWithPrefix(value);
 		var throwBody = loweredValue.prefix.concat([
-			GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [loweredValue.expr]))
+			GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [exceptionSourceCall("thrown", loweredValue.expr)]))
 		]);
 		if (isVoidType(resultType)) {
 			return {
@@ -6369,14 +6321,6 @@ class GoCompiler {
 						expr: GoExpr.GoUnary(GoUnaryOperator.AddressOf, GoExpr.GoCompositeLiteral(nativeGoStructType(classType), [])),
 						isStringLike: false
 					};
-				} else if (isHaxeValueExceptionClass(classType)) {
-					while (loweredArgs.length < 3) {
-						loweredArgs.push(GoExpr.GoNil);
-					}
-					{
-						expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.NewValueException"), loweredArgs),
-						isStringLike: false
-					};
 				} else if (useTypedGoConcurrencySpecialization() && isGoChanClass(classType)) {
 					noteLoweringAttempt("go.concurrency.typed", "go_chan_new", expr.pos, "Attempt typed go.Chan constructor specialization.");
 					var elementEligibility = goChanElementEligibility(expr.t, "Could not resolve go.Chan element type for constructor specialization.");
@@ -6816,7 +6760,14 @@ class GoCompiler {
 						prefix = prefix.concat(withoutThrowFallback(function() return lowerToStatements(exprs[index])));
 					}
 					var tailExpr = exprs[exprs.length - 1];
-					var tail = lowerCallableBranch(tailExpr, expr.t, function() return lowerExprWithPrefix(tailExpr));
+					var tail = lowerCallableBranch(tailExpr, expr.t, function() {
+						var lowered = lowerExprWithExpectedUpcast(tailExpr, expr.t);
+						// Inline Any conversions can retain erased tail storage while the
+						// block itself promises a concrete reference result.
+						var recovered = typeToGoType(tailExpr.t) == "any"
+							&& !isAnonymousObjectType(expr.t) ? lowerNullableAwareTypeAssertExpr(lowered.expr, expr.t) : lowered.expr;
+						return {prefix: lowered.prefix, expr: recovered, isStringLike: lowered.isStringLike};
+					});
 					{
 						prefix: prefix.concat(tail.prefix),
 						expr: tail.expr,
@@ -7211,20 +7162,6 @@ class GoCompiler {
 					};
 				}
 
-				if (isHaxeExceptionFamilyType(target.t) && resolved.name == "message") {
-					return {
-						expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionMessage"), [loweredTarget]),
-						isStringLike: true
-					};
-				}
-
-				if (isHaxeValueExceptionType(target.t) && resolved.name == "value") {
-					return {
-						expr: GoExpr.GoSelector(loweredTarget, "Value"),
-						isStringLike: isStringType(resolved.type)
-					};
-				}
-
 				var restTargetName = resolveRestIteratorTargetName(target);
 				var restFieldName = restIteratorFieldName(restTargetName, resolved.name);
 				if (restFieldName != null) {
@@ -7276,18 +7213,7 @@ class GoCompiler {
 						isStringLike: isStringType(resolved.type)
 					};
 				}
-				if (isHaxeExceptionFamilyType(target.t) && resolved.name == "message") {
-					return {
-						expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionMessage"), [loweredTarget]),
-						isStringLike: true
-					};
-				}
-				if (isHaxeValueExceptionType(target.t) && resolved.name == "value") {
-					return {
-						expr: GoExpr.GoSelector(loweredTarget, "Value"),
-						isStringLike: isStringType(resolved.type)
-					};
-				}
+
 				var restTargetName = resolveRestIteratorTargetName(target);
 				var restFieldName = restIteratorFieldName(restTargetName, resolved.name);
 				if (restFieldName != null) {
@@ -7769,46 +7695,6 @@ class GoCompiler {
 
 		if (isStaticCall(callee, "Std", [], "isOfType")) {
 			return lowerStdIsOfTypeCall(args);
-		}
-
-		if (isStaticCall(callee, "Exception", ["haxe"], "caught")) {
-			var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
-			return {
-				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionCaught"), [arg]),
-				isStringLike: false
-			};
-		}
-
-		if (isStaticCall(callee, "Exception", ["haxe"], "thrown")) {
-			var arg = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoNil;
-			return {
-				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionThrown"), [arg]),
-				isStringLike: false
-			};
-		}
-
-		var exceptionMessageTarget = asHaxeExceptionMessageGetterTarget(callee);
-		if (exceptionMessageTarget != null && args.length == 0) {
-			return {
-				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionMessage"), [lowerExpr(exceptionMessageTarget).expr]),
-				isStringLike: true
-			};
-		}
-
-		var exceptionToStringTarget = asHaxeExceptionToStringTarget(callee);
-		if (exceptionToStringTarget != null && args.length == 0) {
-			return {
-				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionMessage"), [lowerExpr(exceptionToStringTarget).expr]),
-				isStringLike: true
-			};
-		}
-
-		var valueExceptionUnwrapTarget = asHaxeValueExceptionUnwrapTarget(callee);
-		if (valueExceptionUnwrapTarget != null && args.length == 0) {
-			return {
-				expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExceptionThrown"), [lowerExpr(valueExceptionUnwrapTarget).expr]),
-				isStringLike: false
-			};
 		}
 
 		var loweredArgs = new Array<GoExpr>();
@@ -9319,14 +9205,12 @@ class GoCompiler {
 				|| specs.exists(fullClassName(classType))) {
 				continue;
 			}
-			if (hasGeneratedVirtualCarrier(classType) && !isHaxeExceptionClass(classType)) {
+			if (hasGeneratedVirtualCarrier(classType)) {
 				generatedClassSpecs.set(fullClassName(classType), classType);
 				continue;
 			}
 			var typeNames = stdIsOfTypeClassTypeNames(classType);
-			if (isHaxeExceptionClass(classType)) {
-				typeNames = typeNames.concat(["*hxrt.ExceptionValue", "hxrt.ExceptionCarrier"]);
-			}
+
 			typeNames.sort(function(a, b) return Reflect.compare(a, b));
 			if (typeNames.length > 0) {
 				specs.set(fullClassName(classType), typeNames);
@@ -9546,16 +9430,6 @@ class GoCompiler {
 	}
 
 	function stdIsOfTypeClassExpr(valueExpr:GoExpr, valueType:Type, targetClass:ClassType):GoExpr {
-		if (isHaxeExceptionClass(targetClass)) {
-			if (isHaxeExceptionFamilyType(valueType)) {
-				return GoExpr.GoBinary("!=", valueExpr, GoExpr.GoNil);
-			}
-			if (!isAnyLikeType(valueType)) {
-				return GoExpr.GoBoolLiteral(false);
-			}
-			return stdIsOfTypeTypeSwitch(valueExpr, ["*hxrt.ExceptionValue", "hxrt.ExceptionCarrier"]);
-		}
-
 		var valueClass = classFromType(valueType);
 		if (valueClass != null) {
 			if (inheritancePath(valueClass, targetClass) != null) {
@@ -10923,9 +10797,17 @@ class GoCompiler {
 		var typedStringOps = isStringType(left.t) && isStringType(right.t) && !leftStoredArrayElement && !rightStoredArrayElement;
 		var equalityOp = isEqualityBinop(op);
 		var storedArrayEquality = equalityOp && (leftStoredArrayElement || rightStoredArrayElement);
+		var leftClass = classFromType(left.t);
+		var rightClass = classFromType(right.t);
+		// Different generated storage views can still name the same Haxe object.
+		var mixedClassViews = leftClass != null
+			&& rightClass != null
+			&& hasGeneratedVirtualCarrier(leftClass)
+			&& hasGeneratedVirtualCarrier(rightClass)
+			&& typeToGoType(left.t) != typeToGoType(right.t);
 		var erasedEquality = equalityOp
 			&& !nullComparison
-			&& (isAnonymousObjectType(left.t) || isAnonymousObjectType(right.t) || isAnyLikeType(left.t) || isAnyLikeType(right.t)
+			&& (mixedClassViews || isAnonymousObjectType(left.t) || isAnonymousObjectType(right.t) || isAnyLikeType(left.t) || isAnyLikeType(right.t)
 				|| (switch (Context.follow(left.t)) {
 					case TFun(_, _): true;
 					case _: false;
@@ -11720,11 +11602,17 @@ class GoCompiler {
 			return expr;
 		}
 
-		var out = expr;
+		// A Haxe class upcast preserves null. Evaluate the source once before
+		// selecting embedded Go bases, which would otherwise dereference nil.
+		var value = GoExpr.GoIdent("hx_value");
+		var out = value;
 		for (classType in path) {
 			out = GoExpr.GoSelector(out, classTypeName(classType));
 		}
-		return out;
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: "hx_value", typeName: typeToGoType(fromType)}], [typeToGoType(toType)], [
+			GoStmt.GoIf(GoExpr.GoBinary(GoBinaryOperator.Equal, value, GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null),
+			GoStmt.GoReturn(out)
+		]), [expr]);
 	}
 
 	/**
@@ -12280,26 +12168,6 @@ class GoCompiler {
 				isHaxeExceptionFamilyClass(classRef.get());
 			case _:
 				false;
-		};
-	}
-
-	function isHaxeValueExceptionType(type:Type):Bool {
-		return switch (Context.follow(type)) {
-			case TInst(classRef, _):
-				isHaxeValueExceptionClass(classRef.get());
-			case _:
-				false;
-		};
-	}
-
-	function directHaxeExceptionSuperClass(classType:ClassType):Bool {
-		if (isHaxeValueExceptionClass(classType)) {
-			return false;
-		}
-		return switch (classType.superClass) {
-			case null:
-				false;
-			case superRef: var superType = superRef.t.get(); isHaxeExceptionClass(superType) || isHaxeValueExceptionClass(superType);
 		};
 	}
 
@@ -13301,65 +13169,6 @@ class GoCompiler {
 				asGoResultMethodCall(inner);
 			case TCast(inner, _):
 				asGoResultMethodCall(inner);
-			case _:
-				null;
-		};
-	}
-
-	function asHaxeExceptionMessageGetterTarget(callee:TypedExpr):Null<TypedExpr> {
-		return switch (callee.expr) {
-			case TField(target, FInstance(classRef, _, field)):
-				var classType = classRef.get();
-				if (isHaxeExceptionFamilyClass(classType) && field.get().name == "get_message") {
-					target;
-				} else {
-					null;
-				}
-			case _:
-				null;
-		};
-	}
-
-	function asHaxeExceptionToStringTarget(callee:TypedExpr):Null<TypedExpr> {
-		return switch (callee.expr) {
-			case TField(target, FInstance(classRef, _, field)):
-				var classType = classRef.get();
-				if ((isHaxeExceptionClass(classType) || isHaxeValueExceptionClass(classType)) && field.get().name == "toString") {
-					target;
-				} else {
-					null;
-				}
-			case TField(target, FAnon(field)) | TField(target, FClosure(_, field)):
-				if ((isHaxeExceptionType(target.t) || isHaxeValueExceptionType(target.t)) && field.get().name == "toString") {
-					target;
-				} else {
-					null;
-				}
-			case TMeta(_, inner):
-				asHaxeExceptionToStringTarget(inner);
-			case TParenthesis(inner):
-				asHaxeExceptionToStringTarget(inner);
-			case TCast(inner, _):
-				asHaxeExceptionToStringTarget(inner);
-			case _:
-				null;
-		};
-	}
-
-	function asHaxeValueExceptionUnwrapTarget(callee:TypedExpr):Null<TypedExpr> {
-		return switch (callee.expr) {
-			case TField(target, FInstance(_, _, field)) | TField(target, FAnon(field)) | TField(target, FClosure(_, field)):
-				if (isHaxeValueExceptionType(target.t) && field.get().name == "unwrap") {
-					target;
-				} else {
-					null;
-				}
-			case TMeta(_, inner):
-				asHaxeValueExceptionUnwrapTarget(inner);
-			case TParenthesis(inner):
-				asHaxeValueExceptionUnwrapTarget(inner);
-			case TCast(inner, _):
-				asHaxeValueExceptionUnwrapTarget(inner);
 			case _:
 				null;
 		};

@@ -998,7 +998,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             "CompilerReflect.generatedFields",
             "CompilerReflect.generatedMethod",
             "NativeReflect.lookupMethod",
-            "NativeReflect.callMethod",
+            "CompilerReflect.callMethod",
             "NativeReflect.fields",
             "NativeReflect.deleteField",
             "NativeReflect.copy",
@@ -1027,7 +1027,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
 
         self.assertIn('var HxrtReflection = "reflection";', feature_analyzer)
         self.assertIn('path == "Reflect" || path == "hxrt.reflect.NativeReflect"', feature_analyzer)
-        self.assertIn('[FEATURE_STRING, FEATURE_ARRAY]', feature_analyzer)
+        self.assertRegex(feature_analyzer, r"case FEATURE_REFLECTION:\s*\[FEATURE_STRING, FEATURE_ARRAY, FEATURE_FUNCTION\]")
         self.assertIn('["reflect.go"]', feature_analyzer)
         self.assertNotIn('case "reflect.go":', reflaxe_compiler)
         self.assertIn("GoRuntimeCapabilityManifest.build", reflaxe_compiler)
@@ -1076,7 +1076,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             )
         )
         self.assertEqual(
-            {"field", "fields", "hasField", "isEnumValue", "setField"},
+            {"callMethod", "field", "fields", "hasField", "isEnumValue", "setField"},
             registered_reflect_members,
         )
 
@@ -1218,7 +1218,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             self.assertIn(signature, runtime_template, signature)
 
         self.assertIn('var HxrtTemplate = "template";', feature_analyzer)
-        self.assertIn('[FEATURE_CORE, FEATURE_ARRAY]', feature_analyzer)
+        self.assertRegex(feature_analyzer, r"case FEATURE_TEMPLATE:\s*\[FEATURE_CORE, FEATURE_ARRAY, FEATURE_REFLECTION\]")
         self.assertIn('path == "hxrt.template.NativeTemplate"', feature_analyzer)
         self.assertIn('["template.go"]', feature_analyzer)
         self.assertNotIn('case "template.go":', reflaxe_compiler)

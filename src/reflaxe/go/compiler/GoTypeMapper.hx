@@ -53,8 +53,6 @@ class GoTypeMapper {
 				var classType = classRef.get();
 				if (isTypeParameterClass(classType)) {
 					typeParameterGoType(classType, classTypeName, enumTypeName);
-				} else if (isHaxeExceptionClass(classType)) {
-					"*hxrt.ExceptionValue";
 				} else if (classType.isInterface) {
 					classTypeName(classType);
 				} else if (classType.pack.length == 0 && classType.name == "String") {
@@ -401,8 +399,6 @@ class GoTypeMapper {
 				var classType = classRef.get();
 				if (isTypeParameterClass(classType)) {
 					typeParameterGoType(classType, classTypeName, enumTypeName);
-				} else if (isHaxeExceptionClass(classType)) {
-					"*hxrt.ExceptionValue";
 				} else if (classType.isInterface) {
 					classTypeName(classType);
 				} else if (classType.pack.length == 0 && classType.name == "String") {
@@ -713,7 +709,7 @@ class GoTypeMapper {
 
 	public static function isHaxeExceptionClass(classType:ClassType):Bool {
 		return switch (classType.pack.join(".") + "." + classType.name) {
-			case "haxe.Exception", "haxe.ValueException":
+			case "haxe.Exception":
 				true;
 			case _:
 				false;
