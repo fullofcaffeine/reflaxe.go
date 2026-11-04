@@ -7396,8 +7396,11 @@ class GoCompiler {
 		callExpr = normalizeExternValueCallResult(callee, returnType, callExpr);
 		callExpr = normalizeExternErrorCallResult(callee, returnType, callExpr);
 		var appliedIterator = adaptStructuralIteratorCall(callee, callExpr, returnType);
+		var appliedCallback = adaptGenericCallbackResult(callee, callExpr, returnType);
 		if (appliedIterator != null) {
 			callExpr = appliedIterator;
+		} else if (appliedCallback != null) {
+			callExpr = appliedCallback;
 		} else if (shouldAssertGenericCallResult(callee, returnType)) {
 			callExpr = lowerNullableAwareTypeAssertExpr(callExpr, returnType);
 		}
@@ -9740,6 +9743,34 @@ class GoCompiler {
 
 	function nativeResultShimName(base:String, elementGoType:String):String {
 		return base + "__" + nativeTypeSuffix(elementGoType);
+	}
+
+	/**
+		What: Adapts a generic method's returned callback to its applied signature.
+		Why: Go function carriers with erased and concrete signatures are distinct
+		types; asserting one as the other panics even for valid Haxe substitutions.
+		How: Use the declaration's emitted signature and retain identity through the
+		shared typed adapter. Native and interface boundaries retain their own owners.
+	**/
+	function adaptGenericCallbackResult(callee:TypedExpr, callExpr:GoExpr, returnType:Type):Null<GoExpr> {
+		return switch (callee.expr) {
+			case TField(_, FInstance(classRef, _, field)):
+				var owner = classRef.get();
+				if (owner.params.length == 0 || owner.isInterface || owner.isExtern) {
+					null;
+				} else {
+					switch ([Context.follow(field.get().type), Context.follow(returnType)]) {
+						case [TFun(_, declared), TFun(_, _)]:
+							switch (Context.follow(declared)) {
+								case TFun(_, _): adaptErasedFunctionCallArg(callExpr, declared, returnType);
+								case _: null;
+							}
+						case _: null;
+					}
+				}
+			case TMeta(_, inner) | TParenthesis(inner): adaptGenericCallbackResult(inner, callExpr, returnType);
+			case _: null;
+		};
 	}
 
 	function shouldAssertGenericCallResult(callee:TypedExpr, returnType:Type):Bool {
