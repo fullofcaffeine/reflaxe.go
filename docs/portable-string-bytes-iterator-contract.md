@@ -115,21 +115,32 @@ opaque typedef or abstract element storage also retain `hxrt_iterator` and
 report the `core` runtime capability. A user-defined typedef of `Iterator<T>`
 remains nominal and opaque to admission.
 
-## Why closures remain unadmitted
+## Function identity and remaining admission gates
 
-The semantic fixture proves mutable captures, callback reuse, independent
-closure state, loop capture, bound-receiver mutation, same-receiver method
-comparison, null comparison, and Dynamic callback fallback.
+First-class function values use `hxrt.Function[F]`. This carrier stores the typed
+Go callable and a separate identity token. Aliases and signature adapters retain
+the token. Each closure factory creates a new token. Ordinary calls to named
+methods retain their direct Go call form.
 
-It also found a real boundary: the current Go implementation of
-`Reflect.compareMethods` compares function code pointers. The same method on two
-different receiver objects can therefore compare equal, while portable Haxe
-requires different receivers to compare unequal. Admitting `haxe.Function`
-from simple capture tests would hide that mismatch.
+`Reflect.compareMethods` compares method slots and logical receivers. A method
+saved during base construction follows the final receiver after subclass
+construction. Ordinary `==` preserves a different Haxe rule: separate bound
+method values remain unequal, while repeated static declaration reads compare
+equal. These comparisons no longer use Go code pointers.
 
-The registry continues to recognize function shapes and reports
-`contract_missing`. `haxe_go-vfp.7.11` owns a stable callable-identity carrier
-and guarded null invocation before function admission can be reconsidered.
+Stored calls evaluate the function and arguments once before the null guard.
+A null function raises the Haxe error `Cannot call null`. Foreign Go panics keep
+their existing exception behavior.
+
+Native callback boundaries expose exact Go function signatures. Raw callbacks
+cannot recover Haxe identity after an opaque native roundtrip without explicit
+provenance. The runtime uses no unsafe layout access or global callback registry.
+
+The focused contracts cover closure aliases, containers, generic transport,
+method receivers, optional arguments, reflection, and native callback invocation.
+The registry still reports `contract_missing` for `haxe.Function`. Full regression
+validation, explicit rules for unsupported boundaries, and performance evidence
+remain required before admission. `haxe_go-vfp.7.11` owns these remaining gates.
 
 ## What sibling compilers teach us
 

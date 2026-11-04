@@ -5,7 +5,11 @@ import "reflect"
 // functionIdentity is deliberately nonzero-sized: Go permits distinct zero-sized
 // allocations to share an address. A traced token survives aliases and signature
 // adapters without retaining callbacks in a global registry.
-type functionIdentity struct{ marker byte }
+type functionIdentity struct {
+	marker   byte
+	name     string
+	receiver func() any
+}
 
 // Function carries a first-class Haxe callable and its source identity together.
 // F is always a concrete Go function signature. Go cannot express a constraint
@@ -24,6 +28,15 @@ type Function[F any] struct {
 // executable address, captured contents, or wrapper allocation.
 type functionValue interface {
 	functionIdentity() *functionIdentity
+	functionPayload() any
+}
+
+// Erasure is confined to reflection; ordinary generated calls use FunctionCall.
+func (value *Function[F]) functionPayload() any {
+	if value == nil {
+		return nil
+	}
+	return value.call
 }
 
 func (value *Function[F]) functionIdentity() *functionIdentity {
@@ -34,7 +47,63 @@ func (value *Function[F]) functionIdentity() *functionIdentity {
 }
 
 func sameFunctionIdentity(left, right functionValue) bool {
-	return left.functionIdentity() == right.functionIdentity()
+	l, r := left.functionIdentity(), right.functionIdentity()
+	if l == r {
+		return true
+	}
+	if l == nil || r == nil || l.name == "" || l.name != r.name {
+		return false
+	}
+	if l.receiver == nil || r.receiver == nil {
+		return l.receiver == nil && r.receiver == nil
+	}
+	// Generated receiver accessors return a nonzero-sized object pointer. Resolve
+	// it now: superclass construction can rebind the logical receiver after an
+	// earlier method extraction. No native memory layout is inspected.
+	return l.receiver() == r.receiver()
+}
+
+// equalFunctionIdentity implements ordinary Haxe equality. Bound extraction is
+// a fresh closure even when Reflect.compareMethods recognizes the same method.
+// Named static declarations retain declaration identity; adapters retain tokens.
+func equalFunctionIdentity(left, right functionValue) bool {
+	l, r := left.functionIdentity(), right.functionIdentity()
+	return l == r || (l != nil && r != nil && l.receiver == nil && r.receiver == nil && sameFunctionIdentity(left, right))
+}
+
+// String keeps the runtime carrier opaque to ordinary Haxe string conversion.
+func (value *Function[F]) String() string { return "#fun" }
+
+// NamedFunction identifies a finite compiler-owned declaration, independently
+// of signature adapters or repeated reads. The key is emitted from source
+// declaration identity; it is never derived from executable code.
+func NamedFunction[F any](call F, key string) *Function[F] {
+	value := NewFunction(call)
+	if value != nil {
+		value.identity.name = key
+	}
+	return value
+}
+
+// BoundFunction combines one virtual method slot with a live logical receiver.
+// Both the callable and receiver accessor must retain the physical receiver.
+// Generated accessors return comparable object pointers; arbitrary native value
+// receivers require an explicit boundary instead of guessing their identity.
+func BoundFunction[F any](call F, receiver func() any, slot string) *Function[F] {
+	value := NamedFunction(call, slot)
+	if value != nil {
+		value.identity.receiver = receiver
+	}
+	return value
+}
+
+// FunctionReceiver normalizes generated object and interface views. The narrow
+// method is compiler-owned and remains outside Haxe-visible member metadata.
+func FunctionReceiver(value any) any {
+	if receiver, ok := value.(interface{ HxFunctionReceiver() any }); ok {
+		return receiver.HxFunctionReceiver()
+	}
+	return value
 }
 
 func functionPayloadIsNil[F any](call F) bool {

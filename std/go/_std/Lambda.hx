@@ -41,7 +41,8 @@ import haxe.ds.List;
 	  filtering, mapping, folding, or early-exit behavior. Preserve concrete nested
 	  iterable types with constrained parameters so the Go boundary can build only
 	  the required representation wrapper. `@:dce` eliminates unused emitted
-	  helpers.
+	  helpers. Preserve upstream inline declarations so callback reassignment
+	  during an inlined traversal keeps Haxe evaluation semantics.
 **/
 @:dce
 class Lambda {
@@ -84,7 +85,7 @@ class Lambda {
 		return out;
 	}
 
-	public static function map<A, B>(it:Iterable<A>, transform:(item:A) -> B):Array<B> {
+	public static inline function map<A, B>(it:Iterable<A>, transform:(item:A) -> B):Array<B> {
 		var out:Array<B> = [];
 		for (value in it) {
 			out.push(transform(value));
@@ -92,7 +93,7 @@ class Lambda {
 		return out;
 	}
 
-	public static function mapi<A, B>(it:Iterable<A>, transform:(index:Int, item:A) -> B):Array<B> {
+	public static inline function mapi<A, B>(it:Iterable<A>, transform:(index:Int, item:A) -> B):Array<B> {
 		var out:Array<B> = [];
 		var index = 0;
 		for (value in it) {
@@ -102,7 +103,7 @@ class Lambda {
 		return out;
 	}
 
-	public static function flatten<A, Nested:Iterable<A>>(it:Iterable<Nested>):Array<A> {
+	public static inline function flatten<A, Nested:Iterable<A>>(it:Iterable<Nested>):Array<A> {
 		var out:Array<A> = [];
 		for (nested in it) {
 			for (value in nested) {
@@ -112,7 +113,7 @@ class Lambda {
 		return out;
 	}
 
-	public static function flatMap<A, B, Nested:Iterable<B>>(it:Iterable<A>, transform:(item:A) -> Nested):Array<B> {
+	public static inline function flatMap<A, B, Nested:Iterable<B>>(it:Iterable<A>, transform:(item:A) -> Nested):Array<B> {
 		var out:Array<B> = [];
 		for (value in it) {
 			for (mapped in transform(value)) {

@@ -69,6 +69,11 @@ func ReflectLookupField(object any, field *string) *ReflectFieldLookup {
 // methods are lowercase and are resolved by the compiler metadata adapter first.
 func ReflectLookupMethod(object any, field *string) *ReflectFieldLookup {
 	key, valid := reflectFieldName(field)
+	if key == "HxFunctionReceiver" {
+		if _, generated := object.(interface{ HxFunctionReceiver() any }); generated {
+			return &ReflectFieldLookup{}
+		}
+	}
 	if object == nil || !valid {
 		return &ReflectFieldLookup{}
 	}
@@ -161,6 +166,9 @@ func reflectCallArgument(value any, target reflect.Type) reflect.Value {
 // ReflectCallMethod invokes an already-resolved function. Object context is not
 // needed on Go because generated and reflected method values are already bound.
 func ReflectCallMethod(function any, arguments []any) any {
+	if value, ok := function.(functionValue); ok {
+		function = value.functionPayload()
+	}
 	if function == nil {
 		return nil
 	}
@@ -240,6 +248,9 @@ func ReflectFields(object any) []*string {
 }
 
 func ReflectIsFunction(value any) bool {
+	if function, ok := value.(functionValue); ok {
+		return function.functionIdentity() != nil
+	}
 	if value == nil {
 		return false
 	}
@@ -301,6 +312,17 @@ func ReflectCompare(left any, right any) int {
 }
 
 func ReflectCompareMethods(left any, right any) bool {
+	leftNil, rightNil := isAnyNil(left), isAnyNil(right)
+	if leftNil || rightNil {
+		return leftNil && rightNil
+	}
+	if function, ok := left.(functionValue); ok {
+		other, otherOK := right.(functionValue)
+		return otherOK && sameFunctionIdentity(function, other)
+	}
+	if _, ok := right.(functionValue); ok {
+		return false
+	}
 	if left == nil || right == nil {
 		return left == nil && right == nil
 	}
@@ -310,15 +332,17 @@ func ReflectCompareMethods(left any, right any) bool {
 		return !leftValue.IsValid() && !rightValue.IsValid()
 	}
 	if leftValue.Kind() == reflect.Func && rightValue.Kind() == reflect.Func {
-		if leftValue.IsNil() || rightValue.IsNil() {
-			return leftValue.IsNil() && rightValue.IsNil()
-		}
-		return leftValue.Pointer() == rightValue.Pointer()
+		// Raw native functions have no source identity. A Haxe import must create
+		// a Function value before comparison; executable addresses are not keys.
+		return false
 	}
 	return reflect.DeepEqual(left, right)
 }
 
 func ReflectIsObject(value any) bool {
+	if _, ok := value.(functionValue); ok {
+		return false
+	}
 	if value == nil {
 		return false
 	}
@@ -408,7 +432,7 @@ func ReflectMakeVarArgs(callback any) any {
 	if callback == nil {
 		return nil
 	}
-	return func(arguments ...any) any {
+	return NewFunction(func(arguments ...any) any {
 		return ReflectCallMethod(callback, []any{ArrayFromValues(arguments)})
-	}
+	})
 }

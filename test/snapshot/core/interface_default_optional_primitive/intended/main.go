@@ -15,6 +15,10 @@ type DefaultedValueBase struct {
 	__hx_this I_DefaultedValueBase
 }
 
+func (self *DefaultedValueBase) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_DefaultedValueBase() *DefaultedValueBase {
 	self := &DefaultedValueBase{}
 	self.__hx_this = self
@@ -36,6 +40,10 @@ type I_DefaultedValueImpl interface {
 type DefaultedValueImpl struct {
 	*DefaultedValueBase
 	__hx_this I_DefaultedValueImpl
+}
+
+func (self *DefaultedValueImpl) HxFunctionReceiver() any {
+	return self.__hx_this
 }
 
 func New_DefaultedValueImpl() *DefaultedValueImpl {
