@@ -19,8 +19,20 @@ func (self *CancelPair) HxFunctionReceiver() any {
 }
 
 func New_CancelPair(context context.Context, cancel *hxrt.Function[func()]) *CancelPair {
+	return hx_init_CancelPair(hx_alloc_CancelPair(nil), context, cancel)
+}
+
+func hx_alloc_CancelPair(owner any) *CancelPair {
 	self := &CancelPair{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_CancelPair)
+	}
+	return self
+}
+
+func hx_init_CancelPair(self *CancelPair, context context.Context, cancel *hxrt.Function[func()]) *CancelPair {
 	self.context = context
 	self.cancel = cancel
 	return self

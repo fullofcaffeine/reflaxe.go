@@ -3,11 +3,7 @@ package main
 import "snapshot/hxrt"
 
 func discard(callback *hxrt.Function[func(int) int]) *hxrt.Function[func(int)] {
-	return func(hx_callback_source_2 *hxrt.Function[func(int) int]) *hxrt.Function[func(int)] {
-		return hxrt.AdaptFunction(hx_callback_source_2, func(hx_erased_callback_arg_1 int) {
-			hxrt.FunctionCall(hx_callback_source_2)(hx_erased_callback_arg_1)
-		})
-	}(callback)
+	return hx_recover_callable_0(callback)
 }
 
 func main() {
@@ -16,61 +12,45 @@ func main() {
 		return value
 	})
 	returned := discard(original)
-	stored := func(hx_callback_source_4 *hxrt.Function[func(int) int]) *hxrt.Function[func(int)] {
-		return hxrt.AdaptFunction(hx_callback_source_4, func(hx_erased_callback_arg_3 int) {
-			hxrt.FunctionCall(hx_callback_source_4)(hx_erased_callback_arg_3)
-		})
-	}(original)
+	stored := hx_recover_callable_0(original)
 	func() {
-		var hx_callable_5 *hxrt.Function[func(int)] = returned
-		var hx_argument_6 int = 3
-		hxrt.FunctionCall(hx_callable_5)(hx_argument_6)
+		var hx_callable_1 *hxrt.Function[func(int)] = returned
+		var hx_argument_2 int = 3
+		hxrt.FunctionCall(hx_callable_1)(hx_argument_2)
 	}()
 	func() {
-		var hx_callable_7 *hxrt.Function[func(int)] = stored
-		var hx_argument_8 int = 5
-		hxrt.FunctionCall(hx_callable_7)(hx_argument_8)
+		var hx_callable_3 *hxrt.Function[func(int)] = stored
+		var hx_argument_4 int = 5
+		hxrt.FunctionCall(hx_callable_3)(hx_argument_4)
 	}()
 	var v any = any(hxrt.ReflectCompareMethods(any(original), any(returned)))
 	hxrt.Println(v)
 	var v_1 any = any(hxrt.ReflectCompareMethods(any(original), any(stored)))
 	hxrt.Println(v_1)
-	holder := New__Main__Holder(func(hx_callback_source_10 *hxrt.Function[func(int) int]) *hxrt.Function[func(int)] {
-		return hxrt.AdaptFunction(hx_callback_source_10, func(hx_erased_callback_arg_9 int) {
-			hxrt.FunctionCall(hx_callback_source_10)(hx_erased_callback_arg_9)
-		})
-	}(original))
+	holder := New__Main__Holder(hx_recover_callable_0(original))
 	func() {
-		var hx_callable_11 *hxrt.Function[func(int)] = holder.callback
-		var hx_argument_12 int = 7
-		hxrt.FunctionCall(hx_callable_11)(hx_argument_12)
+		var hx_callable_5 *hxrt.Function[func(int)] = holder.callback
+		var hx_argument_6 int = 7
+		hxrt.FunctionCall(hx_callable_5)(hx_argument_6)
 	}()
-	holder.callback = func(hx_callback_source_14 *hxrt.Function[func(int) int]) *hxrt.Function[func(int)] {
-		return hxrt.AdaptFunction(hx_callback_source_14, func(hx_erased_callback_arg_13 int) {
-			hxrt.FunctionCall(hx_callback_source_14)(hx_erased_callback_arg_13)
-		})
-	}(original)
+	holder.callback = hx_recover_callable_0(original)
 	func() {
-		var hx_callable_15 *hxrt.Function[func(int)] = holder.callback
-		var hx_argument_16 int = 8
-		hxrt.FunctionCall(hx_callable_15)(hx_argument_16)
+		var hx_callable_7 *hxrt.Function[func(int)] = holder.callback
+		var hx_argument_8 int = 8
+		hxrt.FunctionCall(hx_callable_7)(hx_argument_8)
 	}()
 	choose := true
-	var hx_if_19 *hxrt.Function[func(int)]
+	var hx_if_9 *hxrt.Function[func(int)]
 	if choose {
-		hx_if_19 = func(hx_callback_source_18 *hxrt.Function[func(int) int]) *hxrt.Function[func(int)] {
-			return hxrt.AdaptFunction(hx_callback_source_18, func(hx_erased_callback_arg_17 int) {
-				hxrt.FunctionCall(hx_callback_source_18)(hx_erased_callback_arg_17)
-			})
-		}(original)
+		hx_if_9 = hx_recover_callable_0(original)
 	} else {
-		hx_if_19 = returned
+		hx_if_9 = returned
 	}
-	branch := hx_if_19
+	branch := hx_if_9
 	func() {
-		var hx_callable_20 *hxrt.Function[func(int)] = branch
-		var hx_argument_21 int = 9
-		hxrt.FunctionCall(hx_callable_20)(hx_argument_21)
+		var hx_callable_10 *hxrt.Function[func(int)] = branch
+		var hx_argument_11 int = 9
+		hxrt.FunctionCall(hx_callable_10)(hx_argument_11)
 	}()
 	var v_2 any = any(func() bool {
 		var f2 any = any(holder.callback)
@@ -80,11 +60,7 @@ func main() {
 	var v_3 any = any(hxrt.ReflectCompareMethods(any(original), any(branch)))
 	hxrt.Println(v_3)
 	var absent *hxrt.Function[func(int) int] = nil
-	absentDiscarded := func(hx_callback_source_23 *hxrt.Function[func(int) int]) *hxrt.Function[func(int)] {
-		return hxrt.AdaptFunction(hx_callback_source_23, func(hx_erased_callback_arg_22 int) {
-			hxrt.FunctionCall(hx_callback_source_23)(hx_erased_callback_arg_22)
-		})
-	}(absent)
+	absentDiscarded := hx_recover_callable_0(absent)
 	hxrt.Println(any((absentDiscarded == nil)))
 }
 
@@ -101,8 +77,43 @@ func (self *_Main__Holder) HxFunctionReceiver() any {
 }
 
 func New__Main__Holder(callback *hxrt.Function[func(int)]) *_Main__Holder {
+	return hx_init__Main__Holder(hx_alloc__Main__Holder(nil), callback)
+}
+
+func hx_alloc__Main__Holder(owner any) *_Main__Holder {
 	self := &_Main__Holder{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I__Main__Holder)
+	}
+	return self
+}
+
+func hx_init__Main__Holder(self *_Main__Holder, callback *hxrt.Function[func(int)]) *_Main__Holder {
 	self.callback = callback
 	return self
+}
+
+func hx_recover_callable_0(value any) *hxrt.Function[func(int)] {
+	if value == nil {
+		return nil
+	}
+	switch exact := value.(type) {
+	case *hxrt.Function[func(int)]:
+		return exact
+	}
+	origin := hxrt.FunctionOrigin(value)
+	if origin == nil {
+		return nil
+	}
+	switch source := origin.(type) {
+	case *hxrt.Function[func(int) int]:
+		return hxrt.ProjectFunction(source, func(arg_0 int) {
+			hxrt.FunctionCall(source)(arg_0)
+		})
+	default:
+		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
+		return nil
+	}
 }

@@ -39,33 +39,21 @@ func identity(value any) any {
 
 func main() {
 	item := New_Item()
-	var v any = any(same(func(hx_value_1 any) *Item {
-		if hx_value_1 == nil {
-			var hx_zero_2 *Item
-			return hx_zero_2
-		}
-		return hx_value_1.(*Item)
-	}(identity(item)), item))
+	var v any = any(same(hx_recover_class_0(identity(item)), item))
 	hxrt.Println(v)
-	var v_1 any = any(func(hx_value_3 any) *Item {
-		if hx_value_3 == nil {
-			var hx_zero_4 *Item
-			return hx_zero_4
-		}
-		return hx_value_3.(*Item)
-	}(identity(item)).n)
+	var v_1 any = any(hx_recover_class_0(identity(item)).n)
 	hxrt.Println(v_1)
-	hx_obj_5 := map[string]any{}
-	hx_obj_5["n"] = 7
-	object := hxrt.AnonymousFromMap(hx_obj_5)
+	hx_obj_1 := map[string]any{}
+	hx_obj_1["n"] = 7
+	object := hxrt.AnonymousFromMap(hx_obj_1)
 	var v_2 any = any(same(hx_structural_recover(identity(object)), object))
 	hxrt.Println(v_2)
-	var v_3 any = any(func(hx_value_6 any) int {
-		if hx_value_6 == nil {
-			var hx_zero_7 int
-			return hx_zero_7
+	var v_3 any = any(func(hx_value_2 any) int {
+		if hx_value_2 == nil {
+			var hx_zero_3 int
+			return hx_zero_3
 		}
-		return hx_value_6.(int)
+		return hx_value_2.(int)
 	}(hxrt.AnonymousGet(hx_structural_recover(identity(object)), "n")))
 	hxrt.Println(v_3)
 }
@@ -135,5 +123,18 @@ func hx_structural_recover(value any) hxrt.Anonymous {
 		}(source)
 	default:
 		return hxrt.AnonymousFromValue(value)
+	}
+}
+
+func hx_recover_class_0(value any) *Item {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *Item:
+		return source
+	default:
+		return value.(*Item)
 	}
 }

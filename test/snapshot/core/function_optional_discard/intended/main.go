@@ -26,11 +26,7 @@ func invoke(callback *hxrt.Function[func(any)]) {
 }
 
 func main() {
-	invoke(func(hx_callback_source_10 *hxrt.Function[func(any) int]) *hxrt.Function[func(any)] {
-		return hxrt.AdaptFunction(hx_callback_source_10, func(hx_erased_callback_arg_9 any) {
-			hxrt.FunctionCall(hx_callback_source_10)(hx_erased_callback_arg_9)
-		})
-	}(make()))
+	invoke(hx_recover_callable_0(make()))
 }
 
 func make() *hxrt.Function[func(any) int] {
@@ -38,14 +34,37 @@ func make() *hxrt.Function[func(any) int] {
 		if value == nil {
 			value = 9
 		}
-		var hx_if_11 int
+		var hx_if_9 int
 		if value == nil {
-			hx_if_11 = 9
+			hx_if_9 = 9
 		} else {
-			hx_if_11 = value.(int)
+			hx_if_9 = value.(int)
 		}
-		result := hx_if_11
+		result := hx_if_9
 		hxrt.Println(any(result))
 		return result
 	})
+}
+
+func hx_recover_callable_0(value any) *hxrt.Function[func(any)] {
+	if value == nil {
+		return nil
+	}
+	switch exact := value.(type) {
+	case *hxrt.Function[func(any)]:
+		return exact
+	}
+	origin := hxrt.FunctionOrigin(value)
+	if origin == nil {
+		return nil
+	}
+	switch source := origin.(type) {
+	case *hxrt.Function[func(any) int]:
+		return hxrt.ProjectFunction(source, func(arg_0 any) {
+			hxrt.FunctionCall(source)(arg_0)
+		})
+	default:
+		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
+		return nil
+	}
 }

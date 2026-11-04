@@ -18,12 +18,12 @@ import reflaxe.go.compiler.GoFunctionValueLowering.fresh as createFreshFunctionV
 import reflaxe.go.compiler.GoFunctionValueLowering.callable as functionValueCallable;
 import reflaxe.go.compiler.GoFunctionValueLowering.native as nativeFunctionValue;
 import reflaxe.go.compiler.GoFunctionValueLowering.adapt as normalizeFunctionValue;
-import reflaxe.go.compiler.GoFunctionValueLowering.project as projectFunctionValue;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureInference;
 import reflaxe.go.compiler.GoMetadataName;
 import reflaxe.go.compiler.GoLambdaIterableLowering;
 import reflaxe.go.compiler.GoStructuralObjectLowering;
 import reflaxe.go.compiler.GoValueRecovery;
+import reflaxe.go.compiler.GoNominalValueRecovery;
 import reflaxe.go.compiler.GoNativeTypeEligibility;
 import reflaxe.go.compiler.GoNativeTypeEligibility.GoNativeEligibilityRole;
 import reflaxe.go.compiler.GoNativeTypeEligibility.GoNativeTypeEligibilityResult;
@@ -294,6 +294,7 @@ class GoCompiler {
 	final lambdaIterableLowering:GoLambdaIterableLowering;
 	final structuralObjectLowering:GoStructuralObjectLowering;
 	final valueRecovery:GoValueRecovery;
+	final nominalValueRecovery:GoNominalValueRecovery;
 	final functionVarNameScopes:Array<Map<Int, String>>;
 	final functionVarNameCountScopes:Array<Map<String, Int>>;
 	final optionalPrimitiveParamScopes:Array<Map<Int, String>>;
@@ -416,6 +417,7 @@ class GoCompiler {
 			requireStdlibShimGroup: requireStdlibShimGroup
 		});
 		valueRecovery = new GoValueRecovery(recoverStoredGoValue);
+		nominalValueRecovery = new GoNominalValueRecovery(classTypeName, inheritancePath);
 		structuralObjectLowering = new GoStructuralObjectLowering({
 			freshTempName: freshTempName,
 			sourceGoType: typeToGoType,
@@ -488,6 +490,7 @@ class GoCompiler {
 		clearGeneratedFieldMetadata();
 		structuralObjectLowering.reset();
 		valueRecovery.reset();
+		nominalValueRecovery.reset();
 		generatedMethodMetadataPlan = [];
 		generatedFieldMetadataPlan = [];
 		resetRequiredNativeChanElementTypes();
@@ -558,6 +561,10 @@ class GoCompiler {
 			supportDecls = supportDecls.concat(lowerTestAstStmtDecls());
 			valueRecovery.noteDeclarations(supportDecls);
 			supportDecls = supportDecls.concat(valueRecovery.discover());
+			supportDecls = supportDecls.concat(nominalValueRecovery.discover([
+				for (source in projectClasses)
+					if (hasGeneratedVirtualCarrier(source) && !buildConstrainedClassNames.exists(fullClassName(source))) source
+			]));
 			drainPendingClassQueue(moduleDecls, classQueue, queuedClassNames, projectClasses);
 			drainPendingEnumQueue(moduleDecls, enumQueue, queuedEnumNames, projectEnums);
 			moduleBuildConstraints = collectModuleBuildConstraints(projectClasses, projectEnums);
@@ -566,6 +573,7 @@ class GoCompiler {
 				break;
 		}
 		valueRecovery.freeze();
+		nominalValueRecovery.freeze();
 		structuralObjectLowering.freeze();
 		populateLeafReturningFunctions(moduleDecls, preludeDecls, supportDecls);
 		requiresSharedArrayRuntime = moduleDeclsUseSharedArraySurface(moduleDecls)
@@ -649,9 +657,7 @@ class GoCompiler {
 
 	/** All counts are monotone; generated temporary names do not affect closure. */
 	function recoveryRequirementCount():Int {
-		var count = projectClasses.length
-			+ projectEnums.length
-			+ valueRecovery.requirementCount()
+		var count = projectClasses.length + projectEnums.length + valueRecovery.requirementCount() + nominalValueRecovery.requirementCount()
 			+ structuralObjectLowering.requirementCount();
 		for (_ in requiredStdlibShimGroups.keys())
 			count++;
@@ -3037,7 +3043,7 @@ class GoCompiler {
 			decls = decls.concat(GoRttiMetadataEmitter.emit(rttiClassMetadata(), goRawQuotedString));
 		}
 		if (requiresGeneratedFieldLookup) {
-			decls = decls.concat(GoGeneratedFieldMetadataEmitter.emit(generatedFieldMetadataPlan));
+			decls = decls.concat(GoGeneratedFieldMetadataEmitter.emit(generatedFieldMetadataPlan, recoverStoredGoValue));
 		}
 		// Haxe emits the complete staged Reflect class once any of its public API is
 		// selected. Keep the referenced enum adapter link-complete even when the
@@ -6882,7 +6888,9 @@ class GoCompiler {
 		return switch (callee.expr) {
 			case TMeta(_, inner) | TParenthesis(inner): lowerDirectCallee(inner);
 			case TCast(_, _): lowerExpr(callee).expr;
-			case TField(target, access): lowerField(target, access, false).expr;
+			case TField(target, access):
+				var value = lowerField(target, access, false).expr;
+				isFunctionValueCall(callee) ? adaptDeclaredFieldValue(access, value, callee.t) : value;
 			case _:
 				var lowered = lowerExpr(callee).expr;
 				// Portable arrays erase element storage, including callable carriers.
@@ -7448,6 +7456,12 @@ class GoCompiler {
 			return valueRecovery.recover(value, target);
 		if (target.sameRepresentation(GoType.qualified("hxrt", "Anonymous")))
 			return structuralObjectLowering.recoverRaw(value);
+		for (source in projectClasses) {
+			if (hasGeneratedVirtualCarrier(source) && target.sameRepresentation(GoType.pointer(GoType.named(classTypeName(source)))))
+				return nominalValueRecovery.recover(value, source);
+			if (source.isInterface && !source.isExtern && target.sameRepresentation(GoType.named(classTypeName(source))))
+				return lowerNilSafeTypeAssertExpr(GoExpr.GoCall(GoExpr.GoIdent("hxrt.ObjectSource"), [value]), target.render());
+		}
 		return lowerNilSafeTypeAssertExpr(GoExpr.GoCall(GoExpr.GoIdent("any"), [value]), target.render());
 	}
 
@@ -7463,6 +7477,11 @@ class GoCompiler {
 		if (shouldPreserveNilInTypeAssert(returnType, expectedType)) {
 			return lowerNilPreservingTypeAssertExpr(expr, expectedType);
 		}
+		var targetClass = classFromType(returnType);
+		if (targetClass != null && hasGeneratedVirtualCarrier(targetClass))
+			return nominalValueRecovery.recover(expr, targetClass);
+		if (targetClass != null && targetClass.isInterface && !targetClass.isExtern)
+			return lowerNilSafeTypeAssertExpr(GoExpr.GoCall(GoExpr.GoIdent("hxrt.ObjectSource"), [expr]), expectedType);
 		return lowerNilSafeTypeAssertExpr(expr, expectedType);
 	}
 
@@ -10111,6 +10130,8 @@ class GoCompiler {
 		shared typed adapter. Native and interface boundaries retain their own owners.
 	**/
 	function adaptGenericCallbackResult(callee:TypedExpr, callExpr:GoExpr, returnType:Type):Null<GoExpr> {
+		if (isFunctionValueCall(callee) && !isGoImportExternCall(callee))
+			return null;
 		return switch (callee.expr) {
 			case TField(_, FInstance(classRef, _, field)) | TField(_, FStatic(classRef, field)):
 				var owner = classRef.get();
@@ -10127,6 +10148,8 @@ class GoCompiler {
 	}
 
 	function shouldAssertGenericCallResult(callee:TypedExpr, returnType:Type):Bool {
+		if (isFunctionValueCall(callee) && !isGoImportExternCall(callee))
+			return false;
 		if (typeToGoType(returnType) == "any") {
 			return false;
 		}
@@ -10703,6 +10726,10 @@ class GoCompiler {
 		  dynamic calls alone because they do not have a shared nominal declaration.
 	**/
 	function emittedCallParamType(callee:TypedExpr, index:Int):Null<Type> {
+		// Stored callables are recovered to the applied signature before invocation.
+		// Only direct declaration calls still use their erased parameter ABI.
+		if (isFunctionValueCall(callee) && !isGoImportExternCall(callee))
+			return null;
 		return switch (callee.expr) {
 			case TField(_, FInstance(_, _, fieldRef)) | TField(_, FStatic(_, fieldRef)):
 				callParamType(fieldRef.get().type, index);
@@ -10714,62 +10741,16 @@ class GoCompiler {
 	}
 
 	/**
-		What
-		- Adapts a concrete Haxe function value to the erased function signature used
-		  by a shared generated Go method.
-
-		Why
-		- A value such as `func(int) bool` cannot be passed directly where Go expects
-		  `func(any) bool`, even though Haxe has already proved the generic call safe.
-
-		How
-		- Wrap only differing function signatures with matching arity, assert erased
-		  inputs back to their concrete Haxe types, and keep the erased return value.
-		  Ordinary values and already-compatible function types pass through unchanged.
+		What: Convert a callable to its declaration's physical storage signature.
+		Why: Applied generic signatures differ from shared Go declarations, and
+		wrapping an earlier projection would grow invocation depth at each crossing.
+		How: Recover from the normalized source through the shared typed planner.
 	**/
 	function adaptErasedFunctionCallArg(expr:GoExpr, concreteType:Type, emittedType:Type):GoExpr {
-		if (typeToGoType(concreteType) == typeToGoType(emittedType)) {
-			return expr;
-		}
-
-		return switch ([Context.follow(concreteType), Context.follow(emittedType)]) {
-			case [TFun(concreteArgs, concreteReturn), TFun(emittedArgs, emittedReturn)] if (concreteArgs.length == emittedArgs.length):
-				var params = new Array<GoParam>();
-				var callArgs = new Array<GoExpr>();
-				for (index in 0...emittedArgs.length) {
-					var name = freshTempName("hx_erased_callback_arg");
-					params.push({name: name, typeName: GoType.parse(functionParameterStorageGoType(emittedArgs[index]))});
-					var callArg:GoExpr = GoExpr.GoIdent(name);
-					if (functionParameterStorageGoType(emittedArgs[index]) == "any"
-						&& functionParameterStorageGoType(concreteArgs[index]) != "any") {
-						callArg = lowerNullableAwareTypeAssertExpr(callArg, concreteArgs[index].t);
-					} else {
-						callArg = adaptErasedFunctionCallArg(callArg, emittedArgs[index].t, concreteArgs[index].t);
-					}
-					callArgs.push(callArg);
-				}
-
-				var capturedName = freshTempName("hx_callback_source");
-				var captured = GoExpr.GoIdent(capturedName);
-				var callbackCall = GoExpr.GoCall(functionValueCallable(captured), callArgs);
-				var adapter:GoExpr;
-				if (isVoidType(emittedReturn)) {
-					adapter = GoExpr.GoFuncLiteral(params, [], [GoStmt.GoExprStmt(callbackCall)]);
-				} else {
-					var returnExpr = callbackCall;
-					if (valueStorageGoType(concreteReturn) == "any" && valueStorageGoType(emittedReturn) != "any") {
-						returnExpr = lowerNullableAwareTypeAssertExpr(returnExpr, emittedReturn);
-					} else {
-						returnExpr = adaptErasedFunctionCallArg(returnExpr, concreteReturn, emittedReturn);
-					}
-					adapter = GoExpr.GoFuncLiteral(params, lowerFunctionResults(emittedReturn), [GoStmt.GoReturn(returnExpr)]);
-				}
-				GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: capturedName, typeName: GoType.parse(typeToGoType(concreteType))}],
-					[GoType.parse(typeToGoType(emittedType))], [GoStmt.GoReturn(projectFunctionValue(captured, adapter))]),
-					[expr]);
-			case _:
-				expr;
-		};
+		var source = GoType.parse(typeToGoType(concreteType));
+		var target = GoType.parse(typeToGoType(emittedType));
+		return source.functionCarrierSignature() != null
+			&& target.functionCarrierSignature() != null ? valueRecovery.convert(expr, source, target) : expr;
 	}
 
 	/**

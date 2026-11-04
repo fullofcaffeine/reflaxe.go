@@ -33,7 +33,7 @@ func main() {
 	stored_1 = alias
 	stored_2 = other
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("transport="), hxrt.StdString(func() bool {
-		var f2 any = any(reuse(stored_1))
+		var f2 any = any(hx_recover_callable_0(reuse(stored_1)))
 		return hxrt.ReflectCompareMethods(any(stored_0), f2)
 	}())), hxrt.StringFromLiteral(":")), hxrt.StdString(hxrt.ReflectCompareMethods(any(stored_0), any(stored_2)))))
 	hxrt.Println(v_1)
@@ -55,17 +55,11 @@ func main() {
 	record_callback = first
 	extracted := record_callback
 	var boxed any = extracted
-	restored := func(hx_value_7 any) *hxrt.Function[func(int) int] {
-		if hx_value_7 == nil {
-			var hx_zero_8 *hxrt.Function[func(int) int]
-			return hx_zero_8
-		}
-		return hx_value_7.(*hxrt.Function[func(int) int])
-	}(boxed)
+	restored := hx_recover_callable_0(hx_recover_callable_0(boxed))
 	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("record="), func() int {
-		var hx_callable_9 *hxrt.Function[func(int) int] = record_callback
-		var hx_argument_10 int = 0
-		return hxrt.FunctionCall(hx_callable_9)(hx_argument_10)
+		var hx_callable_7 *hxrt.Function[func(int) int] = record_callback
+		var hx_argument_8 int = 0
+		return hxrt.FunctionCall(hx_callable_7)(hx_argument_8)
 	}()), hxrt.StringFromLiteral(":")), hxrt.StdString(hxrt.ReflectCompareMethods(any(first), any(restored)))))
 	hxrt.Println(v_3)
 	var missing *hxrt.Function[func(int) int] = nil
@@ -73,15 +67,15 @@ func main() {
 	caught := false
 	hxrt.TryCatch(func() {
 		func() int {
-			var hx_callable_13 *hxrt.Function[func(int) int] = missing
-			var hx_argument_14 int = func() int {
+			var hx_callable_11 *hxrt.Function[func(int) int] = missing
+			var hx_argument_12 int = func() int {
 				evaluated = int(int32((evaluated + 1)))
 				return evaluated
 			}()
-			return hxrt.FunctionCall(hx_callable_13)(hx_argument_14)
+			return hxrt.FunctionCall(hx_callable_11)(hx_argument_12)
 		}()
-	}, func(hx_caught_11 any) {
-		hx_tmp := hx_caught_11
+	}, func(hx_caught_9 any) {
+		hx_tmp := hx_caught_9
 		_ = hx_tmp
 		caught = true
 	})
@@ -110,7 +104,7 @@ func hxrt_typeClassMetadataField(value any, key string) (any, bool) {
 func reflaxe__go___internal__CompilerReflect_generatedField(object any, field *string) any {
 	key := *hxrt.StdString(field)
 	var receiver any
-	switch value := object.(type) {
+	switch value := hxrt.ObjectSource(object).(type) {
 	case *haxe___Int64_____Int64:
 		if (value == nil) || (value.__hx_this == nil) {
 			return nil
@@ -130,7 +124,7 @@ func reflaxe__go___internal__CompilerReflect_generatedField(object any, field *s
 func reflaxe__go___internal__CompilerReflect_hasGeneratedField(object any, field *string) bool {
 	key := *hxrt.StdString(field)
 	var receiver any
-	switch value := object.(type) {
+	switch value := hxrt.ObjectSource(object).(type) {
 	case *haxe___Int64_____Int64:
 		if (value == nil) || (value.__hx_this == nil) {
 			return false
@@ -150,7 +144,7 @@ func reflaxe__go___internal__CompilerReflect_hasGeneratedField(object any, field
 func reflaxe__go___internal__CompilerReflect_setGeneratedField(object any, field *string, incoming any) bool {
 	key := *hxrt.StdString(field)
 	var receiver any
-	switch value := object.(type) {
+	switch value := hxrt.ObjectSource(object).(type) {
 	case *haxe___Int64_____Int64:
 		if (value == nil) || (value.__hx_this == nil) {
 			return false
@@ -169,7 +163,7 @@ func reflaxe__go___internal__CompilerReflect_setGeneratedField(object any, field
 
 func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.Array {
 	var receiver any
-	switch value := object.(type) {
+	switch value := hxrt.ObjectSource(object).(type) {
 	case *haxe___Int64_____Int64:
 		if (value == nil) || (value.__hx_this == nil) {
 			return nil
@@ -192,9 +186,9 @@ func hxrt__generated_field_lookup__haxe___Int64_____Int64(value *haxe___Int64___
 	}
 	switch key {
 	case "high":
-		return value.high
+		return hxrt.ReadStoredField(value.high)
 	case "low":
-		return value.low
+		return hxrt.ReadStoredField(value.low)
 	}
 	return nil
 }
@@ -268,4 +262,62 @@ func reflaxe__go___internal__CompilerReflect_generatedMethod(object any, field *
 
 func reflaxe__go___internal__CompilerReflect_isEnumValue(value any) bool {
 	return false
+}
+
+func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []any) any {
+	switch source := hxrt.FunctionOrigin(value).(type) {
+	case *hxrt.Function[func(int) int]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		return hxrt.FunctionCall(source)(func(hx_value_5 any) int {
+			if hx_value_5 == nil {
+				var hx_zero_6 int
+				return hx_zero_6
+			}
+			return hx_value_5.(int)
+		}(any(argument_0)))
+	case *hxrt.Function[func(...any) any]:
+		var argument_0 []any = nil
+		for index, argument := range arguments {
+			if index >= 0 {
+				argument_0 = append(argument_0, argument)
+			}
+		}
+		return hxrt.FunctionCall(source)(argument_0...)
+	default:
+		return hxrt.ReflectCallMethod(value, arguments)
+	}
+}
+
+func hx_recover_callable_0(value any) *hxrt.Function[func(int) int] {
+	if value == nil {
+		return nil
+	}
+	switch exact := value.(type) {
+	case *hxrt.Function[func(int) int]:
+		return exact
+	}
+	origin := hxrt.FunctionOrigin(value)
+	if origin == nil {
+		return nil
+	}
+	switch source := origin.(type) {
+	case *hxrt.Function[func(int) int]:
+		return source
+	case *hxrt.Function[func(...any) any]:
+		return hxrt.ProjectFunction(source, func(arg_0 int) int {
+			return func(hx_value_7 any) int {
+				if hx_value_7 == nil {
+					var hx_zero_8 int
+					return hx_zero_8
+				}
+				return hx_value_7.(int)
+			}(any(hxrt.FunctionCall(source)(arg_0)))
+		})
+	default:
+		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
+		return nil
+	}
 }

@@ -27,8 +27,11 @@ func main() {
 			return int(hx_extern_method_1(hx_extern_arg_2, hxrt.FunctionNative(hx_extern_arg_3)))
 		})
 	}()
-	var v_3 any = any(func(hx_fn *hxrt.Function[func(int, *hxrt.Function[func(int) bool]) int], hx_arg_0 int, hx_arg_1 *hxrt.Function[func(int) bool]) int {
-		return hxrt.FunctionCall(hx_fn)(hx_arg_0, hx_arg_1)
-	}(search, 10, predicate))
+	var v_3 any = any(func() int {
+		var hx_callable_4 *hxrt.Function[func(int, *hxrt.Function[func(int) bool]) int] = search
+		var hx_argument_5 int = 10
+		var hx_argument_6 *hxrt.Function[func(int) bool] = predicate
+		return hxrt.FunctionCall(hx_callable_4)(hx_argument_5, hx_argument_6)
+	}())
 	hxrt.Println(v_3)
 }
