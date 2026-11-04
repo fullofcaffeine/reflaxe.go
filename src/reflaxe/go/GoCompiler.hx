@@ -6989,6 +6989,11 @@ class GoCompiler {
 		return switch (callee.expr) {
 			case TMeta(_, inner) | TParenthesis(inner): lowerDirectCallee(inner);
 			case TCast(_, _): lowerExpr(callee).expr;
+			case TField(target, FDynamic(name)) if (isAnonymousObjectType(target.t)):
+				// Haxe synthesizes structural property accessors as dynamic fields,
+				// but the call still carries their precise function type. Recover the
+				// erased member before placing it in the typed invocation carrier.
+				lowerAnonymousFieldRead(lowerExpr(target).expr, name, callee.t);
 			case TField(target, access):
 				var value = lowerField(target, access, false).expr;
 				isFunctionValueCall(callee) ? adaptDeclaredFieldValue(access, value, callee.t) : value;
