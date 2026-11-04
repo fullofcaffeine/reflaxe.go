@@ -68,6 +68,10 @@ func ReflectLookupField(object any, field *string) *ReflectFieldLookup {
 // ReflectLookupMethod exposes only exported native Go methods. Generated Haxe
 // methods are lowercase and are resolved by the compiler metadata adapter first.
 func ReflectLookupMethod(object any, field *string) *ReflectFieldLookup {
+	// Carrier methods implement runtime protocols, not Haxe function members.
+	if _, callable := object.(functionValue); callable {
+		return &ReflectFieldLookup{}
+	}
 	key, valid := reflectFieldName(field)
 	if key == "HxFunctionReceiver" {
 		if _, generated := object.(interface{ HxFunctionReceiver() any }); generated {

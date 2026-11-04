@@ -3,3 +3,4 @@ transport=true:false
 capture=2:5:1
 record=5:true
 null=true:1
+opaque=true:false

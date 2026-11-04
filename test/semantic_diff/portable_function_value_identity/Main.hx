@@ -31,5 +31,7 @@ class Main {
 			caught = true;
 		}
 		Sys.println("null=" + caught + ":" + evaluated);
+		// A callable has no source-level String member, even if its runtime carrier does.
+		Sys.println("opaque=" + (Reflect.field(first, "String") == null) + ":" + Reflect.hasField(first, "String"));
 	}
 }
