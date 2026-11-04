@@ -13,13 +13,15 @@ func BenchmarkFunctionInvocation(b *testing.B) {
 	carrier := NewFunction(call)
 	b.Run("native", func(b *testing.B) {
 		b.ReportAllocs()
-		for b.Loop() {
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
 			benchmarkIntSink = call(7)
 		}
 	})
 	b.Run("carrier", func(b *testing.B) {
 		b.ReportAllocs()
-		for b.Loop() {
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
 			benchmarkIntSink = FunctionCall(carrier)(7)
 		}
 	})
@@ -27,7 +29,8 @@ func BenchmarkFunctionInvocation(b *testing.B) {
 
 func BenchmarkFunctionEscapingCreation(b *testing.B) {
 	b.ReportAllocs()
-	for b.Loop() {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
 		value := 7
 		benchmarkFunctionSink = NewFunction(func(delta int) int { value += delta; return value })
 	}
@@ -36,7 +39,8 @@ func BenchmarkFunctionEscapingCreation(b *testing.B) {
 func BenchmarkFunctionAlias(b *testing.B) {
 	value := NewFunction(func(delta int) int { return delta + 7 })
 	b.ReportAllocs()
-	for b.Loop() {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
 		benchmarkFunctionSink = value
 	}
 }
@@ -44,7 +48,8 @@ func BenchmarkFunctionAlias(b *testing.B) {
 func BenchmarkFunctionBoundExtraction(b *testing.B) {
 	receiver := &struct{ value int }{7}
 	b.ReportAllocs()
-	for b.Loop() {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
 		benchmarkFunctionSink = BoundFunction(func(delta int) int { return receiver.value + delta }, func() any { return receiver }, "step")
 	}
 }
@@ -52,7 +57,8 @@ func BenchmarkFunctionBoundExtraction(b *testing.B) {
 func BenchmarkFunctionAdaptation(b *testing.B) {
 	source := NewFunction(func(value int64) int64 { return value + 1 })
 	b.ReportAllocs()
-	for b.Loop() {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
 		benchmarkFunctionSink = AdaptFunction(source, func(value int) int { return int(FunctionCall(source)(int64(value))) })
 	}
 }
@@ -75,13 +81,15 @@ func BenchmarkAnonymousViewDepth(b *testing.B) {
 		}
 		b.Run(size.name+"/read", func(b *testing.B) {
 			b.ReportAllocs()
-			for b.Loop() {
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
 				benchmarkIntSink = AnonymousGet(view, "value").(int)
 			}
 		})
 		b.Run(size.name+"/identity", func(b *testing.B) {
 			b.ReportAllocs()
-			for b.Loop() {
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
 				benchmarkBoolSink = HaxeEqual(view, raw)
 			}
 		})

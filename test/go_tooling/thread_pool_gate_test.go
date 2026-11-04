@@ -13,14 +13,14 @@ import (
 
 type generatedThreadPool interface {
 	get_isShutdown() bool
-	run(func())
+	run(*hxrt.Function[func()])
 	shutdown()
 }
 
 func submitGeneratedTask(pool generatedThreadPool, task func()) (accepted bool) {
 	accepted = true
 	hxrt.TryCatch(func() {
-		pool.run(task)
+		pool.run(hxrt.NewFunction(task))
 	}, func(caught any) {
 		if _, rejected := caught.(*sys__thread__ThreadPoolException); rejected {
 			accepted = false
