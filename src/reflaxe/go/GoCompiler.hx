@@ -10340,9 +10340,10 @@ class GoCompiler {
 				var callArgs = new Array<GoExpr>();
 				for (index in 0...emittedArgs.length) {
 					var name = freshTempName("hx_erased_callback_arg");
-					params.push({name: name, typeName: GoType.parse(typeToGoType(emittedArgs[index].t))});
+					params.push({name: name, typeName: GoType.parse(functionParameterStorageGoType(emittedArgs[index]))});
 					var callArg:GoExpr = GoExpr.GoIdent(name);
-					if (typeToGoType(emittedArgs[index].t) == "any" && typeToGoType(concreteArgs[index].t) != "any") {
+					if (functionParameterStorageGoType(emittedArgs[index]) == "any"
+						&& functionParameterStorageGoType(concreteArgs[index]) != "any") {
 						callArg = lowerNullableAwareTypeAssertExpr(callArg, concreteArgs[index].t);
 					}
 					callArgs.push(callArg);
