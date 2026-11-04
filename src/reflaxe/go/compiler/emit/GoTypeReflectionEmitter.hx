@@ -276,6 +276,7 @@ class GoTypeReflectionEmitter {
 		}
 
 		var getClassBody = [
+			GoStmt.GoAssign(GoExpr.GoIdent("o"), GoExpr.GoCall(GoExpr.GoIdent("hxrt.ObjectSource"), [GoExpr.GoIdent("o")])),
 			GoStmt.GoRaw("if hxrt.AnyEqualsNull(o) {"),
 			GoStmt.GoRaw("\treturn nil"),
 			GoStmt.GoRaw("}")
@@ -439,6 +440,7 @@ class GoTypeReflectionEmitter {
 		allEnumsBody.push(GoStmt.GoRaw("}"));
 
 		var typeOfBody = [
+			GoStmt.GoAssign(GoExpr.GoIdent("v"), GoExpr.GoCall(GoExpr.GoIdent("hxrt.ObjectSource"), [GoExpr.GoIdent("v")])),
 			GoStmt.GoIf(GoExpr.GoCall(GoExpr.GoIdent("hxrt.ReflectIsFunction"), [GoExpr.GoIdent("v")]),
 				[GoStmt.GoReturn(GoExpr.GoIdent("ValueType_TFunction"))], null),
 			GoStmt.GoRaw("if hxrt.AnyEqualsNull(v) {"),

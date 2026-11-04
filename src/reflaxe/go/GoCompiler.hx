@@ -409,6 +409,9 @@ class GoCompiler {
 			freshTempName: freshTempName,
 			sourceGoType: typeToGoType,
 			readMember: lowerStructuralMemberRead,
+			readAnonymous: lowerAnonymousFieldRead,
+			adaptValue: function(value, from, to) return coerceAnyExprToType(adaptErasedFunctionCallArg(value, from, to), from, to),
+			recoverValue: lowerNullableAwareTypeAssertExpr,
 			writeMember: lowerStructuralMemberWrite,
 			noteSource: noteSourceOwnedStdlibUsage
 		});
@@ -6305,7 +6308,8 @@ class GoCompiler {
 			case TTry(tryExpr, catches):
 				materializeExprWithPrefix(lowerTryCatchExpr(tryExpr, catches, expr.t), expr.t);
 			case TField(target, access):
-				lowerField(target, access);
+				var lowered = lowerField(target, access);
+				{expr: adaptDeclaredFieldValue(access, lowered.expr, expr.t), isStringLike: lowered.isStringLike};
 			case TCall(callee, args):
 				var injected = lowerTargetCodeInjectionExpr(expr);
 				injected != null ? injected : lowerCall(callee, args, expr.t);
@@ -6904,6 +6908,23 @@ class GoCompiler {
 		var value = lowerNullableAwareTypeAssertExpr(incoming, targetType);
 		value = adaptErasedFunctionCallArg(value, targetType, field.type);
 		return GoStmt.GoAssign(GoExpr.GoSelector(source, normalizeIdent(field.name)), value);
+	}
+
+	/**
+		What: Adapt a generic declaration after extracting its function value.
+		Why: Haxe applies type parameters at the use site, while the emitted shared
+		Go declaration keeps erased parameters and results. The carrier must match
+		that applied type before entering locals, sorting or other typed storage.
+		How: Use declaration metadata, exclude native boundaries, and reuse the
+		identity-preserving callable adapter. Direct calls bypass this extraction.
+	**/
+	function adaptDeclaredFieldValue(access:FieldAccess, value:GoExpr, applied:Type):GoExpr {
+		var declared = switch (access) {
+			case FStatic(owner, field) | FInstance(owner, _, field) if (!owner.get().isExtern): field.get().type;
+			case FClosure(owner, field) if (owner != null && !owner.c.get().isExtern): field.get().type;
+			case _: null;
+		};
+		return declared == null ? value : adaptErasedFunctionCallArg(value, declared, applied);
 	}
 
 	function lowerField(target:TypedExpr, access:FieldAccess, asValue:Bool = true):LoweredExpr {
@@ -7662,20 +7683,13 @@ class GoCompiler {
 	**/
 	function adaptStructuralIteratorCall(callee:TypedExpr, callExpr:GoExpr, returnType:Type):Null<GoExpr> {
 		return switch (callee.expr) {
-			case TField(_, FInstance(classRef, _, fieldRef)):
-				var classType = classRef.get();
-				var declaredReturn = switch (Context.follow(fieldRef.get().type)) {
-					case TFun(_, result): result;
+			case TField(_, FInstance(classRef, _, fieldRef)) | TField(_, FStatic(classRef, fieldRef)) if (!classRef.get().isExtern):
+				switch (Context.follow(fieldRef.get().type)) {
+					case TFun(_, declared): structuralObjectLowering.coerce(callExpr, declared, returnType);
 					case _: null;
-				};
-				var concrete = declaredReturn == null ? null : lambdaIterableLowering.structuralIteratorCoerce(callExpr, declaredReturn, returnType);
-				concrete != null ? concrete : (classType.params.length == 0 || classType.isInterface) ? null : lambdaIterableLowering.adaptErasedGenericStructuralIteratorResult(callExpr,
-					fieldRef.get()
-					.type, callee.t);
-			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
-				adaptStructuralIteratorCall(inner, callExpr, returnType);
-			case _:
-				null;
+				}
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _): adaptStructuralIteratorCall(inner, callExpr, returnType);
+			case _: null;
 		};
 	}
 
@@ -9314,9 +9328,12 @@ class GoCompiler {
 			return GoExpr.GoBoolLiteral(false);
 		}
 
-		if (!isAnyLikeType(valueType)) {
+		if (!isAnyLikeType(valueType) && !isAnonymousObjectType(valueType)) {
 			return GoExpr.GoBoolLiteral(false);
 		}
+		// Structural storage can retain a generated class. Type observation must
+		// inspect its source, not reject the anonymous static view or wrapper.
+		valueExpr = GoExpr.GoCall(GoExpr.GoIdent("hxrt.ObjectSource"), [valueExpr]);
 		if (!hasGeneratedVirtualCarrier(targetClass)) {
 			return stdIsOfTypeTypeSwitch(valueExpr, stdIsOfTypeClassTypeNames(targetClass));
 		}
@@ -9336,6 +9353,7 @@ class GoCompiler {
 		carriers recover the canonical virtual receiver with a typed comma-ok assertion.
 	**/
 	function stdIsOfTypeDynamicClassExpr(valueExpr:GoExpr, targetClass:ClassType):GoExpr {
+		valueExpr = GoExpr.GoCall(GoExpr.GoIdent("hxrt.ObjectSource"), [valueExpr]);
 		var related = new Array<{typeName:String, usesVirtualReceiver:Bool}>();
 		var seen = new Map<String, Bool>();
 		var candidates = [
@@ -9985,19 +10003,14 @@ class GoCompiler {
 	**/
 	function adaptGenericCallbackResult(callee:TypedExpr, callExpr:GoExpr, returnType:Type):Null<GoExpr> {
 		return switch (callee.expr) {
-			case TField(_, FInstance(classRef, _, field)):
+			case TField(_, FInstance(classRef, _, field)) | TField(_, FStatic(classRef, field)):
 				var owner = classRef.get();
-				if (owner.params.length == 0 || owner.isInterface || owner.isExtern) {
-					null;
-				} else {
-					switch ([Context.follow(field.get().type), Context.follow(returnType)]) {
-						case [TFun(_, declared), TFun(_, _)]:
-							switch (Context.follow(declared)) {
-								case TFun(_, _): adaptErasedFunctionCallArg(callExpr, declared, returnType);
-								case _: null;
-							}
-						case _: null;
-					}
+				if (owner.isInterface || owner.isExtern) null; else switch ([Context.follow(field.get().type), Context.follow(returnType)]) {
+					case [TFun(_, declared), TFun(_, _)]: switch (Context.follow(declared)) {
+							case TFun(_, _): adaptErasedFunctionCallArg(callExpr, declared, returnType);
+							case _: null;
+						}
+					case _: null;
 				}
 			case TMeta(_, inner) | TParenthesis(inner): adaptGenericCallbackResult(inner, callExpr, returnType);
 			case _: null;
@@ -10010,6 +10023,12 @@ class GoCompiler {
 		}
 
 		return switch (callee.expr) {
+			case TField(_, FStatic(owner, field)) if (!owner.get().isExtern):
+				switch (Context.follow(field.get().type)) {
+					case TFun(_, declared): typeToGoType(declared) == "any";
+					case _: false;
+				}
+
 			case TField(_, FInstance(classRef, _, field)):
 				var classType = classRef.get();
 				var pack = classType.pack.join(".");

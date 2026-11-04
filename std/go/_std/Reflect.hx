@@ -126,8 +126,21 @@ class Reflect {
 		return NativeReflect.deleteField(o, field);
 	}
 
+	/**
+		Copy source fields shallowly into a new anonymous object. Generated classes
+		hide their fields from Go reflection, so their compiler-provided field list
+		is consumed here in staged Haxe; the runtime still handles native maps.
+	**/
 	public static function copy<T>(o:Null<T>):Null<T> {
-		return cast NativeReflect.copy(o);
+		if (o == null)
+			return null;
+		final fields = CompilerReflect.generatedFields(o);
+		if (fields == null)
+			return cast NativeReflect.copy(o);
+		final result = {};
+		for (field in fields)
+			Reflect.setField(result, field, Reflect.field(o, field));
+		return cast result;
 	}
 
 	@:overload(function(f:Array<Dynamic>->Void):Dynamic {})
