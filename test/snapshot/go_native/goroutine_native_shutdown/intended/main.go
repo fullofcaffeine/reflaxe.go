@@ -7,10 +7,10 @@ import (
 
 func main() {
 	blocked := go__concurrency_newChan__bool_c894953d(0)
-	go___Go_spawn(func() {
+	go___Go_spawn(hxrt.NewFunction(func() {
 		go__concurrency_recv__bool_c894953d(blocked.__hx_native)
 		hxrt.Println(any(hxrt.StringFromLiteral("late-native-goroutine")))
-	})
+	}))
 	hxrt.Println(any(hxrt.StringFromLiteral("main-only")))
 }
 

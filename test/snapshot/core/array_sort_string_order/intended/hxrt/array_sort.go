@@ -9,8 +9,8 @@ import "sort"
 // would not update aliases that observe the same Haxe Array.
 // How: Keep the existing carrier and let Go's stable sorter call the typed
 // comparator adapter emitted at the Haxe-to-runtime boundary.
-func ArraySort(array *Array, compare func(any, any) int) {
+func ArraySort(array *Array, compare *Function[func(any, any) int]) {
 	sort.SliceStable(array.values, func(left, right int) bool {
-		return compare(array.values[left], array.values[right]) < 0
+		return FunctionCall(compare)(array.values[left], array.values[right]) < 0
 	})
 }

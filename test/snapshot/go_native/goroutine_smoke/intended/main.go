@@ -7,9 +7,9 @@ import (
 
 func main() {
 	ch := go__concurrency_newChan__int_95e97e5e(0)
-	go___Go_spawn(func() {
+	go___Go_spawn(hxrt.NewFunction(func() {
 		go__concurrency_send__int_95e97e5e(ch.__hx_native, 5)
-	})
+	}))
 	var v any = any(go__concurrency_recv__int_95e97e5e(ch.__hx_native))
 	hxrt.Println(v)
 }

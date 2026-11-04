@@ -16,6 +16,10 @@ type go___Slice struct {
 	length    int
 }
 
+func (self *go___Slice) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_go___Slice() *go___Slice {
 	self := &go___Slice{}
 	self.__hx_this = self

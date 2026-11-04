@@ -1,5 +1,7 @@
 package main
 
+import "snapshot/hxrt"
+
 type I_haxe__iterators__MapKeyValueIterator interface {
 	hasNext() bool
 	next() map[string]any
@@ -9,6 +11,10 @@ type haxe__iterators__MapKeyValueIterator struct {
 	__hx_this I_haxe__iterators__MapKeyValueIterator
 	map_      haxe__IMap
 	keys      map[string]any
+}
+
+func (self *haxe__iterators__MapKeyValueIterator) HxFunctionReceiver() any {
+	return self.__hx_this
 }
 
 func New_haxe__iterators__MapKeyValueIterator(map_ haxe__IMap) *haxe__iterators__MapKeyValueIterator {
@@ -26,27 +32,33 @@ func New_haxe__iterators__MapKeyValueIterator(map_ haxe__IMap) *haxe__iterators_
 }
 
 func (self *haxe__iterators__MapKeyValueIterator) hasNext() bool {
-	return func(hx_obj_3 map[string]any) func() bool {
-		hx_field_4 := hx_obj_3["hasNext"]
-		if hx_field_4 == nil {
-			var hx_zero_5 func() bool
-			return hx_zero_5
-		}
-		return hx_field_4.(func() bool)
-	}(self.keys)()
+	return func() bool {
+		var hx_callable_6 *hxrt.Function[func() bool] = func(hx_obj_3 map[string]any) *hxrt.Function[func() bool] {
+			hx_field_4 := hx_obj_3["hasNext"]
+			if hx_field_4 == nil {
+				var hx_zero_5 *hxrt.Function[func() bool]
+				return hx_zero_5
+			}
+			return hx_field_4.(*hxrt.Function[func() bool])
+		}(self.keys)
+		return hxrt.FunctionCall(hx_callable_6)()
+	}()
 }
 
 func (self *haxe__iterators__MapKeyValueIterator) next() map[string]any {
-	var key any = func(hx_obj_6 map[string]any) func() any {
-		hx_field_7 := hx_obj_6["next"]
-		if hx_field_7 == nil {
-			var hx_zero_8 func() any
-			return hx_zero_8
-		}
-		return hx_field_7.(func() any)
-	}(self.keys)()
-	hx_obj_9 := map[string]any{}
-	hx_obj_9["key"] = key
-	hx_obj_9["value"] = self.map_.getIMap(key)
-	return hx_obj_9
+	var key any = func() any {
+		var hx_callable_10 *hxrt.Function[func() any] = func(hx_obj_7 map[string]any) *hxrt.Function[func() any] {
+			hx_field_8 := hx_obj_7["next"]
+			if hx_field_8 == nil {
+				var hx_zero_9 *hxrt.Function[func() any]
+				return hx_zero_9
+			}
+			return hx_field_8.(*hxrt.Function[func() any])
+		}(self.keys)
+		return hxrt.FunctionCall(hx_callable_10)()
+	}()
+	hx_obj_11 := map[string]any{}
+	hx_obj_11["key"] = key
+	hx_obj_11["value"] = self.map_.getIMap(key)
+	return hx_obj_11
 }

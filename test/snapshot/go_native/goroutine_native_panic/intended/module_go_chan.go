@@ -15,6 +15,10 @@ type go___Chan struct {
 	__hx_native any
 }
 
+func (self *go___Chan) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_go___Chan() *go___Chan {
 	self := &go___Chan{}
 	self.__hx_this = self

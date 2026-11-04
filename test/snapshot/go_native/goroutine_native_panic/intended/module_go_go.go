@@ -1,5 +1,7 @@
 package main
 
+import "snapshot/hxrt"
+
 func go___Go___chanClose(channel any) {
 }
 
@@ -32,7 +34,7 @@ func go___Go___chanTrySend(channel any, value any) bool {
 	return false
 }
 
-func go___Go___goSpawn(fn func()) {
+func go___Go___goSpawn(fn *hxrt.Function[func()]) {
 }
 
 func go___Go_fail(message *string) *go___Result {
@@ -59,6 +61,6 @@ func go___Go_ok(value any) *go___Result {
 	return New_go___Result(value, nil)
 }
 
-func go___Go_spawn(fn func()) {
-	go__concurrency_spawn(fn)
+func go___Go_spawn(fn *hxrt.Function[func()]) {
+	go__concurrency_spawn(hxrt.FunctionNative(fn))
 }

@@ -11,11 +11,11 @@ func main() {
 	hxrt.Println(any(hxrt.StringFromLiteral("native-goroutine-start")))
 	started := go__concurrency_newChan__bool_c894953d(0)
 	never := go__concurrency_newChan__bool_c894953d(0)
-	go___Go_spawn(func() {
+	go___Go_spawn(hxrt.NewFunction(func() {
 		sys__thread__Thread_current()
 		go__concurrency_send__bool_c894953d(started.__hx_native, true)
 		log.Panic(*hxrt.StdString(hxrt.StringFromLiteral("native-goroutine-failure")))
-	})
+	}))
 	go__concurrency_recv__bool_c894953d(started.__hx_native)
 	go__concurrency_recv__bool_c894953d(never.__hx_native)
 }
