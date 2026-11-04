@@ -11,6 +11,10 @@ type DomainError struct {
 	__hx_exception *hxrt.ExceptionValue
 }
 
+func (self *DomainError) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_DomainError(code *string, message *string) *DomainError {
 	self := &DomainError{}
 	self.__hx_exception = hxrt.BindException(self, message, nil, nil)

@@ -192,4 +192,36 @@ func main() {
 		return hxrt.FunctionCall(hx_callable_35)(hx_argument_36)
 	}())
 	hxrt.Println(v_5)
+	nullable := func() *hxrt.Function[func() any] {
+		hx_extern_method_37 := sync.OnceValue(hxrt.FunctionNative(hxrt.NewFunction(func() any {
+			return nil
+		})))
+		if hx_extern_method_37 == nil {
+			return nil
+		}
+		return hxrt.NewFunction(func() any {
+			return hx_extern_method_37()
+		})
+	}()
+	var v_6 any = any((func() any {
+		var hx_callable_38 *hxrt.Function[func() any] = nullable
+		return hxrt.FunctionCall(hx_callable_38)()
+	}() == nil))
+	hxrt.Println(v_6)
+	present := func() *hxrt.Function[func() any] {
+		hx_extern_method_39 := sync.OnceValue(hxrt.FunctionNative(hxrt.NewFunction(func() any {
+			return 5
+		})))
+		if hx_extern_method_39 == nil {
+			return nil
+		}
+		return hxrt.NewFunction(func() any {
+			return hx_extern_method_39()
+		})
+	}()
+	var v_7 any = any(func() any {
+		var hx_callable_40 *hxrt.Function[func() any] = present
+		return hxrt.FunctionCall(hx_callable_40)()
+	}())
+	hxrt.Println(v_7)
 }
