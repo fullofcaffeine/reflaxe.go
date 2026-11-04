@@ -17,7 +17,7 @@ import reflaxe.go.compiler.GoRecoveryDispatch.GoGuardedRecoveryDeclaration;
 private typedef GoStructuralObjectConfig = {
 	final freshTempName:String->String;
 	final sourceGoType:Type->String;
-	final readMember:(GoExpr, ClassType, ClassField, Type) -> GoExpr;
+	final readMember:(GoExpr, ClassType, ClassField, Type) -> Null<GoExpr>;
 	final writeMember:(GoExpr, ClassType, ClassField, Type, GoExpr) -> Null<GoStmt>;
 	final noteSource:ClassType->Void;
 }
@@ -136,7 +136,8 @@ class GoStructuralObjectLowering {
 						continue;
 				}
 			var read = config.readMember(sourceExpr, source, member, member.type);
-			reads.push({values: [GoExpr.GoStringLiteral(member.name)], body: [GoStmt.GoReturn(fieldValue(read))]});
+			if (read != null)
+				reads.push({values: [GoExpr.GoStringLiteral(member.name)], body: [GoStmt.GoReturn(fieldValue(read))]});
 			var write = config.writeMember(sourceExpr, source, member, member.type, GoExpr.GoIdent("incoming"));
 			if (write != null)
 				writes.push({values: [GoExpr.GoStringLiteral(member.name)], body: [write, GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))]});

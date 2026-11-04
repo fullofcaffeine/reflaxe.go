@@ -7078,7 +7078,14 @@ class GoCompiler {
 	}
 
 	/** Read the actual source declaration, then adapt its value to a structural slot. */
-	function lowerStructuralMemberRead(source:GoExpr, sourceClass:ClassType, field:ClassField, targetType:Type):GoExpr {
+	function lowerStructuralMemberRead(source:GoExpr, sourceClass:ClassType, field:ClassField, targetType:Type):Null<GoExpr> {
+		// Accessor-only properties have no source-visible raw slot. Their getter
+		// and setter methods remain available through the same live source view.
+		switch (field.kind) {
+			case FVar(read, write) if (!hasReflectableGeneratedFieldStorage(read, write)):
+				return null;
+			case _:
+		}
 		var sourceType = field.type;
 		var selector = normalizeIdent(field.name);
 		if (sourceClass.isInterface) {
