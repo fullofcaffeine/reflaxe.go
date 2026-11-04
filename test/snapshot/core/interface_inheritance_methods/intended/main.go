@@ -42,6 +42,10 @@ type QueryService struct {
 	__hx_this I_QueryService
 }
 
+func (self *QueryService) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_QueryService() *QueryService {
 	self := &QueryService{}
 	self.__hx_this = self

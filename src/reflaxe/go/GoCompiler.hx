@@ -87,6 +87,13 @@ typedef GoMainIdentity = {
 }
 
 #if macro
+/** One interface member after substituting every inherited type argument. */
+private typedef AppliedInterfaceMember = {
+	final owner:ClassType;
+	final field:ClassField;
+	final type:Type;
+}
+
 private typedef LoweredExpr = {
 	final expr:GoExpr;
 	final isStringLike:Bool;
@@ -3153,11 +3160,24 @@ class GoCompiler {
 	function lowerInterfaceDecls(classType:ClassType):Array<GoDecl> {
 		var methods = new Array<GoInterfaceMethod>();
 		var seen = new Map<String, Bool>();
+		for (member in appliedInterfaceMembers(classType)) {
+			var method = lowerInterfaceMethod(member.owner, member.field, member.type);
+			if (method != null && !seen.exists(method.name)) {
+				seen.set(method.name, true);
+				methods.push(method);
+			}
+		}
+		return [GoDecl.GoInterfaceDecl(classTypeName(classType), methods)];
+	}
+
+	/** Share inherited generic signatures between declarations and structural extraction. */
+	function appliedInterfaceMembers(classType:ClassType):Array<AppliedInterfaceMember> {
+		var members = new Array<AppliedInterfaceMember>();
 		var visited = new Map<String, Bool>();
 
 		/**
-			What: Collect the complete Haxe interface method set before emitting one Go
-			interface declaration.
+			What: Collect the complete Haxe interface method set for declarations and structural
+			method extraction.
 
 			Why: Haxe interface inheritance is nominal, while the generated Go interface
 			is structural. Emitting only `classType.fields` drops inherited methods and
@@ -3165,7 +3185,7 @@ class GoCompiler {
 
 			How: Walk parents first, substitute each edge's type arguments into the
 			parent fields, guard repeated diamond visits by nominal interface identity,
-			and deduplicate the final Go selector names.
+			and retain each member owner so callers use the same signature and selector metadata.
 		**/
 		function collect(interfaceType:ClassType, appliedParams:Null<Array<Type>>):Void {
 			var interfaceName = fullClassName(interfaceType);
@@ -3195,18 +3215,14 @@ class GoCompiler {
 							continue;
 						}
 						var fieldType = appliedParams == null ? field.type : TypeTools.applyTypeParameters(field.type, interfaceType.params, appliedParams);
-						var method = lowerInterfaceMethod(interfaceType, field, fieldType);
-						if (method != null && !seen.exists(method.name)) {
-							seen.set(method.name, true);
-							methods.push(method);
-						}
+						members.push({owner: interfaceType, field: field, type: fieldType});
 					case _:
 				}
 			}
 		}
 
 		collect(classType, null);
-		return [GoDecl.GoInterfaceDecl(classTypeName(classType), methods)];
+		return members;
 	}
 
 	function lowerInterfaceMethod(classType:ClassType, field:ClassField, declaredType:Type):Null<GoInterfaceMethod> {
@@ -6897,14 +6913,24 @@ class GoCompiler {
 
 	/** Read the actual source declaration, then adapt its value to a structural slot. */
 	function lowerStructuralMemberRead(source:GoExpr, sourceClass:ClassType, field:ClassField, targetType:Type):GoExpr {
-		var value = isOrdinaryMethod(field) ? lowerBoundFunctionValue(source, sourceClass, field.type, field.name, normalizeIdent(field.name),
-			unwrapFunction(field.expr())) : GoExpr.GoSelector(source, normalizeIdent(field.name));
+		var sourceType = field.type;
+		var selector = normalizeIdent(field.name);
+		if (sourceClass.isInterface) {
+			for (member in appliedInterfaceMembers(sourceClass))
+				if (member.field.name == field.name) {
+					sourceType = member.type;
+					selector = interfaceFieldName(member.owner, member.field);
+					break;
+				}
+		}
+		var value = isOrdinaryMethod(field) ? lowerBoundFunctionValue(source, sourceClass, sourceType, field.name, selector,
+			unwrapFunction(field.expr())) : GoExpr.GoSelector(source, selector);
 		if (isDynamicMethod(field))
 			value = GoExpr.GoCall(GoExpr.GoIdent("hxrt.ReadDynamicFunction"), [value]);
-		value = adaptErasedFunctionCallArg(value, field.type, targetType);
+		value = adaptErasedFunctionCallArg(value, sourceType, targetType);
 		// A generic storage read must preserve null, including a null String.
 		// Dynamic string conversion would instead manufacture the text "null".
-		if (valueStorageGoType(field.type) == "any" && valueStorageGoType(targetType) != "any")
+		if (valueStorageGoType(sourceType) == "any" && valueStorageGoType(targetType) != "any")
 			return lowerNullableAwareTypeAssertExpr(value, targetType);
 		return value;
 	}
