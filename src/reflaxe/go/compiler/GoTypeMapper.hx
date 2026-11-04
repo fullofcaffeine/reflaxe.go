@@ -489,7 +489,16 @@ class GoTypeMapper {
 		if (isVoidType(returnType)) {
 			return "func(" + params + ")";
 		}
-		return "func(" + params + ") " + scalarGoType(returnType, classTypeName, enumTypeName);
+		return "func(" + params + ") " + functionResultStorageGoType(returnType, classTypeName, enumTypeName);
+	}
+
+	/**
+		What: Selects the result storage shared by declarations and callable carriers.
+		Why: Scalar mapping erases Null, but callable results must retain its nil state.
+		How: Preserve nullable primitives in the runtime boundary's nil-capable storage.
+	**/
+	public static function functionResultStorageGoType(type:Type, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):String {
+		return isNullablePrimitiveType(type) ? "any" : scalarGoType(type, classTypeName, enumTypeName);
 	}
 
 	/**
@@ -500,13 +509,14 @@ class GoTypeMapper {
 		therefore share one signature. Mapping only the carrier as `func(any)` makes a
 		non-null-default implementation such as `func(int)` fail Go type checking.
 
-		How: Keep pointer/nil-capable parameter mappings unchanged and widen only
-		optional scalar value types to `any`. `lowerFunctionParams` uses the same rule
+		How: Keep pointer/nil-capable mappings unchanged and widen nullable primitives
+		and optional scalar values to `any`. `lowerFunctionParams` uses the same rule
 		and asserts the scalar type when the function body reads the parameter.
 	**/
 	public static function functionParameterStorageGoType(arg:{name:String, opt:Bool, t:Type}, classTypeName:GoClassTypeNamer,
 			enumTypeName:GoEnumTypeNamer):String {
-		return arg.opt && isPrimitiveValueType(arg.t) ? "any" : scalarGoType(arg.t, classTypeName, enumTypeName);
+		return isNullablePrimitiveType(arg.t)
+			|| (arg.opt && isPrimitiveValueType(arg.t)) ? "any" : scalarGoType(arg.t, classTypeName, enumTypeName);
 	}
 
 	/** Resolves the element type of the explicit `go.NativeSlice<T>` boundary. */

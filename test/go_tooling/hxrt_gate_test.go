@@ -79,7 +79,8 @@ func TestCheckptrReflectionPaths(t *testing.T) {
 	mapValue := map[string]int{"answer": 42}
 	sliceValue := []int{1, 2, 3}
 	channelValue := make(chan int)
-	functionValue := func() {}
+	callable := func() {}
+	functionValue := NewFunction(callable)
 	for name, value := range map[string]any{
 		"map":      mapValue,
 		"slice":    sliceValue,
@@ -92,5 +93,11 @@ func TestCheckptrReflectionPaths(t *testing.T) {
 	}
 	if referenceEqual(mapValue, map[string]int{"answer": 42}) {
 		t.Fatal("referenceEqual treated distinct maps as the same reference")
+	}
+	if referenceEqual(functionValue, NewFunction(callable)) {
+		t.Fatal("referenceEqual merged distinct function imports sharing native code")
+	}
+	if referenceEqual(callable, callable) {
+		t.Fatal("referenceEqual inferred portable identity from an opaque native function")
 	}
 }

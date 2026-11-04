@@ -3806,7 +3806,7 @@ class GoCompiler {
 		// `Context.follow()` erases the Haxe `Null` wrapper inside scalarGoType(), so
 		// select nil-capable storage before applying the ordinary scalar mapping.
 		return [
-			GoType.parse(isNullablePrimitiveType(returnType) ? "any" : scalarGoType(returnType))
+			GoType.parse(GoTypeMapper.functionResultStorageGoType(returnType, classTypeNameForMappedType, enumTypeName))
 		];
 	}
 
@@ -6970,8 +6970,16 @@ class GoCompiler {
 					isStringLike: isStringType(resolved.type)
 				};
 			case FEnum(enumRef, field):
+				var constructor = GoExpr.GoIdent(enumConstructorSymbol(enumRef.get(), field.name));
+				var isCallable = switch (Context.follow(field.type)) {
+					case TFun(_, _): true;
+					case _: false;
+				};
 				{
-					expr: GoExpr.GoIdent(enumConstructorSymbol(enumRef.get(), field.name)),
+					expr: asValue && isCallable ? GoExpr.GoCall(GoExpr.GoIdent("hxrt.NamedFunction"), [
+						constructor,
+						GoExpr.GoStringLiteral(fullEnumName(enumRef.get()) + "." + field.name)
+					]) : constructor,
 					isStringLike: false
 				};
 		};
@@ -7469,25 +7477,27 @@ class GoCompiler {
 		so a surrounding Haxe `try/catch` can observe it; a raw Go nil-function panic
 		would bypass that contract.
 
-		How: Evaluate the callee and every argument once as typed IIFE parameters, test
-		the function value through the shared runtime guard, then invoke it.
+		How: Capture the callee and each argument in separate ordered statements.
+		Go does not order mutable reads against neighboring calls in an argument list.
+		Only after those captures, test the function value and invoke it.
 	**/
 	function lowerFunctionValueCall(calleeExpr:GoExpr, args:Array<GoExpr>, calleeType:Type):GoExpr {
 		return switch (Context.follow(calleeType)) {
 			case TFun(functionArgs, functionReturn) if (functionArgs.length == args.length):
-				var params = [{name: "hx_fn", typeName: GoType.parse(typeToGoType(calleeType))}];
-				var actuals = [calleeExpr];
+				var calleeName = freshTempName("hx_callable");
+				var body:Array<GoStmt> = [
+					GoStmt.GoVarDecl(calleeName, GoType.parse(typeToGoType(calleeType)), calleeExpr, false)
+				];
 				var forwarded = new Array<GoExpr>();
 				for (index in 0...args.length) {
-					var name = "hx_arg_" + index;
-					params.push({name: name, typeName: GoType.parse(functionParameterStorageGoType(functionArgs[index]))});
-					actuals.push(args[index]);
+					var name = freshTempName("hx_argument");
+					body.push(GoStmt.GoVarDecl(name, GoType.parse(functionParameterStorageGoType(functionArgs[index])), args[index], false));
 					forwarded.push(GoExpr.GoIdent(name));
 				}
-				var call = GoExpr.GoCall(functionValueCallable(GoExpr.GoIdent("hx_fn")), forwarded);
-				var body = isVoidType(functionReturn) ? [GoStmt.GoExprStmt(call)] : [GoStmt.GoReturn(call)];
+				var call = GoExpr.GoCall(functionValueCallable(GoExpr.GoIdent(calleeName)), forwarded);
+				body.push(isVoidType(functionReturn) ? GoStmt.GoExprStmt(call) : GoStmt.GoReturn(call));
 				var results = lowerFunctionResults(functionReturn);
-				GoExpr.GoCall(GoExpr.GoFuncLiteral(params, results, body), actuals);
+				GoExpr.GoCall(GoExpr.GoFuncLiteral([], results, body), []);
 			case _:
 				GoExpr.GoCall(calleeExpr, args);
 		};
