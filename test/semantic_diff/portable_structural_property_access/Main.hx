@@ -31,5 +31,9 @@ class Main {
 		Sys.println("after=" + view.value);
 		Sys.println("reads=" + source.reads);
 		Sys.println("writes=" + source.writes);
+		Sys.println("raw-absent=" + Std.string(!Reflect.hasField(view, "value")));
+		Sys.println("raw-null=" + Std.string(Reflect.field(view, "value") == null));
+		var raw:{final value:Null<Int>;} = erased;
+		Sys.println("plain-null=" + Std.string(raw.value == null));
 	}
 }
