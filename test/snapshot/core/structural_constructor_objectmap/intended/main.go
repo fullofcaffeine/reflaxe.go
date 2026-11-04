@@ -204,3 +204,16 @@ func hx_recover_callable_1(value any) *hxrt.Function[func() any] {
 		return nil
 	}
 }
+
+func hx_recover_class_0(value any) *haxe__ds__ObjectMap {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ds__ObjectMap:
+		return source
+	default:
+		return value.(*haxe__ds__ObjectMap)
+	}
+}

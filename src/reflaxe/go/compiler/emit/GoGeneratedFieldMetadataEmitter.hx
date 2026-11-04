@@ -53,7 +53,7 @@ class GoGeneratedFieldMetadataEmitter {
 	public static inline final SET_SYMBOL = "reflaxe__go___internal__CompilerReflect_setGeneratedField";
 	public static inline final FIELDS_SYMBOL = "reflaxe__go___internal__CompilerReflect_generatedFields";
 
-	public static function emit(entries:Array<GeneratedFieldEntry>):Array<GoDecl> {
+	public static function emit(entries:Array<GeneratedFieldEntry>, recoverStored:(GoExpr, GoType) -> GoExpr):Array<GoDecl> {
 		var lookupEntries = [for (entry in entries) if (entry.participatesInLookup) entry];
 		var declarations = [
 			centralResolverDecl(lookupEntries, GeneratedFieldOperation.Lookup),
@@ -62,9 +62,9 @@ class GoGeneratedFieldMetadataEmitter {
 			generatedFieldsDecl(entries)
 		];
 		for (entry in lookupEntries) {
-			declarations.push(classResolverDecl(entry, GeneratedFieldOperation.Lookup));
-			declarations.push(classResolverDecl(entry, GeneratedFieldOperation.Has));
-			declarations.push(classResolverDecl(entry, GeneratedFieldOperation.Set));
+			declarations.push(classResolverDecl(entry, GeneratedFieldOperation.Lookup, recoverStored));
+			declarations.push(classResolverDecl(entry, GeneratedFieldOperation.Has, recoverStored));
+			declarations.push(classResolverDecl(entry, GeneratedFieldOperation.Set, recoverStored));
 		}
 		return declarations;
 	}
@@ -172,7 +172,7 @@ class GoGeneratedFieldMetadataEmitter {
 		return GoDecl.GoFuncDecl(centralSymbol(operation), null, params, [resultType(operation)], body);
 	}
 
-	static function classResolverDecl(entry:GeneratedFieldEntry, operation:GeneratedFieldOperation):GoDecl {
+	static function classResolverDecl(entry:GeneratedFieldEntry, operation:GeneratedFieldOperation, recoverStored:(GoExpr, GoType) -> GoExpr):GoDecl {
 		var value = GoExpr.GoIdent("value");
 		var body = [
 			GoStmt.GoIf(GoExpr.GoBinary(GoBinaryOperator.Equal, value, GoExpr.GoNil), [defaultReturn(operation)], null)
@@ -182,7 +182,7 @@ class GoGeneratedFieldMetadataEmitter {
 			for (field in entry.ownFields) {
 				fieldCases.push({
 					values: [GoExpr.GoStringLiteral(field.lookupKey)],
-					body: fieldCaseBody(value, field.selector, field.typeName, operation)
+					body: fieldCaseBody(value, field.selector, field.typeName, operation, recoverStored)
 				});
 			}
 			body.push(GoStmt.GoSwitch(GoExpr.GoIdent("key"), fieldCases, null));
@@ -210,7 +210,8 @@ class GoGeneratedFieldMetadataEmitter {
 		return GoDecl.GoFuncDecl(classResolverSymbol(entry.goTypeName, operation), null, params, [resultType(operation)], body);
 	}
 
-	static function fieldCaseBody(value:GoExpr, selector:String, typeName:GoType, operation:GeneratedFieldOperation):Array<GoStmt> {
+	static function fieldCaseBody(value:GoExpr, selector:String, typeName:GoType, operation:GeneratedFieldOperation,
+			recoverStored:(GoExpr, GoType) -> GoExpr):Array<GoStmt> {
 		return switch (operation) {
 			case Lookup:
 				[
@@ -221,6 +222,19 @@ class GoGeneratedFieldMetadataEmitter {
 			case Set:
 				var target = GoExpr.GoSelector(value, selector);
 				var incoming = GoExpr.GoIdent("incoming");
+				// The actual incoming carrier can use a different generic signature.
+				// Preserve rejection of non-functions, then recover into physical storage.
+				if (typeName.functionCarrierSignature() != null)
+					return [
+						GoStmt.GoIf(GoExpr.GoBinary("||",
+							GoExpr.GoBinary("==", GoExpr.GoCall(GoExpr.GoIdent("hxrt.FunctionOrigin"), [incoming]), GoExpr.GoNil),
+							GoExpr.GoCall(GoExpr.GoIdent("hxrt.ReflectIsFunction"), [incoming])),
+							[
+								GoStmt.GoAssign(target, recoverStored(incoming, typeName)),
+								GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))
+							], null),
+						GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))
+					];
 				var typedCases = [
 					{
 						typeName: typeName,
