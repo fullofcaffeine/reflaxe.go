@@ -11894,12 +11894,15 @@ class GoCompiler {
 	/** What: Resolves the type of the carrier actually held by an array expression.
 		Why: Vector and other inline views expose Array-typed nodes while retaining a
 		raw slice, so the outer expression type alone can request the wrong operations.
-		How: Peel only array-to-array compile-time wrappers and trust the innermost
-		storage-bearing expression. **/
+		How: Peel array-to-array compile-time wrappers, but stop at a block result:
+		block lowering has already adapted its terminal value to that result type. **/
 	function arrayStorageType(expr:TypedExpr):Type {
 		return switch (expr.expr) {
-			case TBlock(exprs) if (exprs.length > 0):
-				arrayStorageType(exprs[exprs.length - 1]);
+			case TBlock(_):
+				// Block lowering adapts its terminal value to the declared result before
+				// materializing it. The temporary's original carrier is no longer the
+				// storage crossing the enclosing argument or assignment boundary.
+				expr.t;
 			case TMeta(_, inner) | TParenthesis(inner):
 				arrayStorageType(inner);
 			case TCast(inner, _) if (isArrayType(inner.t)):
