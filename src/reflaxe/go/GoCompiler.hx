@@ -3787,7 +3787,7 @@ class GoCompiler {
 		What: Lowers one explicit or default constructor argument for its parameter type.
 		Why: Constructors previously bypassed structural and prefix-aware expected-type
 		coercion even though ordinary calls used it.
-		How: Reuse `lowerExprWithExpectedUpcast` and materialize any ordered prefix into
+		How: Reuse `lowerStoredExprWithExpectedType` and materialize any ordered prefix into
 		one expression suitable for the generated Go constructor call.
 	**/
 	function lowerConstructorArg(classType:ClassType, arg:TypedExpr, index:Int):GoExpr {
@@ -3795,7 +3795,7 @@ class GoCompiler {
 		if (paramType == null) {
 			return lowerExpr(arg).expr;
 		}
-		return materializeExprWithPrefix(lowerExprWithExpectedUpcast(arg, paramType), paramType).expr;
+		return materializeExprWithPrefix(lowerStoredExprWithExpectedType(arg, paramType), paramType).expr;
 	}
 
 	function lowerFunctionResults(returnType:Type):Array<GoType> {
@@ -4320,18 +4320,17 @@ class GoCompiler {
 	}
 
 	/**
-		What: Lowers one value-producing branch against an optional callable result.
-
-		Why: `if`, `switch`, block, and `try` expressions first lower their branches
-		into a shared temporary. A stable `func(int)` branch cannot enter that
-		`func(any)` carrier unless the branch itself applies the expected-storage ABI.
-
-		How: Use stored-value adaptation only when the enclosing result is an optional
-		callable. Otherwise invoke the caller's existing lowering path so unrelated
-		expression shapes remain unchanged.
+		What: Lowers a value-producing branch against its callable result signature.
+		Why: Branch temporaries must preserve optional arguments and result-discard
+		conversions just like fields and returns, before Go checks the assignment.
+		How: Route callable branches through the common stored-value adapter and keep
+		the existing expression lowering for other result types.
 	**/
-	function lowerOptionalCallableBranch(expr:TypedExpr, resultType:Type, fallback:Void->LoweredExprWithPrefix):LoweredExprWithPrefix {
-		return functionTypeHasOptionalArgs(resultType) ? lowerStoredExprWithExpectedType(expr, resultType) : fallback();
+	function lowerCallableBranch(expr:TypedExpr, resultType:Type, fallback:Void->LoweredExprWithPrefix):LoweredExprWithPrefix {
+		return switch (Context.follow(resultType)) {
+			case TFun(_, _): lowerStoredExprWithExpectedType(expr, resultType);
+			case _: fallback();
+		};
 	}
 
 	function lowerSwitchStmt(value:TypedExpr, cases:Array<{values:Array<TypedExpr>, expr:TypedExpr}>, defaultExpr:Null<TypedExpr>):GoStmt {
@@ -4396,7 +4395,7 @@ class GoCompiler {
 	function lowerSwitchValueBranch(expr:TypedExpr, resultType:Type, temp:String):Array<GoStmt> {
 		if (switchBranchEndsWithReturn(expr))
 			return lowerInSwitchContext(function() return lowerToStatements(expr));
-		var lowered = lowerInSwitchContext(function() return lowerOptionalCallableBranch(expr, resultType,
+		var lowered = lowerInSwitchContext(function() return lowerCallableBranch(expr, resultType,
 			function() return lowerExprWithExpectedUpcast(expr, resultType)));
 		return lowered.prefix.concat([GoStmt.GoAssign(GoExpr.GoIdent(temp), lowered.expr)]);
 	}
@@ -4462,9 +4461,9 @@ class GoCompiler {
 		var loweredCondition = lowerExprWithPrefix(condition);
 		var facts = conditionNonNullFacts(condition);
 		var loweredThen = lowerWithNonNullPrimitiveFacts(facts.thenFacts,
-			function() return lowerOptionalCallableBranch(thenBranch, resultType, function() return lowerExprWithExpectedUpcast(thenBranch, resultType)));
+			function() return lowerCallableBranch(thenBranch, resultType, function() return lowerExprWithExpectedUpcast(thenBranch, resultType)));
 		var loweredElse = lowerWithNonNullPrimitiveFacts(facts.elseFacts,
-			function() return lowerOptionalCallableBranch(elseExpr, resultType, function() return lowerExprWithExpectedUpcast(elseExpr, resultType)));
+			function() return lowerCallableBranch(elseExpr, resultType, function() return lowerExprWithExpectedUpcast(elseExpr, resultType)));
 		var temp = freshTempName("hx_if");
 		var loweredThenValue = loweredThen.expr;
 		var loweredElseValue = loweredElse.expr;
@@ -4758,7 +4757,7 @@ class GoCompiler {
 
 	function lowerTryCatchExpr(tryExpr:TypedExpr, catches:Array<{v:TVar, expr:TypedExpr}>, resultType:Type):LoweredExprWithPrefix {
 		var temp = freshTempName("hx_try");
-		var loweredTry = lowerOptionalCallableBranch(tryExpr, resultType, function() return lowerExprWithExpectedUpcast(tryExpr, resultType));
+		var loweredTry = lowerCallableBranch(tryExpr, resultType, function() return lowerExprWithExpectedUpcast(tryExpr, resultType));
 		var loweredTryValue = loweredTry.expr;
 		var tempExpr = GoExpr.GoIdent(temp);
 
@@ -4782,8 +4781,7 @@ class GoCompiler {
 			var catchEntry = catches[index];
 			var catchVarName = localVarName(catchEntry.v);
 			var catchType = typeToGoType(catchEntry.v.t);
-			var loweredCatch = lowerOptionalCallableBranch(catchEntry.expr, resultType,
-				function() return lowerExprWithExpectedUpcast(catchEntry.expr, resultType));
+			var loweredCatch = lowerCallableBranch(catchEntry.expr, resultType, function() return lowerExprWithExpectedUpcast(catchEntry.expr, resultType));
 			var loweredCatchValue = loweredCatch.expr;
 			var catchExprBody = loweredCatch.prefix.concat([GoStmt.GoAssign(tempExpr, loweredCatchValue)]);
 			var haxeExceptionCatch = isHaxeExceptionType(catchEntry.v.t);
@@ -6509,7 +6507,7 @@ class GoCompiler {
 						prefix = prefix.concat(withoutThrowFallback(function() return lowerToStatements(exprs[index])));
 					}
 					var tailExpr = exprs[exprs.length - 1];
-					var tail = lowerOptionalCallableBranch(tailExpr, expr.t, function() return lowerExprWithPrefix(tailExpr));
+					var tail = lowerCallableBranch(tailExpr, expr.t, function() return lowerExprWithPrefix(tailExpr));
 					{
 						prefix: prefix.concat(tail.prefix),
 						expr: tail.expr,
@@ -10902,7 +10900,21 @@ class GoCompiler {
 			return expectedFunction;
 		}
 		var stableFunction = lowerStableFunctionValueForExpectedType(source, targetType);
-		return stableFunction == null ? lowerExprWithExpectedUpcast(source, targetType) : stableFunction;
+		if (stableFunction != null) {
+			return stableFunction;
+		}
+		return switch ([Context.follow(source.t), Context.follow(targetType)]) {
+			case [TFun(_, _), TFun(_, _)] if (typeToGoType(source.t) != typeToGoType(targetType)):
+				// Recover the source carrier before adapting its signature. In particular,
+				// an erased array slot must not be asserted as the destination signature.
+				var lowered = lowerExprWithExpectedUpcast(source, source.t);
+				{
+					prefix: lowered.prefix,
+					expr: adaptErasedFunctionCallArg(lowered.expr, source.t, targetType),
+					isStringLike: false
+				};
+			case _: lowerExprWithExpectedUpcast(source, targetType);
+		};
 	}
 
 	/**
