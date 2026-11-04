@@ -28,4 +28,9 @@ function native(value:GoExpr):GoExpr {
 function adapt(source:GoExpr, callable:GoExpr):GoExpr {
 	return GoExpr.GoCall(GoExpr.GoIdent("hxrt.AdaptFunction"), [source, callable]);
 }
+
+/** Preserve normalized source behavior when exposing another typed signature. */
+function project(source:GoExpr, callable:GoExpr):GoExpr {
+	return GoExpr.GoCall(GoExpr.GoIdent("hxrt.ProjectFunction"), [source, callable]);
+}
 #end

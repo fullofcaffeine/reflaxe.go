@@ -19,8 +19,20 @@ func (self *Concrete) HxFunctionReceiver() any {
 }
 
 func New_Concrete() *Concrete {
+	return hx_init_Concrete(hx_alloc_Concrete(nil))
+}
+
+func hx_alloc_Concrete(owner any) *Concrete {
 	self := &Concrete{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_Concrete)
+	}
+	return self
+}
+
+func hx_init_Concrete(self *Concrete) *Concrete {
 	return self
 }
 
@@ -73,30 +85,16 @@ func main() {
 		})
 	}(instance)
 	var v any = any(func() int {
-		var hx_callable_8 *hxrt.Function[func(int) int] = func(hx_obj_5 hxrt.Anonymous) *hxrt.Function[func(int) int] {
-			hx_field_6 := hxrt.AnonymousGet(hx_obj_5, "f")
-			if hx_field_6 == nil {
-				var hx_zero_7 *hxrt.Function[func(int) int]
-				return hx_zero_7
-			}
-			return hx_field_6.(*hxrt.Function[func(int) int])
-		}(live)
-		var hx_argument_9 int = 4
-		return hxrt.FunctionCall(hx_callable_8)(hx_argument_9)
+		var hx_callable_5 *hxrt.Function[func(int) int] = hx_recover_callable_0(hxrt.AnonymousGet(live, "f"))
+		var hx_argument_6 int = 4
+		return hxrt.FunctionCall(hx_callable_5)(hx_argument_6)
 	}())
 	hxrt.Println(v)
-	saved := func(hx_obj_10 hxrt.Anonymous) *hxrt.Function[func(int) int] {
-		hx_field_11 := hxrt.AnonymousGet(hx_obj_10, "f")
-		if hx_field_11 == nil {
-			var hx_zero_12 *hxrt.Function[func(int) int]
-			return hx_zero_12
-		}
-		return hx_field_11.(*hxrt.Function[func(int) int])
-	}(live)
+	saved := hx_recover_callable_0(hxrt.AnonymousGet(live, "f"))
 	var v_1 any = any(func() int {
-		var hx_callable_13 *hxrt.Function[func(int) int] = saved
-		var hx_argument_14 int = 5
-		return hxrt.FunctionCall(hx_callable_13)(hx_argument_14)
+		var hx_callable_7 *hxrt.Function[func(int) int] = saved
+		var hx_argument_8 int = 5
+		return hxrt.FunctionCall(hx_callable_7)(hx_argument_8)
 	}())
 	hxrt.Println(v_1)
 }
@@ -107,4 +105,25 @@ type Middle interface {
 
 type Parent interface {
 	f(x any) any
+}
+
+func hx_recover_callable_0(value any) *hxrt.Function[func(int) int] {
+	if value == nil {
+		return nil
+	}
+	switch exact := value.(type) {
+	case *hxrt.Function[func(int) int]:
+		return exact
+	}
+	origin := hxrt.FunctionOrigin(value)
+	if origin == nil {
+		return nil
+	}
+	switch source := origin.(type) {
+	case *hxrt.Function[func(int) int]:
+		return source
+	default:
+		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
+		return nil
+	}
 }

@@ -14,17 +14,27 @@ func main() {
 	hx_obj_1 := map[string]any{}
 	hx_obj_1["count"] = nil
 	value := hxrt.AnonymousFromMap(hx_obj_1)
-	var v any = any(hxrt.AnonymousGet(value, "count"))
+	var v any = any(func(hx_value_2 any) any {
+		if hx_value_2 == nil {
+			return nil
+		}
+		return hx_value_2.(int)
+	}(hxrt.AnonymousGet(value, "count")))
 	hxrt.Println(v)
 	var v_1 any = Reflect_field(value, hxrt.StringFromLiteral("count"))
 	hxrt.Println(v_1)
 	func() any {
-		hx_structural_target_2 := value
-		hx_structural_value_4 := 7
-		hxrt.AnonymousSet(hx_structural_target_2, "count", hx_structural_value_4)
-		return hx_structural_value_4
+		hx_structural_target_3 := value
+		hx_structural_value_5 := 7
+		hxrt.AnonymousSet(hx_structural_target_3, "count", hx_structural_value_5)
+		return hx_structural_value_5
 	}()
-	var v_2 any = any(hxrt.AnonymousGet(value, "count"))
+	var v_2 any = any(func(hx_value_6 any) any {
+		if hx_value_6 == nil {
+			return nil
+		}
+		return hx_value_6.(int)
+	}(hxrt.AnonymousGet(value, "count")))
 	hxrt.Println(v_2)
 }
 
@@ -201,4 +211,19 @@ func reflaxe__go___internal__CompilerReflect_generatedMethod(object any, field *
 
 func reflaxe__go___internal__CompilerReflect_isEnumValue(value any) bool {
 	return false
+}
+
+func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []any) any {
+	switch source := hxrt.FunctionOrigin(value).(type) {
+	case *hxrt.Function[func(...any) any]:
+		var argument_0 []any = nil
+		for index, argument := range arguments {
+			if index >= 0 {
+				argument_0 = append(argument_0, argument)
+			}
+		}
+		return hxrt.FunctionCall(source)(argument_0...)
+	default:
+		return hxrt.ReflectCallMethod(value, arguments)
+	}
 }

@@ -173,6 +173,7 @@ func reflectCallArgument(value any, target reflect.Type) reflect.Value {
 // ReflectCallMethod invokes an already-resolved function. Object context is not
 // needed on Go because generated and reflected method values are already bound.
 func ReflectCallMethod(function any, arguments []any) any {
+	function = FunctionOrigin(function)
 	if value, ok := function.(functionValue); ok {
 		function = value.functionPayload()
 	}

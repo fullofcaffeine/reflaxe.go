@@ -1,9 +1,7 @@
 package reflaxe.go.compiler;
 
 #if macro
-import reflaxe.go.compiler.GoFunctionValueLowering.fresh as freshFunctionValue;
 import reflaxe.go.compiler.GoFunctionValueLowering.callable as functionValueCallable;
-import reflaxe.go.compiler.GoFunctionValueLowering.adapt as adaptFunctionValue;
 import haxe.macro.Context;
 import haxe.macro.Type;
 import haxe.macro.TypeTools;
@@ -100,6 +98,8 @@ private typedef GoNativeArrayCursorPlan = {
 }
 
 private typedef GoLambdaIterableLoweringConfig = {
+	final freshFunctionValue:GoExpr->GoExpr;
+	final adaptFunctionValue:(GoExpr, GoExpr) -> GoExpr;
 	final structuralObjectCoerce:(GoExpr, Type, Type) -> Null<GoExpr>;
 	final lowerExpr:TypedExpr->GoLambdaLoweredExpr;
 	final lowerToStatements:TypedExpr->Array<GoStmt>;
@@ -143,6 +143,8 @@ private typedef GoLambdaIterableLoweringConfig = {
 	shared-Array or native-slice storage.
 **/
 class GoLambdaIterableLowering {
+	final freshFunctionValue:GoExpr->GoExpr;
+	final adaptFunctionValue:(GoExpr, GoExpr) -> GoExpr;
 	final structuralObjectCoerce:(GoExpr, Type, Type) -> Null<GoExpr>;
 	final lowerExpr:TypedExpr->GoLambdaLoweredExpr;
 	final lowerToStatements:TypedExpr->Array<GoStmt>;
@@ -161,6 +163,8 @@ class GoLambdaIterableLowering {
 	final lookupLocalLambdaAlias:String->Null<String>;
 
 	public function new(config:GoLambdaIterableLoweringConfig) {
+		freshFunctionValue = config.freshFunctionValue;
+		adaptFunctionValue = config.adaptFunctionValue;
 		structuralObjectCoerce = config.structuralObjectCoerce;
 		lowerExpr = config.lowerExpr;
 		lowerToStatements = config.lowerToStatements;
@@ -598,8 +602,8 @@ class GoLambdaIterableLowering {
 			if (factoryType == null || hasNextType == null || nextType == null)
 				Context.fatalError("Expected a typed structural Iterable protocol", Context.currentPos());
 			function invokeField(receiver:GoExpr, name:String, fieldType:Type):GoExpr {
-				var value = GoExpr.GoTypeAssert(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousGet"), [receiver, GoExpr.GoStringLiteral(name)]),
-					scalarGoType(fieldType));
+				var value = lowerNullableAwareTypeAssertExpr(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousGet"), [receiver, GoExpr.GoStringLiteral(name)]),
+					fieldType);
 				return GoExpr.GoCall(functionValueCallable(value), []);
 			}
 			var iteratorName = freshTempName("hx_lambda_iterator");

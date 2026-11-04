@@ -20,6 +20,9 @@ package reflaxe.go.internal;
 	  adapters remaining separate from ordinary runtime representation inspection.
 **/
 extern class CompilerReflect {
+	/** Recover compiler-owned callable arguments before using the native fallback. */
+	public static function callMethod(method:Dynamic, arguments:go.NativeSlice<Dynamic>):Dynamic;
+
 	public static function typeField(object:Dynamic, field:String):Dynamic;
 	public static function hasTypeField(object:Dynamic, field:String):Bool;
 	public static function generatedField(object:Dynamic, field:String):Dynamic;
