@@ -13,16 +13,6 @@
       ],
       "reviewCondition": "Split or remove the dispatcher if capability selection moves behind typed lowering-pass ownership."
     },
-    "approved_exception_carrier": {
-      "what": "Lower the exact haxe.Exception carrier conversion members directly at typed call sites.",
-      "why": "Caught and thrown Haxe values cross the backend exception representation, so ordinary source cannot safely recover or expose the carrier without knowing that representation.",
-      "how": "Keep only the two exact conversion calls and route them to the typed hxrt exception carrier API.",
-      "evidence": [
-        "semantic_diff/exception_api_contract",
-        "core/haxe_exception_subset"
-      ],
-      "reviewCondition": "Revisit if staged exception source gains a typed carrier abstraction that preserves arbitrary Haxe thrown values."
-    },
     "approved_generated_method_metadata": {
       "what": "Generate a method-only lookup over reachable concrete Haxe classes that returns an already-bound lowercase Go method for a Haxe field name.",
       "why": "Go reflection cannot discover unexported generated methods, and the separate hxrt package cannot select them across the package boundary; ordinary Haxe source also cannot enumerate the final reachable generated class graph.",
@@ -351,16 +341,6 @@
       "decisionId": "approved_string_representation"
     },
     {
-      "symbol": "haxe.Exception.caught",
-      "status": "approved_intrinsic",
-      "decisionId": "approved_exception_carrier"
-    },
-    {
-      "symbol": "haxe.Exception.thrown",
-      "status": "approved_intrinsic",
-      "decisionId": "approved_exception_carrier"
-    },
-    {
       "symbol": "haxe._Rest.Rest_Impl_.append",
       "status": "approved_intrinsic",
       "decisionId": "approved_rest_representation"
@@ -403,24 +383,9 @@
       "decisionId": "approved_rtti_fields"
     },
     {
-      "symbol": "haxe.Exception.message",
-      "status": "approved_intrinsic",
-      "decisionId": "approved_exception_carrier"
-    },
-    {
-      "symbol": "haxe.Exception.toString",
-      "status": "approved_intrinsic",
-      "decisionId": "approved_exception_carrier"
-    },
-    {
       "symbol": "haxe.Resource.content",
       "status": "approved_intrinsic",
       "decisionId": "approved_resource_table"
-    },
-    {
-      "symbol": "haxe.ValueException.value",
-      "status": "approved_intrinsic",
-      "decisionId": "approved_exception_carrier"
     }
   ],
   "nativeCompilerGroups": [

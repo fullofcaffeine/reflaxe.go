@@ -41,7 +41,7 @@ func TestConcurrentThreadMessagesAndAtomics(t *testing.T) {
 		worker := worker
 		if threadID := ThreadSpawn(func() {
 			ThreadSendMessage(parentID, worker)
-		}); threadID == 0 {
+		}, func(value any) { t.Errorf("unexpected thread exception: %v", value) }); threadID == 0 {
 			t.Fatal("ThreadSpawn() returned the reserved zero thread ID")
 		}
 	}

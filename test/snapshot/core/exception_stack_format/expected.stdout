@@ -1,0 +1,10 @@
+subtract=
+Called from Cause.start
+details=Exception: cause
+Called from Cause.start
+
+Next Exception: outer
+Called from Outer.start
+Called from Shared.tail
+identical=0
+distinct=2

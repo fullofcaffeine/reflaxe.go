@@ -52,7 +52,7 @@ class Thread {
 	}
 
 	public static function create(job:() -> Void):Thread {
-		return new Thread(NativeThread.spawn(job));
+		return new Thread(NativeThread.spawn(job, reportUncaught));
 	}
 
 	public static function runWithEventLoop(job:() -> Void):Void {
@@ -60,11 +60,17 @@ class Thread {
 	}
 
 	public static function createWithEventLoop(job:() -> Void):Thread {
-		return new Thread(NativeThread.spawnWithEventLoop(job));
+		return new Thread(NativeThread.spawnWithEventLoop(job, reportUncaught));
 	}
 
 	public static function readMessage(block:Bool):Dynamic {
 		return NativeThread.readMessage(block);
+	}
+
+	/** Arbitrary thrown payloads cross this boundary once; Haxe owns the message. */
+	static function reportUncaught(value:Any):Void {
+		var exception = @:privateAccess haxe.Exception.caught(value);
+		NativeThread.writeStderr("Uncaught exception " + exception.message + "\n");
 	}
 
 	private static function processEvents():Void {

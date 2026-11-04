@@ -33,14 +33,14 @@ func (locker *notifyingLocker) Unlock() {
 func TestPortableThreadFailureProcessContract(t *testing.T) {
 	switch os.Getenv(threadFailureProbeEnv) {
 	case "haxe":
-		ThreadSpawn(func() {
+		spawnWithTestReporter(func() {
 			Throw(StringFromLiteral("child-failure"))
 		})
 		ThreadWaitForAll()
 		fmt.Fprintln(os.Stdout, "main-survived")
 		os.Exit(0)
 	case "native":
-		ThreadSpawn(func() {
+		spawnWithTestReporter(func() {
 			panic("native-thread-panic")
 		})
 		ThreadWaitForAll()
@@ -111,19 +111,19 @@ func TestThreadWaitForAllDrainsNestedJobsAndState(t *testing.T) {
 	const childrenPerRoot = 8
 	var completed atomic.Int64
 	for root := 0; root < roots; root++ {
-		ThreadSpawn(func() {
+		spawnWithTestReporter(func() {
 			completed.Add(1)
 			for child := 0; child < childrenPerRoot; child++ {
-				ThreadSpawn(func() {
+				spawnWithTestReporter(func() {
 					completed.Add(1)
-					ThreadSpawn(func() {
+					spawnWithTestReporter(func() {
 						completed.Add(1)
 					})
 				})
 			}
 		})
 	}
-	ThreadSpawnWithEventLoop(func() {
+	spawnLoopWithTestReporter(func() {
 		completed.Add(1)
 	})
 
@@ -340,7 +340,7 @@ func TestThreadEventLoopOwnershipIsRaceSafe(t *testing.T) {
 	stopReader := make(chan struct{})
 	readerDone := make(chan struct{})
 
-	workerID := ThreadSpawn(func() {
+	workerID := spawnWithTestReporter(func() {
 		<-begin
 		for range iterations {
 			ThreadRunWithEventLoop(func() {
@@ -516,7 +516,7 @@ func TestPortableThreadIdentityStateReturnsToBaselineAfterChurn(t *testing.T) {
 	var completed atomic.Int64
 	for range batches {
 		for range threadsPerBatch {
-			ThreadSpawn(func() {
+			spawnWithTestReporter(func() {
 				completed.Add(1)
 			})
 		}
@@ -659,7 +659,7 @@ func TestThreadLocalStateReturnsToBaselineAfterPortableThreadChurn(t *testing.T)
 	failures := make(chan string, workers*2)
 	for worker := 0; worker < workers; worker++ {
 		worker := worker
-		ThreadSpawn(func() {
+		spawnWithTestReporter(func() {
 			if got := ThreadLocalGet(handle); got != nil {
 				failures <- fmt.Sprintf("worker %d inherited thread-local value %v", worker, got)
 			}
@@ -785,4 +785,13 @@ func BenchmarkCurrentGoroutineID(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_ = currentGoroutineID()
 	}
+}
+
+// Runtime tests supply their own formatting policy, as staged Haxe does in production.
+func testThreadReporter(value any) {
+	fmt.Fprintf(os.Stderr, "Uncaught exception %s\n", *StdString(value))
+}
+func spawnWithTestReporter(job func()) int { return ThreadSpawn(job, testThreadReporter) }
+func spawnLoopWithTestReporter(job func()) int {
+	return ThreadSpawnWithEventLoop(job, testThreadReporter)
 }

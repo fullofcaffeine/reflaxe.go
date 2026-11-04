@@ -68,9 +68,14 @@ extern class NativeThread {
 	public static function localSet(handle:ThreadLocalHandle, value:Dynamic):Void;
 
 	@:go.name("ThreadSpawn")
-	public static function spawn(job:() -> Void):Int;
+	public static function spawn(job:() -> Void, report:(Any) -> Void):Int;
 	@:go.name("ThreadSpawnWithEventLoop")
-	public static function spawnWithEventLoop(job:() -> Void):Int;
+	public static function spawnWithEventLoop(job:() -> Void, report:(Any) -> Void):Int;
+
+	/** Writes a complete diagnostic supplied by the staged source owner. */
+	@:go.name("ThreadWriteStderr")
+	public static function writeStderr(message:String):Void;
+
 	@:go.name("ThreadHasEventLoop")
 	public static function hasEventLoop(threadId:Int):Bool;
 	@:go.name("ThreadEvents")
