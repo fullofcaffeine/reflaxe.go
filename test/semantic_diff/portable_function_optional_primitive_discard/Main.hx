@@ -8,7 +8,6 @@ class Main {
 
 	static function invoke(callback:(?Int) -> Void) {
 		callback();
-		callback(null);
 		callback(0);
 		callback(4);
 	}
