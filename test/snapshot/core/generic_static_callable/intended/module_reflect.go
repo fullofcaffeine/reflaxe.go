@@ -3,7 +3,7 @@ package main
 import "snapshot/hxrt"
 
 func Reflect_callMethod(o any, func_ any, args *hxrt.Array) any {
-	return hxrt.ReflectCallMethod(func_, args.ValuesCopy())
+	return reflaxe__go___internal__CompilerReflect_callMethod(func_, args.ValuesCopy())
 }
 
 func Reflect_compare(a any, b any) int {
@@ -135,7 +135,7 @@ func Reflect_makeVarArgs(f *hxrt.Function[func(*hxrt.Array) any]) any {
 
 func Reflect_setField(o any, field *string, value any) {
 	if hxrt.AnyEqualsNull(o) {
-		hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Null Access")))
 	}
 	if hxrt.ReflectSetField(o, field, value) {
 		return

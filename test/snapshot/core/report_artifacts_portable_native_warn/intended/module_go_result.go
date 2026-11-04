@@ -15,9 +15,25 @@ type go___Result struct {
 	errorValue *go___Error
 }
 
+func (self *go___Result) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_go___Result(value any, errorValue *go___Error) *go___Result {
+	return hx_init_go___Result(hx_alloc_go___Result(nil), value, errorValue)
+}
+
+func hx_alloc_go___Result(owner any) *go___Result {
 	self := &go___Result{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_go___Result)
+	}
+	return self
+}
+
+func hx_init_go___Result(self *go___Result, value any, errorValue *go___Error) *go___Result {
 	self.value = value
 	self.errorValue = errorValue
 	return self
@@ -33,7 +49,7 @@ func (self *go___Result) isErr() bool {
 
 func (self *go___Result) unwrap() any {
 	if self.errorValue != nil {
-		hxrt.Throw(self.errorValue.toString())
+		hxrt.Throw(haxe__Exception_thrown(self.errorValue.toString()))
 	}
 	return self.value
 }

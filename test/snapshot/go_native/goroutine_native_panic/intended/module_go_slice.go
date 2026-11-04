@@ -21,8 +21,20 @@ func (self *go___Slice) HxFunctionReceiver() any {
 }
 
 func New_go___Slice() *go___Slice {
+	return hx_init_go___Slice(hx_alloc_go___Slice(nil))
+}
+
+func hx_alloc_go___Slice(owner any) *go___Slice {
 	self := &go___Slice{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_go___Slice)
+	}
+	return self
+}
+
+func hx_init_go___Slice(self *go___Slice) *go___Slice {
 	self.data = []any{}
 	return self
 }

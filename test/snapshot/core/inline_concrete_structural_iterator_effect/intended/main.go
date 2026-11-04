@@ -52,7 +52,12 @@ func checkedGeneric(first any, second any) hxrt.Anonymous {
 
 func checkedVirtual(values *hxrt.Array) hxrt.Anonymous {
 	note(hxrt.StringFromLiteral("virtual:effect"))
-	iterator := New_SnapshotInlineSpecializedStringIterator(values).SnapshotInlineBaseStringIterator
+	iterator := func(hx_value *SnapshotInlineSpecializedStringIterator) *SnapshotInlineBaseStringIterator {
+		if hx_value == nil {
+			return nil
+		}
+		return hx_value.SnapshotInlineBaseStringIterator
+	}(New_SnapshotInlineSpecializedStringIterator(values))
 	return func(hx_structural_source_6 *SnapshotInlineBaseStringIterator) hxrt.Anonymous {
 		return hxrt.NewAnonymousView(hx_structural_source_6, func(name string) hxrt.AnonymousField {
 			switch name {
@@ -165,7 +170,12 @@ func main() {
 	hxrt.Println(v_1)
 	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("virtual="), collect(func() hxrt.Anonymous {
 		note(hxrt.StringFromLiteral("virtual:effect"))
-		iterator := New_SnapshotInlineSpecializedStringIterator(hxrt.NewArray(hxrt.StringFromLiteral("v"))).SnapshotInlineBaseStringIterator
+		iterator := func(hx_value *SnapshotInlineSpecializedStringIterator) *SnapshotInlineBaseStringIterator {
+			if hx_value == nil {
+				return nil
+			}
+			return hx_value.SnapshotInlineBaseStringIterator
+		}(New_SnapshotInlineSpecializedStringIterator(hxrt.NewArray(hxrt.StringFromLiteral("v"))))
 		return func(hx_structural_source_19 *SnapshotInlineBaseStringIterator) hxrt.Anonymous {
 			return hxrt.NewAnonymousView(hx_structural_source_19, func(name string) hxrt.AnonymousField {
 				switch name {

@@ -4,7 +4,7 @@ import "snapshot/hxrt"
 
 type I_haxe__iterators__StringKeyValueIteratorUnicode interface {
 	hasNext() bool
-	next() map[string]any
+	next() hxrt.Anonymous
 }
 
 type haxe__iterators__StringKeyValueIteratorUnicode struct {
@@ -14,9 +14,25 @@ type haxe__iterators__StringKeyValueIteratorUnicode struct {
 	s          *string
 }
 
+func (self *haxe__iterators__StringKeyValueIteratorUnicode) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe__iterators__StringKeyValueIteratorUnicode(s *string) *haxe__iterators__StringKeyValueIteratorUnicode {
+	return hx_init_haxe__iterators__StringKeyValueIteratorUnicode(hx_alloc_haxe__iterators__StringKeyValueIteratorUnicode(nil), s)
+}
+
+func hx_alloc_haxe__iterators__StringKeyValueIteratorUnicode(owner any) *haxe__iterators__StringKeyValueIteratorUnicode {
 	self := &haxe__iterators__StringKeyValueIteratorUnicode{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__iterators__StringKeyValueIteratorUnicode)
+	}
+	return self
+}
+
+func hx_init_haxe__iterators__StringKeyValueIteratorUnicode(self *haxe__iterators__StringKeyValueIteratorUnicode, s *string) *haxe__iterators__StringKeyValueIteratorUnicode {
 	self.charOffset = 0
 	self.byteOffset = 0
 	self.s = s
@@ -27,7 +43,7 @@ func (self *haxe__iterators__StringKeyValueIteratorUnicode) hasNext() bool {
 	return (self.byteOffset < hxrt.StringLengthStringPtr(self.s))
 }
 
-func (self *haxe__iterators__StringKeyValueIteratorUnicode) next() map[string]any {
+func (self *haxe__iterators__StringKeyValueIteratorUnicode) next() hxrt.Anonymous {
 	value := self.s
 	hx_post_1 := self.byteOffset
 	self.byteOffset = int(int32((self.byteOffset + 1)))
@@ -47,7 +63,7 @@ func (self *haxe__iterators__StringKeyValueIteratorUnicode) next() map[string]an
 	self.charOffset = int(int32((self.charOffset + 1)))
 	hx_obj_3["key"] = hx_post_4
 	hx_obj_3["value"] = c
-	return hx_obj_3
+	return hxrt.AnonymousFromMap(hx_obj_3)
 }
 
 func haxe__iterators__StringKeyValueIteratorUnicode_codeAt(value *string, index int) int {

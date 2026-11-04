@@ -6,47 +6,47 @@ func Harness_assertBreakerScenario(runtime app__runtime__FluxRuntime) {
 	breakerRequests := hxrt.NewArray(New_app__core__FluxRequest(1, hxrt.StringFromLiteral("/breaker/api"), 60, 503), New_app__core__FluxRequest(2, hxrt.StringFromLiteral("/breaker/api"), 65, 502), New_app__core__FluxRequest(3, hxrt.StringFromLiteral("/breaker/api"), 20, 200), New_app__core__FluxRequest(4, hxrt.StringFromLiteral("/breaker/api"), 18, 200))
 	report := Harness_runReport(runtime, breakerRequests)
 	if report.breakerOpenCount != 2 {
-		hxrt.Throw(hxrt.StringFromLiteral("policy.breaker_open scenario drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("policy.breaker_open scenario drift")))
 	}
 	if report.rateLimitedCount != 0 {
-		hxrt.Throw(hxrt.StringFromLiteral("policy.rate_limited scenario drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("policy.rate_limited scenario drift")))
 	}
 	if report.proxyRetries != 2 {
-		hxrt.Throw(hxrt.StringFromLiteral("proxy.retries scenario drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("proxy.retries scenario drift")))
 	}
 }
 
 func Harness_assertContract(runtime app__runtime__FluxRuntime) *string {
 	report := Harness_runReport(runtime, Harness_baselineRequests())
 	if !hxrt.StringEqualStringPtr(report.profile, runtime.profileId()) {
-		hxrt.Throw(hxrt.StringFromLiteral("profile drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("profile drift")))
 	}
 	if !hxrt.StringEqualStringPtr(report.variant, runtime.variantId()) {
-		hxrt.Throw(hxrt.StringFromLiteral("variant drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("variant drift")))
 	}
 	if !hxrt.StringEqualStringPtr(report.capability, runtime.capabilityId()) {
-		hxrt.Throw(hxrt.StringFromLiteral("capability drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("capability drift")))
 	}
 	if report.ingressReceived != 8 {
-		hxrt.Throw(hxrt.StringFromLiteral("ingress.received drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("ingress.received drift")))
 	}
 	if report.ingressAccepted != 8 {
-		hxrt.Throw(hxrt.StringFromLiteral("ingress.accepted drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("ingress.accepted drift")))
 	}
 	if report.ingressBackpressure != 5 {
-		hxrt.Throw(hxrt.StringFromLiteral("ingress.backpressure drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("ingress.backpressure drift")))
 	}
 	if report.proxyRetries != 2 {
-		hxrt.Throw(hxrt.StringFromLiteral("proxy.retries drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("proxy.retries drift")))
 	}
 	if report.rateLimitedCount != 1 {
-		hxrt.Throw(hxrt.StringFromLiteral("policy.rate_limited drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("policy.rate_limited drift")))
 	}
 	if report.breakerOpenCount != 0 {
-		hxrt.Throw(hxrt.StringFromLiteral("policy.breaker_open drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("policy.breaker_open drift")))
 	}
 	if report.errorsCount != 3 {
-		hxrt.Throw(hxrt.StringFromLiteral("errors.count drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("errors.count drift")))
 	}
 	var hx_if_1 int
 	if hxrt.StringEqualStringPtr(runtime.variantId(), hxrt.StringFromLiteral("go_native")) {
@@ -56,7 +56,7 @@ func Harness_assertContract(runtime app__runtime__FluxRuntime) *string {
 	}
 	expectedScore := hx_if_1
 	if report.runtimeScore != expectedScore {
-		hxrt.Throw(hxrt.StringFromLiteral("runtime.score drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("runtime.score drift")))
 	}
 	Harness_assertBreakerScenario(runtime)
 	return report.render()
@@ -70,13 +70,7 @@ func Harness_cloneRequests(requests *hxrt.Array) *hxrt.Array {
 	out := hxrt.NewArray()
 	_g := 0
 	for _g < requests.Len() {
-		request := func(hx_value_2 any) *app__core__FluxRequest {
-			if hx_value_2 == nil {
-				var hx_zero_3 *app__core__FluxRequest
-				return hx_zero_3
-			}
-			return hx_value_2.(*app__core__FluxRequest)
-		}(requests.Get(_g))
+		request := hx_recover_class_0(requests.Get(_g))
 		_g = int(int32((_g + 1)))
 		out.Push(New_app__core__FluxRequest(request.id, request.route, request.latencyMs, request.status))
 	}

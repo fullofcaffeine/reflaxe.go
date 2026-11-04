@@ -47,7 +47,7 @@ func CgoFeature_check() *string {
 		return hx_structural_value_3
 	}()
 	if !hxrt.StringEqualStringPtr(restored.label, hxrt.StringFromLiteral("changed")) {
-		hxrt.Throw(hxrt.StringFromLiteral("structural recovery copied source"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("structural recovery copied source")))
 	}
 	restored.label = hxrt.StringFromLiteral("ok")
 	if !hxrt.StringEqualStringPtr(func(hx_value_4 any) *string {
@@ -57,7 +57,7 @@ func CgoFeature_check() *string {
 		}
 		return hx_value_4.(*string)
 	}(hxrt.AnonymousGet(view, "label")), hxrt.StringFromLiteral("ok")) {
-		hxrt.Throw(hxrt.StringFromLiteral("base recovery copied source"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("base recovery copied source")))
 	}
 	source := hxrt.NewFunction(func(value *CgoFeature) *string {
 		return value.label
@@ -69,10 +69,10 @@ func CgoFeature_check() *string {
 		var hx_argument_7 any = erased
 		return hxrt.FunctionCall(hx_callable_6)(hx_argument_7)
 	}(), hxrt.StringFromLiteral("ok")) {
-		hxrt.Throw(hxrt.StringFromLiteral("conditional callable projection failed"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("conditional callable projection failed")))
 	}
 	if !hxrt.StringEqualAny(reflaxe__go___internal__CompilerReflect_callMethod(callback, []any{erased}), hxrt.StringFromLiteral("ok")) {
-		hxrt.Throw(hxrt.StringFromLiteral("conditional erased invocation failed"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("conditional erased invocation failed")))
 	}
 	return restored.label
 }

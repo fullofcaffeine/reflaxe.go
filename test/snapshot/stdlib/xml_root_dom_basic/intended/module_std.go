@@ -152,7 +152,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "Xml":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -164,7 +164,42 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
+			case "haxe.Exception":
+				return func(hx_value any) bool {
+					switch hx_carrier := hx_value.(type) {
+					case *haxe__Exception:
+						if hx_carrier == nil {
+							return false
+						}
+						return true
+					case *haxe__ValueException:
+						if hx_carrier == nil {
+							return false
+						}
+						return true
+					default:
+						return false
+					}
+				}(hxrt.ObjectSource(hx_value))
+			case "haxe.ValueException":
+				return func(hx_value any) bool {
+					switch hx_carrier := hx_value.(type) {
+					case *haxe__Exception:
+						if hx_carrier == nil {
+							return false
+						}
+						_, hx_ok := hx_carrier.__hx_this.(*haxe__ValueException)
+						return hx_ok
+					case *haxe__ValueException:
+						if hx_carrier == nil {
+							return false
+						}
+						return true
+					default:
+						return false
+					}
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe._Int64.___Int64":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -176,7 +211,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.ds.StringMap":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -188,7 +223,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.io.Bytes":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -200,7 +235,19 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
+			case "haxe.iterators.ArrayIterator":
+				return func(hx_value any) bool {
+					switch hx_carrier := hx_value.(type) {
+					case *haxe__iterators__ArrayIterator:
+						if hx_carrier == nil {
+							return false
+						}
+						return true
+					default:
+						return false
+					}
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.iterators.MapKeyValueIterator":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -212,7 +259,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.iterators.StringIterator":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -224,7 +271,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.iterators.StringKeyValueIterator":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -236,7 +283,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.xml.Printer":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -248,7 +295,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.xml.XmlParserException":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -260,7 +307,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			default:
 				return false
 			}
@@ -421,7 +468,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "Xml":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -433,7 +480,42 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
+				case "haxe.Exception":
+					return func(hx_value any) bool {
+						switch hx_carrier := hx_value.(type) {
+						case *haxe__Exception:
+							if hx_carrier == nil {
+								return false
+							}
+							return true
+						case *haxe__ValueException:
+							if hx_carrier == nil {
+								return false
+							}
+							return true
+						default:
+							return false
+						}
+					}(hxrt.ObjectSource(hx_value))
+				case "haxe.ValueException":
+					return func(hx_value any) bool {
+						switch hx_carrier := hx_value.(type) {
+						case *haxe__Exception:
+							if hx_carrier == nil {
+								return false
+							}
+							_, hx_ok := hx_carrier.__hx_this.(*haxe__ValueException)
+							return hx_ok
+						case *haxe__ValueException:
+							if hx_carrier == nil {
+								return false
+							}
+							return true
+						default:
+							return false
+						}
+					}(hxrt.ObjectSource(hx_value))
 				case "haxe._Int64.___Int64":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -445,7 +527,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "haxe.ds.StringMap":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -457,7 +539,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "haxe.io.Bytes":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -469,7 +551,19 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
+				case "haxe.iterators.ArrayIterator":
+					return func(hx_value any) bool {
+						switch hx_carrier := hx_value.(type) {
+						case *haxe__iterators__ArrayIterator:
+							if hx_carrier == nil {
+								return false
+							}
+							return true
+						default:
+							return false
+						}
+					}(hxrt.ObjectSource(hx_value))
 				case "haxe.iterators.MapKeyValueIterator":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -481,7 +575,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "haxe.iterators.StringIterator":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -493,7 +587,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "haxe.iterators.StringKeyValueIterator":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -505,7 +599,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "haxe.xml.Printer":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -517,7 +611,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "haxe.xml.XmlParserException":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -529,7 +623,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				default:
 					return false
 				}
@@ -697,7 +791,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "Xml":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -709,7 +803,42 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
+			case "haxe.Exception":
+				return func(hx_value any) bool {
+					switch hx_carrier := hx_value.(type) {
+					case *haxe__Exception:
+						if hx_carrier == nil {
+							return false
+						}
+						return true
+					case *haxe__ValueException:
+						if hx_carrier == nil {
+							return false
+						}
+						return true
+					default:
+						return false
+					}
+				}(hxrt.ObjectSource(hx_value))
+			case "haxe.ValueException":
+				return func(hx_value any) bool {
+					switch hx_carrier := hx_value.(type) {
+					case *haxe__Exception:
+						if hx_carrier == nil {
+							return false
+						}
+						_, hx_ok := hx_carrier.__hx_this.(*haxe__ValueException)
+						return hx_ok
+					case *haxe__ValueException:
+						if hx_carrier == nil {
+							return false
+						}
+						return true
+					default:
+						return false
+					}
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe._Int64.___Int64":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -721,7 +850,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.ds.StringMap":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -733,7 +862,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.io.Bytes":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -745,7 +874,19 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
+			case "haxe.iterators.ArrayIterator":
+				return func(hx_value any) bool {
+					switch hx_carrier := hx_value.(type) {
+					case *haxe__iterators__ArrayIterator:
+						if hx_carrier == nil {
+							return false
+						}
+						return true
+					default:
+						return false
+					}
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.iterators.MapKeyValueIterator":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -757,7 +898,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.iterators.StringIterator":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -769,7 +910,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.iterators.StringKeyValueIterator":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -781,7 +922,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.xml.Printer":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -793,7 +934,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.xml.XmlParserException":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -805,7 +946,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			default:
 				return false
 			}

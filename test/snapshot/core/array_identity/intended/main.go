@@ -2,8 +2,13 @@ package main
 
 import "snapshot/hxrt"
 
-func applyGenericCallback(values *hxrt.Array, value any, callback func(*hxrt.Array, any)) {
-	callback(values, value)
+func applyGenericCallback(values *hxrt.Array, value any, callback *hxrt.Function[func(*hxrt.Array, any)]) {
+	func() {
+		var hx_callable_1 *hxrt.Function[func(*hxrt.Array, any)] = callback
+		var hx_argument_2 *hxrt.Array = values
+		var hx_argument_3 any = value
+		hxrt.FunctionCall(hx_callable_1)(hx_argument_2, hx_argument_3)
+	}()
 }
 
 var events *hxrt.Array = hxrt.NewArray()
@@ -15,20 +20,20 @@ func main() {
 	localAlias := local
 	localAlias.Push(3)
 	func() {
-		hx_insert_position_3 := 1
-		var hx_insert_value_4 any = 9
-		localAlias.Insert(hx_insert_position_3, hx_insert_value_4)
+		hx_insert_position_6 := 1
+		var hx_insert_value_7 any = 9
+		localAlias.Insert(hx_insert_position_6, hx_insert_value_7)
 	}()
 	func() bool {
-		var hx_remove_value_6 any = 2
-		hx_remove_index_7 := 0
-		for hx_remove_index_7 < localAlias.Len() {
-			hx_remove_element_8 := localAlias.Get(hx_remove_index_7)
-			if hxrt.HaxeEqual(hx_remove_element_8, hx_remove_value_6) {
-				localAlias.RemoveAt(hx_remove_index_7)
+		var hx_remove_value_9 any = 2
+		hx_remove_index_10 := 0
+		for hx_remove_index_10 < localAlias.Len() {
+			hx_remove_element_11 := localAlias.Get(hx_remove_index_10)
+			if hxrt.HaxeEqual(hx_remove_element_11, hx_remove_value_9) {
+				localAlias.RemoveAt(hx_remove_index_10)
 				return true
 			}
-			hx_remove_index_7 = (hx_remove_index_7 + 1)
+			hx_remove_index_10 = (hx_remove_index_10 + 1)
 		}
 		return false
 	}()
@@ -48,71 +53,63 @@ func main() {
 	pushGeneric(genericInts, 9)
 	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("generic="), show(genericInts)))
 	hxrt.Println(v_3)
-	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("generic.has="), hxrt.StdString(Lambda_has(func() map[string]any {
-		hx_lambda_source_11 := hxrt.NewArray(hxrt.StringFromLiteral("a"), hxrt.StringFromLiteral("b"))
-		hx_lambda_wrapped_12 := map[string]any{}
-		hx_lambda_wrapped_12["iterator"] = func() map[string]any {
-			hx_lambda_index_15 := 0
-			hx_lambda_iterator_map_13 := map[string]any{}
-			hx_lambda_iterator_map_13["hasNext"] = func() bool {
-				return (hx_lambda_index_15 < hx_lambda_source_11.Len())
-			}
-			hx_lambda_iterator_map_13["next"] = func() any {
-				hx_lambda_value_14 := hx_lambda_source_11.Get(hx_lambda_index_15)
-				hx_lambda_index_15 = (hx_lambda_index_15 + 1)
-				return hx_lambda_value_14
-			}
-			return hx_lambda_iterator_map_13
-		}
-		return hx_lambda_wrapped_12
+	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("generic.has="), hxrt.StdString(Lambda_has(func() hxrt.Anonymous {
+		hx_lambda_source_14 := hxrt.NewArray(hxrt.StringFromLiteral("a"), hxrt.StringFromLiteral("b"))
+		hx_lambda_wrapped_15 := map[string]any{}
+		hx_lambda_wrapped_15["iterator"] = hxrt.NewFunction(func() hxrt.Anonymous {
+			hx_lambda_index_18 := 0
+			hx_lambda_iterator_map_16 := map[string]any{}
+			hx_lambda_iterator_map_16["hasNext"] = hxrt.NewFunction(func() bool {
+				return (hx_lambda_index_18 < hx_lambda_source_14.Len())
+			})
+			hx_lambda_iterator_map_16["next"] = hxrt.NewFunction(func() any {
+				hx_lambda_value_17 := hx_lambda_source_14.Get(hx_lambda_index_18)
+				hx_lambda_index_18 = (hx_lambda_index_18 + 1)
+				return hx_lambda_value_17
+			})
+			return hxrt.AnonymousFromMap(hx_lambda_iterator_map_16)
+		})
+		return hxrt.AnonymousFromMap(hx_lambda_wrapped_15)
 	}(), hxrt.StringFromLiteral("a")))))
 	hxrt.Println(v_4)
-	stringElements := hxrt.ArrayFromValues(func(hx_sort_src_16 []*string) []any {
-		hx_sort_out_18 := make([]any, 0, len(hx_sort_src_16))
-		for _, hx_sort_item_17 := range hx_sort_src_16 {
-			hx_sort_out_18 = append(hx_sort_out_18, hx_sort_item_17)
+	stringElements := hxrt.ArrayFromValues(func(hx_sort_src_19 []*string) []any {
+		hx_sort_out_21 := make([]any, 0, len(hx_sort_src_19))
+		for _, hx_sort_item_20 := range hx_sort_src_19 {
+			hx_sort_out_21 = append(hx_sort_out_21, hx_sort_item_20)
 		}
-		return hx_sort_out_18
+		return hx_sort_out_21
 	}(hxrt.StringSplitStringPtr(hxrt.StringFromLiteral("left,right"), hxrt.StringFromLiteral(";"))))
-	var v_5 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("string.split="), hxrt.ArrayFromValues(func(hx_sort_src_21 []*string) []any {
-		hx_sort_out_23 := make([]any, 0, len(hx_sort_src_21))
-		for _, hx_sort_item_22 := range hx_sort_src_21 {
-			hx_sort_out_23 = append(hx_sort_out_23, hx_sort_item_22)
+	var v_5 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("string.split="), hxrt.ArrayFromValues(func(hx_sort_src_24 []*string) []any {
+		hx_sort_out_26 := make([]any, 0, len(hx_sort_src_24))
+		for _, hx_sort_item_25 := range hx_sort_src_24 {
+			hx_sort_out_26 = append(hx_sort_out_26, hx_sort_item_25)
 		}
-		return hx_sort_out_23
-	}(hxrt.StringSplitStringPtr(func(hx_value_19 any) *string {
-		if hx_value_19 == nil {
-			var hx_zero_20 *string
-			return hx_zero_20
+		return hx_sort_out_26
+	}(hxrt.StringSplitStringPtr(func(hx_value_22 any) *string {
+		if hx_value_22 == nil {
+			var hx_zero_23 *string
+			return hx_zero_23
 		}
-		return hx_value_19.(*string)
+		return hx_value_22.(*string)
 	}(stringElements.Get(0)), hxrt.StringFromLiteral(",")))).Len()))
 	hxrt.Println(v_5)
 	retainedSource := hxrt.NewArray(10)
 	retainErased(retainedSource)
-	hx_arr_24 := retainedGeneric
-	hx_arr_24.Push(11)
+	hx_arr_27 := retainedGeneric
+	hx_arr_27.Push(11)
 	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("retained="), show(retainedSource)))
 	hxrt.Println(v_6)
 	callbackSource := hxrt.NewArray(12)
-	applyGenericCallback(callbackSource, 13, func(hx_erased_callback_arg_26 *hxrt.Array, hx_erased_callback_arg_27 any) {
-		func(values *hxrt.Array, value int) {
-			values.Push(value)
-		}(hx_erased_callback_arg_26, func(hx_value_28 any) int {
-			if hx_value_28 == nil {
-				var hx_zero_29 int
-				return hx_zero_29
-			}
-			return hx_value_28.(int)
-		}(hx_erased_callback_arg_27))
-	})
+	applyGenericCallback(callbackSource, 13, hx_recover_callable_3(hxrt.NewFunction(func(values *hxrt.Array, value int) {
+		values.Push(value)
+	})))
 	var v_7 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("callback="), show(callbackSource)))
 	hxrt.Println(v_7)
 	sparse := hxrt.NewArray()
 	sparseAlias := sparse
-	hx_array_target_30 := sparse
-	hx_array_index_31 := 2
-	hx_array_target_30.Set(hx_array_index_31, 14)
+	hx_array_target_29 := sparse
+	hx_array_index_30 := 2
+	hx_array_target_29.Set(hx_array_index_30, 14)
 	sparseAlias.Push(15)
 	var v_8 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("sparse="), show(sparse)))
 	hxrt.Println(v_8)
@@ -123,13 +120,13 @@ func main() {
 	hxrt.Println(v_9)
 	holderEvaluations = 0
 	events = hxrt.NewArray()
-	hx_array_target_35 := makeHolder().values
+	hx_array_target_34 := makeHolder().values
+	hx_arr_32 := events
+	hx_arr_32.Push(hxrt.StringFromLiteral("index"))
+	hx_array_index_35 := 2
 	hx_arr_33 := events
-	hx_arr_33.Push(hxrt.StringFromLiteral("index"))
-	hx_array_index_36 := 2
-	hx_arr_34 := events
-	hx_arr_34.Push(hxrt.StringFromLiteral("value"))
-	hx_array_target_35.Set(hx_array_index_36, 23)
+	hx_arr_33.Push(hxrt.StringFromLiteral("value"))
+	hx_array_target_34.Set(hx_array_index_35, 23)
 	var v_10 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("order="), holderEvaluations), hxrt.StringFromLiteral(":")), hxrt.StringJoinAny(events.Values(), hxrt.StringFromLiteral(","))))
 	hxrt.Println(v_10)
 	operationValues = hxrt.NewArray(1, 2, 3)
@@ -137,24 +134,24 @@ func main() {
 	base := markedOperationValues()
 	index := markedIndex()
 	compoundResult := func() int {
-		hx_array_target_37 := base
-		hx_array_index_38 := index
-		var hx_array_current_39 int = hxrt.IntFromNullableAny(hx_array_target_37.Get(hx_array_index_38))
-		var hx_array_assigned_40 int = int((hxrt.Int32Wrap(hx_array_current_39) + hxrt.Int32Wrap(markedValue())))
-		hx_array_target_37.Set(hx_array_index_38, hx_array_assigned_40)
-		return hx_array_assigned_40
+		hx_array_target_36 := base
+		hx_array_index_37 := index
+		var hx_array_current_38 int = hxrt.IntFromNullableAny(hx_array_target_36.Get(hx_array_index_37))
+		var hx_array_assigned_39 int = int((hxrt.Int32Wrap(hx_array_current_38) + hxrt.Int32Wrap(markedValue())))
+		hx_array_target_36.Set(hx_array_index_37, hx_array_assigned_39)
+		return hx_array_assigned_39
 	}()
 	var v_11 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("compound="), compoundResult), hxrt.StringFromLiteral(":")), show(operationValues)), hxrt.StringFromLiteral(":")), hxrt.StringJoinAny(events.Values(), hxrt.StringFromLiteral(","))))
 	hxrt.Println(v_11)
 	operationValues = hxrt.NewArray(4, 5, 6)
 	events = hxrt.NewArray()
 	postResult := func() int {
-		hx_array_target_41 := markedOperationValues()
-		hx_array_index_42 := markedIndex()
-		var hx_array_current_43 int = hxrt.IntFromNullableAny(hx_array_target_41.Get(hx_array_index_42))
-		var hx_array_next_44 int = int(int32((hx_array_current_43 + 1)))
-		hx_array_target_41.Set(hx_array_index_42, hx_array_next_44)
-		return hx_array_current_43
+		hx_array_target_40 := markedOperationValues()
+		hx_array_index_41 := markedIndex()
+		var hx_array_current_42 int = hxrt.IntFromNullableAny(hx_array_target_40.Get(hx_array_index_41))
+		var hx_array_next_43 int = int(int32((hx_array_current_42 + 1)))
+		hx_array_target_40.Set(hx_array_index_41, hx_array_next_43)
+		return hx_array_current_42
 	}()
 	var v_12 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("post="), postResult), hxrt.StringFromLiteral(":")), show(operationValues)), hxrt.StringFromLiteral(":")), hxrt.StringJoinAny(events.Values(), hxrt.StringFromLiteral(","))))
 	hxrt.Println(v_12)
@@ -162,26 +159,26 @@ func main() {
 
 func makeHolder() *SnapshotArrayIdentityHolder {
 	holderEvaluations = int(int32((holderEvaluations + 1)))
-	hx_arr_45 := events
-	hx_arr_45.Push(hxrt.StringFromLiteral("target"))
+	hx_arr_44 := events
+	hx_arr_44.Push(hxrt.StringFromLiteral("target"))
 	return New_SnapshotArrayIdentityHolder(hxrt.NewArray(20))
 }
 
 func markedIndex() int {
-	hx_arr_46 := events
-	hx_arr_46.Push(hxrt.StringFromLiteral("index"))
+	hx_arr_45 := events
+	hx_arr_45.Push(hxrt.StringFromLiteral("index"))
 	return 2
 }
 
 func markedOperationValues() *hxrt.Array {
-	hx_arr_47 := events
-	hx_arr_47.Push(hxrt.StringFromLiteral("target"))
+	hx_arr_46 := events
+	hx_arr_46.Push(hxrt.StringFromLiteral("target"))
 	return operationValues
 }
 
 func markedValue() int {
-	hx_arr_48 := events
-	hx_arr_48.Push(hxrt.StringFromLiteral("value"))
+	hx_arr_47 := events
+	hx_arr_47.Push(hxrt.StringFromLiteral("value"))
 	return 23
 }
 
@@ -226,9 +223,25 @@ type SnapshotArrayIdentityBox struct {
 	id        int
 }
 
+func (self *SnapshotArrayIdentityBox) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_SnapshotArrayIdentityBox(id int) *SnapshotArrayIdentityBox {
+	return hx_init_SnapshotArrayIdentityBox(hx_alloc_SnapshotArrayIdentityBox(nil), id)
+}
+
+func hx_alloc_SnapshotArrayIdentityBox(owner any) *SnapshotArrayIdentityBox {
 	self := &SnapshotArrayIdentityBox{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_SnapshotArrayIdentityBox)
+	}
+	return self
+}
+
+func hx_init_SnapshotArrayIdentityBox(self *SnapshotArrayIdentityBox, id int) *SnapshotArrayIdentityBox {
 	self.id = id
 	return self
 }
@@ -241,9 +254,231 @@ type SnapshotArrayIdentityHolder struct {
 	values    *hxrt.Array
 }
 
+func (self *SnapshotArrayIdentityHolder) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_SnapshotArrayIdentityHolder(values *hxrt.Array) *SnapshotArrayIdentityHolder {
+	return hx_init_SnapshotArrayIdentityHolder(hx_alloc_SnapshotArrayIdentityHolder(nil), values)
+}
+
+func hx_alloc_SnapshotArrayIdentityHolder(owner any) *SnapshotArrayIdentityHolder {
 	self := &SnapshotArrayIdentityHolder{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_SnapshotArrayIdentityHolder)
+	}
+	return self
+}
+
+func hx_init_SnapshotArrayIdentityHolder(self *SnapshotArrayIdentityHolder, values *hxrt.Array) *SnapshotArrayIdentityHolder {
 	self.values = values
 	return self
+}
+
+func hx_structural_recover(value any) hxrt.Anonymous {
+	switch source := value.(type) {
+	case *SnapshotArrayIdentityBox:
+		return func(hx_structural_source_7 *SnapshotArrayIdentityBox) hxrt.Anonymous {
+			return hxrt.NewAnonymousView(hx_structural_source_7, func(name string) hxrt.AnonymousField {
+				switch name {
+				case "id":
+					return hxrt.AnonymousField{Value: hx_structural_source_7.id, Found: true}
+				}
+				return hxrt.AnonymousField{}
+			}, func(name string, incoming any) bool {
+				switch name {
+				}
+				return false
+			})
+		}(source)
+	case *SnapshotArrayIdentityHolder:
+		return func(hx_structural_source_8 *SnapshotArrayIdentityHolder) hxrt.Anonymous {
+			return hxrt.NewAnonymousView(hx_structural_source_8, func(name string) hxrt.AnonymousField {
+				switch name {
+				case "values":
+					return hxrt.AnonymousField{Value: hx_structural_source_8.values, Found: true}
+				}
+				return hxrt.AnonymousField{}
+			}, func(name string, incoming any) bool {
+				switch name {
+				case "values":
+					hx_structural_source_8.values = func(hx_value_9 any) *hxrt.Array {
+						if hx_value_9 == nil {
+							var hx_zero_10 *hxrt.Array
+							return hx_zero_10
+						}
+						return hx_value_9.(*hxrt.Array)
+					}(incoming)
+					return true
+				}
+				return false
+			})
+		}(source)
+	case *haxe___Int64_____Int64:
+		return func(hx_structural_source_11 *haxe___Int64_____Int64) hxrt.Anonymous {
+			return hxrt.NewAnonymousView(hx_structural_source_11, func(name string) hxrt.AnonymousField {
+				switch name {
+				case "high":
+					return hxrt.AnonymousField{Value: hx_structural_source_11.high, Found: true}
+				case "low":
+					return hxrt.AnonymousField{Value: hx_structural_source_11.low, Found: true}
+				}
+				return hxrt.AnonymousField{}
+			}, func(name string, incoming any) bool {
+				switch name {
+				case "high":
+					hx_structural_source_11.high = func(hx_value_12 any) int {
+						if hx_value_12 == nil {
+							var hx_zero_13 int
+							return hx_zero_13
+						}
+						return hx_value_12.(int)
+					}(incoming)
+					return true
+				case "low":
+					hx_structural_source_11.low = func(hx_value_14 any) int {
+						if hx_value_14 == nil {
+							var hx_zero_15 int
+							return hx_zero_15
+						}
+						return hx_value_14.(int)
+					}(incoming)
+					return true
+				}
+				return false
+			})
+		}(source)
+	default:
+		return hxrt.AnonymousFromValue(value)
+	}
+}
+
+func hx_recover_callable_0(value any) *hxrt.Function[func() hxrt.Anonymous] {
+	if value == nil {
+		return nil
+	}
+	switch exact := value.(type) {
+	case *hxrt.Function[func() hxrt.Anonymous]:
+		return exact
+	}
+	origin := hxrt.FunctionOrigin(value)
+	if origin == nil {
+		return nil
+	}
+	switch source := origin.(type) {
+	case *hxrt.Function[func() bool]:
+		return hxrt.ProjectFunction(source, func() hxrt.Anonymous {
+			return hx_structural_recover(hxrt.FunctionCall(source)())
+		})
+	case *hxrt.Function[func() any]:
+		return hxrt.ProjectFunction(source, func() hxrt.Anonymous {
+			return hx_structural_recover(hxrt.FunctionCall(source)())
+		})
+	case *hxrt.Function[func() hxrt.Anonymous]:
+		return source
+	default:
+		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
+		return nil
+	}
+}
+
+func hx_recover_callable_1(value any) *hxrt.Function[func() bool] {
+	if value == nil {
+		return nil
+	}
+	switch exact := value.(type) {
+	case *hxrt.Function[func() bool]:
+		return exact
+	}
+	origin := hxrt.FunctionOrigin(value)
+	if origin == nil {
+		return nil
+	}
+	switch source := origin.(type) {
+	case *hxrt.Function[func() bool]:
+		return source
+	case *hxrt.Function[func() any]:
+		return hxrt.ProjectFunction(source, func() bool {
+			return func(hx_value_16 any) bool {
+				if hx_value_16 == nil {
+					var hx_zero_17 bool
+					return hx_zero_17
+				}
+				return hx_value_16.(bool)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	case *hxrt.Function[func() hxrt.Anonymous]:
+		return hxrt.ProjectFunction(source, func() bool {
+			return func(hx_value_18 any) bool {
+				if hx_value_18 == nil {
+					var hx_zero_19 bool
+					return hx_zero_19
+				}
+				return hx_value_18.(bool)
+			}(any(hxrt.FunctionCall(source)()))
+		})
+	default:
+		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
+		return nil
+	}
+}
+
+func hx_recover_callable_2(value any) *hxrt.Function[func() any] {
+	if value == nil {
+		return nil
+	}
+	switch exact := value.(type) {
+	case *hxrt.Function[func() any]:
+		return exact
+	}
+	origin := hxrt.FunctionOrigin(value)
+	if origin == nil {
+		return nil
+	}
+	switch source := origin.(type) {
+	case *hxrt.Function[func() bool]:
+		return hxrt.ProjectFunction(source, func() any {
+			return hxrt.FunctionCall(source)()
+		})
+	case *hxrt.Function[func() any]:
+		return source
+	case *hxrt.Function[func() hxrt.Anonymous]:
+		return hxrt.ProjectFunction(source, func() any {
+			return hxrt.FunctionCall(source)()
+		})
+	default:
+		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
+		return nil
+	}
+}
+
+func hx_recover_callable_3(value any) *hxrt.Function[func(*hxrt.Array, any)] {
+	if value == nil {
+		return nil
+	}
+	switch exact := value.(type) {
+	case *hxrt.Function[func(*hxrt.Array, any)]:
+		return exact
+	}
+	origin := hxrt.FunctionOrigin(value)
+	if origin == nil {
+		return nil
+	}
+	switch source := origin.(type) {
+	case *hxrt.Function[func(*hxrt.Array, int)]:
+		return hxrt.ProjectFunction(source, func(arg_0 *hxrt.Array, arg_1 any) {
+			hxrt.FunctionCall(source)(arg_0, func(hx_value_20 any) int {
+				if hx_value_20 == nil {
+					var hx_zero_21 int
+					return hx_zero_21
+				}
+				return hx_value_20.(int)
+			}(any(arg_1)))
+		})
+	default:
+		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
+		return nil
+	}
 }

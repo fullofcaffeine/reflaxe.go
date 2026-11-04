@@ -17,14 +17,13 @@ func main() {
 		fh := target()
 		return func() int {
 			hx_structural_target_4 := fh
-			hx_structural_old_5 := func(hx_obj_7 hxrt.Anonymous) int {
-				hx_field_8 := hxrt.AnonymousGet(hx_obj_7, "count")
-				if hx_field_8 == nil {
-					var hx_zero_9 int
-					return hx_zero_9
+			hx_structural_old_5 := func(hx_value_7 any) int {
+				if hx_value_7 == nil {
+					var hx_zero_8 int
+					return hx_zero_8
 				}
-				return hx_field_8.(int)
-			}(hx_structural_target_4)
+				return hx_value_7.(int)
+			}(hxrt.AnonymousGet(hx_structural_target_4, "count"))
 			hx_structural_value_6 := int((hxrt.Int32Wrap(hx_structural_old_5) + hxrt.Int32Wrap(right())))
 			hxrt.AnonymousSet(hx_structural_target_4, "count", hx_structural_value_6)
 			return hx_structural_value_6
@@ -37,18 +36,17 @@ func main() {
 	var v_4 any = any(func() int {
 		fh_1 := target()
 		return func() int {
-			hx_structural_target_10 := fh_1
-			hx_structural_old_11 := func(hx_obj_13 hxrt.Anonymous) int {
-				hx_field_14 := hxrt.AnonymousGet(hx_obj_13, "count")
-				if hx_field_14 == nil {
-					var hx_zero_15 int
-					return hx_zero_15
+			hx_structural_target_9 := fh_1
+			hx_structural_old_10 := func(hx_value_12 any) int {
+				if hx_value_12 == nil {
+					var hx_zero_13 int
+					return hx_zero_13
 				}
-				return hx_field_14.(int)
-			}(hx_structural_target_10)
-			hx_structural_value_12 := int(int32((hx_structural_old_11 + 1)))
-			hxrt.AnonymousSet(hx_structural_target_10, "count", hx_structural_value_12)
-			return hx_structural_old_11
+				return hx_value_12.(int)
+			}(hxrt.AnonymousGet(hx_structural_target_9, "count"))
+			hx_structural_value_11 := int(int32((hx_structural_old_10 + 1)))
+			hxrt.AnonymousSet(hx_structural_target_9, "count", hx_structural_value_11)
+			return hx_structural_old_10
 		}()
 	}())
 	hxrt.Println(v_4)
@@ -58,18 +56,17 @@ func main() {
 	var v_6 any = any(func() int {
 		fh_2 := target()
 		return func() int {
-			hx_structural_target_16 := fh_2
-			hx_structural_old_17 := func(hx_obj_19 hxrt.Anonymous) int {
-				hx_field_20 := hxrt.AnonymousGet(hx_obj_19, "count")
-				if hx_field_20 == nil {
-					var hx_zero_21 int
-					return hx_zero_21
+			hx_structural_target_14 := fh_2
+			hx_structural_old_15 := func(hx_value_17 any) int {
+				if hx_value_17 == nil {
+					var hx_zero_18 int
+					return hx_zero_18
 				}
-				return hx_field_20.(int)
-			}(hx_structural_target_16)
-			hx_structural_value_18 := int(int32((hx_structural_old_17 + 1)))
-			hxrt.AnonymousSet(hx_structural_target_16, "count", hx_structural_value_18)
-			return hx_structural_value_18
+				return hx_value_17.(int)
+			}(hxrt.AnonymousGet(hx_structural_target_14, "count"))
+			hx_structural_value_16 := int(int32((hx_structural_old_15 + 1)))
+			hxrt.AnonymousSet(hx_structural_target_14, "count", hx_structural_value_16)
+			return hx_structural_value_16
 		}()
 	}())
 	hxrt.Println(v_6)
@@ -77,65 +74,60 @@ func main() {
 	hxrt.Println(v_7)
 	fh_3 := target()
 	func() *string {
-		hx_structural_target_22 := fh_3
-		hx_structural_old_23 := func(hx_obj_25 hxrt.Anonymous) *string {
-			hx_field_26 := hxrt.AnonymousGet(hx_obj_25, "text")
-			if hx_field_26 == nil {
-				var hx_zero_27 *string
-				return hx_zero_27
+		hx_structural_target_19 := fh_3
+		hx_structural_old_20 := func(hx_value_22 any) *string {
+			if hx_value_22 == nil {
+				var hx_zero_23 *string
+				return hx_zero_23
 			}
-			return hx_field_26.(*string)
-		}(hx_structural_target_22)
-		hx_structural_value_24 := hxrt.StringConcatStringPtr(hx_structural_old_23, hxrt.StringFromLiteral("b"))
-		hxrt.AnonymousSet(hx_structural_target_22, "text", hx_structural_value_24)
-		return hx_structural_value_24
+			return hx_value_22.(*string)
+		}(hxrt.AnonymousGet(hx_structural_target_19, "text"))
+		hx_structural_value_21 := hxrt.StringConcatStringPtr(hx_structural_old_20, hxrt.StringFromLiteral("b"))
+		hxrt.AnonymousSet(hx_structural_target_19, "text", hx_structural_value_21)
+		return hx_structural_value_21
 	}()
-	hx_arr_28 := func(hx_obj_29 hxrt.Anonymous) *hxrt.Array {
-		hx_field_30 := hxrt.AnonymousGet(hx_obj_29, "values")
-		if hx_field_30 == nil {
-			var hx_zero_31 *hxrt.Array
-			return hx_zero_31
+	hx_arr_24 := func(hx_value_25 any) *hxrt.Array {
+		if hx_value_25 == nil {
+			var hx_zero_26 *hxrt.Array
+			return hx_zero_26
 		}
-		return hx_field_30.(*hxrt.Array)
-	}(target())
-	hx_arr_28.Push(9)
-	var v_8 any = any(func(hx_obj_32 hxrt.Anonymous) int {
-		hx_field_33 := hxrt.AnonymousGet(hx_obj_32, "count")
-		if hx_field_33 == nil {
-			var hx_zero_34 int
-			return hx_zero_34
+		return hx_value_25.(*hxrt.Array)
+	}(hxrt.AnonymousGet(target(), "values"))
+	hx_arr_24.Push(9)
+	var v_8 any = any(func(hx_value_27 any) int {
+		if hx_value_27 == nil {
+			var hx_zero_28 int
+			return hx_zero_28
 		}
-		return hx_field_33.(int)
-	}(record))
+		return hx_value_27.(int)
+	}(hxrt.AnonymousGet(record, "count")))
 	hxrt.Println(v_8)
-	var v_9 any = any(func(hx_obj_35 hxrt.Anonymous) *string {
-		hx_field_36 := hxrt.AnonymousGet(hx_obj_35, "text")
-		if hx_field_36 == nil {
-			var hx_zero_37 *string
-			return hx_zero_37
+	var v_9 any = any(func(hx_value_29 any) *string {
+		if hx_value_29 == nil {
+			var hx_zero_30 *string
+			return hx_zero_30
 		}
-		return hx_field_36.(*string)
-	}(record))
+		return hx_value_29.(*string)
+	}(hxrt.AnonymousGet(record, "text")))
 	hxrt.Println(v_9)
-	var v_10 any = any(hxrt.StringJoinAny(func(hx_obj_38 hxrt.Anonymous) *hxrt.Array {
-		hx_field_39 := hxrt.AnonymousGet(hx_obj_38, "values")
-		if hx_field_39 == nil {
-			var hx_zero_40 *hxrt.Array
-			return hx_zero_40
+	var v_10 any = any(hxrt.StringJoinAny(func(hx_value_31 any) *hxrt.Array {
+		if hx_value_31 == nil {
+			var hx_zero_32 *hxrt.Array
+			return hx_zero_32
 		}
-		return hx_field_39.(*hxrt.Array)
-	}(record).Values(), hxrt.StringFromLiteral(",")))
+		return hx_value_31.(*hxrt.Array)
+	}(hxrt.AnonymousGet(record, "values")).Values(), hxrt.StringFromLiteral(",")))
 	hxrt.Println(v_10)
 }
 
 var order *string = hxrt.StringFromLiteral("")
 
 var record hxrt.Anonymous = func() hxrt.Anonymous {
-	hx_obj_41 := map[string]any{}
-	hx_obj_41["count"] = 2
-	hx_obj_41["text"] = hxrt.StringFromLiteral("a")
-	hx_obj_41["values"] = hxrt.NewArray(1)
-	return hxrt.AnonymousFromMap(hx_obj_41)
+	hx_obj_33 := map[string]any{}
+	hx_obj_33["count"] = 2
+	hx_obj_33["text"] = hxrt.StringFromLiteral("a")
+	hx_obj_33["values"] = hxrt.NewArray(1)
+	return hxrt.AnonymousFromMap(hx_obj_33)
 }()
 
 func right() int {

@@ -13,7 +13,10 @@ func Harness_cleanup() {
 			sys__FileSystem_deleteFile(path)
 		}
 	}, func(hx_caught_1 any) {
-		hx_tmp := hxrt.ExceptionCaught(hx_caught_1)
+		hx_exception_2 := haxe__Exception_caught(hx_caught_1)
+		hx_payload_3 := haxe__Exception_catchValue(hx_caught_1)
+		_ = hx_payload_3
+		var hx_tmp *haxe__Exception = hx_recover_class_0(hx_exception_2)
 		_ = hx_tmp
 	})
 	path_1 := hxrt.StringFromLiteral(".incident_api_scripted_state.json")
@@ -21,8 +24,11 @@ func Harness_cleanup() {
 		if sys__FileSystem_exists(path_1) {
 			sys__FileSystem_deleteFile(path_1)
 		}
-	}, func(hx_caught_3 any) {
-		hx_tmp_1 := hxrt.ExceptionCaught(hx_caught_3)
+	}, func(hx_caught_4 any) {
+		hx_exception_5 := haxe__Exception_caught(hx_caught_4)
+		hx_payload_6 := haxe__Exception_catchValue(hx_caught_4)
+		_ = hx_payload_6
+		var hx_tmp_1 *haxe__Exception = hx_recover_class_0(hx_exception_5)
 		_ = hx_tmp_1
 	})
 }
@@ -42,15 +48,21 @@ func Harness_request(server *app__http__TinyHttpServer, method *string, path *st
 		client.output.__hx_this.flush()
 		server.serveOnce()
 		result = Harness_summarize(client.input.__hx_this.readAll(nil).__hx_this.toString())
-	}, func(hx_caught_5 any) {
-		error := hxrt.ExceptionCaught(hx_caught_5)
+	}, func(hx_caught_7 any) {
+		hx_exception_8 := haxe__Exception_caught(hx_caught_7)
+		hx_payload_9 := haxe__Exception_catchValue(hx_caught_7)
+		_ = hx_payload_9
+		var error *haxe__Exception = hx_recover_class_0(hx_exception_8)
 		_ = error
 		result = hxrt.StringFromLiteral("HTTP/1.1 000 Client Error body={\"error\":\"client_error\"}")
 	})
 	hxrt.TryCatch(func() {
 		client.__hx_this.close()
-	}, func(hx_caught_7 any) {
-		hx_tmp := hxrt.ExceptionCaught(hx_caught_7)
+	}, func(hx_caught_10 any) {
+		hx_exception_11 := haxe__Exception_caught(hx_caught_10)
+		hx_payload_12 := haxe__Exception_catchValue(hx_caught_10)
+		_ = hx_payload_12
+		var hx_tmp *haxe__Exception = hx_recover_class_0(hx_exception_11)
 		_ = hx_tmp
 	})
 	return result
@@ -76,8 +88,11 @@ func Harness_run() *string {
 		out.Push(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("resolve="), Harness_request(server, hxrt.StringFromLiteral("POST"), hxrt.StringFromLiteral("/incidents/1/resolve"), hxrt.StringFromLiteral(""))))
 		out.Push(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("metrics="), Harness_request(server, hxrt.StringFromLiteral("GET"), hxrt.StringFromLiteral("/metrics"), hxrt.StringFromLiteral(""))))
 		out.Push(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("state="), StringTools_trim(sys__io__File_getContent(hxrt.StringFromLiteral(".incident_api_scripted_state.json")))))
-	}, func(hx_caught_9 any) {
-		error := hxrt.ExceptionCaught(hx_caught_9)
+	}, func(hx_caught_13 any) {
+		hx_exception_15 := haxe__Exception_caught(hx_caught_13)
+		hx_payload_16 := haxe__Exception_catchValue(hx_caught_13)
+		_ = hx_payload_16
+		var error *haxe__Exception = hx_recover_class_0(hx_exception_15)
 		out.Push(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("error="), hxrt.StdString(error)))
 	})
 	server.close()
@@ -87,57 +102,57 @@ func Harness_run() *string {
 
 func Harness_summarize(raw *string) *string {
 	normalized := StringTools_replace(raw, hxrt.StringFromLiteral("\r\n"), hxrt.StringFromLiteral("\n"))
-	sections := hxrt.ArrayFromValues(func(hx_sort_src_21 []*string) []any {
-		hx_sort_out_23 := make([]any, 0, len(hx_sort_src_21))
-		for _, hx_sort_item_22 := range hx_sort_src_21 {
-			hx_sort_out_23 = append(hx_sort_out_23, hx_sort_item_22)
+	sections := hxrt.ArrayFromValues(func(hx_sort_src_26 []*string) []any {
+		hx_sort_out_28 := make([]any, 0, len(hx_sort_src_26))
+		for _, hx_sort_item_27 := range hx_sort_src_26 {
+			hx_sort_out_28 = append(hx_sort_out_28, hx_sort_item_27)
 		}
-		return hx_sort_out_23
+		return hx_sort_out_28
 	}(hxrt.StringSplitStringPtr(normalized, hxrt.StringFromLiteral("\n\n"))))
-	var hx_if_29 *hxrt.Array
+	var hx_if_34 *hxrt.Array
 	if sections.Len() > 0 {
-		hx_if_29 = hxrt.ArrayFromValues(func(hx_sort_src_26 []*string) []any {
-			hx_sort_out_28 := make([]any, 0, len(hx_sort_src_26))
-			for _, hx_sort_item_27 := range hx_sort_src_26 {
-				hx_sort_out_28 = append(hx_sort_out_28, hx_sort_item_27)
+		hx_if_34 = hxrt.ArrayFromValues(func(hx_sort_src_31 []*string) []any {
+			hx_sort_out_33 := make([]any, 0, len(hx_sort_src_31))
+			for _, hx_sort_item_32 := range hx_sort_src_31 {
+				hx_sort_out_33 = append(hx_sort_out_33, hx_sort_item_32)
 			}
-			return hx_sort_out_28
-		}(hxrt.StringSplitStringPtr(func(hx_value_24 any) *string {
-			if hx_value_24 == nil {
-				var hx_zero_25 *string
-				return hx_zero_25
+			return hx_sort_out_33
+		}(hxrt.StringSplitStringPtr(func(hx_value_29 any) *string {
+			if hx_value_29 == nil {
+				var hx_zero_30 *string
+				return hx_zero_30
 			}
-			return hx_value_24.(*string)
+			return hx_value_29.(*string)
 		}(sections.Get(0)), hxrt.StringFromLiteral("\n"))))
 	} else {
-		hx_if_29 = hxrt.NewArray()
+		hx_if_34 = hxrt.NewArray()
 	}
-	headerLines := hx_if_29
-	var hx_if_32 *string
+	headerLines := hx_if_34
+	var hx_if_37 *string
 	if headerLines.Len() > 0 {
-		hx_if_32 = hxrt.StdString(func(hx_value_30 any) *string {
-			if hx_value_30 == nil {
-				var hx_zero_31 *string
-				return hx_zero_31
+		hx_if_37 = hxrt.StdString(func(hx_value_35 any) *string {
+			if hx_value_35 == nil {
+				var hx_zero_36 *string
+				return hx_zero_36
 			}
-			return hx_value_30.(*string)
+			return hx_value_35.(*string)
 		}(headerLines.Get(0)))
 	} else {
-		hx_if_32 = hxrt.StringFromLiteral("HTTP/1.1 000 Missing")
+		hx_if_37 = hxrt.StringFromLiteral("HTTP/1.1 000 Missing")
 	}
-	status := hx_if_32
-	var hx_if_35 *string
+	status := hx_if_37
+	var hx_if_40 *string
 	if sections.Len() > 1 {
-		hx_if_35 = hxrt.StdString(func(hx_value_33 any) *string {
-			if hx_value_33 == nil {
-				var hx_zero_34 *string
-				return hx_zero_34
+		hx_if_40 = hxrt.StdString(func(hx_value_38 any) *string {
+			if hx_value_38 == nil {
+				var hx_zero_39 *string
+				return hx_zero_39
 			}
-			return hx_value_33.(*string)
+			return hx_value_38.(*string)
 		}(sections.Get(1)))
 	} else {
-		hx_if_35 = hxrt.StringFromLiteral("")
+		hx_if_40 = hxrt.StringFromLiteral("")
 	}
-	body := hx_if_35
+	body := hx_if_40
 	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(status, hxrt.StringFromLiteral(" body=")), body)
 }

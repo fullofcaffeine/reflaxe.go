@@ -20,9 +20,25 @@ type app__core__IncidentStore struct {
 	nextId    int
 }
 
+func (self *app__core__IncidentStore) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_app__core__IncidentStore(statePath *string) *app__core__IncidentStore {
+	return hx_init_app__core__IncidentStore(hx_alloc_app__core__IncidentStore(nil), statePath)
+}
+
+func hx_alloc_app__core__IncidentStore(owner any) *app__core__IncidentStore {
 	self := &app__core__IncidentStore{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_app__core__IncidentStore)
+	}
+	return self
+}
+
+func hx_init_app__core__IncidentStore(self *app__core__IncidentStore, statePath *string) *app__core__IncidentStore {
 	self.statePath = statePath
 	self.incidents = hxrt.NewArray()
 	self.nextId = 1
@@ -69,13 +85,7 @@ func (self *app__core__IncidentStore) listJson() *string {
 		if i > 0 {
 			out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StringFromLiteral(","))
 		}
-		x := func(hx_value_2 any) *app__core__Incident {
-			if hx_value_2 == nil {
-				var hx_zero_3 *app__core__Incident
-				return hx_zero_3
-			}
-			return hx_value_2.(*app__core__Incident)
-		}(self.incidents.Get(i)).toJson()
+		x := hx_recover_class_2(self.incidents.Get(i)).toJson()
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(x))
 		i = int(int32((i + 1)))
 	}
@@ -90,13 +100,7 @@ func (self *app__core__IncidentStore) metricsJson(serviceName *string, requests 
 	_g := 0
 	_g1 := self.incidents
 	for _g < _g1.Len() {
-		incident := func(hx_value_4 any) *app__core__Incident {
-			if hx_value_4 == nil {
-				var hx_zero_5 *app__core__Incident
-				return hx_zero_5
-			}
-			return hx_value_4.(*app__core__Incident)
-		}(_g1.Get(_g))
+		incident := hx_recover_class_2(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if incident.resolved {
 			resolved = int(int32((resolved + 1)))
@@ -114,13 +118,7 @@ func (self *app__core__IncidentStore) find(id int) *app__core__Incident {
 	_g := 0
 	_g1 := self.incidents
 	for _g < _g1.Len() {
-		incident := func(hx_value_6 any) *app__core__Incident {
-			if hx_value_6 == nil {
-				var hx_zero_7 *app__core__Incident
-				return hx_zero_7
-			}
-			return hx_value_6.(*app__core__Incident)
-		}(_g1.Get(_g))
+		incident := hx_recover_class_2(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if incident.id == id {
 			return incident
@@ -141,12 +139,12 @@ func (self *app__core__IncidentStore) load() {
 	self.nextId = app__core__IncidentStore_intField(raw, hxrt.StringFromLiteral("nextId"), 1)
 	loaded := hxrt.NewArray()
 	if !hxrt.AnyEqualsNull(raw) && Reflect_hasField(raw, hxrt.StringFromLiteral("incidents")) {
-		values := func(hx_value_8 any) *hxrt.Array {
-			if hx_value_8 == nil {
-				var hx_zero_9 *hxrt.Array
-				return hx_zero_9
+		values := func(hx_value_2 any) *hxrt.Array {
+			if hx_value_2 == nil {
+				var hx_zero_3 *hxrt.Array
+				return hx_zero_3
 			}
-			return hx_value_8.(*hxrt.Array)
+			return hx_value_2.(*hxrt.Array)
 		}(Reflect_field(raw, hxrt.StringFromLiteral("incidents")))
 		_g := 0
 		for _g < values.Len() {
@@ -174,13 +172,13 @@ func app__core__IncidentStore_intField(raw any, name *string, fallback int) int 
 		return fallback
 	}
 	var parsed any = Std_parseInt(hxrt.StdString(Reflect_field(raw, name)))
-	var hx_if_11 int
+	var hx_if_5 int
 	if parsed == nil {
-		hx_if_11 = fallback
+		hx_if_5 = fallback
 	} else {
-		hx_if_11 = parsed.(int)
+		hx_if_5 = parsed.(int)
 	}
-	return hx_if_11
+	return hx_if_5
 }
 
 func app__core__IncidentStore_normalizeSeverity(raw *string) *string {
@@ -196,11 +194,11 @@ func app__core__IncidentStore_stringField(raw any, name *string, fallback *strin
 		return fallback
 	}
 	var value any = Reflect_field(raw, name)
-	var hx_if_12 *string
+	var hx_if_6 *string
 	if hxrt.AnyEqualsNull(value) {
-		hx_if_12 = fallback
+		hx_if_6 = fallback
 	} else {
-		hx_if_12 = hxrt.StdString(value)
+		hx_if_6 = hxrt.StdString(value)
 	}
-	return hx_if_12
+	return hx_if_6
 }

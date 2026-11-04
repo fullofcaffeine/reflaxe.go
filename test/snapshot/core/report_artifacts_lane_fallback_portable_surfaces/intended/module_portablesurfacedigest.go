@@ -27,45 +27,29 @@ func PortableSurfaceDigest_compute(seed int) *string {
 	mapCount := 0
 	mapKeyLen := 0
 	mapValueSum := 0
-	entry := func(hx_value_3 any) map[string]any {
-		if hx_value_3 == nil {
-			var hx_zero_4 map[string]any
-			return hx_zero_4
-		}
-		return hx_value_3.(map[string]any)
-	}(map_.__hx_this.keyValueIterator())
-	for func(hx_obj_5 map[string]any) func() bool {
-		hx_field_6 := hx_obj_5["hasNext"]
-		if hx_field_6 == nil {
-			var hx_zero_7 func() bool
-			return hx_zero_7
-		}
-		return hx_field_6.(func() bool)
-	}(entry)() {
-		entry_1 := func(hx_obj_8 map[string]any) func() map[string]any {
-			hx_field_9 := hx_obj_8["next"]
-			if hx_field_9 == nil {
-				var hx_zero_10 func() map[string]any
-				return hx_zero_10
+	entry := map_.__hx_this.keyValueIterator()
+	for func() bool {
+		var hx_callable_3 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(entry, "hasNext"))
+		return hxrt.FunctionCall(hx_callable_3)()
+	}() {
+		entry_1 := func() hxrt.Anonymous {
+			var hx_callable_4 *hxrt.Function[func() hxrt.Anonymous] = hx_recover_callable_1(hxrt.AnonymousGet(entry, "next"))
+			return hxrt.FunctionCall(hx_callable_4)()
+		}()
+		key := func(hx_value_5 any) *string {
+			if hx_value_5 == nil {
+				var hx_zero_6 *string
+				return hx_zero_6
 			}
-			return hx_field_9.(func() map[string]any)
-		}(entry)()
-		key := func(hx_obj_11 map[string]any) *string {
-			hx_field_12 := hx_obj_11["key"]
-			if hx_field_12 == nil {
-				var hx_zero_13 *string
-				return hx_zero_13
+			return hx_value_5.(*string)
+		}(hxrt.AnonymousGet(entry_1, "key"))
+		value := func(hx_value_7 any) int {
+			if hx_value_7 == nil {
+				var hx_zero_8 int
+				return hx_zero_8
 			}
-			return hx_field_12.(*string)
-		}(entry_1)
-		value := func(hx_obj_14 map[string]any) int {
-			hx_field_15 := hx_obj_14["value"]
-			if hx_field_15 == nil {
-				var hx_zero_16 int
-				return hx_zero_16
-			}
-			return hx_field_15.(int)
-		}(entry_1)
+			return hx_value_7.(int)
+		}(hxrt.AnonymousGet(entry_1, "value"))
 		mapCount = int(int32((mapCount + 1)))
 		mapKeyLen = int((hxrt.Int32Wrap(mapKeyLen) + hxrt.Int32Wrap(hxrt.StringLengthStringPtr(key))))
 		mapValueSum = int((hxrt.Int32Wrap(mapValueSum) + hxrt.Int32Wrap(value)))
@@ -80,16 +64,16 @@ func PortableSurfaceDigest_compute(seed int) *string {
 	for unicodeIter_offset < hxrt.StringLengthStringPtr(unicodeIter_s) {
 		unicodeCount = int(int32((unicodeCount + 1)))
 		value_1 := unicodeIter_s
-		hx_post_17 := unicodeIter_offset
+		hx_post_9 := unicodeIter_offset
 		unicodeIter_offset = int(int32((unicodeIter_offset + 1)))
-		index := hx_post_17
+		index := hx_post_9
 		c := hxrt.StringCharCodeAtStringPtr(value_1, index)
 		if ((c >= 55296) && (c <= 56319)) && (unicodeIter_offset < hxrt.StringLengthStringPtr(unicodeIter_s)) {
 			c = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(c) - hxrt.Int32Wrap(55232)))) << uint(10)))) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(func() int {
 				value_2 := unicodeIter_s
-				hx_post_18 := unicodeIter_offset
+				hx_post_10 := unicodeIter_offset
 				unicodeIter_offset = int(int32((unicodeIter_offset + 1)))
-				index_1 := hx_post_18
+				index_1 := hx_post_10
 				return hxrt.StringCharCodeAtStringPtr(value_2, index_1)
 			}()) & hxrt.Int32Wrap(1023))))))
 		}

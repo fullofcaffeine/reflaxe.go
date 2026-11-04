@@ -19,9 +19,25 @@ type _Main__AtomicBox struct {
 	value     int
 }
 
+func (self *_Main__AtomicBox) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New__Main__AtomicBox(value int) *_Main__AtomicBox {
+	return hx_init__Main__AtomicBox(hx_alloc__Main__AtomicBox(nil), value)
+}
+
+func hx_alloc__Main__AtomicBox(owner any) *_Main__AtomicBox {
 	self := &_Main__AtomicBox{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I__Main__AtomicBox)
+	}
+	return self
+}
+
+func hx_init__Main__AtomicBox(self *_Main__AtomicBox, value int) *_Main__AtomicBox {
 	self.value = value
 	return self
 }

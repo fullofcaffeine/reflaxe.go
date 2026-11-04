@@ -14,9 +14,25 @@ type sys__net__Address struct {
 	port      int
 }
 
+func (self *sys__net__Address) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_sys__net__Address() *sys__net__Address {
+	return hx_init_sys__net__Address(hx_alloc_sys__net__Address(nil))
+}
+
+func hx_alloc_sys__net__Address(owner any) *sys__net__Address {
 	self := &sys__net__Address{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_sys__net__Address)
+	}
+	return self
+}
+
+func hx_init_sys__net__Address(self *sys__net__Address) *sys__net__Address {
 	self.host = 0
 	self.port = 0
 	return self

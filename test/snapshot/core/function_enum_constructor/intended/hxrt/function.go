@@ -19,8 +19,10 @@ type functionIdentity struct {
 // This primitive does not grant identity to raw native callbacks after an opaque
 // roundtrip. Compiler lowering must preserve the whole value through Haxe slots.
 type Function[F any] struct {
-	call     F
-	identity *functionIdentity
+	call          F
+	identity      *functionIdentity
+	defaultMethod bool
+	origin        functionValue
 }
 
 // functionValue is the erased identity boundary used across adapted signatures.
@@ -29,6 +31,7 @@ type Function[F any] struct {
 type functionValue interface {
 	functionIdentity() *functionIdentity
 	functionPayload() any
+	functionOrigin() functionValue
 }
 
 // Erasure is confined to reflection; ordinary generated calls use FunctionCall.
@@ -44,6 +47,31 @@ func (value *Function[F]) functionIdentity() *functionIdentity {
 		return nil
 	}
 	return value.identity
+}
+
+// functionOrigin returns the normalized source without traversing projection
+// chains. Only ProjectFunction stores origin, and it stores the source root.
+func (value *Function[F]) functionOrigin() functionValue {
+	if value == nil {
+		return nil
+	}
+	if value.origin != nil {
+		return value.origin
+	}
+	return value
+}
+
+// FunctionOrigin exposes only the carrier at the erased recovery boundary.
+// Its concrete payload stays typed and generated type switches select adapters.
+// Foreign raw functions pass through for their existing reflective boundary.
+func FunctionOrigin(value any) any {
+	if function, ok := value.(functionValue); ok {
+		return function.functionOrigin()
+	}
+	if isAnyNil(value) {
+		return nil
+	}
+	return value
 }
 
 func sameFunctionIdentity(left, right functionValue) bool {
@@ -137,6 +165,22 @@ func AdaptFunction[F, G any](source *Function[F], call G) *Function[G] {
 	return &Function[G]{call: call, identity: source.identity}
 }
 
+// ProjectFunction changes a typed representation while preserving the source
+// defaults and full result for later recovery or explicit reflection. Generated
+// recovery must build call from FunctionOrigin(source), not close over an older
+// projection. Provenance alone cannot flatten a caller-authored closure chain.
+// AdaptFunction remains a normalization boundary: its adapted invocation is the
+// new source contract, with the existing function identity retained.
+func ProjectFunction[F, G any](source *Function[F], call G) *Function[G] {
+	if source == nil {
+		return nil
+	}
+	if functionPayloadIsNil(call) {
+		panic("hxrt.Function projection requires a non-null callable")
+	}
+	return &Function[G]{call: call, identity: source.identity, origin: source.functionOrigin()}
+}
+
 // FunctionCall guards portable invocation before a nil Go callback can panic.
 // Only this source-level null failure becomes a Haxe exception; foreign native
 // panics still follow the existing exception boundary unchanged.
@@ -155,4 +199,38 @@ func FunctionNative[F any](value *Function[F]) F {
 		return zero
 	}
 	return value.call
+}
+
+// DefaultDynamicFunction marks the initial implementation in a mutable method
+// slot. Haxe binds that default freshly on extraction; assigned function values
+// instead retain their stored identity. Only compiler initialization uses this.
+func DefaultDynamicFunction[F any](value *Function[F], receiver func() any, slot string) *Function[F] {
+	if value == nil {
+		return nil
+	}
+	value.identity.name = slot
+	value.identity.receiver = receiver
+	value.defaultMethod = true
+	return value
+}
+
+// ReadDynamicFunction binds an untouched default once, or returns the current
+// replacement as stored. The extracted result is never a template: saving or
+// assigning it elsewhere cannot cause later reads to bind again.
+func ReadDynamicFunction[F any](value *Function[F]) *Function[F] {
+	if value == nil || !value.defaultMethod {
+		return value
+	}
+	return BoundFunction(value.call, value.identity.receiver, value.identity.name)
+}
+
+func (value *Function[F]) readStoredFunction() any { return ReadDynamicFunction(value) }
+
+// ReadStoredField is the erased generated-field boundary used by reflection.
+// Ordinary fields pass through; only an unextracted dynamic default is rebound.
+func ReadStoredField(value any) any {
+	if function, ok := value.(interface{ readStoredFunction() any }); ok {
+		return function.readStoredFunction()
+	}
+	return value
 }

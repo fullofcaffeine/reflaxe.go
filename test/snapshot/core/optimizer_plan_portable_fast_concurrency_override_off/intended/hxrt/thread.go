@@ -2,6 +2,8 @@ package hxrt
 
 import (
 	"bytes"
+	"fmt"
+	"os"
 	"runtime"
 	"sort"
 	"sync"
@@ -352,7 +354,7 @@ func ThreadSpawnDetached(job func()) {
 	go runDetachedThreadJob(job)
 }
 
-func runPortableThreadJob(id int, job func()) {
+func runPortableThreadJob(id int, job func(), report func(any)) {
 	registerCurrentGoroutineThreadID(id)
 	defer func() {
 		if recovered := recover(); recovered != nil {
@@ -364,25 +366,25 @@ func runPortableThreadJob(id int, job func()) {
 				unregisterCurrentGoroutineThreadID(id, false)
 				panic(recovered)
 			}
-			ReportUncaughtException(value)
+			report(value)
 		}
 		unregisterCurrentGoroutineThreadID(id, true)
 	}()
 	job()
 }
 
-func ThreadSpawn(job func()) int {
+func ThreadSpawn(job func(), report func(any)) int {
 	if job == nil {
 		return 0
 	}
 	id := allocateThreadState(nil)
 	go func() {
-		runPortableThreadJob(id, job)
+		runPortableThreadJob(id, job, report)
 	}()
 	return id
 }
 
-func ThreadSpawnWithEventLoop(job func()) int {
+func ThreadSpawnWithEventLoop(job func(), report func(any)) int {
 	if job == nil {
 		return 0
 	}
@@ -393,7 +395,7 @@ func ThreadSpawnWithEventLoop(job func()) int {
 			withThreadState(id, func(state *ThreadState) {
 				ThreadEventLoopLoop(threadEventLoop(state))
 			})
-		})
+		}, report)
 	}()
 	return id
 }
@@ -1137,4 +1139,10 @@ func waitForConditionWithTimeout(mu *sync.Mutex, cond *sync.Cond, timeoutSeconds
 		}
 	}
 	return false
+}
+
+// ThreadWriteStderr writes already-formatted source-owned diagnostics. The
+// runtime owns only the output effect; exception formatting remains in Haxe.
+func ThreadWriteStderr(message *string) {
+	fmt.Fprint(os.Stderr, *message)
 }

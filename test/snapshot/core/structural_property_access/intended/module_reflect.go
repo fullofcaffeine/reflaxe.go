@@ -135,7 +135,7 @@ func Reflect_makeVarArgs(f *hxrt.Function[func(*hxrt.Array) any]) any {
 
 func Reflect_setField(o any, field *string, value any) {
 	if hxrt.AnyEqualsNull(o) {
-		hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Null Access")))
 	}
 	if hxrt.ReflectSetField(o, field, value) {
 		return

@@ -36,3 +36,96 @@ func main() {
 		InteractiveCli_run(runtime)
 	}
 }
+
+func hx_recover_class_0(value any) *app__core__PulseIngressFrame {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *app__core__PulseIngressFrame:
+		return source
+	default:
+		return value.(*app__core__PulseIngressFrame)
+	}
+}
+
+func hx_recover_class_1(value any) *app__core__PulseEnrichedEvent {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *app__core__PulseEnrichedEvent:
+		return source
+	default:
+		return value.(*app__core__PulseEnrichedEvent)
+	}
+}
+
+func hx_recover_class_2(value any) *app__core__PulseSourceAggregate {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *app__core__PulseSourceAggregate:
+		return source
+	default:
+		return value.(*app__core__PulseSourceAggregate)
+	}
+}
+
+func hx_recover_class_3(value any) *app__core__PulseAlert {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *app__core__PulseAlert:
+		return source
+	default:
+		return value.(*app__core__PulseAlert)
+	}
+}
+
+func hx_recover_class_4(value any) *app__core__PulseEvent {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *app__core__PulseEvent:
+		return source
+	default:
+		return value.(*app__core__PulseEvent)
+	}
+}
+
+func hx_recover_class_5(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
+}
+
+func hx_recover_class_6(value any) *haxe__Exception {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__Exception:
+		return source
+	case *haxe__ValueException:
+		return source.haxe__Exception
+	default:
+		return value.(*haxe__Exception)
+	}
+}

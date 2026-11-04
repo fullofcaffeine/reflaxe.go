@@ -17,9 +17,25 @@ type app__core__PulseSourceAggregate struct {
 	maxSeverity   int
 }
 
+func (self *app__core__PulseSourceAggregate) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_app__core__PulseSourceAggregate(source *string) *app__core__PulseSourceAggregate {
+	return hx_init_app__core__PulseSourceAggregate(hx_alloc_app__core__PulseSourceAggregate(nil), source)
+}
+
+func hx_alloc_app__core__PulseSourceAggregate(owner any) *app__core__PulseSourceAggregate {
 	self := &app__core__PulseSourceAggregate{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_app__core__PulseSourceAggregate)
+	}
+	return self
+}
+
+func hx_init_app__core__PulseSourceAggregate(self *app__core__PulseSourceAggregate, source *string) *app__core__PulseSourceAggregate {
 	self.source = source
 	self.count = 0
 	self.totalValue = 0

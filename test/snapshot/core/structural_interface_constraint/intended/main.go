@@ -15,8 +15,20 @@ func (self *Cursor) HxFunctionReceiver() any {
 }
 
 func New_Cursor() *Cursor {
+	return hx_init_Cursor(hx_alloc_Cursor(nil))
+}
+
+func hx_alloc_Cursor(owner any) *Cursor {
 	self := &Cursor{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_Cursor)
+	}
+	return self
+}
+
+func hx_init_Cursor(self *Cursor) *Cursor {
 	return self
 }
 
@@ -52,35 +64,28 @@ func main() {
 		})
 	}(nominal)
 	var v any = any(func() int {
-		var hx_callable_6 *hxrt.Function[func() int] = func(hx_obj_3 hxrt.Anonymous) *hxrt.Function[func() int] {
-			hx_field_4 := hxrt.AnonymousGet(hx_obj_3, "next")
-			if hx_field_4 == nil {
-				var hx_zero_5 *hxrt.Function[func() int]
-				return hx_zero_5
-			}
-			return hx_field_4.(*hxrt.Function[func() int])
-		}(narrow)
-		return hxrt.FunctionCall(hx_callable_6)()
+		var hx_callable_3 *hxrt.Function[func() int] = hx_recover_callable_0(hxrt.AnonymousGet(narrow, "next"))
+		return hxrt.FunctionCall(hx_callable_3)()
 	}())
 	hxrt.Println(v)
 	var v_1 any = any(read(func() hxrt.Anonymous {
-		hx_obj_7 := map[string]any{}
-		hx_obj_7["next"] = hxrt.NewFunction(func() int {
+		hx_obj_4 := map[string]any{}
+		hx_obj_4["next"] = hxrt.NewFunction(func() int {
 			return 8
 		})
-		return hxrt.AnonymousFromMap(hx_obj_7)
+		return hxrt.AnonymousFromMap(hx_obj_4)
 	}()))
 	hxrt.Println(v_1)
-	var v_2 any = any(read(func(hx_structural_source_8 *Cursor) hxrt.Anonymous {
-		return hxrt.NewAnonymousView(hx_structural_source_8, func(name string) hxrt.AnonymousField {
+	var v_2 any = any(read(func(hx_structural_source_5 *Cursor) hxrt.Anonymous {
+		return hxrt.NewAnonymousView(hx_structural_source_5, func(name string) hxrt.AnonymousField {
 			switch name {
 			case "next":
 				return hxrt.AnonymousField{Value: func() *hxrt.Function[func() int] {
-					hx_receiver_9 := hx_structural_source_8
+					hx_receiver_6 := hx_structural_source_5
 					return hxrt.BoundFunction(func() int {
-						return hx_receiver_9.__hx_this.next()
+						return hx_receiver_6.__hx_this.next()
 					}, func() any {
-						return hx_receiver_9.__hx_this
+						return hx_receiver_6.__hx_this
 					}, "next")
 				}(), Found: true}
 			}
@@ -93,52 +98,31 @@ func main() {
 	}(source)))
 	hxrt.Println(v_2)
 	var erased any = source
-	recovered := hx_structural_recover_0(hx_structural_recover_0(erased))
+	recovered := hx_structural_recover(hx_structural_recover(erased))
 	var v_3 any = any(func() int {
-		var hx_callable_13 *hxrt.Function[func() int] = func(hx_obj_10 hxrt.Anonymous) *hxrt.Function[func() int] {
-			hx_field_11 := hxrt.AnonymousGet(hx_obj_10, "next")
-			if hx_field_11 == nil {
-				var hx_zero_12 *hxrt.Function[func() int]
-				return hx_zero_12
-			}
-			return hx_field_11.(*hxrt.Function[func() int])
-		}(recovered)
-		return hxrt.FunctionCall(hx_callable_13)()
+		var hx_callable_7 *hxrt.Function[func() int] = hx_recover_callable_0(hxrt.AnonymousGet(recovered, "next"))
+		return hxrt.FunctionCall(hx_callable_7)()
 	}())
 	hxrt.Println(v_3)
 	hxrt.Println(any(hxrt.HaxeEqual(any(recovered), erased)))
 	var missing any = nil
-	nullView := hx_structural_recover_0(hx_structural_recover_0(missing))
+	nullView := hx_structural_recover(hx_structural_recover(missing))
 	hxrt.Println(any((nullView == nil)))
 	mutable := New_MutableCursor()
 	var mutableErased any = mutable
-	live := hx_structural_recover_0(hx_structural_recover_0(mutableErased))
-	saved := func(hx_obj_14 hxrt.Anonymous) *hxrt.Function[func() int] {
-		hx_field_15 := hxrt.AnonymousGet(hx_obj_14, "next")
-		if hx_field_15 == nil {
-			var hx_zero_16 *hxrt.Function[func() int]
-			return hx_zero_16
-		}
-		return hx_field_15.(*hxrt.Function[func() int])
-	}(live)
+	live := hx_structural_recover(hx_structural_recover(mutableErased))
+	saved := hx_recover_callable_0(hxrt.AnonymousGet(live, "next"))
 	mutable.next = hxrt.NewFunction(func() int {
 		return 19
 	})
 	var v_4 any = any(func() int {
-		var hx_callable_17 *hxrt.Function[func() int] = saved
-		return hxrt.FunctionCall(hx_callable_17)()
+		var hx_callable_8 *hxrt.Function[func() int] = saved
+		return hxrt.FunctionCall(hx_callable_8)()
 	}())
 	hxrt.Println(v_4)
 	var v_5 any = any(func() int {
-		var hx_callable_21 *hxrt.Function[func() int] = func(hx_obj_18 hxrt.Anonymous) *hxrt.Function[func() int] {
-			hx_field_19 := hxrt.AnonymousGet(hx_obj_18, "next")
-			if hx_field_19 == nil {
-				var hx_zero_20 *hxrt.Function[func() int]
-				return hx_zero_20
-			}
-			return hx_field_19.(*hxrt.Function[func() int])
-		}(live)
-		return hxrt.FunctionCall(hx_callable_21)()
+		var hx_callable_9 *hxrt.Function[func() int] = hx_recover_callable_0(hxrt.AnonymousGet(live, "next"))
+		return hxrt.FunctionCall(hx_callable_9)()
 	}())
 	hxrt.Println(v_5)
 	hxrt.Println(any(hxrt.HaxeEqual(any(live), mutableErased)))
@@ -146,15 +130,8 @@ func main() {
 
 func read(value hxrt.Anonymous) int {
 	return func() int {
-		var hx_callable_25 *hxrt.Function[func() int] = func(hx_obj_22 hxrt.Anonymous) *hxrt.Function[func() int] {
-			hx_field_23 := hxrt.AnonymousGet(hx_obj_22, "next")
-			if hx_field_23 == nil {
-				var hx_zero_24 *hxrt.Function[func() int]
-				return hx_zero_24
-			}
-			return hx_field_23.(*hxrt.Function[func() int])
-		}(value)
-		return hxrt.FunctionCall(hx_callable_25)()
+		var hx_callable_10 *hxrt.Function[func() int] = hx_recover_callable_0(hxrt.AnonymousGet(value, "next"))
+		return hxrt.FunctionCall(hx_callable_10)()
 	}()
 }
 
@@ -171,8 +148,20 @@ func (self *MutableCursor) HxFunctionReceiver() any {
 }
 
 func New_MutableCursor() *MutableCursor {
+	return hx_init_MutableCursor(hx_alloc_MutableCursor(nil))
+}
+
+func hx_alloc_MutableCursor(owner any) *MutableCursor {
 	self := &MutableCursor{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_MutableCursor)
+	}
+	return self
+}
+
+func hx_init_MutableCursor(self *MutableCursor) *MutableCursor {
 	self.next = hxrt.DefaultDynamicFunction(hxrt.NewFunction(func() int {
 		return 11
 	}), func() any {
@@ -181,7 +170,7 @@ func New_MutableCursor() *MutableCursor {
 	return self
 }
 
-func hx_structural_recover_0(value any) hxrt.Anonymous {
+func hx_structural_recover(value any) hxrt.Anonymous {
 	switch source := value.(type) {
 	case *Cursor:
 		return func(hx_structural_source_1 *Cursor) hxrt.Anonymous {
@@ -215,12 +204,40 @@ func hx_structural_recover_0(value any) hxrt.Anonymous {
 			}, func(name string, incoming any) bool {
 				switch name {
 				case "next":
-					hx_structural_source_3.next = func(hx_value_4 any) *hxrt.Function[func() int] {
-						if hx_value_4 == nil {
-							var hx_zero_5 *hxrt.Function[func() int]
-							return hx_zero_5
+					hx_structural_source_3.next = hx_recover_callable_0(incoming)
+					return true
+				}
+				return false
+			})
+		}(source)
+	case *haxe___Int64_____Int64:
+		return func(hx_structural_source_4 *haxe___Int64_____Int64) hxrt.Anonymous {
+			return hxrt.NewAnonymousView(hx_structural_source_4, func(name string) hxrt.AnonymousField {
+				switch name {
+				case "high":
+					return hxrt.AnonymousField{Value: hx_structural_source_4.high, Found: true}
+				case "low":
+					return hxrt.AnonymousField{Value: hx_structural_source_4.low, Found: true}
+				}
+				return hxrt.AnonymousField{}
+			}, func(name string, incoming any) bool {
+				switch name {
+				case "high":
+					hx_structural_source_4.high = func(hx_value_5 any) int {
+						if hx_value_5 == nil {
+							var hx_zero_6 int
+							return hx_zero_6
 						}
-						return hx_value_4.(*hxrt.Function[func() int])
+						return hx_value_5.(int)
+					}(incoming)
+					return true
+				case "low":
+					hx_structural_source_4.low = func(hx_value_7 any) int {
+						if hx_value_7 == nil {
+							var hx_zero_8 int
+							return hx_zero_8
+						}
+						return hx_value_7.(int)
 					}(incoming)
 					return true
 				}
@@ -229,5 +246,26 @@ func hx_structural_recover_0(value any) hxrt.Anonymous {
 		}(source)
 	default:
 		return hxrt.AnonymousFromValue(value)
+	}
+}
+
+func hx_recover_callable_0(value any) *hxrt.Function[func() int] {
+	if value == nil {
+		return nil
+	}
+	switch exact := value.(type) {
+	case *hxrt.Function[func() int]:
+		return exact
+	}
+	origin := hxrt.FunctionOrigin(value)
+	if origin == nil {
+		return nil
+	}
+	switch source := origin.(type) {
+	case *hxrt.Function[func() int]:
+		return source
+	default:
+		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
+		return nil
 	}
 }

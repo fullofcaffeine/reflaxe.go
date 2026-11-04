@@ -17,9 +17,25 @@ type model__TodoItem struct {
 	tags      *hxrt.Array
 }
 
+func (self *model__TodoItem) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_model__TodoItem(id int, title *string, priority int) *model__TodoItem {
+	return hx_init_model__TodoItem(hx_alloc_model__TodoItem(nil), id, title, priority)
+}
+
+func hx_alloc_model__TodoItem(owner any) *model__TodoItem {
 	self := &model__TodoItem{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_model__TodoItem)
+	}
+	return self
+}
+
+func hx_init_model__TodoItem(self *model__TodoItem, id int, title *string, priority int) *model__TodoItem {
 	self.id = id
 	self.set_title(title)
 	self.set_done(false)

@@ -16,9 +16,25 @@ type app__core__Incident struct {
 	createdAt    *string
 }
 
+func (self *app__core__Incident) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_app__core__Incident(id int, title *string, severity *string, acknowledged bool, resolved bool, createdAt *string) *app__core__Incident {
+	return hx_init_app__core__Incident(hx_alloc_app__core__Incident(nil), id, title, severity, acknowledged, resolved, createdAt)
+}
+
+func hx_alloc_app__core__Incident(owner any) *app__core__Incident {
 	self := &app__core__Incident{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_app__core__Incident)
+	}
+	return self
+}
+
+func hx_init_app__core__Incident(self *app__core__Incident, id int, title *string, severity *string, acknowledged bool, resolved bool, createdAt *string) *app__core__Incident {
 	self.id = id
 	self.title = title
 	self.severity = severity

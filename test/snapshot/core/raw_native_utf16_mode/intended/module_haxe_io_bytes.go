@@ -36,9 +36,25 @@ type haxe__io__Bytes struct {
 	__hx_dataExposed bool
 }
 
+func (self *haxe__io__Bytes) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe__io__Bytes(length int, b []int, raw *hxrt.ByteView) *haxe__io__Bytes {
+	return hx_init_haxe__io__Bytes(hx_alloc_haxe__io__Bytes(nil), length, b, raw)
+}
+
+func hx_alloc_haxe__io__Bytes(owner any) *haxe__io__Bytes {
 	self := &haxe__io__Bytes{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__io__Bytes)
+	}
+	return self
+}
+
+func hx_init_haxe__io__Bytes(self *haxe__io__Bytes, length int, b []int, raw *hxrt.ByteView) *haxe__io__Bytes {
 	self.length = length
 	self.b = b
 	self.__hx_raw = raw
@@ -58,7 +74,7 @@ func (self *haxe__io__Bytes) set(pos int, value int) {
 
 func (self *haxe__io__Bytes) blit(pos int, src *haxe__io__Bytes, srcpos int, len int) {
 	if ((((pos < 0) || (srcpos < 0)) || (len < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len))) > self.length)) || (int((hxrt.Int32Wrap(srcpos) + hxrt.Int32Wrap(len))) > src.length) {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	if len == 0 {
 		return
@@ -69,7 +85,7 @@ func (self *haxe__io__Bytes) blit(pos int, src *haxe__io__Bytes, srcpos int, len
 
 func (self *haxe__io__Bytes) fill(pos int, len int, value int) {
 	if ((pos < 0) || (len < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len))) > self.length) {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	masked := int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255)))
 	_g := 0
@@ -85,7 +101,7 @@ func (self *haxe__io__Bytes) fill(pos int, len int, value int) {
 
 func (self *haxe__io__Bytes) sub(pos int, len int) *haxe__io__Bytes {
 	if ((pos < 0) || (len < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len))) > self.length) {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	out := haxe__io__Bytes_alloc(len)
 	_g := 0
@@ -241,7 +257,7 @@ func (self *haxe__io__Bytes) setInt64(pos int, value *haxe___Int64_____Int64) {
 
 func (self *haxe__io__Bytes) getString(pos int, len int, encoding *haxe__io__Encoding) *string {
 	if ((pos < 0) || (len < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len))) > self.length) {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	return hxrt.StdString(hxrt.BytesStringFromView(self.__hx_this.__hx_nativeView(), pos, len, (encoding == haxe__io__Encoding_RawNative)))
 }
@@ -314,7 +330,7 @@ func haxe__io__Bytes_ofData(data []int) *haxe__io__Bytes {
 func haxe__io__Bytes_ofHex(value *string) *haxe__io__Bytes {
 	textLength := hxrt.StringLengthStringPtr(value)
 	if int((hxrt.Int32Wrap(textLength) & hxrt.Int32Wrap(1))) != 0 {
-		hxrt.Throw(hxrt.StringFromLiteral("Not a hex string (odd number of digits)"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Not a hex string (odd number of digits)")))
 	}
 	out := haxe__io__Bytes_alloc(int((hxrt.Int32Wrap(textLength) >> uint(1))))
 	_g := 0

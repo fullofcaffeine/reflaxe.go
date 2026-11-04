@@ -16,9 +16,25 @@ type sys__thread__Condition struct {
 	__h       *hxrt.ConditionHandle
 }
 
+func (self *sys__thread__Condition) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_sys__thread__Condition() *sys__thread__Condition {
+	return hx_init_sys__thread__Condition(hx_alloc_sys__thread__Condition(nil))
+}
+
+func hx_alloc_sys__thread__Condition(owner any) *sys__thread__Condition {
 	self := &sys__thread__Condition{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_sys__thread__Condition)
+	}
+	return self
+}
+
+func hx_init_sys__thread__Condition(self *sys__thread__Condition) *sys__thread__Condition {
 	self.__h = hxrt.ThreadConditionNew()
 	return self
 }

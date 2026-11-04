@@ -67,10 +67,10 @@ func main() {
 		message := _g_2
 		hxrt.Println(any(message))
 	}
-	_g_3 := selectItem(ItemOutcome_ItemSuccess(hxrt.NewArray(func() map[string]any {
+	_g_3 := selectItem(ItemOutcome_ItemSuccess(hxrt.NewArray(func() hxrt.Anonymous {
 		hx_obj_6 := map[string]any{}
 		hx_obj_6["id"] = hxrt.StringFromLiteral("one")
-		return hx_obj_6
+		return hxrt.AnonymousFromMap(hx_obj_6)
 	}())))
 	switch _g_3.tag {
 	case 0:
@@ -82,63 +82,91 @@ func main() {
 			return hx_value_7.(*hxrt.Array)
 		}(_g_3.params[0])
 		items := _g_4
-		var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("selected-item:"), func(hx_obj_11 map[string]any) *string {
-			hx_field_12 := hx_obj_11["id"]
-			if hx_field_12 == nil {
-				var hx_zero_13 *string
-				return hx_zero_13
-			}
-			return hx_field_12.(*string)
-		}(func(hx_value_9 any) map[string]any {
+		var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("selected-item:"), func(hx_value_9 any) *string {
 			if hx_value_9 == nil {
-				var hx_zero_10 map[string]any
+				var hx_zero_10 *string
 				return hx_zero_10
 			}
-			return hx_value_9.(map[string]any)
-		}(items.Get(0)))))
+			return hx_value_9.(*string)
+		}(hxrt.AnonymousGet(hx_structural_recover(items.Get(0)), "id"))))
 		hxrt.Println(v_4)
 	case 1:
-		_g_5 := func(hx_value_14 any) *string {
-			if hx_value_14 == nil {
-				var hx_zero_15 *string
-				return hx_zero_15
+		_g_5 := func(hx_value_11 any) *string {
+			if hx_value_11 == nil {
+				var hx_zero_12 *string
+				return hx_zero_12
 			}
-			return hx_value_14.(*string)
+			return hx_value_11.(*string)
 		}(_g_3.params[0])
 		_ = _g_5
 	}
 }
 
 func selectItem(outcome *ItemOutcome) *ItemOutcome {
-	var hx_switch_16 map[string]any
+	var hx_switch_13 hxrt.Anonymous
 	switch outcome.tag {
 	case 0:
-		_g := func(hx_value_17 any) *hxrt.Array {
-			if hx_value_17 == nil {
-				var hx_zero_18 *hxrt.Array
-				return hx_zero_18
+		_g := func(hx_value_14 any) *hxrt.Array {
+			if hx_value_14 == nil {
+				var hx_zero_15 *hxrt.Array
+				return hx_zero_15
 			}
-			return hx_value_17.(*hxrt.Array)
+			return hx_value_14.(*hxrt.Array)
 		}(outcome.params[0])
 		items := _g
-		hx_switch_16 = func(hx_value_19 any) map[string]any {
-			if hx_value_19 == nil {
-				var hx_zero_20 map[string]any
-				return hx_zero_20
-			}
-			return hx_value_19.(map[string]any)
-		}(items.Get(0))
+		hx_switch_13 = hx_structural_recover(hx_structural_recover(hx_structural_recover(items.Get(0))))
 	case 1:
-		_g_1 := func(hx_value_21 any) *string {
-			if hx_value_21 == nil {
-				var hx_zero_22 *string
-				return hx_zero_22
+		_g_1 := func(hx_value_16 any) *string {
+			if hx_value_16 == nil {
+				var hx_zero_17 *string
+				return hx_zero_17
 			}
-			return hx_value_21.(*string)
+			return hx_value_16.(*string)
 		}(outcome.params[0])
 		message := _g_1
 		return ItemOutcome_ItemFailure(message)
 	}
-	selected := hx_switch_16
+	selected := hx_switch_13
 	return ItemOutcome_ItemSuccess(hxrt.NewArray(selected))
+}
+
+func hx_structural_recover(value any) hxrt.Anonymous {
+	switch source := value.(type) {
+	case *haxe___Int64_____Int64:
+		return func(hx_structural_source_1 *haxe___Int64_____Int64) hxrt.Anonymous {
+			return hxrt.NewAnonymousView(hx_structural_source_1, func(name string) hxrt.AnonymousField {
+				switch name {
+				case "high":
+					return hxrt.AnonymousField{Value: hx_structural_source_1.high, Found: true}
+				case "low":
+					return hxrt.AnonymousField{Value: hx_structural_source_1.low, Found: true}
+				}
+				return hxrt.AnonymousField{}
+			}, func(name string, incoming any) bool {
+				switch name {
+				case "high":
+					hx_structural_source_1.high = func(hx_value_2 any) int {
+						if hx_value_2 == nil {
+							var hx_zero_3 int
+							return hx_zero_3
+						}
+						return hx_value_2.(int)
+					}(incoming)
+					return true
+				case "low":
+					hx_structural_source_1.low = func(hx_value_4 any) int {
+						if hx_value_4 == nil {
+							var hx_zero_5 int
+							return hx_zero_5
+						}
+						return hx_value_4.(int)
+					}(incoming)
+					return true
+				}
+				return false
+			})
+		}(source)
+	default:
+		return hxrt.AnonymousFromValue(value)
+	}
 }

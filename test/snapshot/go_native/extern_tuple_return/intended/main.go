@@ -20,8 +20,20 @@ func (self *AtoiResult) HxFunctionReceiver() any {
 }
 
 func New_AtoiResult(n int, err *go___Error) *AtoiResult {
+	return hx_init_AtoiResult(hx_alloc_AtoiResult(nil), n, err)
+}
+
+func hx_alloc_AtoiResult(owner any) *AtoiResult {
 	self := &AtoiResult{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_AtoiResult)
+	}
+	return self
+}
+
+func hx_init_AtoiResult(self *AtoiResult, n int, err *go___Error) *AtoiResult {
 	self.n = n
 	self.err = err
 	return self
@@ -72,8 +84,20 @@ func (self *TimeZoneResult) HxFunctionReceiver() any {
 }
 
 func New_TimeZoneResult(name *string, offset int) *TimeZoneResult {
+	return hx_init_TimeZoneResult(hx_alloc_TimeZoneResult(nil), name, offset)
+}
+
+func hx_alloc_TimeZoneResult(owner any) *TimeZoneResult {
 	self := &TimeZoneResult{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_TimeZoneResult)
+	}
+	return self
+}
+
+func hx_init_TimeZoneResult(self *TimeZoneResult, name *string, offset int) *TimeZoneResult {
 	self.name = name
 	self.offset = offset
 	return self

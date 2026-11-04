@@ -18,41 +18,39 @@ func (self *haxe__iterators__MapKeyValueIterator) HxFunctionReceiver() any {
 }
 
 func New_haxe__iterators__MapKeyValueIterator(map_ haxe__IMap) *haxe__iterators__MapKeyValueIterator {
+	return hx_init_haxe__iterators__MapKeyValueIterator(hx_alloc_haxe__iterators__MapKeyValueIterator(nil), map_)
+}
+
+func hx_alloc_haxe__iterators__MapKeyValueIterator(owner any) *haxe__iterators__MapKeyValueIterator {
 	self := &haxe__iterators__MapKeyValueIterator{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__iterators__MapKeyValueIterator)
+	}
+	return self
+}
+
+func hx_init_haxe__iterators__MapKeyValueIterator(self *haxe__iterators__MapKeyValueIterator, map_ haxe__IMap) *haxe__iterators__MapKeyValueIterator {
 	self.map_ = map_
-	self.keys = hxrt.AnonymousFromValue(map_.keys())
+	self.keys = map_.keys()
 	return self
 }
 
 func (self *haxe__iterators__MapKeyValueIterator) hasNext() bool {
 	return func() bool {
-		var hx_callable_4 *hxrt.Function[func() bool] = func(hx_obj_1 hxrt.Anonymous) *hxrt.Function[func() bool] {
-			hx_field_2 := hxrt.AnonymousGet(hx_obj_1, "hasNext")
-			if hx_field_2 == nil {
-				var hx_zero_3 *hxrt.Function[func() bool]
-				return hx_zero_3
-			}
-			return hx_field_2.(*hxrt.Function[func() bool])
-		}(self.keys)
-		return hxrt.FunctionCall(hx_callable_4)()
+		var hx_callable_1 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(self.keys, "hasNext"))
+		return hxrt.FunctionCall(hx_callable_1)()
 	}()
 }
 
 func (self *haxe__iterators__MapKeyValueIterator) next() hxrt.Anonymous {
 	var key any = func() any {
-		var hx_callable_8 *hxrt.Function[func() any] = func(hx_obj_5 hxrt.Anonymous) *hxrt.Function[func() any] {
-			hx_field_6 := hxrt.AnonymousGet(hx_obj_5, "next")
-			if hx_field_6 == nil {
-				var hx_zero_7 *hxrt.Function[func() any]
-				return hx_zero_7
-			}
-			return hx_field_6.(*hxrt.Function[func() any])
-		}(self.keys)
-		return hxrt.FunctionCall(hx_callable_8)()
+		var hx_callable_2 *hxrt.Function[func() any] = hx_recover_callable_2(hxrt.AnonymousGet(self.keys, "next"))
+		return hxrt.FunctionCall(hx_callable_2)()
 	}()
-	hx_obj_9 := map[string]any{}
-	hx_obj_9["key"] = key
-	hx_obj_9["value"] = self.map_.getIMap(key)
-	return hxrt.AnonymousFromMap(hx_obj_9)
+	hx_obj_3 := map[string]any{}
+	hx_obj_3["key"] = key
+	hx_obj_3["value"] = self.map_.getIMap(key)
+	return hxrt.AnonymousFromMap(hx_obj_3)
 }

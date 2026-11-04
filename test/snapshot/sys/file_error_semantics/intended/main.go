@@ -8,21 +8,21 @@ func main() {
 		sys__FileSystem_deleteDirectory(root)
 	}
 	sys__FileSystem_createDirectory(root)
-	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("missing.read.throws="), hxrt.StdString(throws(func() {
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("missing.read.throws="), hxrt.StdString(throws(hxrt.NewFunction(func() {
 		sys__io__File_getContent(hxrt.StringConcatStringPtr(root, hxrt.StringFromLiteral("/missing.txt")))
-	}))))
+	})))))
 	hxrt.Println(v)
-	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("directory.read.throws="), hxrt.StdString(throws(func() {
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("directory.read.throws="), hxrt.StdString(throws(hxrt.NewFunction(func() {
 		sys__io__File_getContent(root)
-	}))))
+	})))))
 	hxrt.Println(v_1)
-	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("directory.write.throws="), hxrt.StdString(throws(func() {
+	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("directory.write.throws="), hxrt.StdString(throws(hxrt.NewFunction(func() {
 		sys__io__File_saveContent(root, hxrt.StringFromLiteral("not-a-file"))
-	}))))
+	})))))
 	hxrt.Println(v_2)
-	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("environment.invalid.throws="), hxrt.StdString(throws(func() {
+	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("environment.invalid.throws="), hxrt.StdString(throws(hxrt.NewFunction(func() {
 		hxrt.SysSetEnvironment(hxrt.StringFromLiteral("HAXE_GO=INVALID"), hxrt.StringFromLiteral("value"))
-	}))))
+	})))))
 	hxrt.Println(v_3)
 	locked := hxrt.StringConcatStringPtr(root, hxrt.StringFromLiteral("/locked.txt"))
 	sys__io__File_saveContent(locked, hxrt.StringFromLiteral("secret"))
@@ -48,13 +48,13 @@ func main() {
 		}
 		return hx_if_6
 	}())
-	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("permission.read.throws="), hxrt.StdString(throws(func() {
+	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("permission.read.throws="), hxrt.StdString(throws(hxrt.NewFunction(func() {
 		sys__io__File_getContent(locked)
-	}))))
+	})))))
 	hxrt.Println(v_4)
-	var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("permission.write.throws="), hxrt.StdString(throws(func() {
+	var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("permission.write.throws="), hxrt.StdString(throws(hxrt.NewFunction(func() {
 		sys__io__File_saveContent(locked, hxrt.StringFromLiteral("replacement"))
-	}))))
+	})))))
 	hxrt.Println(v_5)
 	args_1 := hxrt.NewArray(hxrt.StringFromLiteral("600"), locked)
 	hxrt.SysCommand(hxrt.StringFromLiteral("chmod"), func() []*string {
@@ -82,16 +82,22 @@ func main() {
 	sys__FileSystem_deleteDirectory(root)
 }
 
-func throws(action func()) bool {
+func throws(action *hxrt.Function[func()]) bool {
 	hx_try_return_13 := false
 	var hx_try_value_14 bool
 	hxrt.TryCatch(func() {
-		action()
+		func() {
+			var hx_callable_18 *hxrt.Function[func()] = action
+			hxrt.FunctionCall(hx_callable_18)()
+		}()
 		hx_try_value_14 = false
 		hx_try_return_13 = true
 		return
 	}, func(hx_caught_15 any) {
-		hx_tmp := hx_caught_15
+		hx_exception_16 := haxe__Exception_caught(hx_caught_15)
+		hx_payload_17 := haxe__Exception_catchValue(hx_caught_15)
+		_ = hx_exception_16
+		var hx_tmp any = hx_payload_17
 		_ = hx_tmp
 		hx_try_value_14 = true
 		hx_try_return_13 = true
@@ -101,4 +107,49 @@ func throws(action func()) bool {
 		return hx_try_value_14
 	}
 	return false
+}
+
+func hx_recover_class_0(value any) *haxe__io__Eof {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__io__Eof:
+		return source
+	default:
+		return value.(*haxe__io__Eof)
+	}
+}
+
+func hx_recover_class_1(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
+}
+
+func hx_recover_class_2(value any) *haxe__Exception {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__Exception:
+		return source
+	case *haxe__exceptions__NotImplementedException:
+		return source.haxe__exceptions__PosException.haxe__Exception
+	case *haxe__exceptions__PosException:
+		return source.haxe__Exception
+	case *haxe__ValueException:
+		return source.haxe__Exception
+	default:
+		return value.(*haxe__Exception)
+	}
 }

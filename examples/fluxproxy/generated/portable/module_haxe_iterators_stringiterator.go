@@ -13,9 +13,25 @@ type haxe__iterators__StringIterator struct {
 	s         *string
 }
 
+func (self *haxe__iterators__StringIterator) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe__iterators__StringIterator(s *string) *haxe__iterators__StringIterator {
+	return hx_init_haxe__iterators__StringIterator(hx_alloc_haxe__iterators__StringIterator(nil), s)
+}
+
+func hx_alloc_haxe__iterators__StringIterator(owner any) *haxe__iterators__StringIterator {
 	self := &haxe__iterators__StringIterator{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__iterators__StringIterator)
+	}
+	return self
+}
+
+func hx_init_haxe__iterators__StringIterator(self *haxe__iterators__StringIterator, s *string) *haxe__iterators__StringIterator {
 	self.offset = 0
 	self.s = s
 	return self

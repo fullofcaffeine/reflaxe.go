@@ -4,36 +4,33 @@ import "snapshot/hxrt"
 
 func main() {
 	user := makeUser(hxrt.StringFromLiteral("marcelo"), 10)
-	var v any = any(func(hx_obj_1 hxrt.Anonymous) *string {
-		hx_field_2 := hxrt.AnonymousGet(hx_obj_1, "name")
-		if hx_field_2 == nil {
-			var hx_zero_3 *string
-			return hx_zero_3
+	var v any = any(func(hx_value_1 any) *string {
+		if hx_value_1 == nil {
+			var hx_zero_2 *string
+			return hx_zero_2
 		}
-		return hx_field_2.(*string)
-	}(user))
+		return hx_value_1.(*string)
+	}(hxrt.AnonymousGet(user, "name")))
 	hxrt.Println(v)
 	func() int {
-		hx_structural_target_4 := user
-		hx_structural_value_6 := int((hxrt.Int32Wrap(func(hx_obj_7 hxrt.Anonymous) int {
-			hx_field_8 := hxrt.AnonymousGet(hx_obj_7, "score")
-			if hx_field_8 == nil {
-				var hx_zero_9 int
-				return hx_zero_9
+		hx_structural_target_3 := user
+		hx_structural_value_5 := int((hxrt.Int32Wrap(func(hx_value_6 any) int {
+			if hx_value_6 == nil {
+				var hx_zero_7 int
+				return hx_zero_7
 			}
-			return hx_field_8.(int)
-		}(user)) + hxrt.Int32Wrap(5)))
-		hxrt.AnonymousSet(hx_structural_target_4, "score", hx_structural_value_6)
-		return hx_structural_value_6
+			return hx_value_6.(int)
+		}(hxrt.AnonymousGet(user, "score"))) + hxrt.Int32Wrap(5)))
+		hxrt.AnonymousSet(hx_structural_target_3, "score", hx_structural_value_5)
+		return hx_structural_value_5
 	}()
-	var v_1 any = any(func(hx_obj_10 hxrt.Anonymous) int {
-		hx_field_11 := hxrt.AnonymousGet(hx_obj_10, "score")
-		if hx_field_11 == nil {
-			var hx_zero_12 int
-			return hx_zero_12
+	var v_1 any = any(func(hx_value_8 any) int {
+		if hx_value_8 == nil {
+			var hx_zero_9 int
+			return hx_zero_9
 		}
-		return hx_field_11.(int)
-	}(user))
+		return hx_value_8.(int)
+	}(hxrt.AnonymousGet(user, "score")))
 	hxrt.Println(v_1)
 	var nested_inner_flag bool
 	var nested_inner_count int
@@ -47,8 +44,8 @@ func main() {
 }
 
 func makeUser(name *string, score int) hxrt.Anonymous {
-	hx_obj_13 := map[string]any{}
-	hx_obj_13["name"] = name
-	hx_obj_13["score"] = score
-	return hxrt.AnonymousFromMap(hx_obj_13)
+	hx_obj_10 := map[string]any{}
+	hx_obj_10["name"] = name
+	hx_obj_10["score"] = score
+	return hxrt.AnonymousFromMap(hx_obj_10)
 }

@@ -15,9 +15,25 @@ type app__core__IncidentApi struct {
 	requests  int
 }
 
+func (self *app__core__IncidentApi) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_app__core__IncidentApi(config *app__core__IncidentConfig, store *app__core__IncidentStore) *app__core__IncidentApi {
+	return hx_init_app__core__IncidentApi(hx_alloc_app__core__IncidentApi(nil), config, store)
+}
+
+func hx_alloc_app__core__IncidentApi(owner any) *app__core__IncidentApi {
 	self := &app__core__IncidentApi{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_app__core__IncidentApi)
+	}
+	return self
+}
+
+func hx_init_app__core__IncidentApi(self *app__core__IncidentApi, config *app__core__IncidentConfig, store *app__core__IncidentStore) *app__core__IncidentApi {
 	self.config = config
 	self.store = store
 	self.requests = 0
@@ -53,17 +69,35 @@ func (self *app__core__IncidentApi) createIncident(body *string) *app__http__Htt
 		var raw any = app__core__IncidentApi_parseJsonBody(body)
 		title := app__core__IncidentApi_fieldString(raw, hxrt.StringFromLiteral("title"), hxrt.StringFromLiteral(""))
 		if hxrt.StringEqualStringPtr(title, hxrt.StringFromLiteral("")) {
-			hxrt.Throw(New_app__core__IncidentRequestException(hxrt.StringFromLiteral("missing_title")))
+			hxrt.Throw(haxe__Exception_thrown(New_app__core__IncidentRequestException(hxrt.StringFromLiteral("missing_title"))))
 		}
 		severity := app__core__IncidentApi_fieldString(raw, hxrt.StringFromLiteral("severity"), hxrt.StringFromLiteral("low"))
 		incident := self.store.create(title, severity)
 		response = app__http__HttpResponse_json(201, hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("{\"incident\":"), incident.toJson()), hxrt.StringFromLiteral("}")))
 	}, func(hx_caught_1 any) {
-		switch hx_typed_2 := hx_caught_1.(type) {
-		case *app__core__IncidentRequestException:
-			error := hx_typed_2
+		hx_exception_2 := haxe__Exception_caught(hx_caught_1)
+		hx_payload_3 := haxe__Exception_catchValue(hx_caught_1)
+		_ = hx_payload_3
+		if func(hx_value any) bool {
+			switch hx_carrier := hx_value.(type) {
+			case *app__core__IncidentRequestException:
+				if hx_carrier == nil {
+					return false
+				}
+				return true
+			case *haxe__Exception:
+				if hx_carrier == nil {
+					return false
+				}
+				_, hx_ok := hx_carrier.__hx_this.(*app__core__IncidentRequestException)
+				return hx_ok
+			default:
+				return false
+			}
+		}(hxrt.ObjectSource(hxrt.ObjectSource(hx_exception_2))) {
+			var error *app__core__IncidentRequestException = hx_recover_class_1(hx_exception_2)
 			response = app__http__HttpResponse_json(400, hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("{\"error\":\""), error.code), hxrt.StringFromLiteral("\"}")))
-		default:
+		} else {
 			hxrt.Throw(hx_caught_1)
 		}
 	})
@@ -71,33 +105,33 @@ func (self *app__core__IncidentApi) createIncident(body *string) *app__http__Htt
 }
 
 func (self *app__core__IncidentApi) updateIncident(path *string, action *string) *app__http__HttpResponse {
-	parts := hxrt.ArrayFromValues(func(hx_sort_src_3 []*string) []any {
-		hx_sort_out_5 := make([]any, 0, len(hx_sort_src_3))
-		for _, hx_sort_item_4 := range hx_sort_src_3 {
-			hx_sort_out_5 = append(hx_sort_out_5, hx_sort_item_4)
+	parts := hxrt.ArrayFromValues(func(hx_sort_src_4 []*string) []any {
+		hx_sort_out_6 := make([]any, 0, len(hx_sort_src_4))
+		for _, hx_sort_item_5 := range hx_sort_src_4 {
+			hx_sort_out_6 = append(hx_sort_out_6, hx_sort_item_5)
 		}
-		return hx_sort_out_5
+		return hx_sort_out_6
 	}(hxrt.StringSplitStringPtr(path, hxrt.StringFromLiteral("/"))))
 	if parts.Len() < 4 {
 		return app__http__HttpResponse_json(404, hxrt.StringFromLiteral("{\"error\":\"not_found\"}"))
 	}
-	var id any = Std_parseInt(func(hx_value_6 any) *string {
-		if hx_value_6 == nil {
-			var hx_zero_7 *string
-			return hx_zero_7
+	var id any = Std_parseInt(func(hx_value_7 any) *string {
+		if hx_value_7 == nil {
+			var hx_zero_8 *string
+			return hx_zero_8
 		}
-		return hx_value_6.(*string)
+		return hx_value_7.(*string)
 	}(parts.Get(2)))
 	if id == nil {
 		return app__http__HttpResponse_json(400, hxrt.StringFromLiteral("{\"error\":\"invalid_id\"}"))
 	}
-	var hx_if_8 *app__core__Incident
+	var hx_if_9 *app__core__Incident
 	if hxrt.StringEqualStringPtr(action, hxrt.StringFromLiteral("ack")) {
-		hx_if_8 = self.store.acknowledge(id.(int))
+		hx_if_9 = self.store.acknowledge(id.(int))
 	} else {
-		hx_if_8 = self.store.resolve(id.(int))
+		hx_if_9 = self.store.resolve(id.(int))
 	}
-	incident := hx_if_8
+	incident := hx_if_9
 	if incident == nil {
 		return app__http__HttpResponse_json(404, hxrt.StringFromLiteral("{\"error\":\"incident_not_found\"}"))
 	}
@@ -109,37 +143,40 @@ func app__core__IncidentApi_fieldString(raw any, name *string, fallback *string)
 		return fallback
 	}
 	var value any = Reflect_field(raw, name)
-	var hx_if_9 *string
+	var hx_if_10 *string
 	if hxrt.AnyEqualsNull(value) {
-		hx_if_9 = fallback
+		hx_if_10 = fallback
 	} else {
-		hx_if_9 = hxrt.StdString(value)
+		hx_if_10 = hxrt.StdString(value)
 	}
-	return hx_if_9
+	return hx_if_10
 }
 
 func app__core__IncidentApi_parseJsonBody(body *string) any {
-	hx_try_return_10 := false
-	var hx_try_value_11 any
+	hx_try_return_11 := false
+	var hx_try_value_12 any
 	hxrt.TryCatch(func() {
-		hx_try_value_11 = hxrt.JsonParse(func() *string {
-			var hx_if_14 *string
+		hx_try_value_12 = hxrt.JsonParse(func() *string {
+			var hx_if_16 *string
 			if hxrt.StringEqualStringPtr(body, hxrt.StringFromLiteral("")) {
-				hx_if_14 = hxrt.StringFromLiteral("{}")
+				hx_if_16 = hxrt.StringFromLiteral("{}")
 			} else {
-				hx_if_14 = body
+				hx_if_16 = body
 			}
-			return hx_if_14
+			return hx_if_16
 		}())
-		hx_try_return_10 = true
+		hx_try_return_11 = true
 		return
-	}, func(hx_caught_12 any) {
-		hx_tmp := hxrt.ExceptionCaught(hx_caught_12)
+	}, func(hx_caught_13 any) {
+		hx_exception_14 := haxe__Exception_caught(hx_caught_13)
+		hx_payload_15 := haxe__Exception_catchValue(hx_caught_13)
+		_ = hx_payload_15
+		var hx_tmp *haxe__Exception = hx_recover_class_0(hx_exception_14)
 		_ = hx_tmp
-		hxrt.Throw(New_app__core__IncidentRequestException(hxrt.StringFromLiteral("invalid_json")))
+		hxrt.Throw(haxe__Exception_thrown(New_app__core__IncidentRequestException(hxrt.StringFromLiteral("invalid_json"))))
 	})
-	if hx_try_return_10 {
-		return hx_try_value_11
+	if hx_try_return_11 {
+		return hx_try_value_12
 	}
 	return nil
 }

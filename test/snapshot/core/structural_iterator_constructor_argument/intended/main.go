@@ -158,7 +158,12 @@ func main() {
 		return hx_value_20.(*string)
 	}(genericConsumer.collect())))
 	hxrt.Println(v_2)
-	baseIterator := New_SnapshotSpecializedIterator(hxrt.NewArray(hxrt.StringFromLiteral("v"))).SnapshotBaseIterator
+	baseIterator := func(hx_value *SnapshotSpecializedIterator) *SnapshotBaseIterator {
+		if hx_value == nil {
+			return nil
+		}
+		return hx_value.SnapshotBaseIterator
+	}(New_SnapshotSpecializedIterator(hxrt.NewArray(hxrt.StringFromLiteral("v"))))
 	virtualConsumer := New_SnapshotGenericConsumer(func(hx_structural_source_22 *SnapshotBaseIterator) hxrt.Anonymous {
 		return hxrt.NewAnonymousView(hx_structural_source_22, func(name string) hxrt.AnonymousField {
 			switch name {

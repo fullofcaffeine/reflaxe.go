@@ -16,6 +16,7 @@
 - none
 
 ## inferred features
+- `anonymous`
 - `array`
 - `core`
 - `exception`
@@ -25,6 +26,7 @@
 
 ## selected features
 - `core`
+- `anonymous`
 - `array`
 - `string`
 - `print`
@@ -32,6 +34,7 @@
 - `stack`
 
 ## runtime files
+- `anonymous.go`
 - `array.go`
 - `core.go`
 - `exception.go`
@@ -43,6 +46,8 @@
 ## capability manifest
 - `core` -> `core.go, hxrt.go`
   - `baseline` (`compiler_baseline`)
+- `anonymous` -> `anonymous.go`
+  - `compiler_surface` (`lowered_go_ast:hxrt.Anonymous`)
 - `array` -> `array.go`
   - `surface_plan` (`go_build_context_plus_typed_registry_decision`)
 - `string` -> `string.go`
@@ -59,6 +64,7 @@
 
 ## selection reasons
 - `core` <- `baseline` (`compiler_baseline`)
+- `anonymous` <- `compiler_surface` (`lowered_go_ast:hxrt.Anonymous`)
 - `array` <- `surface_plan` (`go_build_context_plus_typed_registry_decision`)
 - `string` <- `baseline` (`compiler_baseline`)
 - `string` <- `surface_plan` (`go_build_context_plus_typed_registry_decision`)

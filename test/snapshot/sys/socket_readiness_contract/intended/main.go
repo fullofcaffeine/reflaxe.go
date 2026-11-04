@@ -2,32 +2,50 @@ package main
 
 import "snapshot/hxrt"
 
-func isBlocked(operation func()) bool {
+func isBlocked(operation *hxrt.Function[func()]) bool {
 	hx_try_return_1 := false
 	var hx_try_value_2 bool
 	hxrt.TryCatch(func() {
-		operation()
+		func() {
+			var hx_callable_10 *hxrt.Function[func()] = operation
+			hxrt.FunctionCall(hx_callable_10)()
+		}()
 		hx_try_value_2 = false
 		hx_try_return_1 = true
 		return
 	}, func(hx_caught_3 any) {
-		switch hx_typed_4 := hx_caught_3.(type) {
-		case *haxe__io__Error:
-			error := hx_typed_4
-			var hx_if_6 bool
+		hx_exception_6 := haxe__Exception_caught(hx_caught_3)
+		hx_payload_7 := haxe__Exception_catchValue(hx_caught_3)
+		_ = hx_exception_6
+		if func(hx_value any) bool {
+			switch hx_value.(type) {
+			case *haxe__io__Error:
+				return true
+			default:
+				return false
+			}
+		}(hx_payload_7) {
+			var error *haxe__io__Error = func(hx_value_8 any) *haxe__io__Error {
+				if hx_value_8 == nil {
+					var hx_zero_9 *haxe__io__Error
+					return hx_zero_9
+				}
+				return hx_value_8.(*haxe__io__Error)
+			}(hx_payload_7)
+			var hx_if_5 bool
 			if error.tag == 0 {
-				hx_if_6 = true
+				hx_if_5 = true
 			} else {
-				hx_if_6 = func() bool {
-					hxrt.Throw(error)
-					var hx_throw_zero_5 bool
-					return hx_throw_zero_5
+				hx_if_5 = func() bool {
+					hxrt.Throw(haxe__Exception_thrown(error))
+					var hx_throw_zero_4 bool
+					return hx_throw_zero_4
 				}()
 			}
-			hx_try_value_2 = hx_if_6
+			hx_try_value_2 = hx_if_5
 			hx_try_return_1 = true
 			return
-		default:
+		} else {
 			hxrt.Throw(hx_caught_3)
 		}
 	})
@@ -47,104 +65,93 @@ func main() {
 	hxrt.TryCatch(func() {
 		server.__hx_this.bind(host, 0)
 		server.__hx_this.listen(1)
-		client.__hx_this.connect(host, func(hx_obj_9 map[string]any) int {
-			hx_field_10 := hx_obj_9["port"]
-			if hx_field_10 == nil {
-				var hx_zero_11 int
-				return hx_zero_11
+		client.__hx_this.connect(host, func(hx_value_14 any) int {
+			if hx_value_14 == nil {
+				var hx_zero_15 int
+				return hx_zero_15
 			}
-			return hx_field_10.(int)
-		}(server.__hx_this.host()))
+			return hx_value_14.(int)
+		}(hxrt.AnonymousGet(server.__hx_this.host(), "port")))
 		accepted = server.__hx_this.accept()
 		client.custom = hxrt.StringFromLiteral("client")
 		idle := sys__net__Socket_select_(hxrt.NewArray(client), hxrt.NewArray(), hxrt.NewArray(unconnected), 0.0)
-		var v any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("idle="), func(hx_obj_12 map[string]any) *hxrt.Array {
-			hx_field_13 := hx_obj_12["read"]
-			if hx_field_13 == nil {
-				var hx_zero_14 *hxrt.Array
-				return hx_zero_14
-			}
-			return hx_field_13.(*hxrt.Array)
-		}(idle).Len()), hxrt.StringFromLiteral(":")), func(hx_obj_15 map[string]any) *hxrt.Array {
-			hx_field_16 := hx_obj_15["others"]
-			if hx_field_16 == nil {
+		var v any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("idle="), func(hx_value_16 any) *hxrt.Array {
+			if hx_value_16 == nil {
 				var hx_zero_17 *hxrt.Array
 				return hx_zero_17
 			}
-			return hx_field_16.(*hxrt.Array)
-		}(idle).Len()))
+			return hx_value_16.(*hxrt.Array)
+		}(hxrt.AnonymousGet(idle, "read")).Len()), hxrt.StringFromLiteral(":")), func(hx_value_18 any) *hxrt.Array {
+			if hx_value_18 == nil {
+				var hx_zero_19 *hxrt.Array
+				return hx_zero_19
+			}
+			return hx_value_18.(*hxrt.Array)
+		}(hxrt.AnonymousGet(idle, "others")).Len()))
 		hxrt.Println(v)
 		client.__hx_this.setBlocking(false)
-		var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("readBlocked="), hxrt.StdString(isBlocked(func() {
+		var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("readBlocked="), hxrt.StdString(isBlocked(hxrt.NewFunction(func() {
 			client.input.__hx_this.readByte()
-		}))))
+		})))))
 		hxrt.Println(v_1)
 		client.output.__hx_this.writeByte(110)
 		var v_2 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("nonblockingWrite="), accepted.input.__hx_this.readByte()))
 		hxrt.Println(v_2)
 		client.__hx_this.setBlocking(true)
 		server.__hx_this.setBlocking(false)
-		var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("acceptBlocked="), hxrt.StdString(isBlocked(func() {
+		var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("acceptBlocked="), hxrt.StdString(isBlocked(hxrt.NewFunction(func() {
 			server.__hx_this.accept()
-		}))))
+		})))))
 		hxrt.Println(v_3)
 		server.__hx_this.setBlocking(true)
 		accepted.output.__hx_this.writeString(hxrt.StringFromLiteral("xy"), nil)
 		accepted.output.__hx_this.flush()
 		duplicate := sys__net__Socket_select_(hxrt.NewArray(client, client), hxrt.NewArray(), hxrt.NewArray(), 1.0)
-		var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("duplicates="), func(hx_obj_18 map[string]any) *hxrt.Array {
-			hx_field_19 := hx_obj_18["read"]
-			if hx_field_19 == nil {
-				var hx_zero_20 *hxrt.Array
-				return hx_zero_20
+		var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("duplicates="), func(hx_value_20 any) *hxrt.Array {
+			if hx_value_20 == nil {
+				var hx_zero_21 *hxrt.Array
+				return hx_zero_21
 			}
-			return hx_field_19.(*hxrt.Array)
-		}(duplicate).Len()), hxrt.StringFromLiteral(":")), hxrt.StdString(hxrt.HaxeEqual(func(hx_obj_21 map[string]any) *hxrt.Array {
-			hx_field_22 := hx_obj_21["read"]
-			if hx_field_22 == nil {
+			return hx_value_20.(*hxrt.Array)
+		}(hxrt.AnonymousGet(duplicate, "read")).Len()), hxrt.StringFromLiteral(":")), hxrt.StdString(hxrt.HaxeEqual(func(hx_value_22 any) *hxrt.Array {
+			if hx_value_22 == nil {
 				var hx_zero_23 *hxrt.Array
 				return hx_zero_23
 			}
-			return hx_field_22.(*hxrt.Array)
-		}(duplicate).Get(0), client))), hxrt.StringFromLiteral(":")), hxrt.StdString(func(hx_value_27 any) *sys__net__Socket {
-			if hx_value_27 == nil {
-				var hx_zero_28 *sys__net__Socket
-				return hx_zero_28
+			return hx_value_22.(*hxrt.Array)
+		}(hxrt.AnonymousGet(duplicate, "read")).Get(0), client))), hxrt.StringFromLiteral(":")), hxrt.StdString(hx_recover_class_0(func(hx_value_24 any) *hxrt.Array {
+			if hx_value_24 == nil {
+				var hx_zero_25 *hxrt.Array
+				return hx_zero_25
 			}
-			return hx_value_27.(*sys__net__Socket)
-		}(func(hx_obj_24 map[string]any) *hxrt.Array {
-			hx_field_25 := hx_obj_24["read"]
-			if hx_field_25 == nil {
-				var hx_zero_26 *hxrt.Array
-				return hx_zero_26
-			}
-			return hx_field_25.(*hxrt.Array)
-		}(duplicate).Get(1)).custom)))
+			return hx_value_24.(*hxrt.Array)
+		}(hxrt.AnonymousGet(duplicate, "read")).Get(1)).custom)))
 		hxrt.Println(v_4)
 		var v_5 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("first="), client.input.__hx_this.readByte()))
 		hxrt.Println(v_5)
 		buffered := sys__net__Socket_select_(hxrt.NewArray(client), hxrt.NewArray(), hxrt.NewArray(), 0.0)
-		var v_6 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("buffered="), func(hx_obj_29 map[string]any) *hxrt.Array {
-			hx_field_30 := hx_obj_29["read"]
-			if hx_field_30 == nil {
-				var hx_zero_31 *hxrt.Array
-				return hx_zero_31
+		var v_6 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("buffered="), func(hx_value_26 any) *hxrt.Array {
+			if hx_value_26 == nil {
+				var hx_zero_27 *hxrt.Array
+				return hx_zero_27
 			}
-			return hx_field_30.(*hxrt.Array)
-		}(buffered).Len()), hxrt.StringFromLiteral(":")), client.input.__hx_this.readByte()))
+			return hx_value_26.(*hxrt.Array)
+		}(hxrt.AnonymousGet(buffered, "read")).Len()), hxrt.StringFromLiteral(":")), client.input.__hx_this.readByte()))
 		hxrt.Println(v_6)
 		writable := sys__net__Socket_select_(hxrt.NewArray(), hxrt.NewArray(client), hxrt.NewArray(), 0.0)
-		var v_7 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("writable="), func(hx_obj_32 map[string]any) *hxrt.Array {
-			hx_field_33 := hx_obj_32["write"]
-			if hx_field_33 == nil {
-				var hx_zero_34 *hxrt.Array
-				return hx_zero_34
+		var v_7 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("writable="), func(hx_value_28 any) *hxrt.Array {
+			if hx_value_28 == nil {
+				var hx_zero_29 *hxrt.Array
+				return hx_zero_29
 			}
-			return hx_field_33.(*hxrt.Array)
-		}(writable).Len()))
+			return hx_value_28.(*hxrt.Array)
+		}(hxrt.AnonymousGet(writable, "write")).Len()))
 		hxrt.Println(v_7)
-	}, func(hx_caught_7 any) {
-		error := hx_caught_7
+	}, func(hx_caught_11 any) {
+		hx_exception_12 := haxe__Exception_caught(hx_caught_11)
+		hx_payload_13 := haxe__Exception_catchValue(hx_caught_11)
+		_ = hx_exception_12
+		var error any = hx_payload_13
 		failed = error
 	})
 	safeClose(unconnected)
@@ -152,7 +159,7 @@ func main() {
 	safeClose(client)
 	safeClose(server)
 	if !hxrt.AnyEqualsNull(failed) {
-		hxrt.Throw(failed)
+		hxrt.Throw(haxe__Exception_thrown(failed))
 	}
 }
 
@@ -162,8 +169,69 @@ func safeClose(socket *sys__net__Socket) {
 	}
 	hxrt.TryCatch(func() {
 		socket.__hx_this.close()
-	}, func(hx_caught_35 any) {
-		hx_tmp := hx_caught_35
+	}, func(hx_caught_30 any) {
+		hx_exception_31 := haxe__Exception_caught(hx_caught_30)
+		hx_payload_32 := haxe__Exception_catchValue(hx_caught_30)
+		_ = hx_exception_31
+		var hx_tmp any = hx_payload_32
 		_ = hx_tmp
 	})
+}
+
+func hx_recover_class_0(value any) *sys__net__Socket {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *sys__net__Socket:
+		return source
+	default:
+		return value.(*sys__net__Socket)
+	}
+}
+
+func hx_recover_class_1(value any) *haxe__io__Eof {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__io__Eof:
+		return source
+	default:
+		return value.(*haxe__io__Eof)
+	}
+}
+
+func hx_recover_class_2(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
+}
+
+func hx_recover_class_3(value any) *haxe__Exception {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__exceptions__NotImplementedException:
+		return source.haxe__exceptions__PosException.haxe__Exception
+	case *haxe__Exception:
+		return source
+	case *haxe__exceptions__PosException:
+		return source.haxe__Exception
+	case *haxe__ValueException:
+		return source.haxe__Exception
+	default:
+		return value.(*haxe__Exception)
+	}
 }

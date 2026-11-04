@@ -29,9 +29,25 @@ type Date struct {
 	ms        float64
 }
 
+func (self *Date) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_Date(year int, month int, day int, hour int, min int, sec int) *Date {
+	return hx_init_Date(hx_alloc_Date(nil), year, month, day, hour, min, sec)
+}
+
+func hx_alloc_Date(owner any) *Date {
 	self := &Date{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_Date)
+	}
+	return self
+}
+
+func hx_init_Date(self *Date, year int, month int, day int, hour int, min int, sec int) *Date {
 	self.ms = hxrt.DateLocalTime(year, month, day, hour, min, sec)
 	return self
 }

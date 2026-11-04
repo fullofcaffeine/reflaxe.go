@@ -47,8 +47,20 @@ func (self *QueryService) HxFunctionReceiver() any {
 }
 
 func New_QueryService() *QueryService {
+	return hx_init_QueryService(hx_alloc_QueryService(nil))
+}
+
+func hx_alloc_QueryService(owner any) *QueryService {
 	self := &QueryService{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_QueryService)
+	}
+	return self
+}
+
+func hx_init_QueryService(self *QueryService) *QueryService {
 	return self
 }
 

@@ -10,9 +10,25 @@ type sys__ssl__Key struct {
 	handle    *hxrt.SslKey
 }
 
+func (self *sys__ssl__Key) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_sys__ssl__Key(handle *hxrt.SslKey) *sys__ssl__Key {
+	return hx_init_sys__ssl__Key(hx_alloc_sys__ssl__Key(nil), handle)
+}
+
+func hx_alloc_sys__ssl__Key(owner any) *sys__ssl__Key {
 	self := &sys__ssl__Key{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_sys__ssl__Key)
+	}
+	return self
+}
+
+func hx_init_sys__ssl__Key(self *sys__ssl__Key, handle *hxrt.SslKey) *sys__ssl__Key {
 	self.handle = handle
 	return self
 }

@@ -28,9 +28,25 @@ type haxe__Unserializer struct {
 	resolver  any
 }
 
+func (self *haxe__Unserializer) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe__Unserializer(buf *string) *haxe__Unserializer {
+	return hx_init_haxe__Unserializer(hx_alloc_haxe__Unserializer(nil), buf)
+}
+
+func hx_alloc_haxe__Unserializer(owner any) *haxe__Unserializer {
 	self := &haxe__Unserializer{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__Unserializer)
+	}
+	return self
+}
+
+func hx_init_haxe__Unserializer(self *haxe__Unserializer, buf *string) *haxe__Unserializer {
 	self.buf = buf
 	self.length = hxrt.StringLengthStringPtr(buf)
 	self.pos = 0
@@ -39,13 +55,13 @@ func New_haxe__Unserializer(buf *string) *haxe__Unserializer {
 	current := haxe__Unserializer_DEFAULT_RESOLVER
 	if current == nil {
 		hx_obj_1 := map[string]any{}
-		hx_obj_1["resolveClass"] = func(name *string) any {
+		hx_obj_1["resolveClass"] = hxrt.NewFunction(func(name *string) any {
 			return Type_resolveClass(name)
-		}
-		hx_obj_1["resolveEnum"] = func(name *string) any {
+		})
+		hx_obj_1["resolveEnum"] = hxrt.NewFunction(func(name *string) any {
 			return Type_resolveEnum(name)
-		}
-		current = hx_obj_1
+		})
+		current = hxrt.AnonymousFromMap(hx_obj_1)
 		haxe__Unserializer_DEFAULT_RESOLVER = current
 	}
 	self.resolver = current
@@ -147,7 +163,7 @@ func (self *haxe__Unserializer) readFloat() float64 {
 func (self *haxe__Unserializer) unserializeObject(target any) {
 	for true {
 		if self.pos >= self.length {
-			hxrt.Throw(hxrt.StringFromLiteral("Invalid object"))
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Invalid object")))
 		}
 		if func() int {
 			index := self.pos
@@ -174,7 +190,7 @@ func (self *haxe__Unserializer) unserializeObject(target any) {
 				return false
 			}
 		}(key) {
-			hxrt.Throw(hxrt.StringFromLiteral("Invalid object key"))
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Invalid object key")))
 		}
 		Reflect_setField(target, hxrt.StdString(func(hx_value_8 any) *string {
 			if hx_value_8 == nil {
@@ -224,7 +240,7 @@ func (self *haxe__Unserializer) unserializeEnum(declaration any, tag *string) an
 		}
 		return hx_if_13
 	}() != 58 {
-		hxrt.Throw(hxrt.StringFromLiteral("Invalid enum format"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Invalid enum format")))
 	}
 	count := self.__hx_this.readDigits()
 	if count == 0 {
@@ -357,28 +373,28 @@ func (self *haxe__Unserializer) unserialize() any {
 		name := hxrt.StdString(self.__hx_this.unserialize())
 		var declaration any = self.__hx_this.resolveClass(name)
 		if hxrt.AnyEqualsNull(declaration) {
-			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Class not found "), name))
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Class not found "), name)))
 		}
 		return declaration
 	case 66:
 		name_1 := hxrt.StdString(self.__hx_this.unserialize())
 		var declaration_1 any = self.__hx_this.resolveEnum(name_1)
 		if hxrt.AnyEqualsNull(declaration_1) {
-			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Enum not found "), name_1))
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Enum not found "), name_1)))
 		}
 		return declaration_1
 	case 67:
 		name_2 := hxrt.StdString(self.__hx_this.unserialize())
 		var declaration_2 any = self.__hx_this.resolveClass(name_2)
 		if hxrt.AnyEqualsNull(declaration_2) {
-			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Class not found "), name_2))
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Class not found "), name_2)))
 		}
 		var object any = Type_createEmptyInstance(declaration_2)
 		hx_arr_32 := self.cache
 		hx_arr_32.Push(object)
 		var hook any = Reflect_field(object, hxrt.StringFromLiteral("hxUnserialize"))
 		if hxrt.AnyEqualsNull(hook) {
-			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Class "), name_2), hxrt.StringFromLiteral(" has no hxUnserialize hook")))
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Class "), name_2), hxrt.StringFromLiteral(" has no hxUnserialize hook"))))
 		}
 		Reflect_callMethod(object, hook, hxrt.NewArray(self))
 		if func() int {
@@ -395,7 +411,7 @@ func (self *haxe__Unserializer) unserialize() any {
 			}
 			return hx_if_34
 		}() != 103 {
-			hxrt.Throw(hxrt.StringFromLiteral("Invalid custom data"))
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Invalid custom data")))
 		}
 		return object
 	case 77:
@@ -421,7 +437,7 @@ func (self *haxe__Unserializer) unserialize() any {
 	case 82:
 		index_3 := self.__hx_this.readDigits()
 		if (index_3 < 0) || (index_3 >= self.scache.Len()) {
-			hxrt.Throw(hxrt.StringFromLiteral("Invalid string reference"))
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Invalid string reference")))
 		}
 		return self.scache.Get(index_3)
 	case 97:
@@ -480,7 +496,7 @@ func (self *haxe__Unserializer) unserialize() any {
 		name_3 := hxrt.StdString(self.__hx_this.unserialize())
 		var declaration_3 any = self.__hx_this.resolveClass(name_3)
 		if hxrt.AnyEqualsNull(declaration_3) {
-			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Class not found "), name_3))
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Class not found "), name_3)))
 		}
 		var object_1 any = Type_createEmptyInstance(declaration_3)
 		hx_arr_45 := self.cache
@@ -497,7 +513,7 @@ func (self *haxe__Unserializer) unserialize() any {
 		name_4 := hxrt.StdString(self.__hx_this.unserialize())
 		var declaration_4 any = self.__hx_this.resolveEnum(name_4)
 		if hxrt.AnyEqualsNull(declaration_4) {
-			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Enum not found "), name_4))
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Enum not found "), name_4)))
 		}
 		self.pos = int(int32((self.pos + 1)))
 		index_6 := self.__hx_this.readDigits()
@@ -509,7 +525,7 @@ func (self *haxe__Unserializer) unserialize() any {
 			return hx_value_46.(*string)
 		}(Type_getEnumConstructs(declaration_4).Get(index_6))
 		if hxrt.StringEqualStringPtr(tag, nil) {
-			hxrt.Throw(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Unknown enum index "), name_4), hxrt.StringFromLiteral("@")), index_6))
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Unknown enum index "), name_4), hxrt.StringFromLiteral("@")), index_6)))
 		}
 		var value any = self.__hx_this.unserializeEnum(declaration_4, tag)
 		hx_arr_48 := self.cache
@@ -543,7 +559,7 @@ func (self *haxe__Unserializer) unserialize() any {
 		return nil
 	case 111:
 		hx_obj_51 := map[string]any{}
-		var object_2 any = hx_obj_51
+		var object_2 any = hxrt.AnonymousFromMap(hx_obj_51)
 		hx_arr_52 := self.cache
 		hx_arr_52.Push(object_2)
 		self.__hx_this.unserializeObject(object_2)
@@ -582,13 +598,13 @@ func (self *haxe__Unserializer) unserialize() any {
 			code_1 = hx_if_57
 		}
 		if code_1 != 104 {
-			hxrt.Throw(hxrt.StringFromLiteral("Invalid IntMap format"))
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Invalid IntMap format")))
 		}
 		return map__2
 	case 114:
 		index_10 := self.__hx_this.readDigits()
 		if (index_10 < 0) || (index_10 >= self.cache.Len()) {
-			hxrt.Throw(hxrt.StringFromLiteral("Invalid reference"))
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Invalid reference")))
 		}
 		return self.cache.Get(index_10)
 	case 115:
@@ -607,7 +623,7 @@ func (self *haxe__Unserializer) unserialize() any {
 			}
 			return hx_if_59
 		}() != 58) || (int((hxrt.Int32Wrap(self.length) - hxrt.Int32Wrap(self.pos))) < bytesLength) {
-			hxrt.Throw(hxrt.StringFromLiteral("Invalid bytes length"))
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Invalid bytes length")))
 		}
 		bytes := self.__hx_this.decodeBytes(hxrt.StringSubstrStringPtr(self.buf, self.pos, bytesLength, true))
 		self.pos = int((hxrt.Int32Wrap(self.pos) + hxrt.Int32Wrap(bytesLength)))
@@ -631,14 +647,14 @@ func (self *haxe__Unserializer) unserialize() any {
 		name_5 := hxrt.StdString(self.__hx_this.unserialize())
 		var declaration_5 any = self.__hx_this.resolveEnum(name_5)
 		if hxrt.AnyEqualsNull(declaration_5) {
-			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Enum not found "), name_5))
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Enum not found "), name_5)))
 		}
 		var value_1 any = self.__hx_this.unserializeEnum(declaration_5, hxrt.StdString(self.__hx_this.unserialize()))
 		hx_arr_62 := self.cache
 		hx_arr_62.Push(value_1)
 		return value_1
 	case 120:
-		hxrt.Throw(self.__hx_this.unserialize())
+		hxrt.Throw(haxe__Exception_thrown(self.__hx_this.unserialize()))
 	case 121:
 		stringLength := self.__hx_this.readDigits()
 		if (func() int {
@@ -655,7 +671,7 @@ func (self *haxe__Unserializer) unserialize() any {
 			}
 			return hx_if_64
 		}() != 58) || (int((hxrt.Int32Wrap(self.length) - hxrt.Int32Wrap(self.pos))) < stringLength) {
-			hxrt.Throw(hxrt.StringFromLiteral("Invalid string length"))
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Invalid string length")))
 		}
 		value_2 := StringTools_urlDecode(hxrt.StringSubstrStringPtr(self.buf, self.pos, stringLength, true))
 		self.pos = int((hxrt.Int32Wrap(self.pos) + hxrt.Int32Wrap(stringLength)))
@@ -667,7 +683,7 @@ func (self *haxe__Unserializer) unserialize() any {
 	default:
 	}
 	self.pos = int(int32((self.pos - 1)))
-	hxrt.Throw(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Invalid char "), hxrt.StringCharAtStringPtr(self.buf, self.pos)), hxrt.StringFromLiteral(" at position ")), self.pos))
+	hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Invalid char "), hxrt.StringCharAtStringPtr(self.buf, self.pos)), hxrt.StringFromLiteral(" at position ")), self.pos)))
 	var hx_throw_zero_66 any
 	return hx_throw_zero_66
 }
@@ -741,26 +757,26 @@ func (self *haxe__Unserializer) isLegacyDate() bool {
 
 var haxe__Unserializer_BASE64 *string = hxrt.StringFromLiteral("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789%:")
 
-var haxe__Unserializer_DEFAULT_RESOLVER map[string]any = func() map[string]any {
+var haxe__Unserializer_DEFAULT_RESOLVER hxrt.Anonymous = func() hxrt.Anonymous {
 	hx_obj_72 := map[string]any{}
-	hx_obj_72["resolveClass"] = func(name *string) any {
+	hx_obj_72["resolveClass"] = hxrt.NewFunction(func(name *string) any {
 		return Type_resolveClass(name)
-	}
-	hx_obj_72["resolveEnum"] = func(name *string) any {
+	})
+	hx_obj_72["resolveEnum"] = hxrt.NewFunction(func(name *string) any {
 		return Type_resolveEnum(name)
-	}
-	return hx_obj_72
+	})
+	return hxrt.AnonymousFromMap(hx_obj_72)
 }()
 
-var haxe__Unserializer_NULL_RESOLVER map[string]any = func() map[string]any {
+var haxe__Unserializer_NULL_RESOLVER hxrt.Anonymous = func() hxrt.Anonymous {
 	hx_obj_73 := map[string]any{}
-	hx_obj_73["resolveClass"] = func(_name *string) any {
+	hx_obj_73["resolveClass"] = hxrt.NewFunction(func(_name *string) any {
 		return nil
-	}
-	hx_obj_73["resolveEnum"] = func(_name *string) any {
+	})
+	hx_obj_73["resolveEnum"] = hxrt.NewFunction(func(_name *string) any {
 		return nil
-	}
-	return hx_obj_73
+	})
+	return hxrt.AnonymousFromMap(hx_obj_73)
 }()
 
 func haxe__Unserializer_run(value *string) any {

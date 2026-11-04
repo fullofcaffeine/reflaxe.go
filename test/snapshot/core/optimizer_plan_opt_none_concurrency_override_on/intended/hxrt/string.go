@@ -32,7 +32,29 @@ func isAnyNil(value any) bool {
 	}
 }
 
+// ObjectSource resolves structural views without importing their optional runtime
+// implementation. It then resolves the live logical receiver of generated base
+// carriers. Nil checks precede protocol calls, including typed nil pointers.
+// Function carriers do not implement either protocol and keep their own identity.
+func ObjectSource(value any) any {
+	for !isAnyNil(value) {
+		source, ok := value.(interface{ sourceObject() any })
+		if !ok {
+			break
+		}
+		value = source.sourceObject()
+	}
+	if isAnyNil(value) {
+		return nil
+	}
+	if receiver, ok := value.(interface{ HxFunctionReceiver() any }); ok {
+		return receiver.HxFunctionReceiver()
+	}
+	return value
+}
+
 func StdString(value any) *string {
+	value = ObjectSource(value)
 	if isAnyNil(value) {
 		return StringFromLiteral("null")
 	}

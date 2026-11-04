@@ -3,124 +3,140 @@ package main
 import "snapshot/hxrt"
 
 func main() {
-	rows := hxrt.NewArray(func() map[string]any {
+	rows := hxrt.NewArray(func() hxrt.Anonymous {
 		hx_obj_1 := map[string]any{}
 		hx_obj_1["index"] = 0
 		hx_obj_1["key"] = 2
-		return hx_obj_1
-	}(), func() map[string]any {
+		return hxrt.AnonymousFromMap(hx_obj_1)
+	}(), func() hxrt.Anonymous {
 		hx_obj_2 := map[string]any{}
 		hx_obj_2["index"] = 1
 		hx_obj_2["key"] = 1
-		return hx_obj_2
-	}(), func() map[string]any {
+		return hxrt.AnonymousFromMap(hx_obj_2)
+	}(), func() hxrt.Anonymous {
 		hx_obj_3 := map[string]any{}
 		hx_obj_3["index"] = 2
 		hx_obj_3["key"] = 1
-		return hx_obj_3
+		return hxrt.AnonymousFromMap(hx_obj_3)
 	}())
-	hxrt.ArraySort(rows, func(hx_comparator_27 *hxrt.Function[func(map[string]any, map[string]any) int]) *hxrt.Function[func(any, any) int] {
-		return hxrt.AdaptFunction(hx_comparator_27, func(hx_cmp_left_25 any, hx_cmp_right_26 any) int {
-			return hxrt.FunctionCall(hx_comparator_27)(func(hx_value_28 any) map[string]any {
-				if hx_value_28 == nil {
-					var hx_zero_29 map[string]any
-					return hx_zero_29
-				}
-				return hx_value_28.(map[string]any)
-			}(hx_cmp_left_25), func(hx_value_30 any) map[string]any {
-				if hx_value_30 == nil {
-					var hx_zero_31 map[string]any
-					return hx_zero_31
-				}
-				return hx_value_30.(map[string]any)
-			}(hx_cmp_right_26))
+	hxrt.ArraySort(rows, func(hx_comparator_21 *hxrt.Function[func(hxrt.Anonymous, hxrt.Anonymous) int]) *hxrt.Function[func(any, any) int] {
+		return hxrt.AdaptFunction(hx_comparator_21, func(hx_cmp_left_19 any, hx_cmp_right_20 any) int {
+			return hxrt.FunctionCall(hx_comparator_21)(hx_structural_recover(hx_cmp_left_19), hx_structural_recover(hx_cmp_right_20))
 		})
-	}(hxrt.NewFunction(func(left map[string]any, right map[string]any) int {
-		compared := int((hxrt.Int32Wrap(func(hx_obj_4 map[string]any) int {
-			hx_field_5 := hx_obj_4["key"]
-			if hx_field_5 == nil {
-				var hx_zero_6 int
-				return hx_zero_6
+	}(hxrt.NewFunction(func(left hxrt.Anonymous, right hxrt.Anonymous) int {
+		compared := int((hxrt.Int32Wrap(func(hx_value_4 any) int {
+			if hx_value_4 == nil {
+				var hx_zero_5 int
+				return hx_zero_5
 			}
-			return hx_field_5.(int)
-		}(left)) - hxrt.Int32Wrap(func(hx_obj_7 map[string]any) int {
-			hx_field_8 := hx_obj_7["key"]
-			if hx_field_8 == nil {
-				var hx_zero_9 int
-				return hx_zero_9
+			return hx_value_4.(int)
+		}(hxrt.AnonymousGet(left, "key"))) - hxrt.Int32Wrap(func(hx_value_6 any) int {
+			if hx_value_6 == nil {
+				var hx_zero_7 int
+				return hx_zero_7
 			}
-			return hx_field_8.(int)
-		}(right))))
-		var hx_if_24 int
+			return hx_value_6.(int)
+		}(hxrt.AnonymousGet(right, "key")))))
+		var hx_if_18 int
 		if compared != 0 {
-			hx_if_24 = compared
+			hx_if_18 = compared
 		} else {
-			var hx_if_23 int
-			if func(hx_obj_10 map[string]any) int {
-				hx_field_11 := hx_obj_10["index"]
-				if hx_field_11 == nil {
-					var hx_zero_12 int
-					return hx_zero_12
+			var hx_if_17 int
+			if func(hx_value_8 any) int {
+				if hx_value_8 == nil {
+					var hx_zero_9 int
+					return hx_zero_9
 				}
-				return hx_field_11.(int)
-			}(left) < func(hx_obj_13 map[string]any) int {
-				hx_field_14 := hx_obj_13["index"]
-				if hx_field_14 == nil {
-					var hx_zero_15 int
-					return hx_zero_15
+				return hx_value_8.(int)
+			}(hxrt.AnonymousGet(left, "index")) < func(hx_value_10 any) int {
+				if hx_value_10 == nil {
+					var hx_zero_11 int
+					return hx_zero_11
 				}
-				return hx_field_14.(int)
-			}(right) {
-				hx_if_23 = -1
+				return hx_value_10.(int)
+			}(hxrt.AnonymousGet(right, "index")) {
+				hx_if_17 = -1
 			} else {
-				var hx_if_22 int
-				if func(hx_obj_16 map[string]any) int {
-					hx_field_17 := hx_obj_16["index"]
-					if hx_field_17 == nil {
-						var hx_zero_18 int
-						return hx_zero_18
+				var hx_if_16 int
+				if func(hx_value_12 any) int {
+					if hx_value_12 == nil {
+						var hx_zero_13 int
+						return hx_zero_13
 					}
-					return hx_field_17.(int)
-				}(left) == func(hx_obj_19 map[string]any) int {
-					hx_field_20 := hx_obj_19["index"]
-					if hx_field_20 == nil {
-						var hx_zero_21 int
-						return hx_zero_21
+					return hx_value_12.(int)
+				}(hxrt.AnonymousGet(left, "index")) == func(hx_value_14 any) int {
+					if hx_value_14 == nil {
+						var hx_zero_15 int
+						return hx_zero_15
 					}
-					return hx_field_20.(int)
-				}(right) {
-					hx_if_22 = 0
+					return hx_value_14.(int)
+				}(hxrt.AnonymousGet(right, "index")) {
+					hx_if_16 = 0
 				} else {
-					hx_if_22 = 1
+					hx_if_16 = 1
 				}
-				hx_if_23 = hx_if_22
+				hx_if_17 = hx_if_16
 			}
-			hx_if_24 = hx_if_23
+			hx_if_18 = hx_if_17
 		}
-		return hx_if_24
+		return hx_if_18
 	})))
 	var v any = any(hxrt.StringJoinAny(func() *hxrt.Array {
 		_g := hxrt.NewArray()
 		_g1 := 0
 		for _g1 < rows.Len() {
-			row := func(hx_value_32 any) map[string]any {
-				if hx_value_32 == nil {
-					var hx_zero_33 map[string]any
-					return hx_zero_33
-				}
-				return hx_value_32.(map[string]any)
-			}(rows.Get(_g1))
+			row := hx_structural_recover(rows.Get(_g1))
 			_g1 = int(int32((_g1 + 1)))
-			_g.Push(func(hx_obj_35 map[string]any) int {
-				hx_field_36 := hx_obj_35["index"]
-				if hx_field_36 == nil {
-					var hx_zero_37 int
-					return hx_zero_37
+			_g.Push(func(hx_value_23 any) int {
+				if hx_value_23 == nil {
+					var hx_zero_24 int
+					return hx_zero_24
 				}
-				return hx_field_36.(int)
-			}(row))
+				return hx_value_23.(int)
+			}(hxrt.AnonymousGet(row, "index")))
 		}
 		return _g
 	}().Values(), hxrt.StringFromLiteral(",")))
 	hxrt.Println(v)
+}
+
+func hx_structural_recover(value any) hxrt.Anonymous {
+	switch source := value.(type) {
+	case *haxe___Int64_____Int64:
+		return func(hx_structural_source_1 *haxe___Int64_____Int64) hxrt.Anonymous {
+			return hxrt.NewAnonymousView(hx_structural_source_1, func(name string) hxrt.AnonymousField {
+				switch name {
+				case "high":
+					return hxrt.AnonymousField{Value: hx_structural_source_1.high, Found: true}
+				case "low":
+					return hxrt.AnonymousField{Value: hx_structural_source_1.low, Found: true}
+				}
+				return hxrt.AnonymousField{}
+			}, func(name string, incoming any) bool {
+				switch name {
+				case "high":
+					hx_structural_source_1.high = func(hx_value_2 any) int {
+						if hx_value_2 == nil {
+							var hx_zero_3 int
+							return hx_zero_3
+						}
+						return hx_value_2.(int)
+					}(incoming)
+					return true
+				case "low":
+					hx_structural_source_1.low = func(hx_value_4 any) int {
+						if hx_value_4 == nil {
+							var hx_zero_5 int
+							return hx_zero_5
+						}
+						return hx_value_4.(int)
+					}(incoming)
+					return true
+				}
+				return false
+			})
+		}(source)
+	default:
+		return hxrt.AnonymousFromValue(value)
+	}
 }

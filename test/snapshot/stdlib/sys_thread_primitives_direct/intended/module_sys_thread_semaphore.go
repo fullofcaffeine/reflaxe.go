@@ -13,9 +13,25 @@ type sys__thread__Semaphore struct {
 	__h       *hxrt.SemaphoreHandle
 }
 
+func (self *sys__thread__Semaphore) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_sys__thread__Semaphore(value int) *sys__thread__Semaphore {
+	return hx_init_sys__thread__Semaphore(hx_alloc_sys__thread__Semaphore(nil), value)
+}
+
+func hx_alloc_sys__thread__Semaphore(owner any) *sys__thread__Semaphore {
 	self := &sys__thread__Semaphore{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_sys__thread__Semaphore)
+	}
+	return self
+}
+
+func hx_init_sys__thread__Semaphore(self *sys__thread__Semaphore, value int) *sys__thread__Semaphore {
 	self.__h = hxrt.ThreadSemaphoreNew(value)
 	return self
 }

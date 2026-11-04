@@ -44,7 +44,7 @@ func sys__FileSystem_rename(path *string, newPath *string) {
 	hxrt.FileSystemRename(path, newPath)
 }
 
-func sys__FileSystem_stat(path *string) map[string]any {
+func sys__FileSystem_stat(path *string) hxrt.Anonymous {
 	value := hxrt.FileSystemStatPath(path)
 	hx_obj_4 := map[string]any{}
 	hx_obj_4["gid"] = value.Gid
@@ -58,5 +58,5 @@ func sys__FileSystem_stat(path *string) map[string]any {
 	hx_obj_4["nlink"] = value.Nlink
 	hx_obj_4["rdev"] = value.Rdev
 	hx_obj_4["mode"] = value.Mode
-	return hx_obj_4
+	return hxrt.AnonymousFromMap(hx_obj_4)
 }

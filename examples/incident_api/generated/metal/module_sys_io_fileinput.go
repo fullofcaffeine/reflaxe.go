@@ -32,11 +32,27 @@ type sys__io__FileInput struct {
 	handle    *hxrt.FileInput
 }
 
+func (self *sys__io__FileInput) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_sys__io__FileInput(handle *hxrt.FileInput) *sys__io__FileInput {
+	return hx_init_sys__io__FileInput(hx_alloc_sys__io__FileInput(nil), handle)
+}
+
+func hx_alloc_sys__io__FileInput(owner any) *sys__io__FileInput {
 	self := &sys__io__FileInput{}
-	self.haxe__io__Input = New_haxe__io__Input()
-	self.haxe__io__Input.__hx_this = self
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_sys__io__FileInput)
+	}
+	self.haxe__io__Input = hx_alloc_haxe__io__Input(self.__hx_this)
+	return self
+}
+
+func hx_init_sys__io__FileInput(self *sys__io__FileInput, handle *hxrt.FileInput) *sys__io__FileInput {
+	hx_init_haxe__io__Input(self.haxe__io__Input)
 	self.handle = handle
 	return self
 }
@@ -44,21 +60,21 @@ func New_sys__io__FileInput(handle *hxrt.FileInput) *sys__io__FileInput {
 func (self *sys__io__FileInput) readByte() int {
 	value := hxrt.FileInputReadByteValue(self.handle)
 	if value < 0 {
-		hxrt.Throw(New_haxe__io__Eof())
+		hxrt.Throw(haxe__Exception_thrown(New_haxe__io__Eof()))
 	}
 	return value
 }
 
 func (self *sys__io__FileInput) readBytes(bytes *haxe__io__Bytes, pos int, length int) int {
 	if ((pos < 0) || (length < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(length))) > bytes.length) {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	if length == 0 {
 		return 0
 	}
 	values := hxrt.FileInputReadValues(self.handle, length)
 	if len(values) == 0 {
-		hxrt.Throw(New_haxe__io__Eof())
+		hxrt.Throw(haxe__Exception_thrown(New_haxe__io__Eof()))
 	}
 	_g := 0
 	_g1 := len(values)

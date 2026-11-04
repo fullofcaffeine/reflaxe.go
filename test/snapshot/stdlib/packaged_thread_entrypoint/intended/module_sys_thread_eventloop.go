@@ -3,11 +3,11 @@ package main
 import "snapshot/hxrt"
 
 type I_sys__thread__EventLoop interface {
-	repeat(event func(), intervalMs int) any
+	repeat(event *hxrt.Function[func()], intervalMs int) any
 	cancel(eventHandler any)
 	promise()
-	run(event func())
-	runPromised(event func())
+	run(event *hxrt.Function[func()])
+	runPromised(event *hxrt.Function[func()])
 	progress() *sys__thread__NextEventTime
 	wait(timeout any) bool
 	loop()
@@ -18,15 +18,31 @@ type sys__thread__EventLoop struct {
 	__h       *hxrt.EventLoopHandle
 }
 
+func (self *sys__thread__EventLoop) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_sys__thread__EventLoop() *sys__thread__EventLoop {
+	return hx_init_sys__thread__EventLoop(hx_alloc_sys__thread__EventLoop(nil))
+}
+
+func hx_alloc_sys__thread__EventLoop(owner any) *sys__thread__EventLoop {
 	self := &sys__thread__EventLoop{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_sys__thread__EventLoop)
+	}
+	return self
+}
+
+func hx_init_sys__thread__EventLoop(self *sys__thread__EventLoop) *sys__thread__EventLoop {
 	self.__h = hxrt.ThreadEventLoopNew()
 	return self
 }
 
-func (self *sys__thread__EventLoop) repeat(event func(), intervalMs int) any {
-	return any(hxrt.ThreadEventLoopRepeat(self.__h, event, intervalMs))
+func (self *sys__thread__EventLoop) repeat(event *hxrt.Function[func()], intervalMs int) any {
+	return any(hxrt.ThreadEventLoopRepeat(self.__h, hxrt.FunctionNative(event), intervalMs))
 }
 
 func (self *sys__thread__EventLoop) cancel(eventHandler any) {
@@ -43,12 +59,12 @@ func (self *sys__thread__EventLoop) promise() {
 	hxrt.ThreadEventLoopPromise(self.__h)
 }
 
-func (self *sys__thread__EventLoop) run(event func()) {
-	hxrt.ThreadEventLoopRun(self.__h, event)
+func (self *sys__thread__EventLoop) run(event *hxrt.Function[func()]) {
+	hxrt.ThreadEventLoopRun(self.__h, hxrt.FunctionNative(event))
 }
 
-func (self *sys__thread__EventLoop) runPromised(event func()) {
-	hxrt.ThreadEventLoopRunPromised(self.__h, event)
+func (self *sys__thread__EventLoop) runPromised(event *hxrt.Function[func()]) {
+	hxrt.ThreadEventLoopRunPromised(self.__h, hxrt.FunctionNative(event))
 }
 
 func (self *sys__thread__EventLoop) progress() *sys__thread__NextEventTime {

@@ -31,11 +31,27 @@ type sys__io__FileOutput struct {
 	handle    *hxrt.FileOutput
 }
 
+func (self *sys__io__FileOutput) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_sys__io__FileOutput(handle *hxrt.FileOutput) *sys__io__FileOutput {
+	return hx_init_sys__io__FileOutput(hx_alloc_sys__io__FileOutput(nil), handle)
+}
+
+func hx_alloc_sys__io__FileOutput(owner any) *sys__io__FileOutput {
 	self := &sys__io__FileOutput{}
-	self.haxe__io__Output = New_haxe__io__Output()
-	self.haxe__io__Output.__hx_this = self
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_sys__io__FileOutput)
+	}
+	self.haxe__io__Output = hx_alloc_haxe__io__Output(self.__hx_this)
+	return self
+}
+
+func hx_init_sys__io__FileOutput(self *sys__io__FileOutput, handle *hxrt.FileOutput) *sys__io__FileOutput {
+	hx_init_haxe__io__Output(self.haxe__io__Output)
 	self.handle = handle
 	return self
 }
@@ -46,7 +62,7 @@ func (self *sys__io__FileOutput) writeByte(value int) {
 
 func (self *sys__io__FileOutput) writeBytes(bytes *haxe__io__Bytes, pos int, length int) int {
 	if ((pos < 0) || (length < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(length))) > bytes.length) {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	if length == 0 {
 		return 0

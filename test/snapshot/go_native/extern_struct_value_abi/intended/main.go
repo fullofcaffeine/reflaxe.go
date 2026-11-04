@@ -47,9 +47,25 @@ type ParseResult struct {
 	error     *go___Error
 }
 
+func (self *ParseResult) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_ParseResult(value *time.Time, error *go___Error) *ParseResult {
+	return hx_init_ParseResult(hx_alloc_ParseResult(nil), value, error)
+}
+
+func hx_alloc_ParseResult(owner any) *ParseResult {
 	self := &ParseResult{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_ParseResult)
+	}
+	return self
+}
+
+func hx_init_ParseResult(self *ParseResult, value *time.Time, error *go___Error) *ParseResult {
 	self.value = value
 	self.error = error
 	return self

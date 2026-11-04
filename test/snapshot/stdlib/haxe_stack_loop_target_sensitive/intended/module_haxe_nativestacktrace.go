@@ -26,13 +26,19 @@ func haxe__NativeStackTrace_toHaxe(nativeStackTrace any, skip int) *hxrt.Array {
 	}(nativeStackTrace) {
 		return hxrt.NewArray()
 	}
-	stack := func(hx_value_1 any) *hxrt.Array {
+	stack := func(hx_value_3 any) *hxrt.Array {
+		if hx_value_3 == nil {
+			var hx_zero_4 *hxrt.Array
+			return hx_zero_4
+		}
+		return hx_value_3.(*hxrt.Array)
+	}(any(func(hx_value_1 any) *hxrt.Array {
 		if hx_value_1 == nil {
 			var hx_zero_2 *hxrt.Array
 			return hx_zero_2
 		}
 		return hx_value_1.(*hxrt.Array)
-	}(nativeStackTrace)
+	}(nativeStackTrace)))
 	if skip <= 0 {
 		return stack.Copy()
 	}
@@ -40,9 +46,9 @@ func haxe__NativeStackTrace_toHaxe(nativeStackTrace any, skip int) *hxrt.Array {
 	_g := skip
 	_g1 := stack.Len()
 	for _g < _g1 {
-		hx_post_3 := _g
+		hx_post_5 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_3
+		index := hx_post_5
 		out.Push(stack.Get(index))
 	}
 	return out

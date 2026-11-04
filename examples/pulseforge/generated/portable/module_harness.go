@@ -5,28 +5,28 @@ import "examples_pulseforge_portable/hxrt"
 func Harness_assertContract(runtime app__runtime__PulseRuntime) *string {
 	report := Harness_runReport(runtime, Harness_baselineFrames())
 	if !hxrt.StringEqualStringPtr(report.profile, runtime.profileId()) {
-		hxrt.Throw(hxrt.StringFromLiteral("profile drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("profile drift")))
 	}
 	if !hxrt.StringEqualStringPtr(report.variant, runtime.variantId()) {
-		hxrt.Throw(hxrt.StringFromLiteral("variant drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("variant drift")))
 	}
 	if !hxrt.StringEqualStringPtr(report.capability, runtime.capabilityId()) {
-		hxrt.Throw(hxrt.StringFromLiteral("capability drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("capability drift")))
 	}
 	if report.ingestReceived != 8 {
-		hxrt.Throw(hxrt.StringFromLiteral("ingest.received drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("ingest.received drift")))
 	}
 	if report.ingestAccepted != 8 {
-		hxrt.Throw(hxrt.StringFromLiteral("ingest.accepted drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("ingest.accepted drift")))
 	}
 	if report.backpressureEvents != 5 {
-		hxrt.Throw(hxrt.StringFromLiteral("ingest.backpressure drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("ingest.backpressure drift")))
 	}
 	if report.alertCount != 3 {
-		hxrt.Throw(hxrt.StringFromLiteral("alert.count drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("alert.count drift")))
 	}
 	if !hxrt.StringEqualStringPtr(report.alertDigest, hxrt.StringFromLiteral("3,5,7")) {
-		hxrt.Throw(hxrt.StringFromLiteral("alert.events drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("alert.events drift")))
 	}
 	var hx_if_1 int
 	if hxrt.StringEqualStringPtr(runtime.variantId(), hxrt.StringFromLiteral("go_native")) {
@@ -36,7 +36,7 @@ func Harness_assertContract(runtime app__runtime__PulseRuntime) *string {
 	}
 	expectedScore := hx_if_1
 	if report.runtimeScore != expectedScore {
-		hxrt.Throw(hxrt.StringFromLiteral("runtime.score drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("runtime.score drift")))
 	}
 	return report.render()
 }
@@ -49,13 +49,7 @@ func Harness_cloneFrames(frames *hxrt.Array) *hxrt.Array {
 	out := hxrt.NewArray()
 	_g := 0
 	for _g < frames.Len() {
-		frame := func(hx_value_2 any) *app__core__PulseIngressFrame {
-			if hx_value_2 == nil {
-				var hx_zero_3 *app__core__PulseIngressFrame
-				return hx_zero_3
-			}
-			return hx_value_2.(*app__core__PulseIngressFrame)
-		}(frames.Get(_g))
+		frame := hx_recover_class_0(frames.Get(_g))
 		_g = int(int32((_g + 1)))
 		out.Push(New_app__core__PulseIngressFrame(frame.sequence, frame.source, frame.value, frame.region))
 	}

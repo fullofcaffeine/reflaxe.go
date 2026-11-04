@@ -19,9 +19,25 @@ type model__TodoStore struct {
 	entries   *hxrt.Array
 }
 
+func (self *model__TodoStore) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_model__TodoStore() *model__TodoStore {
+	return hx_init_model__TodoStore(hx_alloc_model__TodoStore(nil))
+}
+
+func hx_alloc_model__TodoStore(owner any) *model__TodoStore {
 	self := &model__TodoStore{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_model__TodoStore)
+	}
+	return self
+}
+
+func hx_init_model__TodoStore(self *model__TodoStore) *model__TodoStore {
 	self.nextId = 1
 	self.entries = hxrt.NewArray()
 	return self
@@ -67,13 +83,7 @@ func (self *model__TodoStore) openCount() int {
 	_g := 0
 	_g1 := self.entries
 	for _g < _g1.Len() {
-		item := func(hx_value_3 any) *model__TodoItem {
-			if hx_value_3 == nil {
-				var hx_zero_4 *model__TodoItem
-				return hx_zero_4
-			}
-			return hx_value_3.(*model__TodoItem)
-		}(_g1.Get(_g))
+		item := hx_recover_class_1(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if !item.done {
 			total = int(int32((total + 1)))
@@ -87,13 +97,7 @@ func (self *model__TodoStore) doneCount() int {
 	_g := 0
 	_g1 := self.entries
 	for _g < _g1.Len() {
-		item := func(hx_value_5 any) *model__TodoItem {
-			if hx_value_5 == nil {
-				var hx_zero_6 *model__TodoItem
-				return hx_zero_6
-			}
-			return hx_value_5.(*model__TodoItem)
-		}(_g1.Get(_g))
+		item := hx_recover_class_1(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if item.done {
 			total = int(int32((total + 1)))
@@ -106,13 +110,7 @@ func (self *model__TodoStore) findById(id int) *model__TodoItem {
 	_g := 0
 	_g1 := self.entries
 	for _g < _g1.Len() {
-		item := func(hx_value_7 any) *model__TodoItem {
-			if hx_value_7 == nil {
-				var hx_zero_8 *model__TodoItem
-				return hx_zero_8
-			}
-			return hx_value_7.(*model__TodoItem)
-		}(_g1.Get(_g))
+		item := hx_recover_class_1(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if item.id == id {
 			return item

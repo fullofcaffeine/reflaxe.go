@@ -76,26 +76,57 @@ func main() {
 	}(nil))
 	hxrt.Println(any(hxrt.StringFromLiteral("empty")))
 	hxrt.TryCatch(func() {
-		hxrt.ArraySort(hxrt.NewArray(2, 1), func(hx_comparator_26 *hxrt.Function[func(int, int) int]) *hxrt.Function[func(any, any) int] {
-			return hxrt.AdaptFunction(hx_comparator_26, func(hx_cmp_left_24 any, hx_cmp_right_25 any) int {
-				return hxrt.FunctionCall(hx_comparator_26)(func(hx_value_27 any) int {
-					if hx_value_27 == nil {
-						var hx_zero_28 int
-						return hx_zero_28
+		hxrt.ArraySort(hxrt.NewArray(2, 1), func(hx_comparator_27 *hxrt.Function[func(int, int) int]) *hxrt.Function[func(any, any) int] {
+			return hxrt.AdaptFunction(hx_comparator_27, func(hx_cmp_left_25 any, hx_cmp_right_26 any) int {
+				return hxrt.FunctionCall(hx_comparator_27)(func(hx_value_28 any) int {
+					if hx_value_28 == nil {
+						var hx_zero_29 int
+						return hx_zero_29
 					}
-					return hx_value_27.(int)
-				}(hx_cmp_left_24), func(hx_value_29 any) int {
-					if hx_value_29 == nil {
-						var hx_zero_30 int
-						return hx_zero_30
+					return hx_value_28.(int)
+				}(hx_cmp_left_25), func(hx_value_30 any) int {
+					if hx_value_30 == nil {
+						var hx_zero_31 int
+						return hx_zero_31
 					}
-					return hx_value_29.(int)
-				}(hx_cmp_right_25))
+					return hx_value_30.(int)
+				}(hx_cmp_right_26))
 			})
 		}(nil))
 	}, func(hx_caught_22 any) {
-		error := hxrt.ExceptionCaught(hx_caught_22)
-		var v_4 any = any(hxrt.ExceptionMessage(error))
+		hx_exception_23 := haxe__Exception_caught(hx_caught_22)
+		hx_payload_24 := haxe__Exception_catchValue(hx_caught_22)
+		_ = hx_payload_24
+		var error *haxe__Exception = hx_recover_class_0(hx_exception_23)
+		var v_4 any = any(error.__hx_this.get_message())
 		hxrt.Println(v_4)
 	})
+}
+
+func hx_recover_class_0(value any) *haxe__Exception {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__Exception:
+		return source
+	case *haxe__ValueException:
+		return source.haxe__Exception
+	default:
+		return value.(*haxe__Exception)
+	}
+}
+
+func hx_recover_class_1(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
 }

@@ -68,7 +68,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "Dynamic":
 				return (hx_value != nil)
 			case "Enum":
@@ -164,7 +164,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "app.core.IncidentApi":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -176,7 +176,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "app.core.IncidentConfig":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -188,7 +188,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "app.core.IncidentRequestException":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -197,10 +197,16 @@ func Std_downcast(value any, c any) any {
 							return false
 						}
 						return true
+					case *haxe__Exception:
+						if hx_carrier == nil {
+							return false
+						}
+						_, hx_ok := hx_carrier.__hx_this.(*app__core__IncidentRequestException)
+						return hx_ok
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "app.core.IncidentStore":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -212,7 +218,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "app.http.HttpRequest":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -224,7 +230,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "app.http.HttpResponse":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -236,7 +242,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "app.http.TinyHttpServer":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -248,7 +254,57 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
+			case "haxe.Exception":
+				return func(hx_value any) bool {
+					switch hx_carrier := hx_value.(type) {
+					case *app__core__IncidentRequestException:
+						if hx_carrier == nil {
+							return false
+						}
+						return true
+					case *haxe__Exception:
+						if hx_carrier == nil {
+							return false
+						}
+						return true
+					case *haxe__ValueException:
+						if hx_carrier == nil {
+							return false
+						}
+						return true
+					case *haxe__exceptions__NotImplementedException:
+						if hx_carrier == nil {
+							return false
+						}
+						return true
+					case *haxe__exceptions__PosException:
+						if hx_carrier == nil {
+							return false
+						}
+						return true
+					default:
+						return false
+					}
+				}(hxrt.ObjectSource(hx_value))
+			case "haxe.ValueException":
+				return func(hx_value any) bool {
+					switch hx_carrier := hx_value.(type) {
+					case *haxe__Exception:
+						if hx_carrier == nil {
+							return false
+						}
+						_, hx_ok := hx_carrier.__hx_this.(*haxe__ValueException)
+						return hx_ok
+					case *haxe__ValueException:
+						if hx_carrier == nil {
+							return false
+						}
+						return true
+					default:
+						return false
+					}
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe._Int64.___Int64":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -260,10 +316,16 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.exceptions.NotImplementedException":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
+					case *haxe__Exception:
+						if hx_carrier == nil {
+							return false
+						}
+						_, hx_ok := hx_carrier.__hx_this.(*haxe__exceptions__NotImplementedException)
+						return hx_ok
 					case *haxe__exceptions__NotImplementedException:
 						if hx_carrier == nil {
 							return false
@@ -278,10 +340,16 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.exceptions.PosException":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
+					case *haxe__Exception:
+						if hx_carrier == nil {
+							return false
+						}
+						_, hx_ok := hx_carrier.__hx_this.(*haxe__exceptions__PosException)
+						return hx_ok
 					case *haxe__exceptions__NotImplementedException:
 						if hx_carrier == nil {
 							return false
@@ -295,7 +363,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.io.Bytes":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -307,7 +375,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.io.BytesBuffer":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -319,7 +387,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.io.Eof":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -331,7 +399,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.io.Input":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -353,7 +421,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.io.Output":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -375,7 +443,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.iterators.StringIterator":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -387,7 +455,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.iterators.StringKeyValueIterator":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -399,7 +467,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "sys.io.FileInput":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -417,7 +485,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "sys.io.FileOutput":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -435,7 +503,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "sys.net.Host":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -447,7 +515,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "sys.net.Socket":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -459,7 +527,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "sys.net.SocketInput":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -477,7 +545,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "sys.net.SocketOutput":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -495,7 +563,7 @@ func Std_downcast(value any, c any) any {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			default:
 				return false
 			}
@@ -572,7 +640,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "Dynamic":
 					return (hx_value != nil)
 				case "Enum":
@@ -668,7 +736,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "app.core.IncidentApi":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -680,7 +748,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "app.core.IncidentConfig":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -692,7 +760,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "app.core.IncidentRequestException":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -701,10 +769,16 @@ func Std_instance(value any, c any) any {
 								return false
 							}
 							return true
+						case *haxe__Exception:
+							if hx_carrier == nil {
+								return false
+							}
+							_, hx_ok := hx_carrier.__hx_this.(*app__core__IncidentRequestException)
+							return hx_ok
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "app.core.IncidentStore":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -716,7 +790,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "app.http.HttpRequest":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -728,7 +802,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "app.http.HttpResponse":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -740,7 +814,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "app.http.TinyHttpServer":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -752,7 +826,57 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
+				case "haxe.Exception":
+					return func(hx_value any) bool {
+						switch hx_carrier := hx_value.(type) {
+						case *app__core__IncidentRequestException:
+							if hx_carrier == nil {
+								return false
+							}
+							return true
+						case *haxe__Exception:
+							if hx_carrier == nil {
+								return false
+							}
+							return true
+						case *haxe__ValueException:
+							if hx_carrier == nil {
+								return false
+							}
+							return true
+						case *haxe__exceptions__NotImplementedException:
+							if hx_carrier == nil {
+								return false
+							}
+							return true
+						case *haxe__exceptions__PosException:
+							if hx_carrier == nil {
+								return false
+							}
+							return true
+						default:
+							return false
+						}
+					}(hxrt.ObjectSource(hx_value))
+				case "haxe.ValueException":
+					return func(hx_value any) bool {
+						switch hx_carrier := hx_value.(type) {
+						case *haxe__Exception:
+							if hx_carrier == nil {
+								return false
+							}
+							_, hx_ok := hx_carrier.__hx_this.(*haxe__ValueException)
+							return hx_ok
+						case *haxe__ValueException:
+							if hx_carrier == nil {
+								return false
+							}
+							return true
+						default:
+							return false
+						}
+					}(hxrt.ObjectSource(hx_value))
 				case "haxe._Int64.___Int64":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -764,10 +888,16 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "haxe.exceptions.NotImplementedException":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
+						case *haxe__Exception:
+							if hx_carrier == nil {
+								return false
+							}
+							_, hx_ok := hx_carrier.__hx_this.(*haxe__exceptions__NotImplementedException)
+							return hx_ok
 						case *haxe__exceptions__NotImplementedException:
 							if hx_carrier == nil {
 								return false
@@ -782,10 +912,16 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "haxe.exceptions.PosException":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
+						case *haxe__Exception:
+							if hx_carrier == nil {
+								return false
+							}
+							_, hx_ok := hx_carrier.__hx_this.(*haxe__exceptions__PosException)
+							return hx_ok
 						case *haxe__exceptions__NotImplementedException:
 							if hx_carrier == nil {
 								return false
@@ -799,7 +935,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "haxe.io.Bytes":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -811,7 +947,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "haxe.io.BytesBuffer":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -823,7 +959,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "haxe.io.Eof":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -835,7 +971,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "haxe.io.Input":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -857,7 +993,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "haxe.io.Output":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -879,7 +1015,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "haxe.iterators.StringIterator":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -891,7 +1027,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "haxe.iterators.StringKeyValueIterator":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -903,7 +1039,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "sys.io.FileInput":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -921,7 +1057,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "sys.io.FileOutput":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -939,7 +1075,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "sys.net.Host":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -951,7 +1087,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "sys.net.Socket":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -963,7 +1099,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "sys.net.SocketInput":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -981,7 +1117,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				case "sys.net.SocketOutput":
 					return func(hx_value any) bool {
 						switch hx_carrier := hx_value.(type) {
@@ -999,7 +1135,7 @@ func Std_instance(value any, c any) any {
 						default:
 							return false
 						}
-					}(hx_value)
+					}(hxrt.ObjectSource(hx_value))
 				default:
 					return false
 				}
@@ -1083,7 +1219,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "Dynamic":
 				return (hx_value != nil)
 			case "Enum":
@@ -1179,7 +1315,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "app.core.IncidentApi":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1191,7 +1327,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "app.core.IncidentConfig":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1203,7 +1339,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "app.core.IncidentRequestException":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1212,10 +1348,16 @@ func Std_is(v any, t any) bool {
 							return false
 						}
 						return true
+					case *haxe__Exception:
+						if hx_carrier == nil {
+							return false
+						}
+						_, hx_ok := hx_carrier.__hx_this.(*app__core__IncidentRequestException)
+						return hx_ok
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "app.core.IncidentStore":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1227,7 +1369,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "app.http.HttpRequest":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1239,7 +1381,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "app.http.HttpResponse":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1251,7 +1393,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "app.http.TinyHttpServer":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1263,7 +1405,57 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
+			case "haxe.Exception":
+				return func(hx_value any) bool {
+					switch hx_carrier := hx_value.(type) {
+					case *app__core__IncidentRequestException:
+						if hx_carrier == nil {
+							return false
+						}
+						return true
+					case *haxe__Exception:
+						if hx_carrier == nil {
+							return false
+						}
+						return true
+					case *haxe__ValueException:
+						if hx_carrier == nil {
+							return false
+						}
+						return true
+					case *haxe__exceptions__NotImplementedException:
+						if hx_carrier == nil {
+							return false
+						}
+						return true
+					case *haxe__exceptions__PosException:
+						if hx_carrier == nil {
+							return false
+						}
+						return true
+					default:
+						return false
+					}
+				}(hxrt.ObjectSource(hx_value))
+			case "haxe.ValueException":
+				return func(hx_value any) bool {
+					switch hx_carrier := hx_value.(type) {
+					case *haxe__Exception:
+						if hx_carrier == nil {
+							return false
+						}
+						_, hx_ok := hx_carrier.__hx_this.(*haxe__ValueException)
+						return hx_ok
+					case *haxe__ValueException:
+						if hx_carrier == nil {
+							return false
+						}
+						return true
+					default:
+						return false
+					}
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe._Int64.___Int64":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1275,10 +1467,16 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.exceptions.NotImplementedException":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
+					case *haxe__Exception:
+						if hx_carrier == nil {
+							return false
+						}
+						_, hx_ok := hx_carrier.__hx_this.(*haxe__exceptions__NotImplementedException)
+						return hx_ok
 					case *haxe__exceptions__NotImplementedException:
 						if hx_carrier == nil {
 							return false
@@ -1293,10 +1491,16 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.exceptions.PosException":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
+					case *haxe__Exception:
+						if hx_carrier == nil {
+							return false
+						}
+						_, hx_ok := hx_carrier.__hx_this.(*haxe__exceptions__PosException)
+						return hx_ok
 					case *haxe__exceptions__NotImplementedException:
 						if hx_carrier == nil {
 							return false
@@ -1310,7 +1514,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.io.Bytes":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1322,7 +1526,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.io.BytesBuffer":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1334,7 +1538,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.io.Eof":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1346,7 +1550,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.io.Input":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1368,7 +1572,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.io.Output":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1390,7 +1594,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.iterators.StringIterator":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1402,7 +1606,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "haxe.iterators.StringKeyValueIterator":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1414,7 +1618,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "sys.io.FileInput":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1432,7 +1636,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "sys.io.FileOutput":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1450,7 +1654,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "sys.net.Host":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1462,7 +1666,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "sys.net.Socket":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1474,7 +1678,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "sys.net.SocketInput":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1492,7 +1696,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			case "sys.net.SocketOutput":
 				return func(hx_value any) bool {
 					switch hx_carrier := hx_value.(type) {
@@ -1510,7 +1714,7 @@ func Std_is(v any, t any) bool {
 					default:
 						return false
 					}
-				}(hx_value)
+				}(hxrt.ObjectSource(hx_value))
 			default:
 				return false
 			}
