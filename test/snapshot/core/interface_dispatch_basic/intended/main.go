@@ -25,6 +25,10 @@ type Person struct {
 	__hx_this I_Person
 }
 
+func (self *Person) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_Person() *Person {
 	self := &Person{}
 	self.__hx_this = self
