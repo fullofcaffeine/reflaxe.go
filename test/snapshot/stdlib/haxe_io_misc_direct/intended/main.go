@@ -63,17 +63,7 @@ func main() {
 		hx_exception_4 := haxe__Exception_caught(hx_caught_3)
 		hx_payload_5 := haxe__Exception_catchValue(hx_caught_3)
 		_ = hx_exception_4
-		if func(hx_value any) bool {
-			switch hx_carrier := hx_value.(type) {
-			case *haxe__io__Eof:
-				if hx_carrier == nil {
-					return false
-				}
-				return true
-			default:
-				return false
-			}
-		}(hxrt.ObjectSource(hxrt.ObjectSource(hx_payload_5))) {
+		if hx_is_nominal_0(hx_payload_5) {
 			var e *haxe__io__Eof = hx_recover_class_0(hx_payload_5)
 			var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("eof="), hxrt.StdString(e)))
 			hxrt.Println(v_3)
@@ -173,5 +163,41 @@ func hx_recover_class_2(value any) *haxe__Exception {
 		return source.haxe__Exception
 	default:
 		return value.(*haxe__Exception)
+	}
+}
+
+func hx_is_nominal_0(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__io__Eof:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_1(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_2(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__exceptions__NotImplementedException:
+		return (source != nil)
+	case *haxe__Exception:
+		return (source != nil)
+	case *haxe__exceptions__PosException:
+		return (source != nil)
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
 	}
 }

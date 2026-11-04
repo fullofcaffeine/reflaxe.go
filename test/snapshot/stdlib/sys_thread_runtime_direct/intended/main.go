@@ -30,19 +30,9 @@ func main() {
 		hx_exception_2 := haxe__Exception_caught(hx_caught_1)
 		hx_payload_3 := haxe__Exception_catchValue(hx_caught_1)
 		_ = hx_payload_3
-		if func(hx_value any) bool {
-			switch hx_carrier := hx_value.(type) {
-			case *sys__thread__NoEventLoopException:
-				if hx_carrier == nil {
-					return false
-				}
-				return true
-			default:
-				return false
-			}
-		}(hxrt.ObjectSource(hxrt.ObjectSource(hx_exception_2))) {
+		if hx_is_nominal_0(hx_exception_2) {
 			var err *sys__thread__NoEventLoopException = hx_recover_class_0(hx_exception_2)
-			var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("thread.worker_events="), err.get_message()))
+			var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("thread.worker_events="), err.__hx_this.get_message()))
 			hxrt.Println(v_2)
 		} else {
 			hxrt.Throw(hx_caught_1)
@@ -110,17 +100,7 @@ func main() {
 		hx_exception_5 := haxe__Exception_caught(hx_caught_4)
 		hx_payload_6 := haxe__Exception_catchValue(hx_caught_4)
 		_ = hx_payload_6
-		if func(hx_value any) bool {
-			switch hx_carrier := hx_value.(type) {
-			case *sys__thread__ThreadPoolException:
-				if hx_carrier == nil {
-					return false
-				}
-				return true
-			default:
-				return false
-			}
-		}(hxrt.ObjectSource(hxrt.ObjectSource(hx_exception_5))) {
+		if hx_is_nominal_1(hx_exception_5) {
 			var err_1 *sys__thread__ThreadPoolException = hx_recover_class_1(hx_exception_5)
 			var v_7 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("fixed.error="), err_1.__hx_this.get_message()))
 			hxrt.Println(v_7)
@@ -147,17 +127,7 @@ func main() {
 		hx_exception_8 := haxe__Exception_caught(hx_caught_7)
 		hx_payload_9 := haxe__Exception_catchValue(hx_caught_7)
 		_ = hx_payload_9
-		if func(hx_value any) bool {
-			switch hx_carrier := hx_value.(type) {
-			case *sys__thread__ThreadPoolException:
-				if hx_carrier == nil {
-					return false
-				}
-				return true
-			default:
-				return false
-			}
-		}(hxrt.ObjectSource(hxrt.ObjectSource(hx_exception_8))) {
+		if hx_is_nominal_1(hx_exception_8) {
 			var err_2 *sys__thread__ThreadPoolException = hx_recover_class_1(hx_exception_8)
 			var v_10 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("elastic.error="), err_2.__hx_this.get_message()))
 			hxrt.Println(v_10)
@@ -3372,10 +3342,10 @@ func hx_recover_class_6(value any) *haxe__Exception {
 		return source.haxe__Exception
 	case *sys__thread__FixedThreadPoolShutdownException:
 		return source.haxe__Exception
-	case *haxe__Exception:
-		return source
 	case *haxe__ValueException:
 		return source.haxe__Exception
+	case *haxe__Exception:
+		return source
 	default:
 		return value.(*haxe__Exception)
 	}
@@ -3391,5 +3361,63 @@ func hx_recover_class_7(value any) *haxe__ds___List__GoListIterator {
 		return source
 	default:
 		return value.(*haxe__ds___List__GoListIterator)
+	}
+}
+
+func hx_is_nominal_0(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__thread__NoEventLoopException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_1(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__thread__ThreadPoolException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_2(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__thread__FixedThreadPoolShutdownException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_3(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_4(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__thread__ThreadPoolException:
+		return (source != nil)
+	case *sys__thread__NoEventLoopException:
+		return (source != nil)
+	case *sys__thread__FixedThreadPoolShutdownException:
+		return (source != nil)
+	case *haxe__ValueException:
+		return (source != nil)
+	case *haxe__Exception:
+		return (source != nil)
+	default:
+		return false
 	}
 }

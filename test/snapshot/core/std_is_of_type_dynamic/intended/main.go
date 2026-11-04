@@ -65,59 +65,12 @@ func hx_init_Child(self *Child) *Child {
 
 func main() {
 	var d any = New_Child()
-	var v any = any(func(hx_value any) bool {
-		switch hx_carrier := hx_value.(type) {
-		case *Base:
-			if hx_carrier == nil {
-				return false
-			}
-			return true
-		case *Child:
-			if hx_carrier == nil {
-				return false
-			}
-			return true
-		default:
-			return false
-		}
-	}(hxrt.ObjectSource(hxrt.ObjectSource(d))))
+	var v any = any(hx_is_nominal_0(d))
 	hxrt.Println(v)
-	var v_1 any = any(func(hx_value any) bool {
-		switch hx_carrier := hx_value.(type) {
-		case *Base:
-			if hx_carrier == nil {
-				return false
-			}
-			_, hx_ok := hx_carrier.__hx_this.(*Child)
-			return hx_ok
-		case *Child:
-			if hx_carrier == nil {
-				return false
-			}
-			return true
-		default:
-			return false
-		}
-	}(hxrt.ObjectSource(hxrt.ObjectSource(d))))
+	var v_1 any = any(hx_is_nominal_1(d))
 	hxrt.Println(v_1)
 	d = New_Base()
-	var v_2 any = any(func(hx_value any) bool {
-		switch hx_carrier := hx_value.(type) {
-		case *Base:
-			if hx_carrier == nil {
-				return false
-			}
-			_, hx_ok := hx_carrier.__hx_this.(*Child)
-			return hx_ok
-		case *Child:
-			if hx_carrier == nil {
-				return false
-			}
-			return true
-		default:
-			return false
-		}
-	}(hxrt.ObjectSource(hxrt.ObjectSource(d))))
+	var v_2 any = any(hx_is_nominal_1(d))
 	hxrt.Println(v_2)
 	d = hxrt.NewArray(1, 2)
 	var v_3 any = any(func(hx_value any) bool {
@@ -142,4 +95,26 @@ func main() {
 	d = nil
 	var v_5 any = any((d != nil))
 	hxrt.Println(v_5)
+}
+
+func hx_is_nominal_0(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *Base:
+		return (source != nil)
+	case *Child:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_1(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *Child:
+		return (source != nil)
+	default:
+		return false
+	}
 }

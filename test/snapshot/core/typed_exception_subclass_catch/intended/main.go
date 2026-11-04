@@ -54,23 +54,7 @@ func main() {
 		hx_exception_2 := haxe__Exception_caught(hx_caught_1)
 		hx_payload_3 := haxe__Exception_catchValue(hx_caught_1)
 		_ = hx_payload_3
-		if func(hx_value any) bool {
-			switch hx_carrier := hx_value.(type) {
-			case *DomainError:
-				if hx_carrier == nil {
-					return false
-				}
-				return true
-			case *haxe__Exception:
-				if hx_carrier == nil {
-					return false
-				}
-				_, hx_ok := hx_carrier.__hx_this.(*DomainError)
-				return hx_ok
-			default:
-				return false
-			}
-		}(hxrt.ObjectSource(hxrt.ObjectSource(hx_exception_2))) {
+		if hx_is_nominal_0(hx_exception_2) {
 			var error *DomainError = hx_recover_class_1(hx_exception_2)
 			var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("typed:"), error.code))
 			hxrt.Println(v)
@@ -86,23 +70,7 @@ func main() {
 		hx_exception_5 := haxe__Exception_caught(hx_caught_4)
 		hx_payload_6 := haxe__Exception_catchValue(hx_caught_4)
 		_ = hx_payload_6
-		if func(hx_value any) bool {
-			switch hx_carrier := hx_value.(type) {
-			case *DomainError:
-				if hx_carrier == nil {
-					return false
-				}
-				return true
-			case *haxe__Exception:
-				if hx_carrier == nil {
-					return false
-				}
-				_, hx_ok := hx_carrier.__hx_this.(*DomainError)
-				return hx_ok
-			default:
-				return false
-			}
-		}(hxrt.ObjectSource(hxrt.ObjectSource(hx_exception_5))) {
+		if hx_is_nominal_0(hx_exception_5) {
 			var error_2 *DomainError = hx_recover_class_1(hx_exception_5)
 			var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("typed:"), error_2.code))
 			hxrt.Println(v_2)
@@ -130,10 +98,10 @@ func hx_recover_class_0(value any) *haxe__Exception {
 	switch source := value.(type) {
 	case *DomainError:
 		return source.haxe__Exception
-	case *haxe__Exception:
-		return source
 	case *haxe__ValueException:
 		return source.haxe__Exception
+	case *haxe__Exception:
+		return source
 	default:
 		return value.(*haxe__Exception)
 	}
@@ -162,5 +130,39 @@ func hx_recover_class_2(value any) *haxe__ValueException {
 		return source
 	default:
 		return value.(*haxe__ValueException)
+	}
+}
+
+func hx_is_nominal_0(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *DomainError:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_1(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_2(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *DomainError:
+		return (source != nil)
+	case *haxe__ValueException:
+		return (source != nil)
+	case *haxe__Exception:
+		return (source != nil)
+	default:
+		return false
 	}
 }

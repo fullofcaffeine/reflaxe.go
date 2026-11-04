@@ -356,19 +356,22 @@ func ThreadSpawnDetached(job func()) {
 
 func runPortableThreadJob(id int, job func(), report func(any)) {
 	registerCurrentGoroutineThreadID(id)
+	completed := false
+	defer func() {
+		// Always remove lookup state, even if reporting itself panics. A fatal
+		// native unwind must retain the foreground count so normal main exit
+		// cannot race with the panic that terminates the process.
+		unregisterCurrentGoroutineThreadID(id, completed)
+	}()
 	defer func() {
 		if recovered := recover(); recovered != nil {
 			value, ok := unwrapHaxeException(recovered)
 			if !ok {
-				// Remove lookup state but keep the foreground count nonzero until
-				// the re-panic terminates the process. Waking generated main here
-				// would let normal process exit race with the fatal native panic.
-				unregisterCurrentGoroutineThreadID(id, false)
 				panic(recovered)
 			}
 			report(value)
 		}
-		unregisterCurrentGoroutineThreadID(id, true)
+		completed = true
 	}()
 	job()
 }
