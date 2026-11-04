@@ -494,9 +494,12 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         self.assertNotIn("var values []int", main_go)
         self.assertIn("b []int", bytes_go)
         self.assertRegex(bytes_go, r"__hx_raw\s+\*hxrt\.ByteView")
-        self.assertIn("iterator map[string]any", main_go)
-        self.assertIn('"hasNext"] = hxrt.NewFunction(func() bool', main_go)
-        self.assertIn('"next"] = hxrt.NewFunction(func() int', main_go)
+        self.assertIn("iterator hxrt.Anonymous", main_go)
+        self.assertIn("hxrt.NewAnonymousView", main_go)
+        self.assertIn("New_haxe__iterators__ArrayIterator(values)", main_go)
+        self.assertIn('hxrt.AnonymousGet(hx_obj_', main_go)
+        self.assertIn('case "hasNext":', main_go)
+        self.assertIn('case "next":', main_go)
         observed_shapes = [
             usage["shape"]
             for module in type_usage["modules"]
