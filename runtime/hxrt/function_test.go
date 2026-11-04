@@ -169,3 +169,23 @@ func TestFunctionOrdinaryEqualityAndObservation(t *testing.T) {
 		t.Fatalf("template callback = %v", got)
 	}
 }
+
+func TestDynamicMethodDefaultExtraction(t *testing.T) {
+	receiver := &struct{ value int }{value: 3}
+	slot := DefaultDynamicFunction(NewFunction(func() int { return receiver.value }), func() any { return receiver }, "next")
+	first, second := ReadDynamicFunction(slot), ReadDynamicFunction(slot)
+	if HaxeEqual(first, second) || !ReflectCompareMethods(first, second) {
+		t.Fatal("default method extraction identity")
+	}
+	if ReadDynamicFunction(first) != first {
+		t.Fatal("saved extraction remained a default template")
+	}
+	replacement := NewFunction(func() int { return 9 })
+	slot = replacement
+	if ReadDynamicFunction(slot) != replacement {
+		t.Fatal("replacement identity changed")
+	}
+	if FunctionCall(first)() != 3 || FunctionCall(ReadDynamicFunction(slot))() != 9 {
+		t.Fatal("saved binding followed replacement")
+	}
+}

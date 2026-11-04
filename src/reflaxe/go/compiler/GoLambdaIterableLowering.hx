@@ -100,6 +100,7 @@ private typedef GoNativeArrayCursorPlan = {
 }
 
 private typedef GoLambdaIterableLoweringConfig = {
+	final structuralObjectCoerce:(GoExpr, Type, Type) -> Null<GoExpr>;
 	final lowerExpr:TypedExpr->GoLambdaLoweredExpr;
 	final lowerToStatements:TypedExpr->Array<GoStmt>;
 	final freshTempName:String->String;
@@ -142,6 +143,7 @@ private typedef GoLambdaIterableLoweringConfig = {
 	shared-Array or native-slice storage.
 **/
 class GoLambdaIterableLowering {
+	final structuralObjectCoerce:(GoExpr, Type, Type) -> Null<GoExpr>;
 	final lowerExpr:TypedExpr->GoLambdaLoweredExpr;
 	final lowerToStatements:TypedExpr->Array<GoStmt>;
 	final freshTempName:String->String;
@@ -159,6 +161,7 @@ class GoLambdaIterableLowering {
 	final lookupLocalLambdaAlias:String->Null<String>;
 
 	public function new(config:GoLambdaIterableLoweringConfig) {
+		structuralObjectCoerce = config.structuralObjectCoerce;
 		lowerExpr = config.lowerExpr;
 		lowerToStatements = config.lowerToStatements;
 		freshTempName = config.freshTempName;
@@ -495,66 +498,14 @@ class GoLambdaIterableLowering {
 		};
 	}
 
-	/** Preserve a concrete iterator method's slot and live logical receiver. */
-	function boundIteratorFunction(callable:GoExpr, receiver:GoExpr, slot:String):GoExpr {
-		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.BoundFunction"), [
-			callable,
-			GoExpr.GoFuncLiteral([], ["any"], [GoStmt.GoReturn(receiver)]),
-			GoExpr.GoStringLiteral(slot)
-		]);
-	}
-
 	/**
-		What:
-		- Adapts one concrete generated iterator class to Haxe's structural
-		  `Iterator<T>` carrier.
-
-		Why:
-		- Haxe accepts classes with typed `hasNext()` and `next()` methods as
-		  iterators, but generated classes are pointers while anonymous structural
-		  values are `map[string]any` on Go. Generic generated methods can also return
-		  erased `any`, even when the assigned `Iterator<T>` has a concrete element
-		  type.
-
-		How:
-		- Recognize only the canonical two-method structural shape, evaluate the
-		  concrete source once, and expose typed closures through the existing map
-		  carrier. Calls go through `__hx_this` so overrides remain virtual, and an
-		  erased `next()` result is asserted back to the target element type.
+		What: Admit a concrete iterator through the shared structural storage owner.
+		Why: Copying bound callbacks into a map loses object identity and live slots.
+		How: Delegate member classification and source retention to the same view
+		builder used for other anonymous projections.
 	**/
 	public function structuralIteratorCoerce(expr:GoExpr, fromType:Type, toType:Type):Null<GoExpr> {
-		var plan = concreteStructuralIteratorPlan(fromType, toType);
-		if (plan == null) {
-			return null;
-		}
-		var targetShape = plan.targetShape;
-		var sourceClass = plan.sourceClass;
-		var hasNextMethod = plan.hasNextMethod;
-		var nextMethod = plan.nextMethod;
-		noteSourceOwnedStdlibUsage(sourceClass);
-		var sourceName = freshTempName("hx_structural_iterator");
-		var mapName = freshTempName("hx_structural_iterator_map");
-		var sourceExpr = GoExpr.GoIdent(sourceName);
-		var dispatchReceiver = GoExpr.GoSelector(GoExpr.GoIdent(sourceName), "__hx_this");
-		var hasNextCall = GoExpr.GoCall(GoExpr.GoSelector(dispatchReceiver, interfaceFieldName(sourceClass, hasNextMethod.field)), []);
-		var nextCall = GoExpr.GoCall(GoExpr.GoSelector(dispatchReceiver, interfaceFieldName(sourceClass, nextMethod.field)), []);
-		var targetResultGoType = functionResultGoType(targetShape.nextReturnType);
-		var declaredResultGoType = functionResultGoType(plan.declaredNextReturn);
-		var adaptedNext:GoExpr = nextCall;
-		if (targetResultGoType == "any") {
-			adaptedNext = GoExpr.GoCall(GoExpr.GoIdent("any"), [nextCall]);
-		} else if (declaredResultGoType != targetResultGoType) {
-			adaptedNext = lowerNullableAwareTypeAssertExpr(GoExpr.GoCall(GoExpr.GoIdent("any"), [nextCall]), targetShape.nextReturnType);
-		}
-
-		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: sourceName, typeName: scalarGoType(fromType)}], ["hxrt.Anonymous"], [
-			GoStmt.GoVarDecl(mapName, "map[string]any", emptyDynamicFieldMapExpr(), true),
-			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(mapName), GoExpr.GoStringLiteral("hasNext")),
-				boundIteratorFunction(GoExpr.GoFuncLiteral([], ["bool"], [GoStmt.GoReturn(hasNextCall)]), dispatchReceiver, hasNextMethod.field.name)),
-			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(mapName), GoExpr.GoStringLiteral("next")),
-				boundIteratorFunction(GoExpr.GoFuncLiteral([], [targetResultGoType], [GoStmt.GoReturn(adaptedNext)]), dispatchReceiver, nextMethod.field.name)),
-			GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromMap"), [GoExpr.GoIdent(mapName)]))
-		]), [expr]);
+		return structuralObjectCoerce(expr, fromType, toType);
 	}
 
 	/**
@@ -565,40 +516,7 @@ class GoLambdaIterableLowering {
 		adapt each returned cursor through the shared typed Iterator conversion.
 	**/
 	public function structuralIterableCoerce(expr:GoExpr, fromType:Type, toType:Type):Null<GoExpr> {
-		var targetMethod:Null<Type> = switch (Context.follow(toType)) {
-			case TAnonymous(ref): var fields = ref.get().fields; fields.length == 1 && fields[0].name == "iterator" ? fields[0].type : null;
-			case _: null;
-		};
-		var targetReturn = targetMethod == null ? null : zeroArgReturnType(targetMethod);
-		if (targetReturn == null || structuralIteratorShape(targetReturn) == null)
-			return null;
-		return switch (Context.follow(fromType)) {
-			case TInst(ref, params) if (!ref.get().isExtern && !ref.get().isInterface):
-				var sourceClass = ref.get();
-				var method = concreteIteratorMethod(sourceClass, params, "iterator");
-				var declaredReturn = method == null ? null : zeroArgReturnType(method.declaredType);
-				if (declaredReturn == null)
-					return null;
-				var sourceName = freshTempName("hx_structural_iterable");
-				var receiver = GoExpr.GoSelector(GoExpr.GoIdent(sourceName), "__hx_this");
-				var call = GoExpr.GoCall(GoExpr.GoSelector(receiver, interfaceFieldName(sourceClass, method.field)), []);
-				var result = structuralIteratorCoerce(call, declaredReturn, targetReturn);
-				if (result == null)
-					result = adaptErasedGenericStructuralIteratorResult(call, method.declaredType, targetMethod);
-				if (result == null && scalarGoType(declaredReturn) == scalarGoType(targetReturn))
-					result = call;
-				if (result == null)
-					return null;
-				noteSourceOwnedStdlibUsage(sourceClass);
-				var mapName = freshTempName("hx_structural_iterable_map");
-				GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: sourceName, typeName: scalarGoType(fromType)}], ["hxrt.Anonymous"], [
-					GoStmt.GoVarDecl(mapName, "map[string]any", emptyDynamicFieldMapExpr(), true),
-					GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(mapName), GoExpr.GoStringLiteral("iterator")),
-						boundIteratorFunction(GoExpr.GoFuncLiteral([], ["hxrt.Anonymous"], [GoStmt.GoReturn(result)]), receiver, "iterator")),
-					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromMap"), [GoExpr.GoIdent(mapName)]))
-				]), [expr]);
-			case _: null;
-		};
+		return structuralObjectCoerce(expr, fromType, toType);
 	}
 
 	/**

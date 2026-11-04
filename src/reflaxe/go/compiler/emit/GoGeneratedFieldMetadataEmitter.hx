@@ -211,7 +211,9 @@ class GoGeneratedFieldMetadataEmitter {
 	static function fieldCaseBody(value:GoExpr, selector:String, typeName:GoType, operation:GeneratedFieldOperation):Array<GoStmt> {
 		return switch (operation) {
 			case Lookup:
-				[GoStmt.GoReturn(GoExpr.GoSelector(value, selector))];
+				[
+					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.ReadStoredField"), [GoExpr.GoSelector(value, selector)]))
+				];
 			case Has:
 				[GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))];
 			case Set:
