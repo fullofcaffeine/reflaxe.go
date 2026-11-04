@@ -63,7 +63,7 @@ func main() {
 	hx_obj_17 := map[string]any{}
 	hx_obj_17["value"] = 9
 	source := hxrt.AnonymousFromMap(hx_obj_17)
-	result := hxrt.AnonymousFromValue(identity(source))
+	result := hx_structural_recover_0(identity(source))
 	var v_2 any = any(func(hx_obj_19 hxrt.Anonymous) int {
 		hx_field_20 := hxrt.AnonymousGet(hx_obj_19, "value")
 		if hx_field_20 == nil {
@@ -103,6 +103,10 @@ func main() {
 		return hxrt.FunctionCall(hx_callable_30)(hx_argument_31)
 	}())
 	hxrt.Println(v_3)
+}
+
+func hx_structural_recover_0(value any) hxrt.Anonymous {
+	return hxrt.AnonymousFromValue(value)
 }
 
 func hxrt_typeClassMetadataField(value any, key string) (any, bool) {

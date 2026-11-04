@@ -540,8 +540,9 @@ class GoCompiler {
 		}
 		var supportDecls = new Array<GoDecl>();
 		supportDecls = supportDecls.concat(structuralObjectLowering.emitRecoveries([
-			for (source in projectClasses) if (generatedFieldMetadataByClassName.exists(fullClassName(source))
-				&& !buildConstrainedClassNames.exists(fullClassName(source))) source
+			for (source in projectClasses)
+				if (generatedFieldMetadataByClassName.exists(fullClassName(source))
+					&& !buildConstrainedClassNames.exists(fullClassName(source))) source
 		]));
 		supportDecls = supportDecls.concat(lowerGeneratedMethodMetadataShimDecls());
 		supportDecls = supportDecls.concat(lowerRegisteredCompilerCapabilityDecls());
@@ -6313,7 +6314,7 @@ class GoCompiler {
 			case TTry(tryExpr, catches):
 				materializeExprWithPrefix(lowerTryCatchExpr(tryExpr, catches, expr.t), expr.t);
 			case TField(target, access):
-				var lowered = lowerField(target, access);
+				var lowered = lowerField(target, access, true, expr.t);
 				{expr: adaptDeclaredFieldValue(access, lowered.expr, expr.t), isStringLike: lowered.isStringLike};
 			case TCall(callee, args):
 				var injected = lowerTargetCodeInjectionExpr(expr);
@@ -6932,7 +6933,7 @@ class GoCompiler {
 		return declared == null ? value : adaptErasedFunctionCallArg(value, declared, applied);
 	}
 
-	function lowerField(target:TypedExpr, access:FieldAccess, asValue:Bool = true):LoweredExpr {
+	function lowerField(target:TypedExpr, access:FieldAccess, asValue:Bool = true, ?appliedType:Type):LoweredExpr {
 		return switch (access) {
 			case FStatic(classRef, field):
 				var resolved = field.get();
@@ -6944,7 +6945,7 @@ class GoCompiler {
 						noteExternImportPath(classType, externPackage);
 						var adapted = asValue
 							&& isOrdinaryMethod(resolved) ? lowerImportedExternMethodValue(GoExpr.GoIdent(externPackage), classType, resolved,
-								externFieldName(resolved)) : null;
+								externFieldName(resolved), appliedType) : null;
 						return {
 							expr: adapted == null ? GoExpr.GoSelector(GoExpr.GoIdent(externPackage), externFieldName(resolved)) : adapted,
 							isStringLike: isStringType(resolved.type)
@@ -7193,13 +7194,17 @@ class GoCompiler {
 		closure that applies the same narrow string argument and result conversions as
 		an ordinary imported extern call.
 	**/
-	function lowerImportedExternMethodValue(target:GoExpr, classType:ClassType, field:ClassField, selector:String):Null<GoExpr> {
+	function lowerImportedExternMethodValue(target:GoExpr, classType:ClassType, field:ClassField, selector:String, ?appliedType:Type):Null<GoExpr> {
 		var importPath = externClassImportPath(classType);
 		if (importPath == null || readMetadataString(classType.meta, [GoMetadataName.GoImport]) == "hxrt") {
 			return null;
 		}
 
-		return lowerImportedFunctionValue(GoExpr.GoSelector(target, selector), field.type);
+		// Native generic declarations are not standalone Go values until instantiated.
+		// A typed wrapper calls the declaration so Go infers its native type arguments
+		// from the applied Haxe signature without erasing them to generic Haxe storage.
+		var genericDeclaration = field.params.length > 0 && appliedType != null;
+		return lowerImportedFunctionValue(GoExpr.GoSelector(target, selector), genericDeclaration ? appliedType : field.type, genericDeclaration);
 	}
 
 	/**
@@ -7209,7 +7214,7 @@ class GoCompiler {
 		How: Capture the native expression once, preserve nil, and wrap its callable
 		in a fresh identity carrier. Nested callback results cross this boundary too.
 	**/
-	function lowerImportedFunctionValue(value:GoExpr, type:Type):Null<GoExpr> {
+	function lowerImportedFunctionValue(value:GoExpr, type:Type, nativeGenericDeclaration:Bool = false):Null<GoExpr> {
 		return switch (Context.follow(type)) {
 			case TFun(args, returnType):
 				var methodName = freshTempName("hx_extern_method");
@@ -7220,14 +7225,16 @@ class GoCompiler {
 					params.push({name: argName, typeName: functionParameterStorageGoType(arg)});
 					callArgs.push(normalizeImportedExternMethodValueArg(GoExpr.GoIdent(argName), arg.t));
 				}
-				var call = GoExpr.GoCall(GoExpr.GoIdent(methodName), callArgs);
+				var call = GoExpr.GoCall(nativeGenericDeclaration ? value : GoExpr.GoIdent(methodName), callArgs);
 				var innerBody = if (isVoidType(returnType)) {
 					[GoStmt.GoExprStmt(call)];
 				} else {
 					[GoStmt.GoReturn(normalizeImportedExternMethodValueResult(call, returnType))];
 				};
 				var wrapper = GoExpr.GoFuncLiteral(params, lowerFunctionResults(returnType), innerBody);
-				GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(type)], [
+				// Only a compiler-proven static generic declaration bypasses capture/null
+				// handling. Native callback expressions still evaluate exactly once.
+				nativeGenericDeclaration ? freshFunctionValue(wrapper) : GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(type)], [
 					GoStmt.GoVarDecl(methodName, null, value, true),
 					GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent(methodName), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null),
 					GoStmt.GoReturn(freshFunctionValue(wrapper))
@@ -7601,7 +7608,10 @@ class GoCompiler {
 					}
 				}
 			}
-			if (emittedParamType != null) {
+			// Generated Haxe generic parameters erase to their declared storage. Imported
+			// Go generics instead infer the applied native signature; erasing first would
+			// feed a different callback type into the native export adapter below.
+			if (emittedParamType != null && (!isGoImportExternCall(callee) || isHxrtImportExternCall(callee))) {
 				// Optional callable arguments already crossed the applied parameter ABI
 				// in lowerCallArgExprForExpectedType; do not adapt the original type twice.
 				var loweredArgType = paramType != null && functionTypeHasOptionalArgs(paramType) ? paramType : arg.t;
