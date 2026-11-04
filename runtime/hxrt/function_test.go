@@ -189,3 +189,45 @@ func TestDynamicMethodDefaultExtraction(t *testing.T) {
 		t.Fatal("saved binding followed replacement")
 	}
 }
+
+// Projection is a compiler representation change; it must not erase the source
+// result or default policy observed through Dynamic and explicit reflection.
+func TestFunctionProjectionRetainsNormalizedSource(t *testing.T) {
+	original := NewFunction(func(value int) int { return value + 2 })
+	normalized := AdaptFunction(original, func(value any) int {
+		if value == nil {
+			return FunctionCall(original)(7)
+		}
+		return FunctionCall(original)(value.(int))
+	})
+	discarded := ProjectFunction(normalized, func(value any) { FunctionCall(normalized)(value) })
+	if FunctionOrigin(discarded) != normalized {
+		t.Fatal("result discard replaced the normalized callable source")
+	}
+	if !HaxeEqual(original, discarded) || !ReflectCompareMethods(original, discarded) {
+		t.Fatal("projection changed source function identity")
+	}
+	if got := ReflectCallMethod(discarded, []any{nil}); got != 9 {
+		t.Fatalf("reflection lost source default/result: %v", got)
+	}
+	if got := ReflectCallMethod(discarded, []any{3}); got != 5 {
+		t.Fatalf("reflection ignored an explicit source argument: %v", got)
+	}
+	current := discarded
+	for i := 0; i < 1000; i++ {
+		// Generated recovery must build its next call from this source, never from
+		// the previous projection. This asserts the runtime provenance contract.
+		root := FunctionOrigin(current).(*Function[func(any) int])
+		current = ProjectFunction(root, func(value any) { FunctionCall(root)(value) })
+		if FunctionOrigin(current) != normalized {
+			t.Fatal("projection accumulated origins")
+		}
+	}
+	if ReflectCallMethod(current, []any{nil}) != 9 {
+		t.Fatal("roundtrip lost source invocation")
+	}
+	var absent *Function[func(int) int]
+	if ProjectFunction(absent, func(int) {}) != nil || FunctionOrigin(absent) != nil {
+		t.Fatal("projection materialized a null callable")
+	}
+}

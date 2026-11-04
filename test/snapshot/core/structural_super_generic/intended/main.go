@@ -16,23 +16,28 @@ func (self *Base) HxFunctionReceiver() any {
 }
 
 func New_Base(it hxrt.Anonymous) *Base {
+	return hx_init_Base(hx_alloc_Base(nil), it)
+}
+
+func hx_alloc_Base(owner any) *Base {
 	self := &Base{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_Base)
+	}
+	return self
+}
+
+func hx_init_Base(self *Base, it hxrt.Anonymous) *Base {
 	self.it = it
 	return self
 }
 
 func (self *Base) read() any {
 	return func() any {
-		var hx_callable_4 *hxrt.Function[func() any] = func(hx_obj_1 hxrt.Anonymous) *hxrt.Function[func() any] {
-			hx_field_2 := hxrt.AnonymousGet(hx_obj_1, "next")
-			if hx_field_2 == nil {
-				var hx_zero_3 *hxrt.Function[func() any]
-				return hx_zero_3
-			}
-			return hx_field_2.(*hxrt.Function[func() any])
-		}(self.it)
-		return hxrt.FunctionCall(hx_callable_4)()
+		var hx_callable_1 *hxrt.Function[func() any] = hx_recover_callable_0(hxrt.AnonymousGet(self.it, "next"))
+		return hxrt.FunctionCall(hx_callable_1)()
 	}()
 }
 
@@ -50,88 +55,84 @@ func (self *Child) HxFunctionReceiver() any {
 }
 
 func New_Child(it hxrt.Anonymous) *Child {
+	return hx_init_Child(hx_alloc_Child(nil), it)
+}
+
+func hx_alloc_Child(owner any) *Child {
 	self := &Child{}
-	self.Base = New_Base(func(hx_structural_origin_5 hxrt.Anonymous) hxrt.Anonymous {
-		return hxrt.NewAnonymousView(hx_structural_origin_5, func(name string) hxrt.AnonymousField {
-			switch name {
-			case "next":
-				return hxrt.AnonymousField{Value: func(hx_callback_source_9 *hxrt.Function[func() int]) *hxrt.Function[func() any] {
-					return hxrt.AdaptFunction(hx_callback_source_9, func() any {
-						return hxrt.FunctionCall(hx_callback_source_9)()
-					})
-				}(func(hx_obj_6 hxrt.Anonymous) *hxrt.Function[func() int] {
-					hx_field_7 := hxrt.AnonymousGet(hx_obj_6, "next")
-					if hx_field_7 == nil {
-						var hx_zero_8 *hxrt.Function[func() int]
-						return hx_zero_8
-					}
-					return hx_field_7.(*hxrt.Function[func() int])
-				}(hx_structural_origin_5)), Found: true}
-			}
-			return hxrt.AnonymousLookup(hx_structural_origin_5, name)
-		}, func(name string, incoming any) bool {
-			switch name {
-			case "next":
-				hxrt.AnonymousSet(hx_structural_origin_5, "next", func(hx_callback_source_12 *hxrt.Function[func() any]) *hxrt.Function[func() int] {
-					return hxrt.AdaptFunction(hx_callback_source_12, func() int {
-						return func(hx_value_13 any) int {
-							if hx_value_13 == nil {
-								var hx_zero_14 int
-								return hx_zero_14
-							}
-							return hx_value_13.(int)
-						}(hxrt.FunctionCall(hx_callback_source_12)())
-					})
-				}(func(hx_value_10 any) *hxrt.Function[func() any] {
-					if hx_value_10 == nil {
-						var hx_zero_11 *hxrt.Function[func() any]
-						return hx_zero_11
-					}
-					return hx_value_10.(*hxrt.Function[func() any])
-				}(incoming)))
-				return true
-			}
-			hxrt.AnonymousSet(hx_structural_origin_5, name, incoming)
-			return true
-		})
-	}(it))
-	self.Base.__hx_this = self
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_Child)
+	}
+	self.Base = hx_alloc_Base(self.__hx_this)
+	return self
+}
+
+func hx_init_Child(self *Child, it hxrt.Anonymous) *Child {
+	hx_init_Base(self.Base, it)
 	return self
 }
 
 func main() {
-	hx_obj_15 := map[string]any{}
-	hx_obj_15["hasNext"] = hxrt.NewFunction(func() bool {
+	hx_obj_2 := map[string]any{}
+	hx_obj_2["hasNext"] = hxrt.NewFunction(func() bool {
 		return true
 	})
-	hx_obj_15["next"] = hxrt.NewFunction(func() int {
+	hx_obj_2["next"] = hxrt.NewFunction(func() int {
 		return 3
 	})
-	source := hxrt.AnonymousFromMap(hx_obj_15)
+	source := hxrt.AnonymousFromMap(hx_obj_2)
 	child := New_Child(source)
-	var v any = any(func(hx_value_16 any) int {
-		if hx_value_16 == nil {
-			var hx_zero_17 int
-			return hx_zero_17
+	var v any = any(func(hx_value_3 any) int {
+		if hx_value_3 == nil {
+			var hx_zero_4 int
+			return hx_zero_4
 		}
-		return hx_value_16.(int)
+		return hx_value_3.(int)
 	}(child.read()))
 	hxrt.Println(v)
 	func() *hxrt.Function[func() int] {
-		hx_structural_target_18 := source
-		hx_structural_value_20 := hxrt.NewFunction(func() int {
+		hx_structural_target_5 := source
+		hx_structural_value_7 := hxrt.NewFunction(func() int {
 			return 9
 		})
-		hxrt.AnonymousSet(hx_structural_target_18, "next", hx_structural_value_20)
-		return hx_structural_value_20
+		hxrt.AnonymousSet(hx_structural_target_5, "next", hx_structural_value_7)
+		return hx_structural_value_7
 	}()
-	var v_1 any = any(func(hx_value_21 any) int {
-		if hx_value_21 == nil {
-			var hx_zero_22 int
-			return hx_zero_22
+	var v_1 any = any(func(hx_value_8 any) int {
+		if hx_value_8 == nil {
+			var hx_zero_9 int
+			return hx_zero_9
 		}
-		return hx_value_21.(int)
+		return hx_value_8.(int)
 	}(child.read()))
 	hxrt.Println(v_1)
+}
+
+func hx_recover_callable_0(value any) *hxrt.Function[func() any] {
+	if value == nil {
+		return nil
+	}
+	switch exact := value.(type) {
+	case *hxrt.Function[func() any]:
+		return exact
+	}
+	origin := hxrt.FunctionOrigin(value)
+	if origin == nil {
+		return nil
+	}
+	switch source := origin.(type) {
+	case *hxrt.Function[func() bool]:
+		return hxrt.ProjectFunction(source, func() any {
+			return hxrt.FunctionCall(source)()
+		})
+	case *hxrt.Function[func() int]:
+		return hxrt.ProjectFunction(source, func() any {
+			return hxrt.FunctionCall(source)()
+		})
+	default:
+		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
+		return nil
+	}
 }

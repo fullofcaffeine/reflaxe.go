@@ -60,14 +60,16 @@
       "reviewCondition": "Revisit when typed Go IR can express the same native specialization without generated helper declarations."
     },
     "approved_reflect_metadata": {
-      "what": "Generate only the same-package metadata adapters needed by staged Reflect for class-token RTTI, lowercase generated fields and methods, exact enum carriers, and source-owned serialization traversal.",
-      "why": "The separate hxrt package cannot access unexported generated members or know the compiler's finalized class, enum, RTTI, and metadata tables without unsafe access or a duplicated runtime registry. Reusing these typed adapters also lets Serializer and Unserializer preserve private and inherited fields without a second serialization-specific bridge.",
-      "how": "Keep public lookup, property, and serialization policy in staged source; recover canonical generated receivers with typed switches; and emit exact adapters through the reflect_metadata group while hxrt owns only ordinary Go representation inspection.",
+      "what": "Generate only the same-package metadata adapters needed by staged Reflect for class-token RTTI, lowercase generated fields and methods, exact enum carriers, and source-owned serialization traversal. Recover compiler-owned callable arguments and invoke the normalized source through finite typed signature dispatch.",
+      "why": "The separate hxrt package cannot access unexported generated members or know the compiler's finalized class, enum, RTTI, and metadata tables without unsafe access or a duplicated runtime registry. Reusing these typed adapters also lets Serializer and Unserializer preserve private and inherited fields without a second serialization-specific bridge. Go Function instantiations cannot be recovered across signatures by a runtime assertion; only the compiler knows the emitted producer set and demanded callback representations.",
+      "how": "Keep public lookup, property, and serialization policy in staged source; recover canonical generated receivers with typed switches; and emit exact adapters through the reflect_metadata group while hxrt owns only ordinary Go representation inspection. GoValueRecovery closes callable and class requirements before emission and uses the native reflection fallback only for its existing foreign boundary.",
       "evidence": [
         "reflect_extended_contract",
         "haxe_template_concrete_iterable_contract",
         "haxe_rtti_direct_contract",
-        "serializer_typed_accessor_contract"
+        "serializer_typed_accessor_contract",
+        "portable_function_projection_reflection",
+        "portable_structural_recovery_authority"
       ],
       "reviewCondition": "Revisit if generated Go members become safely exported or a typed data-only metadata artifact can replace same-package adapters without increasing runtime authority."
     },
@@ -169,6 +171,7 @@
           "symbol": "Reflect",
           "scope": "partial_type",
           "members": [
+            "callMethod",
             "field",
             "fields",
             "hasField",

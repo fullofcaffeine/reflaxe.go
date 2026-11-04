@@ -92,7 +92,7 @@ class Reflect {
 	}
 
 	public static function callMethod(o:Dynamic, func:Function, args:Array<Dynamic>):Dynamic {
-		return NativeReflect.callMethod(func, NativeSlice.fromArray(args));
+		return CompilerReflect.callMethod(func, NativeSlice.fromArray(args));
 	}
 
 	public static function fields(o:Dynamic):Array<String> {

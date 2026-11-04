@@ -6,7 +6,6 @@ import haxe.macro.Type;
 import reflaxe.go.ast.GoAST.GoExpr;
 import reflaxe.go.ast.GoAST.GoDecl;
 import reflaxe.go.ast.GoAST.GoTypeSwitchCase;
-import haxe.macro.TypeTools;
 import reflaxe.go.ast.GoAST.GoStmt;
 import reflaxe.go.ast.GoAST.GoSwitchCase;
 import reflaxe.go.ast.GoCompositeElement;
@@ -18,9 +17,6 @@ private typedef GoStructuralObjectConfig = {
 	final readMember:(GoExpr, ClassType, ClassField, Type) -> GoExpr;
 	final writeMember:(GoExpr, ClassType, ClassField, Type, GoExpr) -> Null<GoStmt>;
 	final noteSource:ClassType->Void;
-	final readAnonymous:(GoExpr, String, Type) -> GoExpr;
-	final adaptValue:(GoExpr, Type, Type) -> GoExpr;
-	final recoverValue:(GoExpr, Type) -> GoExpr;
 }
 
 /**
@@ -32,7 +28,8 @@ private typedef GoStructuralObjectConfig = {
 **/
 class GoStructuralObjectLowering {
 	final config:GoStructuralObjectConfig;
-	final recoveries:Array<{key:String, target:Type, symbol:String}> = [];
+	var needsRecovery = false;
+	var frozen = false;
 
 	public function new(config:GoStructuralObjectConfig) {
 		this.config = config;
@@ -40,61 +37,55 @@ class GoStructuralObjectLowering {
 
 	/** Reset per-compilation admission plans; no runtime registry is introduced. */
 	public function reset():Void {
-		recoveries.resize(0);
+		needsRecovery = false;
+		frozen = false;
 	}
 
-	/** Recover erased values through a finite compiler-owned target-shape resolver. */
+	/** Typed consumers share raw structural storage; field reads own recovery. */
 	public function recover(value:GoExpr, target:Type):GoExpr {
-		var key = TypeTools.toString(target);
-		var symbol:Null<String> = null;
-		for (plan in recoveries)
-			if (plan.key == key) {
-				symbol = plan.symbol;
-				break;
-			}
-		if (symbol == null) {
-			symbol = "hx_structural_recover_" + recoveries.length;
-			recoveries.push({key: key, target: target, symbol: symbol});
-		}
-		return GoExpr.GoCall(GoExpr.GoIdent(symbol), [value]);
+		return recoverRaw(value);
 	}
+
+	/** Recover a heterogeneous object without imposing a target member projection. */
+	public function recoverRaw(value:GoExpr):GoExpr {
+		if (frozen && !needsRecovery)
+			Context.fatalError("Structural recovery discovered after freeze", Context.currentPos());
+		needsRecovery = true;
+		return GoExpr.GoCall(GoExpr.GoIdent("hx_structural_recover"), [value]);
+	}
+
+	public function requirementCount():Int
+		return needsRecovery ? 1 : 0;
+
+	public function freeze():Void
+		frozen = true;
 
 	/**
-		Emit only reachable generated carriers which Haxe can unify with the requested
-		shape. Their fields use the same typed live plan as direct structural coercion;
-		already structural values and null retain the runtime storage recovery path.
+		Erased Haxe object transport does not re-check structural unification. Every
+		reachable generated class retains its physical stored members, including
+		fields outside the first narrow view. Missing fields remain absent.
 	**/
 	public function emitRecoveries(classes:Array<ClassType>):Array<GoDecl> {
-		var declarations = new Array<GoDecl>();
-		var sources = new Array<Type>();
+		if (!needsRecovery)
+			return [];
+		var cases = new Array<GoTypeSwitchCase>();
 		for (source in classes) {
 			if (source.isExtern || source.isInterface)
 				continue;
 			for (type in Context.getModule(source.module))
 				switch (type) {
 					case TInst(ref, _) if (ref.get().name == source.name):
-						sources.push(type);
+						cases.push({typeName: config.sourceGoType(type), body: [GoStmt.GoReturn(classView(GoExpr.GoIdent("source"), type, source))]});
 					case _:
 				}
 		}
-		var index = 0;
-		while (index < recoveries.length) {
-			var plan = recoveries[index++];
-			var cases = new Array<GoTypeSwitchCase>();
-			for (source in sources) {
-				if (!Context.unify(source, plan.target))
-					continue;
-				var view = coerce(GoExpr.GoIdent("source"), source, plan.target);
-				if (view != null)
-					cases.push({typeName: config.sourceGoType(source), body: [GoStmt.GoReturn(view)]});
-			}
-			var fallback = [
-				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromValue"), [GoExpr.GoIdent("value")]))
-			];
-			var body = cases.length == 0 ? fallback : [GoStmt.GoTypeSwitch(GoExpr.GoIdent("value"), "source", cases, fallback)];
-			declarations.push(GoDecl.GoFuncDecl(plan.symbol, null, [{name: "value", typeName: "any"}], ["hxrt.Anonymous"], body));
-		}
-		return declarations;
+		var fallback = [
+			GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromValue"), [GoExpr.GoIdent("value")]))
+		];
+		var body = cases.length == 0 ? fallback : [GoStmt.GoTypeSwitch(GoExpr.GoIdent("value"), "source", cases, fallback)];
+		return [
+			GoDecl.GoFuncDecl("hx_structural_recover", null, [{name: "value", typeName: "any"}], ["hxrt.Anonymous"], body)
+		];
 	}
 
 	/** Admit generated class sources; anonymous width projections need no new view. */
@@ -102,32 +93,36 @@ class GoStructuralObjectLowering {
 		var target = GoTypeMapper.anonymousFields(toType);
 		var anonymousSource = GoTypeMapper.anonymousFields(fromType);
 		if (target != null && anonymousSource != null)
-			return adaptAnonymous(value, anonymousSource, target);
+			return value;
+		if (target != null && config.sourceGoType(fromType) == "any")
+			return recoverRaw(value);
 		var source = switch (Context.follow(fromType)) {
 			case TInst(ref, _): ref.get();
 			case _: null;
 		};
 		if (target == null || source == null || source.isExtern)
 			return null;
+		return classView(value, fromType, source);
+	}
+
+	/** Read and write source declarations, independent of the consumer's shape. */
+	function classView(value:GoExpr, fromType:Type, source:ClassType):GoExpr {
 		var sourceName = config.freshTempName("hx_structural_source");
 		var sourceExpr = GoExpr.GoIdent(sourceName);
 		var reads = new Array<GoSwitchCase>();
 		var writes = new Array<GoSwitchCase>();
-		for (destination in target) {
-			var member = findMember(source, destination.name);
-			if (member == null)
-				return null;
+		for (member in sourceMembers(source)) {
 			if (source.isInterface)
 				switch (member.kind) {
 					case FMethod(MethNormal) | FMethod(MethInline):
 					case _:
-						return null;
+						continue;
 				}
-			var read = config.readMember(sourceExpr, source, member, destination.type);
-			reads.push({values: [GoExpr.GoStringLiteral(destination.name)], body: [GoStmt.GoReturn(fieldValue(read))]});
-			var write = config.writeMember(sourceExpr, source, member, destination.type, GoExpr.GoIdent("incoming"));
+			var read = config.readMember(sourceExpr, source, member, member.type);
+			reads.push({values: [GoExpr.GoStringLiteral(member.name)], body: [GoStmt.GoReturn(fieldValue(read))]});
+			var write = config.writeMember(sourceExpr, source, member, member.type, GoExpr.GoIdent("incoming"));
 			if (write != null)
-				writes.push({values: [GoExpr.GoStringLiteral(destination.name)], body: [write, GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))]});
+				writes.push({values: [GoExpr.GoStringLiteral(member.name)], body: [write, GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))]});
 		}
 		config.noteSource(source);
 		var read = GoExpr.GoFuncLiteral([{name: "name", typeName: "string"}], ["hxrt.AnonymousField"], [
@@ -143,67 +138,25 @@ class GoStructuralObjectLowering {
 		]), [value]);
 	}
 
-	/**
-		Change member signatures through live reads, retaining the original source.
-		Width-only projections reuse storage. Changed callback signatures adapt each
-		read value rather than retaining a snapshot of a mutable source slot.
-	**/
-	function adaptAnonymous(value:GoExpr, from:Array<ClassField>, to:Array<ClassField>):GoExpr {
-		var changed = new Array<{source:ClassField, target:ClassField}>();
-		for (destination in to) {
-			for (source in from) {
-				if (source.name == destination.name && config.sourceGoType(source.type) != config.sourceGoType(destination.type)) {
-					changed.push({source: source, target: destination});
-					break;
-				}
+	/** Nearest declarations win while inherited source fields remain visible. */
+	function sourceMembers(source:ClassType):Array<ClassField> {
+		var fields = new Array<ClassField>();
+		var seen = new Map<String, Bool>();
+		function collect(type:ClassType):Void {
+			for (field in type.fields.get()) {
+				if (field.name == "new" || seen.exists(field.name))
+					continue;
+				seen.set(field.name, true);
+				fields.push(field);
 			}
+			if (type.isInterface)
+				for (parent in type.interfaces)
+					collect(parent.t.get());
+			if (type.superClass != null)
+				collect(type.superClass.t.get());
 		}
-		if (changed.length == 0)
-			return value;
-		var sourceName = config.freshTempName("hx_structural_origin");
-		var source = GoExpr.GoIdent(sourceName);
-		var reads = new Array<GoSwitchCase>();
-		var writes = new Array<GoSwitchCase>();
-		for (member in changed) {
-			var key = GoExpr.GoStringLiteral(member.target.name);
-			var read = config.readAnonymous(source, member.source.name, member.source.type);
-			read = config.adaptValue(read, member.source.type, member.target.type);
-			reads.push({values: [key], body: [GoStmt.GoReturn(fieldValue(read))]});
-			var incoming = config.recoverValue(GoExpr.GoIdent("incoming"), member.target.type);
-			incoming = config.adaptValue(incoming, member.target.type, member.source.type);
-			writes.push({
-				values: [key],
-				body: [
-					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousSet"), [source, key, incoming])),
-					GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))
-				]
-			});
-		}
-		var reader = GoExpr.GoFuncLiteral([{name: "name", typeName: "string"}], ["hxrt.AnonymousField"], [
-			GoStmt.GoSwitch(GoExpr.GoIdent("name"), reads, null),
-			GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousLookup"), [source, GoExpr.GoIdent("name")]))
-		]);
-		var writer = GoExpr.GoFuncLiteral([{name: "name", typeName: "string"}, {name: "incoming", typeName: "any"}], ["bool"], [
-			GoStmt.GoSwitch(GoExpr.GoIdent("name"), writes, null),
-			GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousSet"), [source, GoExpr.GoIdent("name"), GoExpr.GoIdent("incoming")])),
-			GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))
-		]);
-		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: sourceName, typeName: "hxrt.Anonymous"}], ["hxrt.Anonymous"], [
-			GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.NewAnonymousView"), [source, reader, writer]))
-		]), [value]);
-	}
-
-	function findMember(source:ClassType, name:String):Null<ClassField> {
-		for (field in source.fields.get())
-			if (field.name == name)
-				return field;
-		if (source.isInterface)
-			for (parent in source.interfaces) {
-				var field = findMember(parent.t.get(), name);
-				if (field != null)
-					return field;
-			}
-		return source.superClass == null ? null : findMember(source.superClass.t.get(), name);
+		collect(source);
+		return fields;
 	}
 
 	function fieldValue(value:GoExpr):GoExpr {

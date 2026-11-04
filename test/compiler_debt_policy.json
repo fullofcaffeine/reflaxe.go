@@ -13,10 +13,10 @@
         "docs/compiler-stdlib-intrinsics.json",
         "test/test_compiler_stdlib_intrinsic_registry.py"
       ],
-      "how": "Register each exact entry point and Haxe symbol in docs/compiler-stdlib-intrinsics.json, keep generated metadata separate from public library algorithms, and reject unregistered compiler ownership.",
+      "how": "Register each exact entry point and Haxe symbol in docs/compiler-stdlib-intrinsics.json, keep generated metadata separate from public library algorithms, and reject unregistered compiler ownership. CompilerReflect.callMethod delegates to GoValueRecovery; generated source-signature switches validate each argument before typed invocation.",
       "owner": "compiler stdlib intrinsics",
       "reviewCondition": "Revisit whenever staged source or a typed runtime capability can consume the same representation or generated metadata without compiler-owned behavior.",
-      "what": "Narrow portable stdlib primitives that genuinely need the compiler's closed type metadata or backend representation knowledge.",
+      "what": "Narrow portable stdlib primitives that genuinely need the compiler's closed type metadata or backend representation knowledge. The Reflect invocation facade preserves its erased function, argument and result contract before immediate typed recovery.",
       "why": "Ordinary staged source cannot enumerate the final generated type graph or safely construct a backend-owned carrier without that compile-time information."
     },
     "generated_reflection_boundary": {
@@ -4129,6 +4129,18 @@
       "owner": "runtime_facade",
       "profile": "shared",
       "surface": "staged_std"
+    },
+    {
+      "capability": "reflection",
+      "classification": "required",
+      "context": "callMethod",
+      "exception_id": "compiler_stdlib_intrinsic_boundary",
+      "file": "std/reflaxe/go/internal/CompilerReflect.hx",
+      "max_count": 3,
+      "metric": "haxe_dynamic",
+      "owner": "compiler_metadata",
+      "profile": "shared",
+      "surface": "staged_support"
     },
     {
       "capability": "reflection",

@@ -16,9 +16,21 @@ func (self *DomainError) HxFunctionReceiver() any {
 }
 
 func New_DomainError(code *string, message *string) *DomainError {
+	return hx_init_DomainError(hx_alloc_DomainError(nil), code, message)
+}
+
+func hx_alloc_DomainError(owner any) *DomainError {
 	self := &DomainError{}
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_DomainError)
+	}
+	return self
+}
+
+func hx_init_DomainError(self *DomainError, code *string, message *string) *DomainError {
 	self.__hx_exception = hxrt.BindException(self, message, nil, nil)
-	self.__hx_this = self
 	self.code = code
 	return self
 }

@@ -279,7 +279,8 @@ class GoTypeMapper {
 					fields.push(field);
 				}
 		}
-		return fields;
+		// An empty constraint admits nominal objects; it promises no structural slots.
+		return fields.length == 0 ? null : fields;
 	}
 
 	public static function isAnonymousObjectType(type:Type):Bool {
