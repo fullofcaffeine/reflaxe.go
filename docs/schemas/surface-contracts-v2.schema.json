@@ -127,6 +127,7 @@
       "enum": [
         "core",
         "function",
+        "anonymous",
         "array",
         "array_sort",
         "string",
