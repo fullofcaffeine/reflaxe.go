@@ -7045,10 +7045,65 @@ class GoCompiler {
 		return isStringType(type) && !(nullableInner != null && isStringType(nullableInner));
 	}
 
+	/**
+		What: Describes a native callback payload, recursively through callback slots.
+		Why: Native string values and nested raw functions differ from Haxe carriers.
+		How: Change only proven string/function boundaries; retain scalar/null storage.
+	**/
+	function nativeCallbackStorageType(type:Type):GoType {
+		if (importedExternMethodValueNeedsStringAdapter(type)) {
+			return GoType.builtin(GoBuiltinType.StringType);
+		}
+		return switch (Context.follow(type)) {
+			case TFun(args, result):
+				GoType.functionType([
+					for (arg in args)
+						functionParameterStorageGoType(arg) == "any" ? GoType.builtin(GoBuiltinType.AnyType) : nativeCallbackStorageType(arg.t)
+				], isVoidType(result) ? [] : [nativeCallbackStorageType(result)]);
+			case _: GoType.parse(GoTypeMapper.functionResultStorageGoType(type, classTypeNameForMappedType, enumTypeName));
+		};
+	}
+
+	/**
+		What: Exports a Haxe callback with the exact native signature.
+		Why: Unwrapping alone cannot turn pointer-backed strings or nested carriers
+		into the value strings and raw functions required by a native Go API.
+		How: Capture once, retain nil, import native arguments, and export the result.
+		Identical signatures use the existing zero-wrapper payload extraction.
+	**/
+	function lowerExportedFunctionValue(value:GoExpr, type:Type):GoExpr {
+		return switch (Context.follow(type)) {
+			case TFun(args, result):
+				var nativeType = nativeCallbackStorageType(type);
+				if (nativeType.render() == goFunctionType(args, result)) {
+					nativeFunctionValue(value);
+				} else {
+					var sourceName = freshTempName("hx_native_callback");
+					var source = GoExpr.GoIdent(sourceName);
+					var params = new Array<GoParam>();
+					var actuals = new Array<GoExpr>();
+					for (arg in args) {
+						var name = freshTempName("hx_native_arg");
+						var erased = functionParameterStorageGoType(arg) == "any";
+						params.push({name: name, typeName: erased ? GoType.builtin(GoBuiltinType.AnyType) : nativeCallbackStorageType(arg.t)});
+						actuals.push(erased ? GoExpr.GoIdent(name) : normalizeImportedExternMethodValueResult(GoExpr.GoIdent(name), arg.t));
+					}
+					var call = GoExpr.GoCall(functionValueCallable(source), actuals);
+					var body = isVoidType(result) ? [GoStmt.GoExprStmt(call)] : [GoStmt.GoReturn(normalizeImportedExternMethodValueArg(call, result))];
+					var wrapper = GoExpr.GoFuncLiteral(params, isVoidType(result) ? [] : [nativeCallbackStorageType(result)], body);
+					GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: sourceName, typeName: typeToGoType(type)}], [nativeType], [
+						GoStmt.GoIf(GoExpr.GoBinary("==", source, GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null),
+						GoStmt.GoReturn(wrapper)
+					]), [value]);
+				}
+			case _: value;
+		};
+	}
+
 	function normalizeImportedExternMethodValueArg(value:GoExpr, type:Type):GoExpr {
 		switch (Context.follow(type)) {
 			case TFun(_, _):
-				return nativeFunctionValue(value);
+				return lowerExportedFunctionValue(value, type);
 			case _:
 		}
 		return importedExternMethodValueNeedsStringAdapter(type) ? GoExpr.GoUnary("*", GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [value])) : value;
@@ -9915,7 +9970,7 @@ class GoCompiler {
 		if (paramType != null && isGoImportExternCall(callee)) {
 			switch (Context.follow(paramType)) {
 				case TFun(_, _):
-					return nativeFunctionValue(argExpr);
+					return isHxrtImportExternCall(callee) ? nativeFunctionValue(argExpr) : lowerExportedFunctionValue(argExpr, paramType);
 				case _:
 			}
 		}
