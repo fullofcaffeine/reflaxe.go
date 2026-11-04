@@ -5553,12 +5553,14 @@ class GoCompiler {
 
 		What: Recognize the Go reference carriers emitted by this compiler.
 
-		How: Keep value carriers on the direct assertion path and route pointers,
-		maps, slices, functions, interfaces, and channels through the existing
-		nil-safe assertion expression.
+		How: Recognize named structural and nominal interfaces from Haxe typing,
+		then recognize native reference carriers from their Go spelling. Keep value
+		carriers on the direct assertion path and recover references with null safety.
 	**/
-	function enumPayloadGoTypeCanBeNil(goType:String):Bool {
-		return StringTools.startsWith(goType, "*")
+	function enumPayloadGoTypeCanBeNil(type:Type, goType:String):Bool {
+		return isAnonymousObjectType(type)
+			|| GoTypeMapper.isInterfaceType(type)
+			|| StringTools.startsWith(goType, "*")
 			|| StringTools.startsWith(goType, "map[")
 			|| StringTools.startsWith(goType, "[]")
 			|| StringTools.startsWith(goType, "func(")
@@ -6239,7 +6241,7 @@ class GoCompiler {
 			case TEnumParameter(target, constructor, index):
 				var payload = GoExpr.GoIndex(GoExpr.GoSelector(lowerExpr(target).expr, "params"), GoExpr.GoIntLiteral(index));
 				var payloadType = enumPayloadStorageGoType(constructor, index, expr.t);
-				var needsNilSafePayload = isAdmittedPortableFacadeEnumType(target.t) || enumPayloadGoTypeCanBeNil(payloadType);
+				var needsNilSafePayload = isAdmittedPortableFacadeEnumType(target.t) || enumPayloadGoTypeCanBeNil(expr.t, payloadType);
 				{
 					expr: payloadType == "any" ? payload : needsNilSafePayload ? lowerNullableAwareTypeAssertExpr(payload,
 						expr.t) : GoExpr.GoTypeAssert(payload, payloadType),
