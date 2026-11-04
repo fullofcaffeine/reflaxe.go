@@ -6352,6 +6352,10 @@ class GoCompiler {
 			case TMeta(_, inner):
 				lowerExpr(inner);
 			case TCast(inner, _):
+				// Array storage has no source-retaining structural member view yet.
+				// Check the cast itself: inlining can erase its surrounding API call.
+				if (isArrayType(inner.t) && isAnonymousObjectType(expr.t))
+					Context.fatalError("Array-to-structural casts are not supported on Go; retain a concrete iterable carrier", expr.pos);
 				var loweredInner = lowerExpr(inner);
 				var innerGoType = typeToGoType(inner.t);
 				var castGoType = typeToGoType(expr.t);

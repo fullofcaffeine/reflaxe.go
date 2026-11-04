@@ -1,0 +1,1 @@
+Array-to-structural casts are not supported on Go; retain a concrete iterable carrier

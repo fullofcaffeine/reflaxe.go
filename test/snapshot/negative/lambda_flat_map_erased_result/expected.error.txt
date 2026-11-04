@@ -1,1 +1,1 @@
-Lambda.flatMap requires a callback with a statically concrete iterable result on Go
+Array-to-structural casts are not supported on Go; retain a concrete iterable carrier
