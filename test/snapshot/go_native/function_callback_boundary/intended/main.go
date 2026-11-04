@@ -20,6 +20,9 @@ func main() {
 	hxrt.Println(v_2)
 	search := func() *hxrt.Function[func(int, *hxrt.Function[func(int) bool]) int] {
 		hx_extern_method_1 := sort.Search
+		if hx_extern_method_1 == nil {
+			return nil
+		}
 		return hxrt.NewFunction(func(hx_extern_arg_2 int, hx_extern_arg_3 *hxrt.Function[func(int) bool]) int {
 			return int(hx_extern_method_1(hx_extern_arg_2, hxrt.FunctionNative(hx_extern_arg_3)))
 		})

@@ -6992,7 +6992,18 @@ class GoCompiler {
 			return null;
 		}
 
-		return switch (Context.follow(field.type)) {
+		return lowerImportedFunctionValue(GoExpr.GoSelector(target, selector), field.type);
+	}
+
+	/**
+		What: Imports one native callback into Haxe function storage.
+		Why: Native APIs can return callbacks as well as expose method values. Both
+		must preserve nullness and use the same typed argument/result conversions.
+		How: Capture the native expression once, preserve nil, and wrap its callable
+		in a fresh identity carrier. Nested callback results cross this boundary too.
+	**/
+	function lowerImportedFunctionValue(value:GoExpr, type:Type):Null<GoExpr> {
+		return switch (Context.follow(type)) {
 			case TFun(args, returnType):
 				var methodName = freshTempName("hx_extern_method");
 				var params = new Array<GoParam>();
@@ -7002,7 +7013,6 @@ class GoCompiler {
 					params.push({name: argName, typeName: functionParameterStorageGoType(arg)});
 					callArgs.push(normalizeImportedExternMethodValueArg(GoExpr.GoIdent(argName), arg.t));
 				}
-
 				var call = GoExpr.GoCall(GoExpr.GoIdent(methodName), callArgs);
 				var innerBody = if (isVoidType(returnType)) {
 					[GoStmt.GoExprStmt(call)];
@@ -7010,8 +7020,9 @@ class GoCompiler {
 					[GoStmt.GoReturn(normalizeImportedExternMethodValueResult(call, returnType))];
 				};
 				var wrapper = GoExpr.GoFuncLiteral(params, lowerFunctionResults(returnType), innerBody);
-				GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(field.type)], [
-					GoStmt.GoVarDecl(methodName, null, GoExpr.GoSelector(target, selector), true),
+				GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(type)], [
+					GoStmt.GoVarDecl(methodName, null, value, true),
+					GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent(methodName), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null),
 					GoStmt.GoReturn(freshFunctionValue(wrapper))
 				]), []);
 			case _:
@@ -7034,6 +7045,9 @@ class GoCompiler {
 	}
 
 	function normalizeImportedExternMethodValueResult(value:GoExpr, type:Type):GoExpr {
+		var callback = lowerImportedFunctionValue(value, type);
+		if (callback != null)
+			return callback;
 		if (isIntType(type))
 			return GoExpr.GoCall(GoExpr.GoIdent("int"), [value]);
 		return importedExternMethodValueNeedsStringAdapter(type) ? GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [value]) : value;
@@ -7376,6 +7390,11 @@ class GoCompiler {
 			callExpr = lowerNullableAwareTypeAssertExpr(callExpr, returnType);
 		}
 		callExpr = normalizeExternStringCallResult(callee, returnType, callExpr);
+		if (isGoImportExternCall(callee) && !isHxrtImportExternCall(callee)) {
+			var callback = lowerImportedFunctionValue(callExpr, returnType);
+			if (callback != null)
+				callExpr = callback;
+		}
 
 		return {
 			expr: callExpr,
@@ -8083,6 +8102,11 @@ class GoCompiler {
 						callExpr = lowerNullableAwareTypeAssertExpr(callExpr, returnType);
 					}
 					callExpr = normalizeExternStringCallResult(callee, returnType, callExpr);
+					if (isGoImportExternCall(callee) && !isHxrtImportExternCall(callee)) {
+						var callback = lowerImportedFunctionValue(callExpr, returnType);
+						if (callback != null)
+							callExpr = callback;
+					}
 
 					{
 						expr: callExpr,
