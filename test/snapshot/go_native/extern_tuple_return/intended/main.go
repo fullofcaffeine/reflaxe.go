@@ -15,6 +15,10 @@ type AtoiResult struct {
 	err       *go___Error
 }
 
+func (self *AtoiResult) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_AtoiResult(n int, err *go___Error) *AtoiResult {
 	self := &AtoiResult{}
 	self.__hx_this = self
@@ -61,6 +65,10 @@ type TimeZoneResult struct {
 	__hx_this I_TimeZoneResult
 	name      *string
 	offset    int
+}
+
+func (self *TimeZoneResult) HxFunctionReceiver() any {
+	return self.__hx_this
 }
 
 func New_TimeZoneResult(name *string, offset int) *TimeZoneResult {

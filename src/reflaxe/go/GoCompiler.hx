@@ -10062,6 +10062,14 @@ class GoCompiler {
 		if (isGoErrorType(targetType)) {
 			return coerceNativeGoError(value);
 		}
+		if (isGoImportExternCall(callee) && !isHxrtImportExternCall(callee)) {
+			// Tuple elements cross the same typed callback import boundary as a
+			// standalone return, before entering the Haxe result carrier.
+			var callback = lowerImportedFunctionValue(value, targetType);
+			if (callback != null) {
+				return callback;
+			}
+		}
 		return value;
 	}
 
