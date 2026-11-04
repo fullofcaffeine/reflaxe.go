@@ -110,15 +110,15 @@ func haxe___CallStack__CallStack_Impl__equalItems(item1 *haxe__StackItem, item2 
 					}(item2.params[1])
 					_g6 := item2.params[2].(int)
 					var _g7 any = item2.params[3]
-					item2_1 := _g4
+					nestedRight := _g4
 					file2 := _g5
 					line2 := _g6
 					var col2 any = _g7
 					var col1 any = _g3
 					line1 := _g2
 					file1 := _g1_1
-					item1_1 := _g_1
-					hx_if_19 = (((hxrt.StringEqualStringPtr(file1, file2) && (line1 == line2)) && (col1 == col2)) && haxe___CallStack__CallStack_Impl__equalItems(item1_1, item2_1))
+					nestedLeft := _g_1
+					hx_if_19 = (((hxrt.StringEqualStringPtr(file1, file2) && (line1 == line2)) && (col1 == col2)) && haxe___CallStack__CallStack_Impl__equalItems(nestedLeft, nestedRight))
 				} else {
 					hx_if_19 = false
 				}
@@ -199,10 +199,10 @@ func haxe___CallStack__CallStack_Impl__exceptionStack(fullStack bool) *hxrt.Arra
 	return hxrt.NewArray()
 }
 
-func haxe___CallStack__CallStack_Impl__exceptionToString(e *haxe__Exception) *string {
-	if e.__hx_this.get_previous() == nil {
-		return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Exception: "), e.__hx_this.toString()), func() *string {
-			var tmp any = e.__hx_this.get_stack()
+func haxe___CallStack__CallStack_Impl__exceptionToString(exception *haxe__Exception) *string {
+	if exception.__hx_this.get_previous() == nil {
+		return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Exception: "), exception.__hx_this.toString()), func() *string {
+			var tmp any = exception.__hx_this.get_stack()
 			var hx_if_34 *string
 			if hxrt.AnyEqualsNull(tmp) {
 				hx_if_34 = hxrt.StringFromLiteral("null")
@@ -213,12 +213,12 @@ func haxe___CallStack__CallStack_Impl__exceptionToString(e *haxe__Exception) *st
 		}())
 	}
 	result := hxrt.StringFromLiteral("")
-	e_1 := e
+	e := exception
 	var prev *haxe__Exception = nil
-	for e_1 != nil {
+	for e != nil {
 		if prev == nil {
-			result = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Exception: "), e_1.__hx_this.get_message()), func() *string {
-				var tmp_1 any = e_1.__hx_this.get_stack()
+			result = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Exception: "), e.__hx_this.get_message()), func() *string {
+				var tmp_1 any = e.__hx_this.get_stack()
 				var hx_if_35 *string
 				if hxrt.AnyEqualsNull(tmp_1) {
 					hx_if_35 = hxrt.StringFromLiteral("null")
@@ -234,8 +234,8 @@ func haxe___CallStack__CallStack_Impl__exceptionToString(e *haxe__Exception) *st
 					return hx_zero_37
 				}
 				return hx_value_36.(*hxrt.Array)
-			}(any(e_1.__hx_this.get_stack())), prev.__hx_this.get_stack())
-			result = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Exception: "), e_1.__hx_this.get_message()), func() *string {
+			}(any(e.__hx_this.get_stack())), prev.__hx_this.get_stack())
+			result = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Exception: "), e.__hx_this.get_message()), func() *string {
 				var hx_if_38 *string
 				if hxrt.AnyEqualsNull(prevStack) {
 					hx_if_38 = hxrt.StringFromLiteral("null")
@@ -245,8 +245,8 @@ func haxe___CallStack__CallStack_Impl__exceptionToString(e *haxe__Exception) *st
 				return hx_if_38
 			}()), hxrt.StringFromLiteral("\n\nNext ")), result)
 		}
-		prev = e_1
-		e_1 = e_1.__hx_this.get_previous()
+		prev = e
+		e = e.__hx_this.get_previous()
 	}
 	return result
 }

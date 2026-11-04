@@ -5188,11 +5188,11 @@ func hx_recover_class_0(value any) *haxe__Exception {
 		return source.haxe__Exception
 	case *haxe__exceptions__NotImplementedException:
 		return source.haxe__exceptions__PosException.haxe__Exception
+	case *haxe__ValueException:
+		return source.haxe__Exception
 	case *haxe__Exception:
 		return source
 	case *haxe__exceptions__PosException:
-		return source.haxe__Exception
-	case *haxe__ValueException:
 		return source.haxe__Exception
 	default:
 		return value.(*haxe__Exception)

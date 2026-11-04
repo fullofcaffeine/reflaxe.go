@@ -106,13 +106,7 @@ func haxe__Exception_catchValue(value any) any {
 			return false
 		}
 	}(hxrt.ObjectSource(hxrt.ObjectSource(value))) {
-		wrapped := func(hx_value_2 any) *haxe__ValueException {
-			if hx_value_2 == nil {
-				var hx_zero_3 *haxe__ValueException
-				return hx_zero_3
-			}
-			return hx_value_2.(*haxe__ValueException)
-		}(any(hx_recover_class_4(value)))
+		wrapped := hx_recover_class_4(hx_recover_class_4(value))
 		return wrapped.value
 	}
 	return value
@@ -122,6 +116,11 @@ func haxe__Exception_caught(value any) *haxe__Exception {
 	if func(hx_value any) bool {
 		switch hx_carrier := hx_value.(type) {
 		case *haxe__Exception:
+			if hx_carrier == nil {
+				return false
+			}
+			return true
+		case *haxe__ValueException:
 			if hx_carrier == nil {
 				return false
 			}
@@ -154,6 +153,11 @@ func haxe__Exception_thrown(value any) any {
 	if func(hx_value any) bool {
 		switch hx_carrier := hx_value.(type) {
 		case *haxe__Exception:
+			if hx_carrier == nil {
+				return false
+			}
+			return true
+		case *haxe__ValueException:
 			if hx_carrier == nil {
 				return false
 			}
