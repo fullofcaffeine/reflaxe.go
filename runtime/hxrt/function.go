@@ -19,8 +19,9 @@ type functionIdentity struct {
 // This primitive does not grant identity to raw native callbacks after an opaque
 // roundtrip. Compiler lowering must preserve the whole value through Haxe slots.
 type Function[F any] struct {
-	call     F
-	identity *functionIdentity
+	call          F
+	identity      *functionIdentity
+	defaultMethod bool
 }
 
 // functionValue is the erased identity boundary used across adapted signatures.
@@ -155,4 +156,38 @@ func FunctionNative[F any](value *Function[F]) F {
 		return zero
 	}
 	return value.call
+}
+
+// DefaultDynamicFunction marks the initial implementation in a mutable method
+// slot. Haxe binds that default freshly on extraction; assigned function values
+// instead retain their stored identity. Only compiler initialization uses this.
+func DefaultDynamicFunction[F any](value *Function[F], receiver func() any, slot string) *Function[F] {
+	if value == nil {
+		return nil
+	}
+	value.identity.name = slot
+	value.identity.receiver = receiver
+	value.defaultMethod = true
+	return value
+}
+
+// ReadDynamicFunction binds an untouched default once, or returns the current
+// replacement as stored. The extracted result is never a template: saving or
+// assigning it elsewhere cannot cause later reads to bind again.
+func ReadDynamicFunction[F any](value *Function[F]) *Function[F] {
+	if value == nil || !value.defaultMethod {
+		return value
+	}
+	return BoundFunction(value.call, value.identity.receiver, value.identity.name)
+}
+
+func (value *Function[F]) readStoredFunction() any { return ReadDynamicFunction(value) }
+
+// ReadStoredField is the erased generated-field boundary used by reflection.
+// Ordinary fields pass through; only an unextracted dynamic default is rebound.
+func ReadStoredField(value any) any {
+	if function, ok := value.(interface{ readStoredFunction() any }); ok {
+		return function.readStoredFunction()
+	}
+	return value
 }

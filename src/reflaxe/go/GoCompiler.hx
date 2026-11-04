@@ -21,6 +21,7 @@ import reflaxe.go.compiler.GoFunctionValueLowering.adapt as adaptFunctionValue;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureInference;
 import reflaxe.go.compiler.GoMetadataName;
 import reflaxe.go.compiler.GoLambdaIterableLowering;
+import reflaxe.go.compiler.GoStructuralObjectLowering;
 import reflaxe.go.compiler.GoNativeTypeEligibility;
 import reflaxe.go.compiler.GoNativeTypeEligibility.GoNativeEligibilityRole;
 import reflaxe.go.compiler.GoNativeTypeEligibility.GoNativeTypeEligibilityResult;
@@ -282,6 +283,7 @@ class GoCompiler {
 	final sourceModuleRegistry:GoSourceModuleRegistry;
 	final sourceOwnedStdlibPlanner:GoSourceOwnedStdlibPlanner;
 	final lambdaIterableLowering:GoLambdaIterableLowering;
+	final structuralObjectLowering:GoStructuralObjectLowering;
 	final functionVarNameScopes:Array<Map<Int, String>>;
 	final functionVarNameCountScopes:Array<Map<String, Int>>;
 	final optionalPrimitiveParamScopes:Array<Map<Int, String>>;
@@ -403,7 +405,15 @@ class GoCompiler {
 			fullEnumName: fullEnumName,
 			requireStdlibShimGroup: requireStdlibShimGroup
 		});
+		structuralObjectLowering = new GoStructuralObjectLowering({
+			freshTempName: freshTempName,
+			sourceGoType: typeToGoType,
+			readMember: lowerStructuralMemberRead,
+			writeMember: lowerStructuralMemberWrite,
+			noteSource: noteSourceOwnedStdlibUsage
+		});
 		lambdaIterableLowering = new GoLambdaIterableLowering({
+			structuralObjectCoerce: structuralObjectLowering.coerce,
 			lowerExpr: lowerExpr,
 			lowerToStatements: lowerToStatements,
 			freshTempName: freshTempName,
@@ -786,7 +796,10 @@ class GoCompiler {
 			"hxrt.FunctionCall",
 			"hxrt.FunctionNative",
 			"hxrt.AdaptFunction",
-			"hxrt.FunctionReceiver"
+			"hxrt.FunctionReceiver",
+			"hxrt.DefaultDynamicFunction",
+			"hxrt.ReadDynamicFunction",
+			"hxrt.ReadStoredField"
 		]) {
 			if (declsUseRuntimeSymbol(decls, symbol)) {
 				requireGeneratedRuntimeFeature(GoHxrtFeatureAnalyzer.FEATURE_FUNCTION, "lowered_go_ast:" + symbol);
@@ -3341,7 +3354,10 @@ class GoCompiler {
 					if (value != null) {
 						var lowered = lowerStoredExprWithExpectedType(value, field.type);
 						out = out.concat(lowered.prefix);
-						out.push(GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), normalizeIdent(field.name)), lowered.expr));
+						var receiver = GoExpr.GoFuncLiteral([], ["any"], [GoStmt.GoReturn(GoExpr.GoSelector(GoExpr.GoIdent("self"), "__hx_this"))]);
+						var initial = GoExpr.GoCall(GoExpr.GoIdent("hxrt.DefaultDynamicFunction"),
+							[lowered.expr, receiver, GoExpr.GoStringLiteral(field.name)]);
+						out.push(GoStmt.GoAssign(GoExpr.GoSelector(GoExpr.GoIdent("self"), normalizeIdent(field.name)), initial));
 					}
 				case _:
 			}
@@ -5998,7 +6014,7 @@ class GoCompiler {
 					case FDynamic(name) if (isAnonymousObjectType(target.t)):
 						GoExpr.GoIndex(lowerExpr(target).expr, GoExpr.GoStringLiteral(name));
 					case _:
-						lowerField(target, access).expr;
+						lowerField(target, access, false).expr;
 				}
 			case TParenthesis(inner):
 				lowerLValue(inner);
@@ -6802,6 +6818,14 @@ class GoCompiler {
 		return isFunctionValueCall(callee) ? functionValueCallable(value) : value;
 	}
 
+	/** Mutable defaults need fresh extraction until a function is assigned. */
+	function isDynamicMethod(field:ClassField):Bool {
+		return switch (field.kind) {
+			case FMethod(MethDynamic): true;
+			case _: false;
+		};
+	}
+
 	function isOrdinaryMethod(field:ClassField):Bool {
 		return switch (field.kind) {
 			case FMethod(MethDynamic): false;
@@ -6858,6 +6882,30 @@ class GoCompiler {
 		};
 	}
 
+	/** Read the actual source declaration, then adapt its value to a structural slot. */
+	function lowerStructuralMemberRead(source:GoExpr, sourceClass:ClassType, field:ClassField, targetType:Type):GoExpr {
+		var value = isOrdinaryMethod(field) ? lowerBoundFunctionValue(source, sourceClass, field.type, field.name, normalizeIdent(field.name),
+			unwrapFunction(field.expr())) : GoExpr.GoSelector(source, normalizeIdent(field.name));
+		if (isDynamicMethod(field))
+			value = GoExpr.GoCall(GoExpr.GoIdent("hxrt.ReadDynamicFunction"), [value]);
+		value = adaptErasedFunctionCallArg(value, field.type, targetType);
+		return coerceAnyExprToType(value, field.type, targetType);
+	}
+
+	/** Only source storage fields are writable; a target method declaration is not storage authority. */
+	function lowerStructuralMemberWrite(source:GoExpr, sourceClass:ClassType, field:ClassField, targetType:Type, incoming:GoExpr):Null<GoStmt> {
+		var writable = switch (field.kind) {
+			case FMethod(MethDynamic): true;
+			case FVar(_, AccNormal): true;
+			case _: false;
+		};
+		if (!writable)
+			return null;
+		var value = lowerNullableAwareTypeAssertExpr(incoming, targetType);
+		value = adaptErasedFunctionCallArg(value, targetType, field.type);
+		return GoStmt.GoAssign(GoExpr.GoSelector(source, normalizeIdent(field.name)), value);
+	}
+
 	function lowerField(target:TypedExpr, access:FieldAccess, asValue:Bool = true):LoweredExpr {
 		return switch (access) {
 			case FStatic(classRef, field):
@@ -6891,6 +6939,12 @@ class GoCompiler {
 				var loweredTarget = lowerExpr(target).expr;
 				if (isSharedArrayElementExpr(target)) {
 					loweredTarget = coerceStoredArrayElementExpr(loweredTarget, target.t);
+				}
+				if (asValue && !classType.isExtern && isDynamicMethod(resolved)) {
+					return {
+						expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ReadDynamicFunction"), [GoExpr.GoSelector(loweredTarget, normalizeIdent(resolved.name))]),
+						isStringLike: false
+					};
 				}
 				var staticInterfaceSelector = interfaceSelectorForStaticReceiver(target.t, resolved.name);
 
@@ -7056,6 +7110,12 @@ class GoCompiler {
 				var loweredTarget = lowerExpr(target).expr;
 				if (isSharedArrayElementExpr(target)) {
 					loweredTarget = coerceStoredArrayElementExpr(loweredTarget, target.t);
+				}
+				if (classRef != null && !classRef.c.get().isExtern && isDynamicMethod(resolved)) {
+					return {
+						expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ReadDynamicFunction"), [GoExpr.GoSelector(loweredTarget, normalizeIdent(resolved.name))]),
+						isStringLike: false
+					};
 				}
 				var selector = normalizeIdent(resolved.name);
 				if (classRef != null) {
@@ -11379,6 +11439,13 @@ class GoCompiler {
 		existing nominal upcast; leave unrelated values unchanged.
 	**/
 	function upcastIfNeeded(expr:GoExpr, fromType:Type, toType:Type, ?sourceTypedExpr:TypedExpr):GoExpr {
+		if (isAnonymousObjectType(toType)) {
+			if (typeToGoType(fromType) == "any")
+				return GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromValue"), [expr]);
+			var structural = structuralObjectLowering.coerce(expr, fromType, toType);
+			if (structural != null)
+				return structural;
+		}
 		var arrayRepresentation = adaptArrayRepresentation(expr, fromType, toType, sourceTypedExpr);
 		if (arrayRepresentation != null) {
 			return arrayRepresentation;
