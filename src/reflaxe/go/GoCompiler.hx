@@ -763,6 +763,22 @@ class GoCompiler {
 
 	function noteTransformedRuntimeFeatures(decls:Array<GoDecl>):Void {
 		for (symbol in [
+			"hxrt.Anonymous",
+			"hxrt.AnonymousField",
+			"hxrt.AnonymousFromMap",
+			"hxrt.AnonymousFromValue",
+			"hxrt.NewAnonymousView",
+			"hxrt.AnonymousLookup",
+			"hxrt.AnonymousGet",
+			"hxrt.AnonymousSet"
+		]) {
+			if (declsUseRuntimeSymbol(decls, symbol)) {
+				requireGeneratedRuntimeFeature(GoHxrtFeatureAnalyzer.FEATURE_ANONYMOUS, "lowered_go_ast:" + symbol);
+				break;
+			}
+		}
+
+		for (symbol in [
 			"hxrt.Function",
 			"hxrt.NewFunction",
 			"hxrt.NamedFunction",
@@ -3811,6 +3827,9 @@ class GoCompiler {
 	}
 
 	function lowerToStatements(expr:TypedExpr):Array<GoStmt> {
+		var anonymousMutation = lowerAnonymousMutation(expr);
+		if (anonymousMutation != null)
+			return exprStatement(anonymousMutation.expr);
 		return switch (expr.expr) {
 			case TBlock(exprs):
 				lowerBlock(exprs);
@@ -4857,7 +4876,7 @@ class GoCompiler {
 
 		return {
 			prefix: prefix,
-			expr: targetExpr,
+			expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromMap"), [targetExpr]),
 			isStringLike: false
 		};
 	}
@@ -5878,6 +5897,87 @@ class GoCompiler {
 		};
 	}
 
+	/**
+		What: Lower structural field mutation through live storage access.
+		Why: An anonymous value can be a map or a source-backed view, so it has no
+		Go lvalue. Capturing the receiver before the right side also preserves Haxe
+		evaluation order and avoids repeating side effects for compound operations.
+		How: Read and write through the shared boundary, with typed temporaries for
+		the old and new values. The same expression serves all statement contexts.
+	**/
+	function lowerAnonymousMutation(expr:TypedExpr):Null<LoweredExpr> {
+		var operation = switch (expr.expr) {
+			case TBinop(OpAssign, left, right): {
+					left: left,
+					right: right,
+					op: null,
+					unit: null,
+					post: false
+				};
+			case TBinop(OpAssignOp(op), left, right): {
+					left: left,
+					right: right,
+					op: op,
+					unit: null,
+					post: false
+				};
+			case TUnop(OpIncrement, post, left): {
+					left: left,
+					right: null,
+					op: null,
+					unit: GoBinaryOperator.Add,
+					post: post
+				};
+			case TUnop(OpDecrement, post, left): {
+					left: left,
+					right: null,
+					op: null,
+					unit: GoBinaryOperator.Subtract,
+					post: post
+				};
+			case _: null;
+		};
+		if (operation == null)
+			return null;
+		var field = anonymousMutationField(operation.left);
+		if (field == null)
+			return null;
+		var loweredTarget = lowerExprWithPrefix(field.target);
+		var objectName = freshTempName("hx_structural_target");
+		var objectExpr = GoExpr.GoIdent(objectName);
+		var body = loweredTarget.prefix.concat([GoStmt.GoVarDecl(objectName, "hxrt.Anonymous", loweredTarget.expr, true)]);
+		var oldName = freshTempName("hx_structural_old");
+		var resultName = freshTempName("hx_structural_value");
+		var storage = valueStorageGoType(operation.left.t);
+		if (operation.op != null || operation.unit != null) {
+			body.push(GoStmt.GoVarDecl(oldName, storage, lowerAnonymousFieldRead(objectExpr, field.name, operation.left.t), true));
+		}
+		var result:GoExpr;
+		if (operation.unit != null) {
+			result = unitStepExpr(GoExpr.GoIdent(oldName), operation.unit, operation.left.t, expr.pos);
+		} else {
+			var right = lowerStoredExprWithExpectedType(operation.right, operation.left.t);
+			body = body.concat(right.prefix);
+			result = operation.op == null ? right.expr : lowerAssignOpExpr(operation.op, GoExpr.GoIdent(oldName), right.expr, operation.left.t,
+				operation.right.t, expr.pos, false);
+		}
+		body.push(GoStmt.GoVarDecl(resultName, storage, result, true));
+		body.push(GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousSet"),
+			[objectExpr, GoExpr.GoStringLiteral(field.name), GoExpr.GoIdent(resultName)])));
+		body.push(GoStmt.GoReturn(GoExpr.GoIdent(operation.post ? oldName : resultName)));
+		return {expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [storage], body), []), isStringLike: isStringType(operation.left.t)};
+	}
+
+	/** Resolve only structural field targets, preserving typed receiver ownership. */
+	function anonymousMutationField(expr:TypedExpr):Null<{target:TypedExpr, name:String}> {
+		return switch (expr.expr) {
+			case TField(target, FAnon(field)) if (isAnonymousObjectType(target.t)): {target: target, name: field.get().name};
+			case TField(target, FDynamic(name)) if (isAnonymousObjectType(target.t)): {target: target, name: name};
+			case TParenthesis(inner) | TCast(inner, _) | TMeta(_, inner): anonymousMutationField(inner);
+			case _: null;
+		};
+	}
+
 	function lowerLValue(expr:TypedExpr):GoExpr {
 		return switch (expr.expr) {
 			case TLocal(variable):
@@ -5963,7 +6063,7 @@ class GoCompiler {
 					sliceType: sliceType,
 					writeBack: function(value:GoExpr):Array<GoStmt> {
 						return [
-							GoStmt.GoAssign(GoExpr.GoIndex(objectExpr, GoExpr.GoStringLiteral(fieldName)), value)
+							GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousSet"), [objectExpr, GoExpr.GoStringLiteral(fieldName), value]))
 						];
 					}
 				};
@@ -5978,7 +6078,9 @@ class GoCompiler {
 					tempExpr: tempExpr,
 					sliceType: sliceType,
 					writeBack: function(value:GoExpr):Array<GoStmt> {
-						return [GoStmt.GoAssign(GoExpr.GoIndex(objectExpr, GoExpr.GoStringLiteral(name)), value)];
+						return [
+							GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousSet"), [objectExpr, GoExpr.GoStringLiteral(name), value]))
+						];
 					}
 				};
 			case TParenthesis(inner):
@@ -6001,6 +6103,9 @@ class GoCompiler {
 	}
 
 	function lowerExpr(expr:TypedExpr):LoweredExpr {
+		var anonymousMutation = lowerAnonymousMutation(expr);
+		if (anonymousMutation != null)
+			return anonymousMutation;
 		return switch (expr.expr) {
 			case TConst(constant):
 				lowerConst(constant);
@@ -6493,6 +6598,9 @@ class GoCompiler {
 	}
 
 	function lowerExprWithPrefix(expr:TypedExpr):LoweredExprWithPrefix {
+		var anonymousMutation = lowerAnonymousMutation(expr);
+		if (anonymousMutation != null)
+			return {prefix: [], expr: anonymousMutation.expr, isStringLike: anonymousMutation.isStringLike};
 		return switch (expr.expr) {
 			case TBlock(exprs):
 				var storageOverride = vectorBlockStorageOverride(expr.t, exprs);
@@ -6926,7 +7034,7 @@ class GoCompiler {
 				}
 				if (isAnonymousObjectType(target.t)) {
 					return {
-						expr: GoExpr.GoIndex(loweredTarget, GoExpr.GoStringLiteral(name)),
+						expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousGet"), [loweredTarget, GoExpr.GoStringLiteral(name)]),
 						isStringLike: false
 					};
 				}
@@ -6942,6 +7050,9 @@ class GoCompiler {
 				};
 			case FClosure(classRef, field):
 				var resolved = field.get();
+				if (classRef == null && isAnonymousObjectType(target.t)) {
+					return {expr: lowerAnonymousFieldRead(lowerExpr(target).expr, resolved.name, resolved.type), isStringLike: false};
+				}
 				var loweredTarget = lowerExpr(target).expr;
 				if (isSharedArrayElementExpr(target)) {
 					loweredTarget = coerceStoredArrayElementExpr(loweredTarget, target.t);
@@ -7119,7 +7230,7 @@ class GoCompiler {
 	}
 
 	function lowerAnonymousFieldRead(targetExpr:GoExpr, fieldName:String, fieldType:Type):GoExpr {
-		var fieldExpr = GoExpr.GoIndex(targetExpr, GoExpr.GoStringLiteral(fieldName));
+		var fieldExpr = GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousGet"), [targetExpr, GoExpr.GoStringLiteral(fieldName)]);
 		var fieldGoType = scalarGoType(fieldType);
 		if (fieldGoType == "any") {
 			return fieldExpr;
@@ -7129,8 +7240,9 @@ class GoCompiler {
 		var valueName = freshTempName("hx_field");
 		var zeroName = freshTempName("hx_zero");
 
-		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: objectName, typeName: "map[string]any"}], [fieldGoType], [
-			GoStmt.GoVarDecl(valueName, "any", GoExpr.GoIndex(GoExpr.GoIdent(objectName), GoExpr.GoStringLiteral(fieldName)), true),
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: objectName, typeName: "hxrt.Anonymous"}], [fieldGoType], [
+			GoStmt.GoVarDecl(valueName, "any",
+				GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousGet"), [GoExpr.GoIdent(objectName), GoExpr.GoStringLiteral(fieldName)]), true),
 			GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent(valueName), GoExpr.GoNil), [
 				GoStmt.GoVarDecl(zeroName, fieldGoType, null, false),
 				GoStmt.GoReturn(GoExpr.GoIdent(zeroName))
@@ -7160,6 +7272,8 @@ class GoCompiler {
 	}
 
 	function lowerNullableAwareTypeAssertExpr(expr:GoExpr, returnType:Type):GoExpr {
+		if (isAnonymousObjectType(returnType))
+			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromValue"), [expr]);
 		var expectedType = typeToGoType(returnType);
 		if (expectedType == "any") {
 			return expr;
@@ -10519,13 +10633,11 @@ class GoCompiler {
 		var storedArrayEquality = equalityOp && (leftStoredArrayElement || rightStoredArrayElement);
 		var erasedEquality = equalityOp
 			&& !nullComparison
-			&& (isAnyLikeType(left.t)
-				|| isAnyLikeType(right.t)
+			&& (isAnonymousObjectType(left.t) || isAnonymousObjectType(right.t) || isAnyLikeType(left.t) || isAnyLikeType(right.t)
 				|| (switch (Context.follow(left.t)) {
 					case TFun(_, _): true;
 					case _: false;
-				})
-				|| (switch (Context.follow(right.t)) {
+				}) || (switch (Context.follow(right.t)) {
 					case TFun(_, _): true;
 					case _: false;
 				}));
@@ -10795,6 +10907,8 @@ class GoCompiler {
 	}
 
 	function coerceAnyExprToType(expr:GoExpr, fromType:Type, toType:Type, ?fromAnyOverride:Bool = false):GoExpr {
+		if (isAnonymousObjectType(toType) && (fromAnyOverride || typeToGoType(fromType) == "any"))
+			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromValue"), [expr]);
 		var fromGoType = typeToGoType(fromType);
 		var toGoType = typeToGoType(toType);
 		if ((!fromAnyOverride && fromGoType != "any") || toGoType == "any") {

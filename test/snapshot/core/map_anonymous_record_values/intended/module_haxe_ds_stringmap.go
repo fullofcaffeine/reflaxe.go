@@ -7,9 +7,9 @@ type I_haxe__ds__StringMap interface {
 	get(key *string) any
 	exists(key *string) bool
 	remove(key *string) bool
-	keys() map[string]any
-	iterator() map[string]any
-	keyValueIterator() map[string]any
+	keys() hxrt.Anonymous
+	iterator() hxrt.Anonymous
+	keyValueIterator() hxrt.Anonymous
 	getIMap(key any) any
 	setIMap(key any, value any)
 	existsIMap(key any) bool
@@ -23,6 +23,10 @@ type I_haxe__ds__StringMap interface {
 type haxe__ds__StringMap struct {
 	__hx_this I_haxe__ds__StringMap
 	h         *hxrt.StringMapCell
+}
+
+func (self *haxe__ds__StringMap) HxFunctionReceiver() any {
+	return self.__hx_this
 }
 
 func New_haxe__ds__StringMap() *haxe__ds__StringMap {
@@ -48,74 +52,74 @@ func (self *haxe__ds__StringMap) remove(key *string) bool {
 	return hxrt.StringMapRemove(self.h, key)
 }
 
-func (self *haxe__ds__StringMap) keys() map[string]any {
+func (self *haxe__ds__StringMap) keys() hxrt.Anonymous {
 	keys := hxrt.StringMapKeys(self.h)
 	index := 0
 	hx_obj_1 := map[string]any{}
-	hx_obj_1["hasNext"] = func() bool {
+	hx_obj_1["hasNext"] = hxrt.NewFunction(func() bool {
 		return (index < len(keys))
-	}
-	hx_obj_1["next"] = func() *string {
+	})
+	hx_obj_1["next"] = hxrt.NewFunction(func() *string {
 		hx_post_2 := index
 		index = int(int32((index + 1)))
 		return keys[hx_post_2]
-	}
-	return hx_obj_1
+	})
+	return hxrt.AnonymousFromMap(hx_obj_1)
 }
 
-func (self *haxe__ds__StringMap) iterator() map[string]any {
+func (self *haxe__ds__StringMap) iterator() hxrt.Anonymous {
 	_gthis := self
 	keys := hxrt.StringMapKeys(self.h)
 	index := 0
 	hx_obj_3 := map[string]any{}
-	hx_obj_3["hasNext"] = func() bool {
+	hx_obj_3["hasNext"] = hxrt.NewFunction(func() bool {
 		return (index < len(keys))
-	}
-	hx_obj_3["next"] = func() any {
+	})
+	hx_obj_3["next"] = hxrt.NewFunction(func() any {
 		return hxrt.StringMapGet(_gthis.h, keys[func() int {
 			hx_post_4 := index
 			index = int(int32((index + 1)))
 			return hx_post_4
 		}()])
-	}
-	return hx_obj_3
+	})
+	return hxrt.AnonymousFromMap(hx_obj_3)
 }
 
-func (self *haxe__ds__StringMap) keyValueIterator() map[string]any {
+func (self *haxe__ds__StringMap) keyValueIterator() hxrt.Anonymous {
 	_gthis := self
-	keys := func(hx_value_5 any) map[string]any {
-		if hx_value_5 == nil {
-			var hx_zero_6 map[string]any
-			return hx_zero_6
-		}
-		return hx_value_5.(map[string]any)
-	}(self.__hx_this.keys())
-	hx_obj_7 := map[string]any{}
-	hx_obj_7["hasNext"] = func() bool {
-		return func(hx_obj_8 map[string]any) func() bool {
-			hx_field_9 := hx_obj_8["hasNext"]
-			if hx_field_9 == nil {
-				var hx_zero_10 func() bool
-				return hx_zero_10
-			}
-			return hx_field_9.(func() bool)
-		}(keys)()
-	}
-	hx_obj_7["next"] = func() map[string]any {
-		key := func(hx_obj_11 map[string]any) func() *string {
-			hx_field_12 := hx_obj_11["next"]
-			if hx_field_12 == nil {
-				var hx_zero_13 func() *string
-				return hx_zero_13
-			}
-			return hx_field_12.(func() *string)
-		}(keys)()
+	keys := hxrt.AnonymousFromValue(self.__hx_this.keys())
+	hx_obj_5 := map[string]any{}
+	hx_obj_5["hasNext"] = hxrt.NewFunction(func() bool {
+		return func() bool {
+			var hx_callable_9 *hxrt.Function[func() bool] = func(hx_obj_6 hxrt.Anonymous) *hxrt.Function[func() bool] {
+				hx_field_7 := hxrt.AnonymousGet(hx_obj_6, "hasNext")
+				if hx_field_7 == nil {
+					var hx_zero_8 *hxrt.Function[func() bool]
+					return hx_zero_8
+				}
+				return hx_field_7.(*hxrt.Function[func() bool])
+			}(keys)
+			return hxrt.FunctionCall(hx_callable_9)()
+		}()
+	})
+	hx_obj_5["next"] = hxrt.NewFunction(func() hxrt.Anonymous {
+		key := func() *string {
+			var hx_callable_13 *hxrt.Function[func() *string] = func(hx_obj_10 hxrt.Anonymous) *hxrt.Function[func() *string] {
+				hx_field_11 := hxrt.AnonymousGet(hx_obj_10, "next")
+				if hx_field_11 == nil {
+					var hx_zero_12 *hxrt.Function[func() *string]
+					return hx_zero_12
+				}
+				return hx_field_11.(*hxrt.Function[func() *string])
+			}(keys)
+			return hxrt.FunctionCall(hx_callable_13)()
+		}()
 		hx_obj_14 := map[string]any{}
 		hx_obj_14["key"] = key
 		hx_obj_14["value"] = _gthis.__hx_this.get(key)
-		return hx_obj_14
-	}
-	return hx_obj_7
+		return hxrt.AnonymousFromMap(hx_obj_14)
+	})
+	return hxrt.AnonymousFromMap(hx_obj_5)
 }
 
 func (self *haxe__ds__StringMap) getIMap(key any) any {
@@ -182,29 +186,29 @@ func (self *haxe__ds__StringMap) copyIMap() haxe__IMap {
 
 func (self *haxe__ds__StringMap) copy() *haxe__ds__StringMap {
 	copied := New_haxe__ds__StringMap()
-	key := func(hx_value_29 any) map[string]any {
-		if hx_value_29 == nil {
-			var hx_zero_30 map[string]any
-			return hx_zero_30
-		}
-		return hx_value_29.(map[string]any)
-	}(self.__hx_this.keys())
-	for func(hx_obj_31 map[string]any) func() bool {
-		hx_field_32 := hx_obj_31["hasNext"]
-		if hx_field_32 == nil {
-			var hx_zero_33 func() bool
-			return hx_zero_33
-		}
-		return hx_field_32.(func() bool)
-	}(key)() {
-		key_1 := func(hx_obj_34 map[string]any) func() *string {
-			hx_field_35 := hx_obj_34["next"]
-			if hx_field_35 == nil {
-				var hx_zero_36 func() *string
-				return hx_zero_36
+	key := hxrt.AnonymousFromValue(self.__hx_this.keys())
+	for func() bool {
+		var hx_callable_32 *hxrt.Function[func() bool] = func(hx_obj_29 hxrt.Anonymous) *hxrt.Function[func() bool] {
+			hx_field_30 := hxrt.AnonymousGet(hx_obj_29, "hasNext")
+			if hx_field_30 == nil {
+				var hx_zero_31 *hxrt.Function[func() bool]
+				return hx_zero_31
 			}
-			return hx_field_35.(func() *string)
-		}(key)()
+			return hx_field_30.(*hxrt.Function[func() bool])
+		}(key)
+		return hxrt.FunctionCall(hx_callable_32)()
+	}() {
+		key_1 := func() *string {
+			var hx_callable_36 *hxrt.Function[func() *string] = func(hx_obj_33 hxrt.Anonymous) *hxrt.Function[func() *string] {
+				hx_field_34 := hxrt.AnonymousGet(hx_obj_33, "next")
+				if hx_field_34 == nil {
+					var hx_zero_35 *hxrt.Function[func() *string]
+					return hx_zero_35
+				}
+				return hx_field_34.(*hxrt.Function[func() *string])
+			}(key)
+			return hxrt.FunctionCall(hx_callable_36)()
+		}()
 		copied.__hx_this.set(key_1, self.__hx_this.get(key_1))
 	}
 	return copied
@@ -214,41 +218,44 @@ func (self *haxe__ds__StringMap) toString() *string {
 	var out_b *string
 	out_b = hxrt.StringFromLiteral("")
 	out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StringFromLiteral("["))
-	iterator := func(hx_value_37 any) map[string]any {
-		if hx_value_37 == nil {
-			var hx_zero_38 map[string]any
-			return hx_zero_38
-		}
-		return hx_value_37.(map[string]any)
-	}(self.__hx_this.keys())
-	for func(hx_obj_39 map[string]any) func() bool {
-		hx_field_40 := hx_obj_39["hasNext"]
-		if hx_field_40 == nil {
-			var hx_zero_41 func() bool
-			return hx_zero_41
-		}
-		return hx_field_40.(func() bool)
-	}(iterator)() {
-		key := func(hx_obj_42 map[string]any) func() *string {
-			hx_field_43 := hx_obj_42["next"]
-			if hx_field_43 == nil {
-				var hx_zero_44 func() *string
-				return hx_zero_44
+	iterator := hxrt.AnonymousFromValue(self.__hx_this.keys())
+	for func() bool {
+		var hx_callable_40 *hxrt.Function[func() bool] = func(hx_obj_37 hxrt.Anonymous) *hxrt.Function[func() bool] {
+			hx_field_38 := hxrt.AnonymousGet(hx_obj_37, "hasNext")
+			if hx_field_38 == nil {
+				var hx_zero_39 *hxrt.Function[func() bool]
+				return hx_zero_39
 			}
-			return hx_field_43.(func() *string)
-		}(iterator)()
+			return hx_field_38.(*hxrt.Function[func() bool])
+		}(iterator)
+		return hxrt.FunctionCall(hx_callable_40)()
+	}() {
+		key := func() *string {
+			var hx_callable_44 *hxrt.Function[func() *string] = func(hx_obj_41 hxrt.Anonymous) *hxrt.Function[func() *string] {
+				hx_field_42 := hxrt.AnonymousGet(hx_obj_41, "next")
+				if hx_field_42 == nil {
+					var hx_zero_43 *hxrt.Function[func() *string]
+					return hx_zero_43
+				}
+				return hx_field_42.(*hxrt.Function[func() *string])
+			}(iterator)
+			return hxrt.FunctionCall(hx_callable_44)()
+		}()
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(key))
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StringFromLiteral(" => "))
 		x := hxrt.StdString(self.__hx_this.get(key))
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(x))
-		if func(hx_obj_45 map[string]any) func() bool {
-			hx_field_46 := hx_obj_45["hasNext"]
-			if hx_field_46 == nil {
-				var hx_zero_47 func() bool
-				return hx_zero_47
-			}
-			return hx_field_46.(func() bool)
-		}(iterator)() {
+		if func() bool {
+			var hx_callable_48 *hxrt.Function[func() bool] = func(hx_obj_45 hxrt.Anonymous) *hxrt.Function[func() bool] {
+				hx_field_46 := hxrt.AnonymousGet(hx_obj_45, "hasNext")
+				if hx_field_46 == nil {
+					var hx_zero_47 *hxrt.Function[func() bool]
+					return hx_zero_47
+				}
+				return hx_field_46.(*hxrt.Function[func() bool])
+			}(iterator)
+			return hxrt.FunctionCall(hx_callable_48)()
+		}() {
 			out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StringFromLiteral(", "))
 		}
 	}

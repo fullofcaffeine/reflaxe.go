@@ -384,7 +384,7 @@ class GoLambdaIterableLowering {
 		var lengthExpr = sourcePlan.sharedArray ? GoExpr.GoCall(GoExpr.GoSelector(sourceExpr, "Len"), []) : GoExpr.GoCall(GoExpr.GoIdent("len"), [sourceExpr]);
 		var indexedValue = sourcePlan.sharedArray ? GoExpr.GoCall(GoExpr.GoSelector(sourceExpr, "Get"), [indexExpr]) : GoExpr.GoIndex(sourceExpr, indexExpr);
 
-		return GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["map[string]any"], [
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["hxrt.Anonymous"], [
 			GoStmt.GoVarDecl(sourceName, sourcePlan.sourceType, sourcePlan.sourceExpr, true),
 			GoStmt.GoVarDecl(indexName, "int", GoExpr.GoIntLiteral(0), true),
 			GoStmt.GoVarDecl(mapName, "map[string]any", emptyDynamicFieldMapExpr(), true),
@@ -396,7 +396,7 @@ class GoLambdaIterableLowering {
 					GoStmt.GoAssign(indexExpr, GoExpr.GoBinary("+", indexExpr, GoExpr.GoIntLiteral(1))),
 					GoStmt.GoReturn(nextValue)
 				]))),
-			GoStmt.GoReturn(GoExpr.GoIdent(mapName))
+			GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromMap"), [GoExpr.GoIdent(mapName)]))
 		]), []);
 	}
 
@@ -547,13 +547,13 @@ class GoLambdaIterableLowering {
 			adaptedNext = lowerNullableAwareTypeAssertExpr(GoExpr.GoCall(GoExpr.GoIdent("any"), [nextCall]), targetShape.nextReturnType);
 		}
 
-		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: sourceName, typeName: scalarGoType(fromType)}], ["map[string]any"], [
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: sourceName, typeName: scalarGoType(fromType)}], ["hxrt.Anonymous"], [
 			GoStmt.GoVarDecl(mapName, "map[string]any", emptyDynamicFieldMapExpr(), true),
 			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(mapName), GoExpr.GoStringLiteral("hasNext")),
 				boundIteratorFunction(GoExpr.GoFuncLiteral([], ["bool"], [GoStmt.GoReturn(hasNextCall)]), dispatchReceiver, hasNextMethod.field.name)),
 			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(mapName), GoExpr.GoStringLiteral("next")),
 				boundIteratorFunction(GoExpr.GoFuncLiteral([], [targetResultGoType], [GoStmt.GoReturn(adaptedNext)]), dispatchReceiver, nextMethod.field.name)),
-			GoStmt.GoReturn(GoExpr.GoIdent(mapName))
+			GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromMap"), [GoExpr.GoIdent(mapName)]))
 		]), [expr]);
 	}
 
@@ -591,11 +591,11 @@ class GoLambdaIterableLowering {
 					return null;
 				noteSourceOwnedStdlibUsage(sourceClass);
 				var mapName = freshTempName("hx_structural_iterable_map");
-				GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: sourceName, typeName: scalarGoType(fromType)}], ["map[string]any"], [
+				GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: sourceName, typeName: scalarGoType(fromType)}], ["hxrt.Anonymous"], [
 					GoStmt.GoVarDecl(mapName, "map[string]any", emptyDynamicFieldMapExpr(), true),
 					GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(mapName), GoExpr.GoStringLiteral("iterator")),
-						boundIteratorFunction(GoExpr.GoFuncLiteral([], ["map[string]any"], [GoStmt.GoReturn(result)]), receiver, "iterator")),
-					GoStmt.GoReturn(GoExpr.GoIdent(mapName))
+						boundIteratorFunction(GoExpr.GoFuncLiteral([], ["hxrt.Anonymous"], [GoStmt.GoReturn(result)]), receiver, "iterator")),
+					GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromMap"), [GoExpr.GoIdent(mapName)]))
 				]), [expr]);
 			case _: null;
 		};
@@ -641,16 +641,20 @@ class GoLambdaIterableLowering {
 		var nextCall = GoExpr.GoCall(functionValueCallable(GoExpr.GoIdent(nextName)), []);
 		var adaptedNext = lowerNullableAwareTypeAssertExpr(nextCall, appliedShape.nextReturnType);
 
-		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: rawName, typeName: "map[string]any"}], ["map[string]any"], [
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: rawName, typeName: "hxrt.Anonymous"}], ["hxrt.Anonymous"], [
 			GoStmt.GoVarDecl(hasNextName, "*hxrt.Function[func() bool]",
-				GoExpr.GoTypeAssert(GoExpr.GoIndex(rawExpr, GoExpr.GoStringLiteral("hasNext")), "*hxrt.Function[func() bool]"), true),
+				GoExpr.GoTypeAssert(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousGet"), [rawExpr, GoExpr.GoStringLiteral("hasNext")]),
+					"*hxrt.Function[func() bool]"),
+				true),
 			GoStmt.GoVarDecl(nextName, "*hxrt.Function[func() any]",
-				GoExpr.GoTypeAssert(GoExpr.GoIndex(rawExpr, GoExpr.GoStringLiteral("next")), "*hxrt.Function[func() any]"), true),
+				GoExpr.GoTypeAssert(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousGet"), [rawExpr, GoExpr.GoStringLiteral("next")]),
+					"*hxrt.Function[func() any]"),
+				true),
 			GoStmt.GoVarDecl(mapName, "map[string]any", emptyDynamicFieldMapExpr(), true),
 			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(mapName), GoExpr.GoStringLiteral("hasNext")), GoExpr.GoIdent(hasNextName)),
 			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(mapName), GoExpr.GoStringLiteral("next")),
 				adaptFunctionValue(GoExpr.GoIdent(nextName), GoExpr.GoFuncLiteral([], [appliedResultType], [GoStmt.GoReturn(adaptedNext)]))),
-			GoStmt.GoReturn(GoExpr.GoIdent(mapName))
+			GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromMap"), [GoExpr.GoIdent(mapName)]))
 		]), [expr]);
 	}
 
@@ -720,7 +724,7 @@ class GoLambdaIterableLowering {
 			nextValueExpr = sourcePlan.sharedArray ? GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent(sourceName), "Get"),
 				[indexExpr]) : GoExpr.GoIndex(GoExpr.GoIdent(sourceName), indexExpr);
 			nextPrefix.push(GoStmt.GoAssign(indexExpr, GoExpr.GoBinary("+", indexExpr, GoExpr.GoIntLiteral(1))));
-		} else if (protocolType != null && scalarGoType(protocolType) == "map[string]any") {
+		} else if (protocolType != null && scalarGoType(protocolType) == "hxrt.Anonymous") {
 			var factoryType = instanceFieldType(protocolType, "iterator");
 			var iteratorType = factoryType == null ? null : zeroArgReturnType(factoryType);
 			var hasNextType = iteratorType == null ? null : instanceFieldType(iteratorType, "hasNext");
@@ -728,7 +732,8 @@ class GoLambdaIterableLowering {
 			if (factoryType == null || hasNextType == null || nextType == null)
 				Context.fatalError("Expected a typed structural Iterable protocol", Context.currentPos());
 			function invokeField(receiver:GoExpr, name:String, fieldType:Type):GoExpr {
-				var value = GoExpr.GoTypeAssert(GoExpr.GoIndex(receiver, GoExpr.GoStringLiteral(name)), scalarGoType(fieldType));
+				var value = GoExpr.GoTypeAssert(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousGet"), [receiver, GoExpr.GoStringLiteral(name)]),
+					scalarGoType(fieldType));
 				return GoExpr.GoCall(functionValueCallable(value), []);
 			}
 			var iteratorName = freshTempName("hx_lambda_iterator");
@@ -755,14 +760,14 @@ class GoLambdaIterableLowering {
 				freshFunctionValue(GoExpr.GoFuncLiteral([], ["bool"], [GoStmt.GoReturn(hasNextExpr)]))),
 			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(iteratorMapName), GoExpr.GoStringLiteral("next")),
 				freshFunctionValue(GoExpr.GoFuncLiteral([], [adaptedElementType == null ? "any" : adaptedElementType], nextBody))),
-			GoStmt.GoReturn(GoExpr.GoIdent(iteratorMapName))
+			GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromMap"), [GoExpr.GoIdent(iteratorMapName)]))
 		]);
-		return GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["map[string]any"], [
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["hxrt.Anonymous"], [
 			GoStmt.GoVarDecl(sourceName, null, sourceExpr, true),
 			GoStmt.GoVarDecl(wrappedName, "map[string]any", emptyDynamicFieldMapExpr(), true),
 			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(wrappedName), GoExpr.GoStringLiteral("iterator")),
-				freshFunctionValue(GoExpr.GoFuncLiteral([], ["map[string]any"], iteratorFactoryBody))),
-			GoStmt.GoReturn(GoExpr.GoIdent(wrappedName))
+				freshFunctionValue(GoExpr.GoFuncLiteral([], ["hxrt.Anonymous"], iteratorFactoryBody))),
+			GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromMap"), [GoExpr.GoIdent(wrappedName)]))
 		]), []);
 	}
 
@@ -840,7 +845,7 @@ class GoLambdaIterableLowering {
 
 	public function dynamicNestedIterableSource(sourceExpr:TypedExpr):GoExpr {
 		var nestedType = iterableElementType(sourceExpr.t);
-		if (nestedType == null || scalarGoType(nestedType) == "any" || scalarGoType(nestedType) == "map[string]any") {
+		if (nestedType == null || scalarGoType(nestedType) == "any" || scalarGoType(nestedType) == "hxrt.Anonymous") {
 			Context.fatalError("Lambda.flatten requires a statically concrete nested iterable carrier on Go", sourceExpr.pos);
 		}
 		var sourcePlan = trySourcePlan(sourceExpr);
@@ -850,7 +855,7 @@ class GoLambdaIterableLowering {
 			var nestedElement = lowerNullableAwareTypeAssertExpr(boxedElement, nestedType);
 			var dynamicNestedElement = dynamicIterableValue(nestedElement, nestedType);
 			return GoExpr.GoCall(GoExpr.GoIdent("Lambda_goIterableCarrierAdapter"), [dynamicNestedElement]);
-		}, "interface{iterator() map[string]any}", sourceExpr.t);
+		}, "interface{iterator() hxrt.Anonymous}", sourceExpr.t);
 	}
 
 	public function firstFunctionArgType(type:Type):Null<Type> {
@@ -949,14 +954,14 @@ class GoLambdaIterableLowering {
 				returnType = mappedType;
 			case _:
 		}
-		if (returnType == null || scalarGoType(returnType) == "any" || scalarGoType(returnType) == "map[string]any") {
+		if (returnType == null || scalarGoType(returnType) == "any" || scalarGoType(returnType) == "hxrt.Anonymous") {
 			Context.fatalError("Lambda.flatMap requires a callback with a statically concrete iterable result on Go", Context.currentPos());
 		}
-		return captureCallbackAdapter(mapperExpr, mapperType, "func(any) interface{iterator() map[string]any}", callable -> {
+		return captureCallbackAdapter(mapperExpr, mapperType, "func(any) interface{iterator() hxrt.Anonymous}", callable -> {
 			var mappedExpr = GoExpr.GoCall(callable, [adaptedArgExpr]);
 			var dynamicMappedExpr = dynamicIterableValue(mappedExpr, returnType);
 			var carrierExpr = GoExpr.GoCall(GoExpr.GoIdent("Lambda_goIterableCarrierAdapter"), [dynamicMappedExpr]);
-			return GoExpr.GoFuncLiteral([{name: rawArgName, typeName: "any"}], ["interface{iterator() map[string]any}"], [GoStmt.GoReturn(carrierExpr)]);
+			return GoExpr.GoFuncLiteral([{name: rawArgName, typeName: "any"}], ["interface{iterator() hxrt.Anonymous}"], [GoStmt.GoReturn(carrierExpr)]);
 		});
 	}
 
