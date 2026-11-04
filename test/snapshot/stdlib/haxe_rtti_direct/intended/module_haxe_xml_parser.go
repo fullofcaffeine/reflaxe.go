@@ -15,9 +15,25 @@ type haxe__xml__XmlParserException struct {
 	xml            *string
 }
 
+func (self *haxe__xml__XmlParserException) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe__xml__XmlParserException(message *string, xml *string, position int) *haxe__xml__XmlParserException {
+	return hx_init_haxe__xml__XmlParserException(hx_alloc_haxe__xml__XmlParserException(nil), message, xml, position)
+}
+
+func hx_alloc_haxe__xml__XmlParserException(owner any) *haxe__xml__XmlParserException {
 	self := &haxe__xml__XmlParserException{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__xml__XmlParserException)
+	}
+	return self
+}
+
+func hx_init_haxe__xml__XmlParserException(self *haxe__xml__XmlParserException, message *string, xml *string, position int) *haxe__xml__XmlParserException {
 	self.xml = xml
 	self.message = message
 	self.position = position

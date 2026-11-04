@@ -866,9 +866,9 @@ class GoCompiler {
 				break;
 			}
 		}
-		if (declsUseRuntimeSymbol(decls, "hxrt.ReflectIsFunction")) {
-			requireGeneratedRuntimeFeature(GoHxrtFeatureAnalyzer.FEATURE_REFLECTION, "lowered_go_ast:hxrt.ReflectIsFunction");
-		}
+		for (symbol in ["hxrt.ReflectIsFunction", "hxrt.ReflectCallMethod"])
+			if (declsUseRuntimeSymbol(decls, symbol))
+				requireGeneratedRuntimeFeature(GoHxrtFeatureAnalyzer.FEATURE_REFLECTION, "lowered_go_ast:" + symbol);
 		if (declsUseRuntimeSymbol(decls, "hxrt.ArraySort")) {
 			requireGeneratedRuntimeFeature(GoHxrtFeatureAnalyzer.FEATURE_ARRAY_SORT, "lowered_go_ast:hxrt.ArraySort");
 		}
@@ -6948,7 +6948,9 @@ class GoCompiler {
 						&& functionParameterStorageGoType(args[index]) == "any"
 						&& !isOptionalPrimitiveFunctionArg(sourceArg, args[index], useCarrierAbi)
 						&& !isNullablePrimitiveParamType(sourceArg.v.t, args[index])) {
-						actual = coerceAnyExprToType(actual, args[index].t, sourceArg.v.t, true);
+						// The declaration uses a scalar after applying its default even when
+						// Haxe retains Null<T> on the source argument variable.
+						actual = recoverStoredGoValue(actual, GoType.parse(scalarGoType(sourceArg.v.t)));
 					}
 					actuals.push(actual);
 				}
@@ -8726,7 +8728,9 @@ class GoCompiler {
 	function lowerNullablePrimitiveStorageExpr(expr:TypedExpr):Null<GoExpr> {
 		return switch (expr.expr) {
 			case TLocal(variable):
-				(registeredOptionalPrimitiveParamGoType(variable) != null
+				// Proven non-null reads must use ordinary lowering so a newly inferred
+				// scalar local receives an actual scalar, not the old boxed storage.
+				nonNullPrimitiveExprGoType(expr) != null ? null : (registeredOptionalPrimitiveParamGoType(variable) != null
 					|| valueStorageGoType(variable.t) == "any") ? GoExpr.GoIdent(localVarName(variable)) : null;
 			case TMeta(_, inner):
 				lowerNullablePrimitiveStorageExpr(inner);
@@ -8802,20 +8806,22 @@ class GoCompiler {
 			return null;
 		}
 		var alias = lambdaIterableLowering.functionAliasName(callee);
-		if (alias == null) {
+		if (alias == null || !isFunctionValueCall(callee)) {
 			return null;
 		}
+		var callbackType = callParamType(callee.t, 1);
+		if (callbackType == null)
+			return null;
 
 		// Function-value Lambda.map alias call path.
 		if (alias == "map") {
 			if (args.length != 2) {
 				Context.fatalError("Lambda.map expects exactly 2 arguments", callee.pos);
 			}
-			var calleeExpr = lowerSpecializedCallableTarget(callee);
+			var calleeExpr = lowerDirectCallee(callee);
 			var dynamicSourceExpr = lambdaIterableLowering.dynamicIterableSource(args[0]);
-			var mapperExpr = lowerExpr(args[1]).expr;
-			var adaptedMapperExpr = lambdaIterableLowering.mapperAnyAdapter(mapperExpr, args[1].t);
-			var mappedAnyExpr = GoExpr.GoCall(calleeExpr, [dynamicSourceExpr, adaptedMapperExpr]);
+			var mapperExpr = materializeExprWithPrefix(lowerStoredExprWithExpectedType(args[1], callbackType), callbackType).expr;
+			var mappedAnyExpr = lowerFunctionValueCall(calleeExpr, [dynamicSourceExpr, mapperExpr], callee.t);
 			return {
 				expr: mappedAnyExpr,
 				isStringLike: false
@@ -8827,14 +8833,13 @@ class GoCompiler {
 			if (args.length != 3) {
 				Context.fatalError("Lambda.fold expects exactly 3 arguments", callee.pos);
 			}
-			var calleeExpr = lowerSpecializedCallableTarget(callee);
+			var calleeExpr = lowerDirectCallee(callee);
 			var dynamicSourceExpr = lambdaIterableLowering.dynamicIterableSource(args[0]);
-			var folderExpr = lowerExpr(args[1]).expr;
+			var folderExpr = materializeExprWithPrefix(lowerStoredExprWithExpectedType(args[1], callbackType), callbackType).expr;
 			var initExpr = lowerExpr(args[2]).expr;
-			var adaptedFolderExpr = lambdaIterableLowering.folderAnyAdapter(folderExpr, args[1].t);
-			var foldedAnyExpr = GoExpr.GoCall(calleeExpr, [dynamicSourceExpr, adaptedFolderExpr, initExpr]);
+			var foldedAnyExpr = lowerFunctionValueCall(calleeExpr, [dynamicSourceExpr, folderExpr, initExpr], callee.t);
 			return {
-				expr: lowerNullableAwareTypeAssertExpr(foldedAnyExpr, returnType),
+				expr: foldedAnyExpr,
 				isStringLike: false
 			};
 		}
@@ -11562,6 +11567,16 @@ class GoCompiler {
 		existing nominal upcast; leave unrelated values unchanged.
 	**/
 	function upcastIfNeeded(expr:GoExpr, fromType:Type, toType:Type, ?sourceTypedExpr:TypedExpr):GoExpr {
+		if (sourceTypedExpr != null) {
+			var nativeArrayIterator = lambdaIterableLowering.nativeArrayStructuralIteratorCoerce(sourceTypedExpr, toType);
+			if (nativeArrayIterator != null) {
+				return materializeExprWithPrefix(nativeArrayIterator, toType).expr;
+			}
+			var inlineConcreteIterator = lambdaIterableLowering.inlineConcreteStructuralIteratorCoerce(sourceTypedExpr, toType);
+			if (inlineConcreteIterator != null) {
+				return materializeExprWithPrefix(inlineConcreteIterator, toType).expr;
+			}
+		}
 		if (isAnonymousObjectType(toType)) {
 			if (typeToGoType(fromType) == "any")
 				return structuralObjectLowering.recover(expr, toType);
@@ -11573,16 +11588,7 @@ class GoCompiler {
 		if (arrayRepresentation != null) {
 			return arrayRepresentation;
 		}
-		if (sourceTypedExpr != null) {
-			var nativeArrayIterator = lambdaIterableLowering.nativeArrayStructuralIteratorCoerce(sourceTypedExpr, toType);
-			if (nativeArrayIterator != null) {
-				return materializeExprWithPrefix(nativeArrayIterator, toType).expr;
-			}
-			var inlineConcreteIterator = lambdaIterableLowering.inlineConcreteStructuralIteratorCoerce(sourceTypedExpr, toType);
-			if (inlineConcreteIterator != null) {
-				return materializeExprWithPrefix(inlineConcreteIterator, toType).expr;
-			}
-		}
+
 		var structuralIterator = lambdaIterableLowering.structuralIteratorCoerce(expr, fromType, toType);
 		if (structuralIterator != null) {
 			return structuralIterator;

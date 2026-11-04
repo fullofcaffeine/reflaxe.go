@@ -36,9 +36,25 @@ type haxe__io__Bytes struct {
 	__hx_dataExposed bool
 }
 
+func (self *haxe__io__Bytes) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe__io__Bytes(length int, b []int, raw *hxrt.ByteView) *haxe__io__Bytes {
+	return hx_init_haxe__io__Bytes(hx_alloc_haxe__io__Bytes(nil), length, b, raw)
+}
+
+func hx_alloc_haxe__io__Bytes(owner any) *haxe__io__Bytes {
 	self := &haxe__io__Bytes{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__io__Bytes)
+	}
+	return self
+}
+
+func hx_init_haxe__io__Bytes(self *haxe__io__Bytes, length int, b []int, raw *hxrt.ByteView) *haxe__io__Bytes {
 	self.length = length
 	self.b = b
 	self.__hx_raw = raw

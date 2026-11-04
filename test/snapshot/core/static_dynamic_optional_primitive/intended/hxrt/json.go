@@ -50,6 +50,7 @@ func jsonToHaxeValue(value any) any {
 // slices, and carriers that expose the internal Values protocol, so cyclic Dynamic
 // values retain the previous "null on error" behavior instead of recursing forever.
 func jsonFromHaxeValue(value any, visiting map[jsonVisit]bool) (any, bool) {
+	value = ObjectSource(value)
 	switch current := value.(type) {
 	case functionValue:
 		if current.functionIdentity() == nil {

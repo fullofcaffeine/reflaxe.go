@@ -265,7 +265,12 @@ func reflaxe__go___internal__CompilerReflect_isEnumValue(value any) bool {
 }
 
 func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []any) any {
-	switch source := hxrt.FunctionOrigin(value).(type) {
+	origin := hxrt.FunctionOrigin(value)
+	if origin == nil {
+		hxrt.Throw(hxrt.StringFromLiteral("Cannot call null"))
+		return nil
+	}
+	switch source := origin.(type) {
 	case *hxrt.Function[func(int) int]:
 		var argument_0 any = nil
 		if 0 < len(arguments) {
