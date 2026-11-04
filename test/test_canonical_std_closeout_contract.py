@@ -25,16 +25,16 @@ RELEASE_RUNNER_PATH = ROOT / "test" / "run-release-contracts.py"
 
 
 EXPECTED_INVENTORY = {
-    "canonicalOverrideSources": 107,
-    "ledgerEntries": 193,
+    "canonicalOverrideSources": 109,
+    "ledgerEntries": 195,
     "ownershipClasses": {
         "hxrt_binding": 76,
         "public_go_facade": 5,
         "staged_support": 5,
-        "upstream_std_override": 107,
+        "upstream_std_override": 109,
     },
-    "packagedArchiveMembers": 435,
-    "packagedManifestEntries": 434,
+    "packagedArchiveMembers": 445,
+    "packagedManifestEntries": 444,
     "trackedCrossHxFiles": 0,
 }
 
@@ -149,7 +149,8 @@ class CanonicalStdCloseoutContractTest(unittest.TestCase):
             cwd=ROOT,
             capture_output=True,
             text=True,
-            timeout=240,
+            # Seven subprocess stages each allow 180s, plus orchestration cleanup.
+            timeout=7 * 180 + 60,
         )
         self.assertEqual(0, process.returncode, process.stdout + process.stderr)
         evidence = json.loads(process.stdout)
