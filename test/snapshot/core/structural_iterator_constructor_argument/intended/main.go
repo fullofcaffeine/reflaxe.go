@@ -5,26 +5,45 @@ import "snapshot/hxrt"
 func checkedIterator(values *hxrt.Array) hxrt.Anonymous {
 	hx_arr_1 := events
 	hx_arr_1.Push(hxrt.StringFromLiteral("iterator"))
-	return func() hxrt.Anonymous {
-		hx_structural_array_2 := values
-		hx_structural_array_index_3 := 0
-		hx_structural_iterator_map_4 := map[string]any{}
-		hx_structural_iterator_map_4["hasNext"] = hxrt.NewFunction(func() bool {
-			return (hx_structural_array_index_3 < hx_structural_array_2.Len())
+	return func(hx_structural_source_2 *haxe__iterators__ArrayIterator) hxrt.Anonymous {
+		return hxrt.NewAnonymousView(hx_structural_source_2, func(name string) hxrt.AnonymousField {
+			switch name {
+			case "hasNext":
+				return hxrt.AnonymousField{Value: func() *hxrt.Function[func() bool] {
+					hx_receiver_3 := hx_structural_source_2
+					return hxrt.BoundFunction(func() bool {
+						return hx_receiver_3.__hx_this.hasNext()
+					}, func() any {
+						return hx_receiver_3.__hx_this
+					}, "hasNext")
+				}(), Found: true}
+			case "next":
+				return hxrt.AnonymousField{Value: func(hx_callback_source_5 *hxrt.Function[func() any]) *hxrt.Function[func() int] {
+					return hxrt.AdaptFunction(hx_callback_source_5, func() int {
+						return func(hx_value_6 any) int {
+							if hx_value_6 == nil {
+								var hx_zero_7 int
+								return hx_zero_7
+							}
+							return hx_value_6.(int)
+						}(hxrt.FunctionCall(hx_callback_source_5)())
+					})
+				}(func() *hxrt.Function[func() any] {
+					hx_receiver_4 := hx_structural_source_2
+					return hxrt.BoundFunction(func() any {
+						return hx_receiver_4.__hx_this.next()
+					}, func() any {
+						return hx_receiver_4.__hx_this
+					}, "next")
+				}()), Found: true}
+			}
+			return hxrt.AnonymousField{}
+		}, func(name string, incoming any) bool {
+			switch name {
+			}
+			return false
 		})
-		hx_structural_iterator_map_4["next"] = hxrt.NewFunction(func() int {
-			hx_structural_array_value_5 := hx_structural_array_2.Get(hx_structural_array_index_3)
-			hx_structural_array_index_3 = (hx_structural_array_index_3 + 1)
-			return func(hx_value_6 any) int {
-				if hx_value_6 == nil {
-					var hx_zero_7 int
-					return hx_zero_7
-				}
-				return hx_value_6.(int)
-			}(any(hx_structural_array_value_5))
-		})
-		return hxrt.AnonymousFromMap(hx_structural_iterator_map_4)
-	}()
+	}(New_haxe__iterators__ArrayIterator(values))
 }
 
 var events *hxrt.Array = hxrt.NewArray()
@@ -32,28 +51,47 @@ var events *hxrt.Array = hxrt.NewArray()
 func main() {
 	arrayValues := hxrt.NewArray(1, 2)
 	arrayConsumer := New_SnapshotIntConsumer(mark(hxrt.StringFromLiteral("before")), func() hxrt.Anonymous {
-		hx_arr_8 := events
-		hx_arr_8.Push(hxrt.StringFromLiteral("iterator"))
-		return func() hxrt.Anonymous {
-			hx_structural_array_9 := arrayValues
-			hx_structural_array_index_10 := 0
-			hx_structural_iterator_map_11 := map[string]any{}
-			hx_structural_iterator_map_11["hasNext"] = hxrt.NewFunction(func() bool {
-				return (hx_structural_array_index_10 < hx_structural_array_9.Len())
+		hx_arr_14 := events
+		hx_arr_14.Push(hxrt.StringFromLiteral("iterator"))
+		return func(hx_structural_source_8 *haxe__iterators__ArrayIterator) hxrt.Anonymous {
+			return hxrt.NewAnonymousView(hx_structural_source_8, func(name string) hxrt.AnonymousField {
+				switch name {
+				case "hasNext":
+					return hxrt.AnonymousField{Value: func() *hxrt.Function[func() bool] {
+						hx_receiver_9 := hx_structural_source_8
+						return hxrt.BoundFunction(func() bool {
+							return hx_receiver_9.__hx_this.hasNext()
+						}, func() any {
+							return hx_receiver_9.__hx_this
+						}, "hasNext")
+					}(), Found: true}
+				case "next":
+					return hxrt.AnonymousField{Value: func(hx_callback_source_11 *hxrt.Function[func() any]) *hxrt.Function[func() int] {
+						return hxrt.AdaptFunction(hx_callback_source_11, func() int {
+							return func(hx_value_12 any) int {
+								if hx_value_12 == nil {
+									var hx_zero_13 int
+									return hx_zero_13
+								}
+								return hx_value_12.(int)
+							}(hxrt.FunctionCall(hx_callback_source_11)())
+						})
+					}(func() *hxrt.Function[func() any] {
+						hx_receiver_10 := hx_structural_source_8
+						return hxrt.BoundFunction(func() any {
+							return hx_receiver_10.__hx_this.next()
+						}, func() any {
+							return hx_receiver_10.__hx_this
+						}, "next")
+					}()), Found: true}
+				}
+				return hxrt.AnonymousField{}
+			}, func(name string, incoming any) bool {
+				switch name {
+				}
+				return false
 			})
-			hx_structural_iterator_map_11["next"] = hxrt.NewFunction(func() int {
-				hx_structural_array_value_12 := hx_structural_array_9.Get(hx_structural_array_index_10)
-				hx_structural_array_index_10 = (hx_structural_array_index_10 + 1)
-				return func(hx_value_13 any) int {
-					if hx_value_13 == nil {
-						var hx_zero_14 int
-						return hx_zero_14
-					}
-					return hx_value_13.(int)
-				}(any(hx_structural_array_value_12))
-			})
-			return hxrt.AnonymousFromMap(hx_structural_iterator_map_11)
-		}()
+		}(New_haxe__iterators__ArrayIterator(arrayValues))
 	}(), mark(hxrt.StringFromLiteral("after")))
 	hx_array_target_15 := arrayValues
 	hx_array_index_16 := 0

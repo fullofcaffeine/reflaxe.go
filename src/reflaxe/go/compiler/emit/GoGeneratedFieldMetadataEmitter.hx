@@ -99,7 +99,8 @@ class GoGeneratedFieldMetadataEmitter {
 					]
 				});
 			}
-			body.push(GoStmt.GoTypeSwitch(GoExpr.GoIdent("object"), "value", carrierCases, [GoStmt.GoReturn(GoExpr.GoNil)]));
+			body.push(GoStmt.GoTypeSwitch(GoExpr.GoCall(GoExpr.GoIdent("hxrt.ObjectSource"), [GoExpr.GoIdent("object")]), "value", carrierCases,
+				[GoStmt.GoReturn(GoExpr.GoNil)]));
 
 			var receiverCases = new Array<GoTypeSwitchCase>();
 			for (entry in entries) {
@@ -142,7 +143,8 @@ class GoGeneratedFieldMetadataEmitter {
 					]
 				});
 			}
-			body.push(GoStmt.GoTypeSwitch(GoExpr.GoIdent("object"), "value", carrierCases, [defaultReturn(operation)]));
+			body.push(GoStmt.GoTypeSwitch(GoExpr.GoCall(GoExpr.GoIdent("hxrt.ObjectSource"), [GoExpr.GoIdent("object")]), "value", carrierCases,
+				[defaultReturn(operation)]));
 
 			var receiverCases = new Array<GoTypeSwitchCase>();
 			for (entry in entries) {

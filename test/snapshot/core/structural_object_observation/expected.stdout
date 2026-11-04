@@ -3,6 +3,10 @@ true
 position,tag
 cursor
 true
+true
+11
+true
+true
 false
 cursor
 cursor
@@ -15,4 +19,5 @@ true
 false
 true
 1
+array,current
 9

@@ -15,6 +15,9 @@ private typedef GoStructuralObjectConfig = {
 	final readMember:(GoExpr, ClassType, ClassField, Type) -> GoExpr;
 	final writeMember:(GoExpr, ClassType, ClassField, Type, GoExpr) -> Null<GoStmt>;
 	final noteSource:ClassType->Void;
+	final readAnonymous:(GoExpr, String, Type) -> GoExpr;
+	final adaptValue:(GoExpr, Type, Type) -> GoExpr;
+	final recoverValue:(GoExpr, Type) -> GoExpr;
 }
 
 /**
@@ -37,6 +40,12 @@ class GoStructuralObjectLowering {
 			case TAnonymous(ref): ref.get();
 			case _: null;
 		};
+		var anonymousSource = switch (Context.follow(fromType)) {
+			case TAnonymous(ref): ref.get();
+			case _: null;
+		};
+		if (target != null && anonymousSource != null)
+			return adaptAnonymous(value, anonymousSource, target);
 		var source = switch (Context.follow(fromType)) {
 			case TInst(ref, _): ref.get();
 			case _: null;
@@ -68,6 +77,56 @@ class GoStructuralObjectLowering {
 		]);
 		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: sourceName, typeName: config.sourceGoType(fromType)}], ["hxrt.Anonymous"], [
 			GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.NewAnonymousView"), [sourceExpr, read, write]))
+		]), [value]);
+	}
+
+	/**
+		Change member signatures through live reads, retaining the original source.
+		Width-only projections reuse storage. Changed callback signatures adapt each
+		read value rather than retaining a snapshot of a mutable source slot.
+	**/
+	function adaptAnonymous(value:GoExpr, from:AnonType, to:AnonType):GoExpr {
+		var changed = new Array<{source:ClassField, target:ClassField}>();
+		for (destination in to.fields) {
+			for (source in from.fields) {
+				if (source.name == destination.name && config.sourceGoType(source.type) != config.sourceGoType(destination.type)) {
+					changed.push({source: source, target: destination});
+					break;
+				}
+			}
+		}
+		if (changed.length == 0)
+			return value;
+		var sourceName = config.freshTempName("hx_structural_origin");
+		var source = GoExpr.GoIdent(sourceName);
+		var reads = new Array<GoSwitchCase>();
+		var writes = new Array<GoSwitchCase>();
+		for (member in changed) {
+			var key = GoExpr.GoStringLiteral(member.target.name);
+			var read = config.readAnonymous(source, member.source.name, member.source.type);
+			read = config.adaptValue(read, member.source.type, member.target.type);
+			reads.push({values: [key], body: [GoStmt.GoReturn(fieldValue(read))]});
+			var incoming = config.recoverValue(GoExpr.GoIdent("incoming"), member.target.type);
+			incoming = config.adaptValue(incoming, member.target.type, member.source.type);
+			writes.push({
+				values: [key],
+				body: [
+					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousSet"), [source, key, incoming])),
+					GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))
+				]
+			});
+		}
+		var reader = GoExpr.GoFuncLiteral([{name: "name", typeName: "string"}], ["hxrt.AnonymousField"], [
+			GoStmt.GoSwitch(GoExpr.GoIdent("name"), reads, null),
+			GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousLookup"), [source, GoExpr.GoIdent("name")]))
+		]);
+		var writer = GoExpr.GoFuncLiteral([{name: "name", typeName: "string"}, {name: "incoming", typeName: "any"}], ["bool"], [
+			GoStmt.GoSwitch(GoExpr.GoIdent("name"), writes, null),
+			GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousSet"), [source, GoExpr.GoIdent("name"), GoExpr.GoIdent("incoming")])),
+			GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))
+		]);
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: sourceName, typeName: "hxrt.Anonymous"}], ["hxrt.Anonymous"], [
+			GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.NewAnonymousView"), [source, reader, writer]))
 		]), [value]);
 	}
 

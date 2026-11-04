@@ -112,3 +112,17 @@ func TestAnonymousJSONNormalizesBeforeCycleDetection(t *testing.T) {
 		t.Fatalf("cycle JSON: %s", got)
 	}
 }
+
+func TestAnonymousObjectMapUsesSourceIdentity(t *testing.T) {
+	raw := map[string]any{"value": 1}
+	view := AnonymousFromMap(raw)
+	values := ObjectMapNew()
+	ObjectMapSet(values, raw, 7)
+	if ObjectMapGet(values, view) != 7 {
+		t.Fatal("view is not the same object-map key")
+	}
+	ObjectMapSet(values, view, 9)
+	if ObjectMapGet(values, raw) != 9 {
+		t.Fatal("view created a second key")
+	}
+}

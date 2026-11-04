@@ -427,6 +427,11 @@ class GoLambdaIterableLowering {
 		if (sourcePlan == null || sourcePlan.domain != "array") {
 			return null;
 		}
+		// Portable ArrayIterator already stores the shared Array carrier. Keep
+		// that source object observable so extraction, reflection and identity
+		// follow its Haxe methods. Native slices still need the storage adapter.
+		if (sourcePlan.sharedArray)
+			return null;
 		var prefix = new Array<GoStmt>();
 		for (setupExpr in cursorPlan.setup) {
 			prefix = prefix.concat(lowerToStatements(setupExpr));
@@ -517,63 +522,6 @@ class GoLambdaIterableLowering {
 	**/
 	public function structuralIterableCoerce(expr:GoExpr, fromType:Type, toType:Type):Null<GoExpr> {
 		return structuralObjectCoerce(expr, fromType, toType);
-	}
-
-	/**
-		What: Adapts an erased generic method result to its applied structural
-		`Iterator<T>` closure ABI.
-
-		Why: A generated generic method such as `StringMap<T>.iterator()` is emitted
-		once, so its `next` field stores `func() any`. The applied Haxe call can expose
-		`next():Concrete`; asserting the stored function itself to `func() Concrete`
-		would panic because Go function types are invariant.
-
-		How: Admit only the canonical two-field iterator shape and only when the
-		declared result is erased while the applied result is concrete. Capture the
-		raw iterator once, retain its `hasNext` closure, and wrap `next` with the
-		existing typed result assertion.
-	**/
-	public function adaptErasedGenericStructuralIteratorResult(expr:GoExpr, declaredFunctionType:Type, appliedFunctionType:Type):Null<GoExpr> {
-		var declaredReturn = functionReturnType(declaredFunctionType);
-		var appliedReturn = functionReturnType(appliedFunctionType);
-		if (declaredReturn == null || appliedReturn == null) {
-			return null;
-		}
-		var declaredShape = structuralIteratorShape(declaredReturn);
-		var appliedShape = structuralIteratorShape(appliedReturn);
-		if (declaredShape == null || appliedShape == null) {
-			return null;
-		}
-
-		var declaredResultType = functionResultGoType(declaredShape.nextReturnType);
-		var appliedResultType = functionResultGoType(appliedShape.nextReturnType);
-		if (declaredResultType != "any" || appliedResultType == "any") {
-			return null;
-		}
-
-		var rawName = freshTempName("hx_erased_iterator");
-		var hasNextName = freshTempName("hx_erased_iterator_has_next");
-		var nextName = freshTempName("hx_erased_iterator_next");
-		var mapName = freshTempName("hx_applied_iterator");
-		var rawExpr = GoExpr.GoIdent(rawName);
-		var nextCall = GoExpr.GoCall(functionValueCallable(GoExpr.GoIdent(nextName)), []);
-		var adaptedNext = lowerNullableAwareTypeAssertExpr(nextCall, appliedShape.nextReturnType);
-
-		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: rawName, typeName: "hxrt.Anonymous"}], ["hxrt.Anonymous"], [
-			GoStmt.GoVarDecl(hasNextName, "*hxrt.Function[func() bool]",
-				GoExpr.GoTypeAssert(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousGet"), [rawExpr, GoExpr.GoStringLiteral("hasNext")]),
-					"*hxrt.Function[func() bool]"),
-				true),
-			GoStmt.GoVarDecl(nextName, "*hxrt.Function[func() any]",
-				GoExpr.GoTypeAssert(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousGet"), [rawExpr, GoExpr.GoStringLiteral("next")]),
-					"*hxrt.Function[func() any]"),
-				true),
-			GoStmt.GoVarDecl(mapName, "map[string]any", emptyDynamicFieldMapExpr(), true),
-			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(mapName), GoExpr.GoStringLiteral("hasNext")), GoExpr.GoIdent(hasNextName)),
-			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(mapName), GoExpr.GoStringLiteral("next")),
-				adaptFunctionValue(GoExpr.GoIdent(nextName), GoExpr.GoFuncLiteral([], [appliedResultType], [GoStmt.GoReturn(adaptedNext)]))),
-			GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromMap"), [GoExpr.GoIdent(mapName)]))
-		]), [expr]);
 	}
 
 	public function trySourcePlan(sourceExpr:TypedExpr):Null<GoLambdaSourcePlan> {
