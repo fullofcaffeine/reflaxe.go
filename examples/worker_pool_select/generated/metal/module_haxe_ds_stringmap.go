@@ -7,9 +7,9 @@ type I_haxe__ds__StringMap interface {
 	get(key *string) any
 	exists(key *string) bool
 	remove(key *string) bool
-	keys() map[string]any
-	iterator() map[string]any
-	keyValueIterator() map[string]any
+	keys() hxrt.Anonymous
+	iterator() hxrt.Anonymous
+	keyValueIterator() hxrt.Anonymous
 	getIMap(key any) any
 	setIMap(key any, value any)
 	existsIMap(key any) bool
@@ -25,9 +25,25 @@ type haxe__ds__StringMap struct {
 	h         *hxrt.StringMapCell
 }
 
+func (self *haxe__ds__StringMap) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe__ds__StringMap() *haxe__ds__StringMap {
+	return hx_init_haxe__ds__StringMap(hx_alloc_haxe__ds__StringMap(nil))
+}
+
+func hx_alloc_haxe__ds__StringMap(owner any) *haxe__ds__StringMap {
 	self := &haxe__ds__StringMap{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__ds__StringMap)
+	}
+	return self
+}
+
+func hx_init_haxe__ds__StringMap(self *haxe__ds__StringMap) *haxe__ds__StringMap {
 	self.h = hxrt.StringMapNew()
 	return self
 }
@@ -48,163 +64,129 @@ func (self *haxe__ds__StringMap) remove(key *string) bool {
 	return hxrt.StringMapRemove(self.h, key)
 }
 
-func (self *haxe__ds__StringMap) keys() map[string]any {
+func (self *haxe__ds__StringMap) keys() hxrt.Anonymous {
 	keys := hxrt.StringMapKeys(self.h)
 	index := 0
 	hx_obj_1 := map[string]any{}
-	hx_obj_1["hasNext"] = func() bool {
+	hx_obj_1["hasNext"] = hxrt.NewFunction(func() bool {
 		return (index < len(keys))
-	}
-	hx_obj_1["next"] = func() *string {
+	})
+	hx_obj_1["next"] = hxrt.NewFunction(func() *string {
 		hx_post_2 := index
 		index = int(int32((index + 1)))
 		return keys[hx_post_2]
-	}
-	return hx_obj_1
+	})
+	return hxrt.AnonymousFromMap(hx_obj_1)
 }
 
-func (self *haxe__ds__StringMap) iterator() map[string]any {
+func (self *haxe__ds__StringMap) iterator() hxrt.Anonymous {
 	_gthis := self
 	keys := hxrt.StringMapKeys(self.h)
 	index := 0
 	hx_obj_3 := map[string]any{}
-	hx_obj_3["hasNext"] = func() bool {
+	hx_obj_3["hasNext"] = hxrt.NewFunction(func() bool {
 		return (index < len(keys))
-	}
-	hx_obj_3["next"] = func() any {
+	})
+	hx_obj_3["next"] = hxrt.NewFunction(func() any {
 		return hxrt.StringMapGet(_gthis.h, keys[func() int {
 			hx_post_4 := index
 			index = int(int32((index + 1)))
 			return hx_post_4
 		}()])
-	}
-	return hx_obj_3
+	})
+	return hxrt.AnonymousFromMap(hx_obj_3)
 }
 
-func (self *haxe__ds__StringMap) keyValueIterator() map[string]any {
+func (self *haxe__ds__StringMap) keyValueIterator() hxrt.Anonymous {
 	_gthis := self
-	keys := func(hx_value_5 any) map[string]any {
-		if hx_value_5 == nil {
-			var hx_zero_6 map[string]any
-			return hx_zero_6
-		}
-		return hx_value_5.(map[string]any)
-	}(self.__hx_this.keys())
-	hx_obj_7 := map[string]any{}
-	hx_obj_7["hasNext"] = func() bool {
-		return func(hx_obj_8 map[string]any) func() bool {
-			hx_field_9 := hx_obj_8["hasNext"]
-			if hx_field_9 == nil {
-				var hx_zero_10 func() bool
-				return hx_zero_10
-			}
-			return hx_field_9.(func() bool)
-		}(keys)()
-	}
-	hx_obj_7["next"] = func() map[string]any {
-		key := func(hx_obj_11 map[string]any) func() *string {
-			hx_field_12 := hx_obj_11["next"]
-			if hx_field_12 == nil {
-				var hx_zero_13 func() *string
-				return hx_zero_13
-			}
-			return hx_field_12.(func() *string)
-		}(keys)()
-		hx_obj_14 := map[string]any{}
-		hx_obj_14["key"] = key
-		hx_obj_14["value"] = _gthis.__hx_this.get(key)
-		return hx_obj_14
-	}
-	return hx_obj_7
+	keys := self.__hx_this.keys()
+	hx_obj_5 := map[string]any{}
+	hx_obj_5["hasNext"] = hxrt.NewFunction(func() bool {
+		return func() bool {
+			var hx_callable_6 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(keys, "hasNext"))
+			return hxrt.FunctionCall(hx_callable_6)()
+		}()
+	})
+	hx_obj_5["next"] = hxrt.NewFunction(func() hxrt.Anonymous {
+		key := func() *string {
+			var hx_callable_7 *hxrt.Function[func() *string] = hx_recover_callable_2(hxrt.AnonymousGet(keys, "next"))
+			return hxrt.FunctionCall(hx_callable_7)()
+		}()
+		hx_obj_8 := map[string]any{}
+		hx_obj_8["key"] = key
+		hx_obj_8["value"] = _gthis.__hx_this.get(key)
+		return hxrt.AnonymousFromMap(hx_obj_8)
+	})
+	return hxrt.AnonymousFromMap(hx_obj_5)
 }
 
 func (self *haxe__ds__StringMap) getIMap(key any) any {
-	return self.__hx_this.get(hxrt.StdString(func(hx_value_15 any) *string {
-		if hx_value_15 == nil {
-			var hx_zero_16 *string
-			return hx_zero_16
+	return self.__hx_this.get(hxrt.StdString(func(hx_value_9 any) *string {
+		if hx_value_9 == nil {
+			var hx_zero_10 *string
+			return hx_zero_10
 		}
-		return hx_value_15.(*string)
+		return hx_value_9.(*string)
 	}(key)))
 }
 
 func (self *haxe__ds__StringMap) setIMap(key any, value any) {
-	self.__hx_this.set(hxrt.StdString(func(hx_value_17 any) *string {
+	self.__hx_this.set(hxrt.StdString(func(hx_value_11 any) *string {
+		if hx_value_11 == nil {
+			var hx_zero_12 *string
+			return hx_zero_12
+		}
+		return hx_value_11.(*string)
+	}(key)), value)
+}
+
+func (self *haxe__ds__StringMap) existsIMap(key any) bool {
+	return func(hx_value_15 any) bool {
+		if hx_value_15 == nil {
+			var hx_zero_16 bool
+			return hx_zero_16
+		}
+		return hx_value_15.(bool)
+	}(self.__hx_this.exists(hxrt.StdString(func(hx_value_13 any) *string {
+		if hx_value_13 == nil {
+			var hx_zero_14 *string
+			return hx_zero_14
+		}
+		return hx_value_13.(*string)
+	}(key))))
+}
+
+func (self *haxe__ds__StringMap) removeIMap(key any) bool {
+	return func(hx_value_19 any) bool {
+		if hx_value_19 == nil {
+			var hx_zero_20 bool
+			return hx_zero_20
+		}
+		return hx_value_19.(bool)
+	}(self.__hx_this.remove(hxrt.StdString(func(hx_value_17 any) *string {
 		if hx_value_17 == nil {
 			var hx_zero_18 *string
 			return hx_zero_18
 		}
 		return hx_value_17.(*string)
-	}(key)), value)
-}
-
-func (self *haxe__ds__StringMap) existsIMap(key any) bool {
-	return func(hx_value_21 any) bool {
-		if hx_value_21 == nil {
-			var hx_zero_22 bool
-			return hx_zero_22
-		}
-		return hx_value_21.(bool)
-	}(self.__hx_this.exists(hxrt.StdString(func(hx_value_19 any) *string {
-		if hx_value_19 == nil {
-			var hx_zero_20 *string
-			return hx_zero_20
-		}
-		return hx_value_19.(*string)
-	}(key))))
-}
-
-func (self *haxe__ds__StringMap) removeIMap(key any) bool {
-	return func(hx_value_25 any) bool {
-		if hx_value_25 == nil {
-			var hx_zero_26 bool
-			return hx_zero_26
-		}
-		return hx_value_25.(bool)
-	}(self.__hx_this.remove(hxrt.StdString(func(hx_value_23 any) *string {
-		if hx_value_23 == nil {
-			var hx_zero_24 *string
-			return hx_zero_24
-		}
-		return hx_value_23.(*string)
 	}(key))))
 }
 
 func (self *haxe__ds__StringMap) copyIMap() haxe__IMap {
-	return func(hx_value_27 any) *haxe__ds__StringMap {
-		if hx_value_27 == nil {
-			var hx_zero_28 *haxe__ds__StringMap
-			return hx_zero_28
-		}
-		return hx_value_27.(*haxe__ds__StringMap)
-	}(self.__hx_this.copy())
+	return hx_recover_class_1(self.__hx_this.copy())
 }
 
 func (self *haxe__ds__StringMap) copy() *haxe__ds__StringMap {
 	copied := New_haxe__ds__StringMap()
-	key := func(hx_value_29 any) map[string]any {
-		if hx_value_29 == nil {
-			var hx_zero_30 map[string]any
-			return hx_zero_30
-		}
-		return hx_value_29.(map[string]any)
-	}(self.__hx_this.keys())
-	for func(hx_obj_31 map[string]any) func() bool {
-		hx_field_32 := hx_obj_31["hasNext"]
-		if hx_field_32 == nil {
-			var hx_zero_33 func() bool
-			return hx_zero_33
-		}
-		return hx_field_32.(func() bool)
-	}(key)() {
-		key_1 := func(hx_obj_34 map[string]any) func() *string {
-			hx_field_35 := hx_obj_34["next"]
-			if hx_field_35 == nil {
-				var hx_zero_36 func() *string
-				return hx_zero_36
-			}
-			return hx_field_35.(func() *string)
-		}(key)()
+	key := self.__hx_this.keys()
+	for func() bool {
+		var hx_callable_21 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(key, "hasNext"))
+		return hxrt.FunctionCall(hx_callable_21)()
+	}() {
+		key_1 := func() *string {
+			var hx_callable_22 *hxrt.Function[func() *string] = hx_recover_callable_2(hxrt.AnonymousGet(key, "next"))
+			return hxrt.FunctionCall(hx_callable_22)()
+		}()
 		copied.__hx_this.set(key_1, self.__hx_this.get(key_1))
 	}
 	return copied
@@ -214,41 +196,23 @@ func (self *haxe__ds__StringMap) toString() *string {
 	var out_b *string
 	out_b = hxrt.StringFromLiteral("")
 	out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StringFromLiteral("["))
-	iterator := func(hx_value_37 any) map[string]any {
-		if hx_value_37 == nil {
-			var hx_zero_38 map[string]any
-			return hx_zero_38
-		}
-		return hx_value_37.(map[string]any)
-	}(self.__hx_this.keys())
-	for func(hx_obj_39 map[string]any) func() bool {
-		hx_field_40 := hx_obj_39["hasNext"]
-		if hx_field_40 == nil {
-			var hx_zero_41 func() bool
-			return hx_zero_41
-		}
-		return hx_field_40.(func() bool)
-	}(iterator)() {
-		key := func(hx_obj_42 map[string]any) func() *string {
-			hx_field_43 := hx_obj_42["next"]
-			if hx_field_43 == nil {
-				var hx_zero_44 func() *string
-				return hx_zero_44
-			}
-			return hx_field_43.(func() *string)
-		}(iterator)()
+	iterator := self.__hx_this.keys()
+	for func() bool {
+		var hx_callable_23 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(iterator, "hasNext"))
+		return hxrt.FunctionCall(hx_callable_23)()
+	}() {
+		key := func() *string {
+			var hx_callable_24 *hxrt.Function[func() *string] = hx_recover_callable_2(hxrt.AnonymousGet(iterator, "next"))
+			return hxrt.FunctionCall(hx_callable_24)()
+		}()
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(key))
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StringFromLiteral(" => "))
 		x := hxrt.StdString(self.__hx_this.get(key))
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(x))
-		if func(hx_obj_45 map[string]any) func() bool {
-			hx_field_46 := hx_obj_45["hasNext"]
-			if hx_field_46 == nil {
-				var hx_zero_47 func() bool
-				return hx_zero_47
-			}
-			return hx_field_46.(func() bool)
-		}(iterator)() {
+		if func() bool {
+			var hx_callable_25 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(iterator, "hasNext"))
+			return hxrt.FunctionCall(hx_callable_25)()
+		}() {
 			out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StringFromLiteral(", "))
 		}
 	}

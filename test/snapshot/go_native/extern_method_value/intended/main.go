@@ -17,36 +17,40 @@ func main() {
 			return int(hx_extern_method_1())
 		})
 	}()
-	var v any = any((func(hx_fn *hxrt.Function[func() int]) int {
-		return hxrt.FunctionCall(hx_fn)()
-	}(unix) > 0))
+	var v any = any((func() int {
+		var hx_callable_2 *hxrt.Function[func() int] = unix
+		return hxrt.FunctionCall(hx_callable_2)()
+	}() > 0))
 	hxrt.Println(v)
 	logger := log.Default()
 	originalPrefix := hxrt.StdString(logger.Prefix())
 	setPrefix := func() *hxrt.Function[func(*string)] {
-		hx_extern_method_2 := logger.SetPrefix
-		if hx_extern_method_2 == nil {
+		hx_extern_method_3 := logger.SetPrefix
+		if hx_extern_method_3 == nil {
 			return nil
 		}
-		return hxrt.NewFunction(func(hx_extern_arg_3 *string) {
-			hx_extern_method_2(*hxrt.StdString(hx_extern_arg_3))
+		return hxrt.NewFunction(func(hx_extern_arg_4 *string) {
+			hx_extern_method_3(*hxrt.StdString(hx_extern_arg_4))
 		})
 	}()
 	getPrefix := func() *hxrt.Function[func() *string] {
-		hx_extern_method_4 := logger.Prefix
-		if hx_extern_method_4 == nil {
+		hx_extern_method_5 := logger.Prefix
+		if hx_extern_method_5 == nil {
 			return nil
 		}
 		return hxrt.NewFunction(func() *string {
-			return hxrt.StdString(hx_extern_method_4())
+			return hxrt.StdString(hx_extern_method_5())
 		})
 	}()
-	func(hx_fn *hxrt.Function[func(*string)], hx_arg_0 *string) {
-		hxrt.FunctionCall(hx_fn)(hx_arg_0)
-	}(setPrefix, hxrt.StringFromLiteral("hx:"))
-	var v_1 any = any(hxrt.StringEqualStringPtr(func(hx_fn *hxrt.Function[func() *string]) *string {
-		return hxrt.FunctionCall(hx_fn)()
-	}(getPrefix), hxrt.StringFromLiteral("hx:")))
+	func() {
+		var hx_callable_6 *hxrt.Function[func(*string)] = setPrefix
+		var hx_argument_7 *string = hxrt.StringFromLiteral("hx:")
+		hxrt.FunctionCall(hx_callable_6)(hx_argument_7)
+	}()
+	var v_1 any = any(hxrt.StringEqualStringPtr(func() *string {
+		var hx_callable_8 *hxrt.Function[func() *string] = getPrefix
+		return hxrt.FunctionCall(hx_callable_8)()
+	}(), hxrt.StringFromLiteral("hx:")))
 	hxrt.Println(v_1)
 	logger.SetPrefix(*hxrt.StdString(originalPrefix))
 }

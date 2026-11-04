@@ -7,7 +7,7 @@ func decimal(value any) float64 {
 	if value == nil {
 		hx_if_1 = 1.5
 	} else {
-		hx_if_1 = value
+		hx_if_1 = value.(float64)
 	}
 	var result any = hx_if_1
 	return func(hx_value_2 any) float64 {
@@ -24,7 +24,7 @@ func flag(value any) bool {
 	if value == nil {
 		hx_if_4 = true
 	} else {
-		hx_if_4 = value
+		hx_if_4 = value.(bool)
 	}
 	var result any = hx_if_4
 	return func(hx_value_5 any) bool {
@@ -41,7 +41,7 @@ func integer(value any) int {
 	if value == nil {
 		hx_if_7 = 9
 	} else {
-		hx_if_7 = value
+		hx_if_7 = value.(int)
 	}
 	var result any = hx_if_7
 	return hxrt.IntFromNullableAny(result)
@@ -85,18 +85,21 @@ func redirected(value any) int {
 	hx_try_return_8 := false
 	var hx_try_value_9 int
 	hxrt.TryCatch(func() {
-		var hx_if_12 any
+		var hx_if_13 any
 		if value == nil {
-			hx_if_12 = 7
+			hx_if_13 = 7
 		} else {
-			hx_if_12 = value
+			hx_if_13 = value.(int)
 		}
-		var result any = hx_if_12
+		var result any = hx_if_13
 		hx_try_value_9 = hxrt.IntFromNullableAny(result)
 		hx_try_return_8 = true
 		return
 	}, func(hx_caught_10 any) {
-		hx_tmp := hxrt.ExceptionCaught(hx_caught_10)
+		hx_exception_11 := haxe__Exception_caught(hx_caught_10)
+		hx_payload_12 := haxe__Exception_catchValue(hx_caught_10)
+		_ = hx_payload_12
+		var hx_tmp *haxe__Exception = hx_recover_class_0(hx_exception_11)
 		_ = hx_tmp
 		hx_try_value_9 = -1
 		hx_try_return_8 = true
@@ -105,6 +108,34 @@ func redirected(value any) int {
 	if hx_try_return_8 {
 		return hx_try_value_9
 	}
-	var hx_try_zero_13 int
-	return hx_try_zero_13
+	var hx_try_zero_14 int
+	return hx_try_zero_14
+}
+
+func hx_recover_class_0(value any) *haxe__Exception {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__Exception:
+		return source
+	case *haxe__ValueException:
+		return source.haxe__Exception
+	default:
+		return value.(*haxe__Exception)
+	}
+}
+
+func hx_recover_class_1(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
 }

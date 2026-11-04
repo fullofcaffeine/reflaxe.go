@@ -7,15 +7,15 @@ func Harness_assertContract(runtime profile__TodoRuntime) *string {
 	Harness_runBaseline(app)
 	baseline := app.baselineSignature()
 	if !hxrt.StringEqualStringPtr(baseline, hxrt.StringFromLiteral("open=1,done=1,total=2")) {
-		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("baseline drift: "), baseline))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("baseline drift: "), baseline)))
 	}
 	added := app.addMany(Harness_batchTitles(), 3)
 	if (added != 2) || (app.totalCount() != 4) {
-		hxrt.Throw(hxrt.StringFromLiteral("batch add drift"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("batch add drift")))
 	}
 	diag := app.diagnostics()
 	if !hxrt.StringEqualStringPtr(diag, hxrt.StringFromLiteral("p1=1,completed=1")) {
-		hxrt.Throw(hxrt.StringFromLiteral("missing diagnostics"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("missing diagnostics")))
 	}
 	return hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("OK "), runtime.profileId())
 }

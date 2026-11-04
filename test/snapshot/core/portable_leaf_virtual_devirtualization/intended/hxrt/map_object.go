@@ -26,6 +26,7 @@ func ObjectMapNew() *ObjectMapCell {
 }
 
 func objectMapIdentityOf(key any) (objectMapIdentity, bool) {
+	key = ObjectSource(key)
 	value := reflect.ValueOf(key)
 	for value.IsValid() && value.Kind() == reflect.Interface {
 		if value.IsNil() {

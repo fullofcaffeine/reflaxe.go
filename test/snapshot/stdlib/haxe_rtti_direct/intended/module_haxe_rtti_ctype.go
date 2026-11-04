@@ -697,7 +697,7 @@ func haxe__rtti__TypeApi_typeInfos(t *haxe__rtti__TypeTree) hxrt.Anonymous {
 			return hx_value_147.(*hxrt.Array)
 		}(t.params[2])
 		_ = _g_2
-		hxrt.Throw(hxrt.StringFromLiteral("Unexpected Package"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Unexpected Package")))
 	case 1:
 		_g_3 := hx_structural_recover(t.params[0])
 		c := _g_3

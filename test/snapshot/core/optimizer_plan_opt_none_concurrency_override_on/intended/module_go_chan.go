@@ -15,9 +15,25 @@ type go___Chan struct {
 	__hx_native any
 }
 
+func (self *go___Chan) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_go___Chan() *go___Chan {
+	return hx_init_go___Chan(hx_alloc_go___Chan(nil))
+}
+
+func hx_alloc_go___Chan(owner any) *go___Chan {
 	self := &go___Chan{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_go___Chan)
+	}
+	return self
+}
+
+func hx_init_go___Chan(self *go___Chan) *go___Chan {
 	self.__hx_native = go__concurrency_makeChan(0)
 	return self
 }

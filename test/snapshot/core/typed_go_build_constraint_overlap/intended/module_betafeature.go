@@ -49,10 +49,10 @@ func BetaFeature_check() bool {
 		var hx_argument_2 any = point
 		return hxrt.FunctionCall(hx_callable_1)(hx_argument_2)
 	}() != 42 {
-		hxrt.Throw(hxrt.StringFromLiteral("native recovery failed"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("native recovery failed")))
 	}
 	if !hxrt.HaxeEqual(reflaxe__go___internal__CompilerReflect_callMethod(erased, []any{point}), 42) {
-		hxrt.Throw(hxrt.StringFromLiteral("native erased invocation failed"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("native erased invocation failed")))
 	}
 	source := hxrt.NewFunction(func(callback *hxrt.Function[func(*BetaFeature) *string]) *string {
 		return func() *string {
@@ -73,7 +73,7 @@ func BetaFeature_check() bool {
 		return hxrt.FunctionCall(hx_callable_5)(hx_argument_6)
 	}()
 	if !hxrt.StringEqualStringPtr(result, hxrt.StringFromLiteral("ok")) || (calls != 1) {
-		hxrt.Throw(hxrt.StringFromLiteral("nested callback recovery changed evaluation"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("nested callback recovery changed evaluation")))
 	}
 	return Registry_install()
 }

@@ -7,11 +7,11 @@ type I_EReg interface {
 	matched(n int) *string
 	matchedLeft() *string
 	matchedRight() *string
-	matchedPos() map[string]any
+	matchedPos() hxrt.Anonymous
 	matchSub(s *string, pos int, len int) bool
 	split(s *string) *hxrt.Array
 	replace(s *string, by *string) *string
-	map_(s *string, f func(*EReg) *string) *string
+	map_(s *string, f *hxrt.Function[func(*EReg) *string]) *string
 	remember(source *string, match *hxrt.RegexMatch)
 	requireMatch() *hxrt.RegexMatch
 	expandReplacement(by *string, source *string, currentMatch *hxrt.RegexMatch) *string
@@ -25,9 +25,25 @@ type EReg struct {
 	lastMatch  *hxrt.RegexMatch
 }
 
+func (self *EReg) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_EReg(r *string, opt *string) *EReg {
+	return hx_init_EReg(hx_alloc_EReg(nil), r, opt)
+}
+
+func hx_alloc_EReg(owner any) *EReg {
 	self := &EReg{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_EReg)
+	}
+	return self
+}
+
+func hx_init_EReg(self *EReg, r *string, opt *string) *EReg {
 	self.handle = hxrt.RegexCompile(r, opt)
 	self.global = StringTools_contains(opt, hxrt.StringFromLiteral("g"))
 	self.lastSource = nil
@@ -50,11 +66,11 @@ func (self *EReg) match(s *string) bool {
 func (self *EReg) matched(n int) *string {
 	current := self.__hx_this.requireMatch()
 	if n < 0 {
-		hxrt.Throw(hxrt.StringFromLiteral("Invalid group"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Invalid group")))
 	}
 	offset := int((hxrt.Int32Wrap(n) * hxrt.Int32Wrap(2)))
 	if int((hxrt.Int32Wrap(offset) + hxrt.Int32Wrap(1))) >= len(current.Indices) {
-		hxrt.Throw(hxrt.StringFromLiteral("Invalid group"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Invalid group")))
 	}
 	start := current.Indices[offset]
 	end := current.Indices[int((hxrt.Int32Wrap(offset) + hxrt.Int32Wrap(1)))]
@@ -74,13 +90,13 @@ func (self *EReg) matchedRight() *string {
 	return hxrt.StringSubstrStringPtr(self.lastSource, current.Indices[1], 0, false)
 }
 
-func (self *EReg) matchedPos() map[string]any {
+func (self *EReg) matchedPos() hxrt.Anonymous {
 	current := self.__hx_this.requireMatch()
 	start := current.Indices[0]
 	hx_obj_1 := map[string]any{}
 	hx_obj_1["pos"] = start
 	hx_obj_1["len"] = int((hxrt.Int32Wrap(current.Indices[1]) - hxrt.Int32Wrap(start)))
-	return hx_obj_1
+	return hxrt.AnonymousFromMap(hx_obj_1)
 }
 
 func (self *EReg) matchSub(s *string, pos int, len int) bool {
@@ -191,7 +207,7 @@ func (self *EReg) replace(s *string, by *string) *string {
 	return out_b
 }
 
-func (self *EReg) map_(s *string, f func(*EReg) *string) *string {
+func (self *EReg) map_(s *string, f *hxrt.Function[func(*EReg) *string]) *string {
 	var out_b *string
 	out_b = hxrt.StringFromLiteral("")
 	offset := 0
@@ -208,7 +224,11 @@ func (self *EReg) map_(s *string, f func(*EReg) *string) *string {
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(x_1))
 		self.lastSource = s
 		self.lastMatch = current
-		x_2 := f(self)
+		x_2 := func() *string {
+			var hx_callable_8 *hxrt.Function[func(*EReg) *string] = f
+			var hx_argument_9 *EReg = self
+			return hxrt.FunctionCall(hx_callable_8)(hx_argument_9)
+		}()
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(x_2))
 		if start == end {
 			x_3 := hxrt.StringSubstrStringPtr(s, start, 1, true)
@@ -235,7 +255,7 @@ func (self *EReg) remember(source *string, match *hxrt.RegexMatch) {
 
 func (self *EReg) requireMatch() *hxrt.RegexMatch {
 	if (hxrt.StringEqualStringPtr(self.lastSource, nil) || (self.lastMatch == nil)) || (len(self.lastMatch.Indices) < 2) {
-		hxrt.Throw(hxrt.StringFromLiteral("Invalid regex operation because no match was made"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Invalid regex operation because no match was made")))
 	}
 	return self.lastMatch
 }
@@ -253,44 +273,44 @@ func (self *EReg) expandReplacement(by *string, source *string, currentMatch *hx
 				index = int((hxrt.Int32Wrap(index) + hxrt.Int32Wrap(2)))
 				continue
 			}
-			var hx_switch_8 int
+			var hx_switch_10 int
 			switch *hxrt.StdString(next) {
 			case *hxrt.StdString(hxrt.StringFromLiteral("1")):
-				hx_switch_8 = 1
+				hx_switch_10 = 1
 			case *hxrt.StdString(hxrt.StringFromLiteral("2")):
-				hx_switch_8 = 2
+				hx_switch_10 = 2
 			case *hxrt.StdString(hxrt.StringFromLiteral("3")):
-				hx_switch_8 = 3
+				hx_switch_10 = 3
 			case *hxrt.StdString(hxrt.StringFromLiteral("4")):
-				hx_switch_8 = 4
+				hx_switch_10 = 4
 			case *hxrt.StdString(hxrt.StringFromLiteral("5")):
-				hx_switch_8 = 5
+				hx_switch_10 = 5
 			case *hxrt.StdString(hxrt.StringFromLiteral("6")):
-				hx_switch_8 = 6
+				hx_switch_10 = 6
 			case *hxrt.StdString(hxrt.StringFromLiteral("7")):
-				hx_switch_8 = 7
+				hx_switch_10 = 7
 			case *hxrt.StdString(hxrt.StringFromLiteral("8")):
-				hx_switch_8 = 8
+				hx_switch_10 = 8
 			case *hxrt.StdString(hxrt.StringFromLiteral("9")):
-				hx_switch_8 = 9
+				hx_switch_10 = 9
 			default:
-				hx_switch_8 = 0
+				hx_switch_10 = 0
 			}
-			group := hx_switch_8
+			group := hx_switch_10
 			if group != 0 {
 				offset := int((hxrt.Int32Wrap(group) * hxrt.Int32Wrap(2)))
 				if int((hxrt.Int32Wrap(offset) + hxrt.Int32Wrap(1))) >= len(currentMatch.Indices) {
-					hxrt.Throw(hxrt.StringFromLiteral("Invalid group"))
+					hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Invalid group")))
 				}
 				start := currentMatch.Indices[offset]
 				end := currentMatch.Indices[int((hxrt.Int32Wrap(offset) + hxrt.Int32Wrap(1)))]
-				var hx_if_9 *string
+				var hx_if_11 *string
 				if (start < 0) || (end < start) {
-					hx_if_9 = nil
+					hx_if_11 = nil
 				} else {
-					hx_if_9 = hxrt.StringSubstrStringPtr(source, start, int((hxrt.Int32Wrap(end) - hxrt.Int32Wrap(start))), true)
+					hx_if_11 = hxrt.StringSubstrStringPtr(source, start, int((hxrt.Int32Wrap(end) - hxrt.Int32Wrap(start))), true)
 				}
-				value := hx_if_9
+				value := hx_if_11
 				if !hxrt.StringEqualStringPtr(value, nil) {
 					out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(value))
 				}

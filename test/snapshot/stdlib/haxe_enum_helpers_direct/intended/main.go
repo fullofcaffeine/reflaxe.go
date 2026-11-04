@@ -400,6 +400,7 @@ func hxrt_typeCreateEnumInstance(enumName string, constructorName string, constr
 }
 
 func Type_getClass(o any) any {
+	o = hxrt.ObjectSource(o)
 	if hxrt.AnyEqualsNull(o) {
 		return nil
 	}
@@ -751,6 +752,10 @@ func Type_allEnums(e any) *hxrt.Array {
 }
 
 func Type_typeof(v any) *ValueType {
+	v = hxrt.ObjectSource(v)
+	if hxrt.ReflectIsFunction(v) {
+		return ValueType_TFunction
+	}
 	if hxrt.AnyEqualsNull(v) {
 		return ValueType_TNull
 	}
@@ -781,8 +786,6 @@ func Type_typeof(v any) *ValueType {
 		return ValueType_TNull
 	}
 	switch ref.Kind() {
-	case reflect.Func:
-		return ValueType_TFunction
 	case reflect.Slice, reflect.Array:
 		return ValueType_TClass(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Array")})
 	case reflect.Map, reflect.Struct, reflect.Interface, reflect.Pointer:

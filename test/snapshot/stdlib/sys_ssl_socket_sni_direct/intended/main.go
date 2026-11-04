@@ -12,9 +12,9 @@ var SNI_KEY_PEM *string = hxrt.StringFromLiteral("-----BEGIN PRIVATE KEY-----\nM
 
 func connectAndPrint(server *sys__ssl__Socket, port int, hostname *string) {
 	acceptedSockets := New_sys__thread__Deque()
-	sys__thread__Thread_create(func() {
+	sys__thread__Thread_create(hxrt.NewFunction(func() {
 		acceptedSockets.__hx_this.add(server.__hx_this.accept())
-	})
+	}))
 	client := New_sys__ssl__Socket()
 	client.verifyCert = false
 	client.__hx_this.setHostname(hostname)
@@ -23,13 +23,7 @@ func connectAndPrint(server *sys__ssl__Socket, port int, hostname *string) {
 	peer := client.__hx_this.peerCertificate()
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hostname, hxrt.StringFromLiteral("=")), peer.__hx_this.get_commonName()))
 	hxrt.Println(v)
-	func(hx_value_1 any) *sys__net__Socket {
-		if hx_value_1 == nil {
-			var hx_zero_2 *sys__net__Socket
-			return hx_zero_2
-		}
-		return hx_value_1.(*sys__net__Socket)
-	}(acceptedSockets.__hx_this.pop(true)).__hx_this.close()
+	hx_recover_class_0(acceptedSockets.__hx_this.pop(true)).__hx_this.close()
 	client.__hx_this.close()
 }
 
@@ -41,27 +35,100 @@ func main() {
 	sniKey := sys__ssl__Key_readPEM(SNI_KEY_PEM, false, nil)
 	server := New_sys__ssl__Socket()
 	server.__hx_this.setCertificate(defaultCert, defaultKey)
-	server.__hx_this.addSNICertificate(func(name *string) bool {
+	server.__hx_this.addSNICertificate(hxrt.NewFunction(func(name *string) bool {
 		return hxrt.StringEqualStringPtr(name, hxrt.StringFromLiteral("sni.local"))
-	}, sniCert, sniKey)
+	}), sniCert, sniKey)
 	server.__hx_this.bind(New_sys__net__Host(hxrt.StringFromLiteral("127.0.0.1")), 0)
 	server.__hx_this.listen(2)
 	bound := server.__hx_this.host()
-	connectAndPrint(server, func(hx_obj_3 map[string]any) int {
-		hx_field_4 := hx_obj_3["port"]
-		if hx_field_4 == nil {
-			var hx_zero_5 int
-			return hx_zero_5
+	connectAndPrint(server, func(hx_value_1 any) int {
+		if hx_value_1 == nil {
+			var hx_zero_2 int
+			return hx_zero_2
 		}
-		return hx_field_4.(int)
-	}(bound), hxrt.StringFromLiteral("default.local"))
-	connectAndPrint(server, func(hx_obj_6 map[string]any) int {
-		hx_field_7 := hx_obj_6["port"]
-		if hx_field_7 == nil {
-			var hx_zero_8 int
-			return hx_zero_8
+		return hx_value_1.(int)
+	}(hxrt.AnonymousGet(bound, "port")), hxrt.StringFromLiteral("default.local"))
+	connectAndPrint(server, func(hx_value_3 any) int {
+		if hx_value_3 == nil {
+			var hx_zero_4 int
+			return hx_zero_4
 		}
-		return hx_field_7.(int)
-	}(bound), hxrt.StringFromLiteral("sni.local"))
+		return hx_value_3.(int)
+	}(hxrt.AnonymousGet(bound, "port")), hxrt.StringFromLiteral("sni.local"))
 	server.__hx_this.close()
+}
+
+func hx_recover_class_0(value any) *sys__net__Socket {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *sys__ssl__Socket:
+		return source.sys__net__Socket
+	case *sys__net__Socket:
+		return source
+	default:
+		return value.(*sys__net__Socket)
+	}
+}
+
+func hx_recover_class_1(value any) *haxe__Exception {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *sys__thread__NoEventLoopException:
+		return source.haxe__Exception
+	case *haxe__Exception:
+		return source
+	case *haxe__exceptions__NotImplementedException:
+		return source.haxe__exceptions__PosException.haxe__Exception
+	case *haxe__exceptions__PosException:
+		return source.haxe__Exception
+	case *haxe__ValueException:
+		return source.haxe__Exception
+	default:
+		return value.(*haxe__Exception)
+	}
+}
+
+func hx_recover_class_2(value any) *haxe__io__Eof {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__io__Eof:
+		return source
+	default:
+		return value.(*haxe__io__Eof)
+	}
+}
+
+func hx_recover_class_3(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
+}
+
+func hx_recover_class_4(value any) *haxe__ds___List__GoListIterator {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ds___List__GoListIterator:
+		return source
+	default:
+		return value.(*haxe__ds___List__GoListIterator)
+	}
 }

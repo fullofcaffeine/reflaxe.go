@@ -12,9 +12,25 @@ type sys__thread__Lock struct {
 	__h       *hxrt.LockHandle
 }
 
+func (self *sys__thread__Lock) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_sys__thread__Lock() *sys__thread__Lock {
+	return hx_init_sys__thread__Lock(hx_alloc_sys__thread__Lock(nil))
+}
+
+func hx_alloc_sys__thread__Lock(owner any) *sys__thread__Lock {
 	self := &sys__thread__Lock{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_sys__thread__Lock)
+	}
+	return self
+}
+
+func hx_init_sys__thread__Lock(self *sys__thread__Lock) *sys__thread__Lock {
 	self.__h = hxrt.ThreadLockNew()
 	return self
 }

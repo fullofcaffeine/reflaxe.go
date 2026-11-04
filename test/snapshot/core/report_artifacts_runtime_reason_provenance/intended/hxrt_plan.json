@@ -15,12 +15,14 @@
 		"array",
 		"core",
 		"exception",
+		"function",
 		"json",
 		"print",
 		"string"
 	],
 	"selectedFeatures": [
 		"core",
+		"function",
 		"array",
 		"string",
 		"print",
@@ -32,6 +34,7 @@
 		"array.go",
 		"core.go",
 		"exception.go",
+		"function.go",
 		"hxrt.go",
 		"json.go",
 		"print.go",
@@ -50,6 +53,24 @@
 					"feature": "core",
 					"sourceKind": "baseline",
 					"source": "compiler_baseline"
+				}
+			]
+		},
+		{
+			"id": "function",
+			"files": [
+				"function.go"
+			],
+			"reasons": [
+				{
+					"feature": "function",
+					"sourceKind": "compiler_surface",
+					"source": "lowered_go_ast:hxrt.Function"
+				},
+				{
+					"feature": "function",
+					"sourceKind": "dependency_edge",
+					"source": "json->function"
 				}
 			]
 		},
@@ -252,6 +273,16 @@
 			"feature": "core",
 			"sourceKind": "baseline",
 			"source": "compiler_baseline"
+		},
+		{
+			"feature": "function",
+			"sourceKind": "compiler_surface",
+			"source": "lowered_go_ast:hxrt.Function"
+		},
+		{
+			"feature": "function",
+			"sourceKind": "dependency_edge",
+			"source": "json->function"
 		},
 		{
 			"feature": "array",

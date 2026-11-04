@@ -13,7 +13,10 @@ func main() {
 	hxrt.TryCatch(func() {
 		New_sys__net__Host(hxrt.StringFromLiteral("256.256.256.256"))
 	}, func(hx_caught_1 any) {
-		hx_tmp := hx_caught_1
+		hx_exception_2 := haxe__Exception_caught(hx_caught_1)
+		hx_payload_3 := haxe__Exception_catchValue(hx_caught_1)
+		_ = hx_exception_2
+		var hx_tmp any = hx_payload_3
 		_ = hx_tmp
 		invalidThrows = true
 	})
@@ -23,9 +26,40 @@ func main() {
 	hxrt.Println(v_3)
 	hxrt.TryCatch(func() {
 		loop.__hx_this.reverse()
-	}, func(hx_caught_3 any) {
-		hx_tmp_1 := hx_caught_3
+	}, func(hx_caught_4 any) {
+		hx_exception_5 := haxe__Exception_caught(hx_caught_4)
+		hx_payload_6 := haxe__Exception_catchValue(hx_caught_4)
+		_ = hx_exception_5
+		var hx_tmp_1 any = hx_payload_6
 		_ = hx_tmp_1
 	})
 	hxrt.Println(any(hxrt.StringFromLiteral("reverse_called=true")))
+}
+
+func hx_recover_class_0(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
+}
+
+func hx_recover_class_1(value any) *haxe__Exception {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__Exception:
+		return source
+	case *haxe__ValueException:
+		return source.haxe__Exception
+	default:
+		return value.(*haxe__Exception)
+	}
 }

@@ -99,6 +99,8 @@ func referenceEqual(left any, right any) bool {
 // How: Normalize nil and numeric values, compare strings by contents, and delegate
 // reference-shaped carriers to the identity-only reflection island above.
 func HaxeEqual(left any, right any) bool {
+	left = ObjectSource(left)
+	right = ObjectSource(right)
 	leftNil := isAnyNil(left)
 	rightNil := isAnyNil(right)
 	if leftNil || rightNil {

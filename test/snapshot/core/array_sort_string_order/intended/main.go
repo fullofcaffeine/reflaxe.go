@@ -60,6 +60,34 @@ func main() {
 		score = int((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(64)))
 	}
 	if score != 127 {
-		hxrt.Throw(hxrt.StringFromLiteral("unexpected sort or string ordering result"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("unexpected sort or string ordering result")))
+	}
+}
+
+func hx_recover_class_0(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
+}
+
+func hx_recover_class_1(value any) *haxe__Exception {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__Exception:
+		return source
+	case *haxe__ValueException:
+		return source.haxe__Exception
+	default:
+		return value.(*haxe__Exception)
 	}
 }

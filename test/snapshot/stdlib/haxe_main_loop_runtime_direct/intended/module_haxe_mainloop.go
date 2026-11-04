@@ -7,13 +7,7 @@ func haxe__MainLoop___remove(event *haxe__MainEvent) {
 	_g := 0
 	_g1 := haxe__MainLoop_pending
 	for _g < _g1.Len() {
-		candidate := func(hx_value_1 any) *haxe__MainEvent {
-			if hx_value_1 == nil {
-				var hx_zero_2 *haxe__MainEvent
-				return hx_zero_2
-			}
-			return hx_value_1.(*haxe__MainEvent)
-		}(_g1.Get(_g))
+		candidate := hx_recover_class_0(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if candidate != event {
 			next.Push(candidate)
@@ -22,18 +16,18 @@ func haxe__MainLoop___remove(event *haxe__MainEvent) {
 	haxe__MainLoop_pending = next
 }
 
-func haxe__MainLoop_add(f func(), priority int) *haxe__MainEvent {
+func haxe__MainLoop_add(f *hxrt.Function[func()], priority int) *haxe__MainEvent {
 	if f == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("Event function is null"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Event function is null")))
 	}
 	event := New_haxe__MainEvent(f, priority)
-	hx_arr_4 := haxe__MainLoop_pending
-	hx_arr_4.Push(event)
+	hx_arr_2 := haxe__MainLoop_pending
+	hx_arr_2.Push(event)
 	event.__hx_this.delayNow()
 	return event
 }
 
-func haxe__MainLoop_addThread(f func()) {
+func haxe__MainLoop_addThread(f *hxrt.Function[func()]) {
 	haxe__EntryPoint_addThread(f)
 }
 
@@ -45,13 +39,7 @@ func haxe__MainLoop_hasEvents() bool {
 	_g := 0
 	_g1 := haxe__MainLoop_pending
 	for _g < _g1.Len() {
-		event := func(hx_value_5 any) *haxe__MainEvent {
-			if hx_value_5 == nil {
-				var hx_zero_6 *haxe__MainEvent
-				return hx_zero_6
-			}
-			return hx_value_5.(*haxe__MainEvent)
-		}(_g1.Get(_g))
+		event := hx_recover_class_0(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if event.isBlocking {
 			return true
@@ -62,7 +50,7 @@ func haxe__MainLoop_hasEvents() bool {
 
 var haxe__MainLoop_pending *hxrt.Array = hxrt.NewArray()
 
-func haxe__MainLoop_runInMainThread(f func()) {
+func haxe__MainLoop_runInMainThread(f *hxrt.Function[func()]) {
 	haxe__EntryPoint_runInMainThread(f)
 }
 
@@ -79,7 +67,7 @@ type I_haxe__MainEvent interface {
 
 type haxe__MainEvent struct {
 	__hx_this  I_haxe__MainEvent
-	f          func()
+	f          *hxrt.Function[func()]
 	timer      *haxe__Timer
 	active     bool
 	isBlocking bool
@@ -87,9 +75,25 @@ type haxe__MainEvent struct {
 	priority   int
 }
 
-func New_haxe__MainEvent(f func(), priority int) *haxe__MainEvent {
+func (self *haxe__MainEvent) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
+func New_haxe__MainEvent(f *hxrt.Function[func()], priority int) *haxe__MainEvent {
+	return hx_init_haxe__MainEvent(hx_alloc_haxe__MainEvent(nil), f, priority)
+}
+
+func hx_alloc_haxe__MainEvent(owner any) *haxe__MainEvent {
 	self := &haxe__MainEvent{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__MainEvent)
+	}
+	return self
+}
+
+func hx_init_haxe__MainEvent(self *haxe__MainEvent, f *hxrt.Function[func()], priority int) *haxe__MainEvent {
 	self.isBlocking = true
 	self.active = true
 	self.f = f
@@ -109,7 +113,10 @@ func (self *haxe__MainEvent) delay(t float64) {
 
 func (self *haxe__MainEvent) call() {
 	if self.f != nil {
-		self.f()
+		func() {
+			var hx_callable_3 *hxrt.Function[func()] = self.f
+			hxrt.FunctionCall(hx_callable_3)()
+		}()
 	}
 }
 
@@ -141,13 +148,27 @@ func (self *haxe__MainEvent) schedule() {
 	}
 	wait := (self.nextRun - hxrt.ThreadNowSeconds())
 	if wait <= 0 {
-		haxe__EntryPoint_runInMainThread(self.dispatch)
+		haxe__EntryPoint_runInMainThread(func() *hxrt.Function[func()] {
+			hx_receiver_4 := self
+			return hxrt.BoundFunction(func() {
+				hx_receiver_4.__hx_this.dispatch()
+			}, func() any {
+				return hx_receiver_4.__hx_this
+			}, "dispatch")
+		}())
 	} else {
 		ms := hxrt.MathCeilInt((wait * float64(1000)))
 		if ms < 1 {
 			ms = 1
 		}
-		self.timer = haxe__Timer_delay(self.dispatch, ms)
+		self.timer = haxe__Timer_delay(func() *hxrt.Function[func()] {
+			hx_receiver_5 := self
+			return hxrt.BoundFunction(func() {
+				hx_receiver_5.__hx_this.dispatch()
+			}, func() any {
+				return hx_receiver_5.__hx_this
+			}, "dispatch")
+		}(), ms)
 	}
 }
 
@@ -161,7 +182,10 @@ func (self *haxe__MainEvent) dispatch() {
 		return
 	}
 	if self.f != nil {
-		self.f()
+		func() {
+			var hx_callable_6 *hxrt.Function[func()] = self.f
+			hxrt.FunctionCall(hx_callable_6)()
+		}()
 	}
 	if self.active && (self.f != nil) {
 		self.__hx_this.schedule()

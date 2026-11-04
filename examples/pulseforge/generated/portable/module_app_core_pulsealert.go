@@ -15,9 +15,25 @@ type app__core__PulseAlert struct {
 	reason        *string
 }
 
+func (self *app__core__PulseAlert) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_app__core__PulseAlert(eventId int, source *string, region *string, severity int, weightedValue int, reason *string) *app__core__PulseAlert {
+	return hx_init_app__core__PulseAlert(hx_alloc_app__core__PulseAlert(nil), eventId, source, region, severity, weightedValue, reason)
+}
+
+func hx_alloc_app__core__PulseAlert(owner any) *app__core__PulseAlert {
 	self := &app__core__PulseAlert{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_app__core__PulseAlert)
+	}
+	return self
+}
+
+func hx_init_app__core__PulseAlert(self *app__core__PulseAlert, eventId int, source *string, region *string, severity int, weightedValue int, reason *string) *app__core__PulseAlert {
 	self.eventId = eventId
 	self.source = source
 	self.region = region

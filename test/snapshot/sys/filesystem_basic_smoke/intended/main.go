@@ -29,7 +29,10 @@ func main() {
 	hxrt.TryCatch(func() {
 		sys__FileSystem_isDirectory(root)
 	}, func(hx_caught_4 any) {
-		hx_tmp := hx_caught_4
+		hx_exception_5 := haxe__Exception_caught(hx_caught_4)
+		hx_payload_6 := haxe__Exception_catchValue(hx_caught_4)
+		_ = hx_exception_5
+		var hx_tmp any = hx_payload_6
 		_ = hx_tmp
 		missingThrows = true
 	})
@@ -50,8 +53,11 @@ func main() {
 	deleteFileDirectoryThrows := false
 	hxrt.TryCatch(func() {
 		sys__FileSystem_deleteFile(directoryOnly)
-	}, func(hx_caught_6 any) {
-		hx_tmp_1 := hx_caught_6
+	}, func(hx_caught_7 any) {
+		hx_exception_8 := haxe__Exception_caught(hx_caught_7)
+		hx_payload_9 := haxe__Exception_catchValue(hx_caught_7)
+		_ = hx_exception_8
+		var hx_tmp_1 any = hx_payload_9
 		_ = hx_tmp_1
 		deleteFileDirectoryThrows = true
 	})
@@ -63,8 +69,11 @@ func main() {
 	deleteDirectoryFileThrows := false
 	hxrt.TryCatch(func() {
 		sys__FileSystem_deleteDirectory(fileB)
-	}, func(hx_caught_8 any) {
-		hx_tmp_2 := hx_caught_8
+	}, func(hx_caught_10 any) {
+		hx_exception_11 := haxe__Exception_caught(hx_caught_10)
+		hx_payload_12 := haxe__Exception_catchValue(hx_caught_10)
+		_ = hx_exception_11
+		var hx_tmp_2 any = hx_payload_12
 		_ = hx_tmp_2
 		deleteDirectoryFileThrows = true
 	})
@@ -73,14 +82,13 @@ func main() {
 	names := sys__FileSystem_readDirectory(root)
 	var v_7 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("entry="), firstEntry(names)))
 	hxrt.Println(v_7)
-	var v_8 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("size="), func(hx_obj_10 map[string]any) int {
-		hx_field_11 := hx_obj_10["size"]
-		if hx_field_11 == nil {
-			var hx_zero_12 int
-			return hx_zero_12
+	var v_8 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("size="), func(hx_value_13 any) int {
+		if hx_value_13 == nil {
+			var hx_zero_14 int
+			return hx_zero_14
 		}
-		return hx_field_11.(int)
-	}(sys__FileSystem_stat(fileB))))
+		return hx_value_13.(int)
+	}(hxrt.AnonymousGet(sys__FileSystem_stat(fileB), "size"))))
 	hxrt.Println(v_8)
 	var v_9 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("content="), sys__io__File_getContent(fileB)))
 	hxrt.Println(v_9)
@@ -97,12 +105,12 @@ func rmDirRecursive(path *string) {
 	_g := 0
 	_g1 := sys__FileSystem_readDirectory(path)
 	for _g < _g1.Len() {
-		entry := func(hx_value_13 any) *string {
-			if hx_value_13 == nil {
-				var hx_zero_14 *string
-				return hx_zero_14
+		entry := func(hx_value_15 any) *string {
+			if hx_value_15 == nil {
+				var hx_zero_16 *string
+				return hx_zero_16
 			}
-			return hx_value_13.(*string)
+			return hx_value_15.(*string)
 		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		child := hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(path, hxrt.StringFromLiteral("/")), entry)
@@ -113,4 +121,49 @@ func rmDirRecursive(path *string) {
 		}
 	}
 	sys__FileSystem_deleteDirectory(path)
+}
+
+func hx_recover_class_0(value any) *haxe__io__Eof {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__io__Eof:
+		return source
+	default:
+		return value.(*haxe__io__Eof)
+	}
+}
+
+func hx_recover_class_1(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
+}
+
+func hx_recover_class_2(value any) *haxe__Exception {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__Exception:
+		return source
+	case *haxe__exceptions__NotImplementedException:
+		return source.haxe__exceptions__PosException.haxe__Exception
+	case *haxe__exceptions__PosException:
+		return source.haxe__Exception
+	case *haxe__ValueException:
+		return source.haxe__Exception
+	default:
+		return value.(*haxe__Exception)
+	}
 }

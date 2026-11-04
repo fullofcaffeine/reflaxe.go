@@ -13,9 +13,25 @@ type sys__thread__Deque struct {
 	__items     *haxe__ds__List
 }
 
+func (self *sys__thread__Deque) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_sys__thread__Deque() *sys__thread__Deque {
+	return hx_init_sys__thread__Deque(hx_alloc_sys__thread__Deque(nil))
+}
+
+func hx_alloc_sys__thread__Deque(owner any) *sys__thread__Deque {
 	self := &sys__thread__Deque{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_sys__thread__Deque)
+	}
+	return self
+}
+
+func hx_init_sys__thread__Deque(self *sys__thread__Deque) *sys__thread__Deque {
 	self.__items = New_haxe__ds__List()
 	self.__available = New_sys__thread__Lock()
 	self.__mutex = New_sys__thread__Mutex()

@@ -35,9 +35,25 @@ type app__core__PulseReport struct {
 	runtimeScore           int
 }
 
+func (self *app__core__PulseReport) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_app__core__PulseReport(profile *string, variant *string, capability *string, ingestReceived int, ingestAccepted int, backpressureEvents int, parseCount int, enrichCount int, aggregateSourceCount int, aggregateTotalValue int, aggregateWeightedTotal int, aggregateDigest *string, alertCount int, alertDigest *string, runtimeScore int) *app__core__PulseReport {
+	return hx_init_app__core__PulseReport(hx_alloc_app__core__PulseReport(nil), profile, variant, capability, ingestReceived, ingestAccepted, backpressureEvents, parseCount, enrichCount, aggregateSourceCount, aggregateTotalValue, aggregateWeightedTotal, aggregateDigest, alertCount, alertDigest, runtimeScore)
+}
+
+func hx_alloc_app__core__PulseReport(owner any) *app__core__PulseReport {
 	self := &app__core__PulseReport{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_app__core__PulseReport)
+	}
+	return self
+}
+
+func hx_init_app__core__PulseReport(self *app__core__PulseReport, profile *string, variant *string, capability *string, ingestReceived int, ingestAccepted int, backpressureEvents int, parseCount int, enrichCount int, aggregateSourceCount int, aggregateTotalValue int, aggregateWeightedTotal int, aggregateDigest *string, alertCount int, alertDigest *string, runtimeScore int) *app__core__PulseReport {
 	self.profile = profile
 	self.variant = variant
 	self.capability = capability

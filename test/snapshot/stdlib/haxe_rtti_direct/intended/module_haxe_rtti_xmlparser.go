@@ -1207,7 +1207,7 @@ func (self *haxe__rtti__XmlParser) merge(t *haxe__rtti__TypeTree) {
 				hx_if_269 = hx_if_268
 			}
 			msg := hx_if_269
-			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Incompatibilities between "), func(hx_value_270 any) *string {
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Incompatibilities between "), func(hx_value_270 any) *string {
 				if hx_value_270 == nil {
 					var hx_zero_271 *string
 					return hx_zero_271
@@ -1219,7 +1219,7 @@ func (self *haxe__rtti__XmlParser) merge(t *haxe__rtti__TypeTree) {
 					return hx_zero_273
 				}
 				return hx_value_272.(*hxrt.Array)
-			}(hxrt.AnonymousGet(tinf, "platforms")), hxrt.StringFromLiteral(","))), hxrt.StringFromLiteral(" and ")), self.curplatform), hxrt.StringFromLiteral(" (")), msg), hxrt.StringFromLiteral(")")))
+			}(hxrt.AnonymousGet(tinf, "platforms")), hxrt.StringFromLiteral(","))), hxrt.StringFromLiteral(" and ")), self.curplatform), hxrt.StringFromLiteral(" (")), msg), hxrt.StringFromLiteral(")"))))
 		}
 	}
 	cur.Push(t)
@@ -1273,7 +1273,7 @@ func (self *haxe__rtti__XmlParser) processElement(x *Xml) *haxe__rtti__TypeTree 
 		hx_if_281 = hxrt.StringFromLiteral("Document")
 	} else {
 		if !hxrt.HaxeEqual(x.nodeType, Xml_Element) {
-			hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(x.nodeType))))
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(x.nodeType)))))
 		}
 		hx_if_281 = x.nodeName
 	}
@@ -1290,7 +1290,7 @@ func (self *haxe__rtti__XmlParser) processElement(x *Xml) *haxe__rtti__TypeTree 
 	if hxrt.StringEqualStringPtr(nodeName, hxrt.StringFromLiteral("abstract")) {
 		return haxe__rtti__TypeTree_TAbstractdecl(self.__hx_this.xabstract(x))
 	}
-	hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Invalid "), nodeName))
+	hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Invalid "), nodeName)))
 	var hx_throw_zero_282 *haxe__rtti__TypeTree
 	return hx_throw_zero_282
 }
@@ -1469,7 +1469,7 @@ func (self *haxe__rtti__XmlParser) xclassfield(x *Xml, defPublic bool) hxrt.Anon
 				if hxrt.StringEqualStringPtr(nodeName, hxrt.StringFromLiteral("overloads")) {
 					overloads = self.__hx_this.xoverloads(c_1)
 				} else {
-					hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Invalid "), nodeName))
+					hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Invalid "), nodeName)))
 				}
 			}
 		}
@@ -1698,7 +1698,7 @@ func (self *haxe__rtti__XmlParser) xabstract(x *Xml) hxrt.Anonymous {
 							if hxrt.StringEqualStringPtr(nodeName, hxrt.StringFromLiteral("this")) {
 								athis = self.__hx_this.xtype(self.__hx_this.requireFirstElement(c_1))
 							} else {
-								hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Invalid "), nodeName))
+								hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Invalid "), nodeName)))
 							}
 						}
 					}
@@ -1911,7 +1911,7 @@ func (self *haxe__rtti__XmlParser) xtype(x *Xml) *haxe__rtti__CType {
 		}
 		return haxe__rtti__CType_CDynamic(t)
 	}
-	hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Invalid "), nodeName))
+	hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Invalid "), nodeName)))
 	var hx_throw_zero_371 *haxe__rtti__CType
 	return hx_throw_zero_371
 }
@@ -2011,7 +2011,7 @@ func (self *haxe__rtti__XmlParser) requireNamedElement(x *Xml, name *string) *Xm
 		var hx_callable_381 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(elements, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_381)()
 	}() {
-		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(self.__hx_this.nodeDisplayName(x), hxrt.StringFromLiteral(" is missing element ")), name))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(self.__hx_this.nodeDisplayName(x), hxrt.StringFromLiteral(" is missing element ")), name)))
 	}
 	return func() *Xml {
 		var hx_callable_382 *hxrt.Function[func() *Xml] = hx_recover_callable_1(hxrt.AnonymousGet(elements, "next"))
@@ -2022,7 +2022,7 @@ func (self *haxe__rtti__XmlParser) requireNamedElement(x *Xml, name *string) *Xm
 func (self *haxe__rtti__XmlParser) requireFirstElement(x *Xml) *Xml {
 	first := x.__hx_this.firstElement()
 	if first == nil {
-		hxrt.Throw(hxrt.StringConcatStringPtr(self.__hx_this.nodeDisplayName(x), hxrt.StringFromLiteral(" is missing first element")))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(self.__hx_this.nodeDisplayName(x), hxrt.StringFromLiteral(" is missing first element"))))
 	}
 	return first
 }
@@ -2039,7 +2039,7 @@ func (self *haxe__rtti__XmlParser) nodeDisplayName(x *Xml) *string {
 
 func (self *haxe__rtti__XmlParser) elementName(x *Xml) *string {
 	if !hxrt.HaxeEqual(x.nodeType, Xml_Element) {
-		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(x.nodeType))))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(x.nodeType)))))
 	}
 	name := x.nodeName
 	var hx_if_384 *string
@@ -2059,7 +2059,7 @@ func (self *haxe__rtti__XmlParser) innerData(x *Xml) *string {
 	it_current = 0
 	it_array = _this
 	if !(it_current < it_array.Len()) {
-		hxrt.Throw(hxrt.StringConcatStringPtr(self.__hx_this.nodeDisplayName(x), hxrt.StringFromLiteral(" does not have data")))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(self.__hx_this.nodeDisplayName(x), hxrt.StringFromLiteral(" does not have data"))))
 	}
 	value := hx_recover_class_0(it_array.Get(func() int {
 		hx_post_385 := it_current
@@ -2067,13 +2067,13 @@ func (self *haxe__rtti__XmlParser) innerData(x *Xml) *string {
 		return hx_post_385
 	}()))
 	if it_current < it_array.Len() {
-		hxrt.Throw(hxrt.StringConcatStringPtr(self.__hx_this.nodeDisplayName(x), hxrt.StringFromLiteral(" does not only have data")))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(self.__hx_this.nodeDisplayName(x), hxrt.StringFromLiteral(" does not only have data"))))
 	}
 	if !hxrt.HaxeEqual(value.nodeType, Xml_PCData) && !hxrt.HaxeEqual(value.nodeType, Xml_CData) {
-		hxrt.Throw(hxrt.StringConcatStringPtr(self.__hx_this.nodeDisplayName(x), hxrt.StringFromLiteral(" does not have data")))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(self.__hx_this.nodeDisplayName(x), hxrt.StringFromLiteral(" does not have data"))))
 	}
 	if hxrt.HaxeEqual(value.nodeType, Xml_Document) || hxrt.HaxeEqual(value.nodeType, Xml_Element) {
-		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(value.nodeType))))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(value.nodeType)))))
 	}
 	return value.nodeValue
 }

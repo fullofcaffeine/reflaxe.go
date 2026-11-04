@@ -15,9 +15,25 @@ type app__runtime__CoreRuntime struct {
 	__hx_this I_app__runtime__CoreRuntime
 }
 
+func (self *app__runtime__CoreRuntime) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_app__runtime__CoreRuntime() *app__runtime__CoreRuntime {
+	return hx_init_app__runtime__CoreRuntime(hx_alloc_app__runtime__CoreRuntime(nil))
+}
+
+func hx_alloc_app__runtime__CoreRuntime(owner any) *app__runtime__CoreRuntime {
 	self := &app__runtime__CoreRuntime{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_app__runtime__CoreRuntime)
+	}
+	return self
+}
+
+func hx_init_app__runtime__CoreRuntime(self *app__runtime__CoreRuntime) *app__runtime__CoreRuntime {
 	return self
 }
 
@@ -37,13 +53,7 @@ func (self *app__runtime__CoreRuntime) parse(frames *hxrt.Array, workerCount int
 	parsed := hxrt.NewArray()
 	_g := 0
 	for _g < frames.Len() {
-		frame := func(hx_value_1 any) *app__core__PulseIngressFrame {
-			if hx_value_1 == nil {
-				var hx_zero_2 *app__core__PulseIngressFrame
-				return hx_zero_2
-			}
-			return hx_value_1.(*app__core__PulseIngressFrame)
-		}(frames.Get(_g))
+		frame := hx_recover_class_0(frames.Get(_g))
 		_g = int(int32((_g + 1)))
 		parsed.Push(app__core__PulseCodec_parse(frame))
 	}
@@ -54,13 +64,7 @@ func (self *app__runtime__CoreRuntime) enrich(events *hxrt.Array, workerCount in
 	enriched := hxrt.NewArray()
 	_g := 0
 	for _g < events.Len() {
-		event := func(hx_value_4 any) *app__core__PulseEvent {
-			if hx_value_4 == nil {
-				var hx_zero_5 *app__core__PulseEvent
-				return hx_zero_5
-			}
-			return hx_value_4.(*app__core__PulseEvent)
-		}(events.Get(_g))
+		event := hx_recover_class_4(events.Get(_g))
 		_g = int(int32((_g + 1)))
 		enriched.Push(app__core__PulseCodec_enrich(event))
 	}
@@ -71,13 +75,7 @@ func (self *app__runtime__CoreRuntime) stageScore(parsed *hxrt.Array, enriched *
 	score := 0
 	_g := 0
 	for _g < enriched.Len() {
-		entry := func(hx_value_7 any) *app__core__PulseEnrichedEvent {
-			if hx_value_7 == nil {
-				var hx_zero_8 *app__core__PulseEnrichedEvent
-				return hx_zero_8
-			}
-			return hx_value_7.(*app__core__PulseEnrichedEvent)
-		}(enriched.Get(_g))
+		entry := hx_recover_class_1(enriched.Get(_g))
 		_g = int(int32((_g + 1)))
 		score = int((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(entry.weightedValue)))
 	}

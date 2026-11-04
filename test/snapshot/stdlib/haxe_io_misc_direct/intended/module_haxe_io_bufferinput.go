@@ -33,11 +33,27 @@ type haxe__io__BufferInput struct {
 	pos       int
 }
 
+func (self *haxe__io__BufferInput) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe__io__BufferInput(input *haxe__io__Input, buffer *haxe__io__Bytes, pos int, available int) *haxe__io__BufferInput {
+	return hx_init_haxe__io__BufferInput(hx_alloc_haxe__io__BufferInput(nil), input, buffer, pos, available)
+}
+
+func hx_alloc_haxe__io__BufferInput(owner any) *haxe__io__BufferInput {
 	self := &haxe__io__BufferInput{}
-	self.haxe__io__Input = New_haxe__io__Input()
-	self.haxe__io__Input.__hx_this = self
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__io__BufferInput)
+	}
+	self.haxe__io__Input = hx_alloc_haxe__io__Input(self.__hx_this)
+	return self
+}
+
+func hx_init_haxe__io__BufferInput(self *haxe__io__BufferInput, input *haxe__io__Input, buffer *haxe__io__Bytes, pos int, available int) *haxe__io__BufferInput {
+	hx_init_haxe__io__Input(self.haxe__io__Input)
 	self.i = input
 	self.buf = buffer
 	self.pos = pos

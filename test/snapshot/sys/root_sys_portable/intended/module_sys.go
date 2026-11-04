@@ -40,7 +40,7 @@ func Sys_command(cmd *string, args *hxrt.Array) int {
 }
 
 func Sys_cpuTime() float64 {
-	hxrt.Throw(hxrt.StringFromLiteral("Sys.cpuTime is unsupported on haxe.go: process CPU time is not implemented"))
+	hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Sys.cpuTime is unsupported on haxe.go: process CPU time is not implemented")))
 	var hx_throw_zero_10 float64
 	return hx_throw_zero_10
 }
@@ -68,7 +68,7 @@ func Sys_exit(code int) {
 func Sys_getChar(echo bool) int {
 	value := hxrt.SysReadCharValue()
 	if value < 0 {
-		hxrt.Throw(New_haxe__io__Eof())
+		hxrt.Throw(haxe__Exception_thrown(New_haxe__io__Eof()))
 	}
 	if echo {
 		New_sys__io__FileOutput(hxrt.SysStdout()).__hx_this.writeByte(value)
@@ -115,15 +115,30 @@ func Sys_sleep(seconds float64) {
 }
 
 func Sys_stderr() *haxe__io__Output {
-	return New_sys__io__FileOutput(hxrt.SysStderr()).haxe__io__Output
+	return func(hx_value *sys__io__FileOutput) *haxe__io__Output {
+		if hx_value == nil {
+			return nil
+		}
+		return hx_value.haxe__io__Output
+	}(New_sys__io__FileOutput(hxrt.SysStderr()))
 }
 
 func Sys_stdin() *haxe__io__Input {
-	return New_sys__io__FileInput(hxrt.SysStdin()).haxe__io__Input
+	return func(hx_value *sys__io__FileInput) *haxe__io__Input {
+		if hx_value == nil {
+			return nil
+		}
+		return hx_value.haxe__io__Input
+	}(New_sys__io__FileInput(hxrt.SysStdin()))
 }
 
 func Sys_stdout() *haxe__io__Output {
-	return New_sys__io__FileOutput(hxrt.SysStdout()).haxe__io__Output
+	return func(hx_value *sys__io__FileOutput) *haxe__io__Output {
+		if hx_value == nil {
+			return nil
+		}
+		return hx_value.haxe__io__Output
+	}(New_sys__io__FileOutput(hxrt.SysStdout()))
 }
 
 func Sys_systemName() *string {

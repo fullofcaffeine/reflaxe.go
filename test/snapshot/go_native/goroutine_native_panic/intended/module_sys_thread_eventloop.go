@@ -23,8 +23,20 @@ func (self *sys__thread__EventLoop) HxFunctionReceiver() any {
 }
 
 func New_sys__thread__EventLoop() *sys__thread__EventLoop {
+	return hx_init_sys__thread__EventLoop(hx_alloc_sys__thread__EventLoop(nil))
+}
+
+func hx_alloc_sys__thread__EventLoop(owner any) *sys__thread__EventLoop {
 	self := &sys__thread__EventLoop{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_sys__thread__EventLoop)
+	}
+	return self
+}
+
+func hx_init_sys__thread__EventLoop(self *sys__thread__EventLoop) *sys__thread__EventLoop {
 	self.__h = hxrt.ThreadEventLoopNew()
 	return self
 }

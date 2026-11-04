@@ -344,7 +344,7 @@ func main() {
 		return hxrt.FunctionCall(hx_callable_90)(hx_argument_91)
 	}()
 	if observed != 5 {
-		hxrt.Throw(hxrt.StringFromLiteral("unexpected"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("unexpected")))
 	}
 	hx_callable_92 := localSource
 	hx_normalized_callable_93 := hxrt.AdaptFunction(hx_callable_92, func(count any) int {
@@ -371,66 +371,69 @@ func main() {
 		})
 		hx_try_96 = hx_normalized_callable_98
 	}, func(hx_caught_99 any) {
-		hx_tmp := hx_caught_99
+		hx_exception_102 := haxe__Exception_caught(hx_caught_99)
+		hx_payload_103 := haxe__Exception_catchValue(hx_caught_99)
+		_ = hx_exception_102
+		var hx_tmp any = hx_payload_103
 		_ = hx_tmp
-		hx_callable_101 := localSource
-		hx_normalized_callable_102 := hxrt.AdaptFunction(hx_callable_101, func(count any) int {
+		hx_callable_100 := localSource
+		hx_normalized_callable_101 := hxrt.AdaptFunction(hx_callable_100, func(count any) int {
 			if count == nil {
 				count = 5
 			}
-			return hxrt.FunctionCall(hx_callable_101)(hxrt.IntFromNullableAny(count))
+			return hxrt.FunctionCall(hx_callable_100)(hxrt.IntFromNullableAny(count))
 		})
-		hx_try_96 = hx_normalized_callable_102
+		hx_try_96 = hx_normalized_callable_101
 	})
 	var caught *hxrt.Function[func(any) int] = hx_try_96
 	var v_12 any = any(func() int {
-		var hx_callable_103 *hxrt.Function[func(any) int] = caught
-		var hx_argument_104 any = nil
-		return hxrt.FunctionCall(hx_callable_103)(hx_argument_104)
+		var hx_callable_104 *hxrt.Function[func(any) int] = caught
+		var hx_argument_105 any = nil
+		return hxrt.FunctionCall(hx_callable_104)(hx_argument_105)
 	}())
 	hxrt.Println(v_12)
 	var callbacks_0 *hxrt.Function[func(any) int]
-	hx_callable_105 := localSource
-	hx_normalized_callable_106 := hxrt.AdaptFunction(hx_callable_105, func(count any) int {
+	hx_callable_106 := localSource
+	hx_normalized_callable_107 := hxrt.AdaptFunction(hx_callable_106, func(count any) int {
 		if count == nil {
 			count = 5
 		}
-		return hxrt.FunctionCall(hx_callable_105)(hxrt.IntFromNullableAny(count))
+		return hxrt.FunctionCall(hx_callable_106)(hxrt.IntFromNullableAny(count))
 	})
-	callbacks_0 = hx_normalized_callable_106
+	callbacks_0 = hx_normalized_callable_107
 	var v_13 any = any(func() int {
-		var hx_callable_107 *hxrt.Function[func(any) int] = callbacks_0
-		var hx_argument_108 any = nil
-		return hxrt.FunctionCall(hx_callable_107)(hx_argument_108)
+		var hx_callable_108 *hxrt.Function[func(any) int] = callbacks_0
+		var hx_argument_109 any = nil
+		return hxrt.FunctionCall(hx_callable_108)(hx_argument_109)
 	}())
 	hxrt.Println(v_13)
-	hx_callable_109 := localOther
-	hx_normalized_callable_110 := hxrt.AdaptFunction(hx_callable_109, func(count any) int {
+	hx_callable_110 := localOther
+	hx_normalized_callable_111 := hxrt.AdaptFunction(hx_callable_110, func(count any) int {
 		if count == nil {
 			count = 6
 		}
-		return hxrt.FunctionCall(hx_callable_109)(hxrt.IntFromNullableAny(count))
+		return hxrt.FunctionCall(hx_callable_110)(hxrt.IntFromNullableAny(count))
 	})
-	callbacks_0 = hx_normalized_callable_110
+	callbacks_0 = hx_normalized_callable_111
 	var v_14 any = any(func() int {
-		var hx_callable_111 *hxrt.Function[func(any) int] = callbacks_0
-		var hx_argument_112 any = nil
-		return hxrt.FunctionCall(hx_callable_111)(hx_argument_112)
+		var hx_callable_112 *hxrt.Function[func(any) int] = callbacks_0
+		var hx_argument_113 any = nil
+		return hxrt.FunctionCall(hx_callable_112)(hx_argument_113)
 	}())
 	hxrt.Println(v_14)
 	var holder_callback *hxrt.Function[func(any) int]
-	hx_callable_113 := localSource
-	hx_normalized_callable_114 := hxrt.AdaptFunction(hx_callable_113, func(count any) int {
+	hx_callable_114 := localSource
+	hx_normalized_callable_115 := hxrt.AdaptFunction(hx_callable_114, func(count any) int {
 		if count == nil {
 			count = 5
 		}
-		return hxrt.FunctionCall(hx_callable_113)(hxrt.IntFromNullableAny(count))
+		return hxrt.FunctionCall(hx_callable_114)(hxrt.IntFromNullableAny(count))
 	})
-	holder_callback = hx_normalized_callable_114
+	holder_callback = hx_normalized_callable_115
 	var v_15 any = any(func() int {
-		var hx_callable_115 *hxrt.Function[func(any) int] = holder_callback
-		var hx_argument_116 any = nil
-		return hxrt.FunctionCall(hx_callable_115)(hx_argument_116)
+		var hx_callable_116 *hxrt.Function[func(any) int] = holder_callback
+		var hx_argument_117 any = nil
+		return hxrt.FunctionCall(hx_callable_116)(hx_argument_117)
 	}())
 	hxrt.Println(v_15)
 }
@@ -442,14 +445,14 @@ func makeLocalCarrier() *hxrt.Function[func(any) int] {
 		}
 		return count.(int)
 	})
-	hx_callable_117 := source
-	hx_normalized_callable_118 := hxrt.AdaptFunction(hx_callable_117, func(count any) int {
+	hx_callable_118 := source
+	hx_normalized_callable_119 := hxrt.AdaptFunction(hx_callable_118, func(count any) int {
 		if count == nil {
 			count = 10
 		}
-		return hxrt.FunctionCall(hx_callable_117)(hxrt.IntFromNullableAny(count))
+		return hxrt.FunctionCall(hx_callable_118)(hxrt.IntFromNullableAny(count))
 	})
-	return hx_normalized_callable_118
+	return hx_normalized_callable_119
 }
 
 func namedDefault(count int) int {
@@ -458,8 +461,8 @@ func namedDefault(count int) int {
 
 var schedule *hxrt.Function[func(*hxrt.Function[func()], any)] = hxrt.NewFunction(func(callback *hxrt.Function[func()], timeout any) {
 	func() {
-		var hx_callable_119 *hxrt.Function[func()] = callback
-		hxrt.FunctionCall(hx_callable_119)()
+		var hx_callable_120 *hxrt.Function[func()] = callback
+		hxrt.FunctionCall(hx_callable_120)()
 	}()
 })
 
@@ -473,11 +476,39 @@ var summarize *hxrt.Function[func(any, any, any) float64] = hxrt.NewFunction(fun
 	if ratio == nil {
 		ratio = 1.5
 	}
-	var hx_if_120 float64
+	var hx_if_121 float64
 	if enabled.(bool) {
-		hx_if_120 = (float64(count.(int)) + ratio.(float64))
+		hx_if_121 = (float64(count.(int)) + ratio.(float64))
 	} else {
-		hx_if_120 = ratio.(float64)
+		hx_if_121 = ratio.(float64)
 	}
-	return hx_if_120
+	return hx_if_121
 })
+
+func hx_recover_class_0(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
+}
+
+func hx_recover_class_1(value any) *haxe__Exception {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__Exception:
+		return source
+	case *haxe__ValueException:
+		return source.haxe__Exception
+	default:
+		return value.(*haxe__Exception)
+	}
+}

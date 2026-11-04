@@ -19,12 +19,14 @@
 - `array`
 - `core`
 - `exception`
+- `function`
 - `json`
 - `print`
 - `string`
 
 ## selected features
 - `core`
+- `function`
 - `array`
 - `string`
 - `print`
@@ -36,6 +38,7 @@
 - `array.go`
 - `core.go`
 - `exception.go`
+- `function.go`
 - `hxrt.go`
 - `json.go`
 - `print.go`
@@ -45,6 +48,9 @@
 ## capability manifest
 - `core` -> `core.go, hxrt.go`
   - `baseline` (`compiler_baseline`)
+- `function` -> `function.go`
+  - `compiler_surface` (`lowered_go_ast:hxrt.Function`)
+  - `dependency_edge` (`json->function`)
 - `array` -> `array.go`
   - `dependency_edge` (`json->array`)
 - `string` -> `string.go`
@@ -61,6 +67,8 @@
 
 ## selection reasons
 - `core` <- `baseline` (`compiler_baseline`)
+- `function` <- `compiler_surface` (`lowered_go_ast:hxrt.Function`)
+- `function` <- `dependency_edge` (`json->function`)
 - `array` <- `dependency_edge` (`json->array`)
 - `string` <- `baseline` (`compiler_baseline`)
 - `string` <- `surface_plan` (`go_build_context_plus_typed_registry_decision`)

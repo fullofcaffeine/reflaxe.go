@@ -6,7 +6,7 @@
 	"typeUsageCount": 66,
 	"memberUsageCount": 20,
 	"nativeImportCount": 8,
-	"capabilityCount": 5,
+	"capabilityCount": 7,
 	"modules": [
 		{
 			"module": "Main",
@@ -484,6 +484,11 @@
 	],
 	"capabilities": [
 		{
+			"feature": "anonymous",
+			"sourceKind": "compiler_surface",
+			"source": "lowered_go_ast:hxrt.Anonymous"
+		},
+		{
 			"feature": "core",
 			"sourceKind": "baseline",
 			"source": "compiler_baseline"
@@ -492,6 +497,11 @@
 			"feature": "exception",
 			"sourceKind": "baseline",
 			"source": "compiler_baseline"
+		},
+		{
+			"feature": "function",
+			"sourceKind": "compiler_surface",
+			"source": "lowered_go_ast:hxrt.Function"
 		},
 		{
 			"feature": "print",

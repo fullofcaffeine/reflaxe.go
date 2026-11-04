@@ -24,3 +24,61 @@ func consume(socket *sys__net__Socket) *string {
 func main() {
 	hxrt.Println(any(hxrt.StringFromLiteral("socket-input-service-surface")))
 }
+
+func hx_recover_class_0(value any) *sys__net__Socket {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *sys__net__Socket:
+		return source
+	default:
+		return value.(*sys__net__Socket)
+	}
+}
+
+func hx_recover_class_1(value any) *haxe__io__Eof {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__io__Eof:
+		return source
+	default:
+		return value.(*haxe__io__Eof)
+	}
+}
+
+func hx_recover_class_2(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
+}
+
+func hx_recover_class_3(value any) *haxe__Exception {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__exceptions__NotImplementedException:
+		return source.haxe__exceptions__PosException.haxe__Exception
+	case *haxe__Exception:
+		return source
+	case *haxe__exceptions__PosException:
+		return source.haxe__Exception
+	case *haxe__ValueException:
+		return source.haxe__Exception
+	default:
+		return value.(*haxe__Exception)
+	}
+}

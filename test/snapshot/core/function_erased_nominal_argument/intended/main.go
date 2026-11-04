@@ -123,12 +123,22 @@ func main() {
 	original := hxrt.NewFunction(func(value *Base) int {
 		return value.n
 	})
-	var v any = any(call(hx_recover_callable_0(original), New_Child().Base))
+	var v any = any(call(hx_recover_callable_0(original), func(hx_value *Child) *Base {
+		if hx_value == nil {
+			return nil
+		}
+		return hx_value.Base
+	}(New_Child())))
 	hxrt.Println(v)
 	var v_1 any = Reflect_callMethod(nil, original, hxrt.NewArray(New_Child()))
 	hxrt.Println(v_1)
 	child := New_Grandchild()
-	base := child.Child.Base
+	base := func(hx_value *Grandchild) *Base {
+		if hx_value == nil {
+			return nil
+		}
+		return hx_value.Child.Base
+	}(child)
 	read := hxrt.NewFunction(func(value *Base) int {
 		var hx_if_3 int
 		if value == nil {
@@ -150,7 +160,12 @@ func main() {
 	var v_5 any = Reflect_callMethod(nil, name, hxrt.NewArray(base))
 	hxrt.Println(v_5)
 	create := hxrt.NewFunction(func() *Base {
-		return child.Child.Base
+		return func(hx_value *Grandchild) *Base {
+			if hx_value == nil {
+				return nil
+			}
+			return hx_value.Child.Base
+		}(child)
 	})
 	var v_6 any = any(hx_recover_class_0(Reflect_callMethod(nil, create, hxrt.NewArray())).n)
 	hxrt.Println(v_6)
@@ -178,6 +193,16 @@ func hxrt__generated_method_field(obj any, key string) any {
 			return nil
 		}
 		receiver = value.__hx_this
+	case *haxe__Exception:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__ValueException:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
 	default:
 		return nil
 	}
@@ -188,6 +213,10 @@ func hxrt__generated_method_field(obj any, key string) any {
 		return hxrt__generated_method_field__Child(value, key)
 	case *Grandchild:
 		return hxrt__generated_method_field__Grandchild(value, key)
+	case *haxe__Exception:
+		return hxrt__generated_method_field__haxe__Exception(value, key)
+	case *haxe__ValueException:
+		return hxrt__generated_method_field__haxe__ValueException(value, key)
 	default:
 		return nil
 	}
@@ -207,11 +236,11 @@ func hxrt__generated_method_field__Child(value *Child, key string) any {
 	switch key {
 	case "name":
 		return func() *hxrt.Function[func() *string] {
-			hx_receiver_10 := value
+			hx_receiver_18 := value
 			return hxrt.BoundFunction(func() *string {
-				return hx_receiver_10.__hx_this.name()
+				return hx_receiver_18.__hx_this.name()
 			}, func() any {
-				return hx_receiver_10.__hx_this
+				return hx_receiver_18.__hx_this
 			}, "name")
 		}()
 	}
@@ -229,6 +258,99 @@ func hxrt__generated_method_field__Grandchild(value *Grandchild, key string) any
 		return nil
 	}
 	return hxrt__generated_method_field__Child(value.Child, key)
+}
+
+func hxrt__generated_method_field__haxe__Exception(value *haxe__Exception, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "details":
+		return func() *hxrt.Function[func() *string] {
+			hx_receiver_19 := value
+			return hxrt.BoundFunction(func() *string {
+				return hx_receiver_19.__hx_this.details()
+			}, func() any {
+				return hx_receiver_19.__hx_this
+			}, "details")
+		}()
+	case "get_message":
+		return func() *hxrt.Function[func() *string] {
+			hx_receiver_20 := value
+			return hxrt.BoundFunction(func() *string {
+				return hx_receiver_20.__hx_this.get_message()
+			}, func() any {
+				return hx_receiver_20.__hx_this
+			}, "get_message")
+		}()
+	case "get_native":
+		return func() *hxrt.Function[func() any] {
+			hx_receiver_21 := value
+			return hxrt.BoundFunction(func() any {
+				return hx_receiver_21.__hx_this.get_native()
+			}, func() any {
+				return hx_receiver_21.__hx_this
+			}, "get_native")
+		}()
+	case "get_previous":
+		return func() *hxrt.Function[func() *haxe__Exception] {
+			hx_receiver_22 := value
+			return hxrt.BoundFunction(func() *haxe__Exception {
+				return hx_receiver_22.__hx_this.get_previous()
+			}, func() any {
+				return hx_receiver_22.__hx_this
+			}, "get_previous")
+		}()
+	case "get_stack":
+		return func() *hxrt.Function[func() any] {
+			hx_receiver_23 := value
+			return hxrt.BoundFunction(func() any {
+				return hx_receiver_23.__hx_this.get_stack()
+			}, func() any {
+				return hx_receiver_23.__hx_this
+			}, "get_stack")
+		}()
+	case "toString":
+		return func() *hxrt.Function[func() *string] {
+			hx_receiver_24 := value
+			return hxrt.BoundFunction(func() *string {
+				return hx_receiver_24.__hx_this.toString()
+			}, func() any {
+				return hx_receiver_24.__hx_this
+			}, "toString")
+		}()
+	case "unwrap":
+		return func() *hxrt.Function[func() any] {
+			hx_receiver_25 := value
+			return hxrt.BoundFunction(func() any {
+				return hx_receiver_25.__hx_this.unwrap()
+			}, func() any {
+				return hx_receiver_25.__hx_this
+			}, "unwrap")
+		}()
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__haxe__ValueException(value *haxe__ValueException, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "unwrap":
+		return func() *hxrt.Function[func() any] {
+			hx_receiver_26 := value
+			return hxrt.BoundFunction(func() any {
+				return hx_receiver_26.__hx_this.unwrap()
+			}, func() any {
+				return hx_receiver_26.__hx_this
+			}, "unwrap")
+		}()
+	}
+	if value.haxe__Exception == nil {
+		return nil
+	}
+	return hxrt__generated_method_field__haxe__Exception(value.haxe__Exception, key)
 }
 
 func hxrt_typeClassMetadataField(value any, key string) (any, bool) {
@@ -262,6 +384,16 @@ func reflaxe__go___internal__CompilerReflect_generatedField(object any, field *s
 			return nil
 		}
 		receiver = value.__hx_this
+	case *haxe__Exception:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__ValueException:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
 	case *haxe___Int64_____Int64:
 		if (value == nil) || (value.__hx_this == nil) {
 			return nil
@@ -277,6 +409,10 @@ func reflaxe__go___internal__CompilerReflect_generatedField(object any, field *s
 		return hxrt__generated_field_lookup__Child(value, key)
 	case *Grandchild:
 		return hxrt__generated_field_lookup__Grandchild(value, key)
+	case *haxe__Exception:
+		return hxrt__generated_field_lookup__haxe__Exception(value, key)
+	case *haxe__ValueException:
+		return hxrt__generated_field_lookup__haxe__ValueException(value, key)
 	case *haxe___Int64_____Int64:
 		return hxrt__generated_field_lookup__haxe___Int64_____Int64(value, key)
 	default:
@@ -303,6 +439,16 @@ func reflaxe__go___internal__CompilerReflect_hasGeneratedField(object any, field
 			return false
 		}
 		receiver = value.__hx_this
+	case *haxe__Exception:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__ValueException:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
 	case *haxe___Int64_____Int64:
 		if (value == nil) || (value.__hx_this == nil) {
 			return false
@@ -318,6 +464,10 @@ func reflaxe__go___internal__CompilerReflect_hasGeneratedField(object any, field
 		return hxrt__generated_field_has__Child(value, key)
 	case *Grandchild:
 		return hxrt__generated_field_has__Grandchild(value, key)
+	case *haxe__Exception:
+		return hxrt__generated_field_has__haxe__Exception(value, key)
+	case *haxe__ValueException:
+		return hxrt__generated_field_has__haxe__ValueException(value, key)
 	case *haxe___Int64_____Int64:
 		return hxrt__generated_field_has__haxe___Int64_____Int64(value, key)
 	default:
@@ -344,6 +494,16 @@ func reflaxe__go___internal__CompilerReflect_setGeneratedField(object any, field
 			return false
 		}
 		receiver = value.__hx_this
+	case *haxe__Exception:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__ValueException:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
 	case *haxe___Int64_____Int64:
 		if (value == nil) || (value.__hx_this == nil) {
 			return false
@@ -359,6 +519,10 @@ func reflaxe__go___internal__CompilerReflect_setGeneratedField(object any, field
 		return hxrt__generated_field_set__Child(value, key, incoming)
 	case *Grandchild:
 		return hxrt__generated_field_set__Grandchild(value, key, incoming)
+	case *haxe__Exception:
+		return hxrt__generated_field_set__haxe__Exception(value, key, incoming)
+	case *haxe__ValueException:
+		return hxrt__generated_field_set__haxe__ValueException(value, key, incoming)
 	case *haxe___Int64_____Int64:
 		return hxrt__generated_field_set__haxe___Int64_____Int64(value, key, incoming)
 	default:
@@ -384,6 +548,16 @@ func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.A
 			return nil
 		}
 		receiver = value.__hx_this
+	case *haxe__Exception:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__ValueException:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
 	case *haxe___Int64_____Int64:
 		if (value == nil) || (value.__hx_this == nil) {
 			return nil
@@ -399,6 +573,10 @@ func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.A
 		return hxrt.NewArray(hxrt.StringFromLiteral("n"))
 	case *Grandchild:
 		return hxrt.NewArray(hxrt.StringFromLiteral("n"))
+	case *haxe__Exception:
+		return hxrt.NewArray(hxrt.StringFromLiteral("savedMessage"), hxrt.StringFromLiteral("savedStack"), hxrt.StringFromLiteral("savedPrevious"), hxrt.StringFromLiteral("savedNative"))
+	case *haxe__ValueException:
+		return hxrt.NewArray(hxrt.StringFromLiteral("savedMessage"), hxrt.StringFromLiteral("savedStack"), hxrt.StringFromLiteral("savedPrevious"), hxrt.StringFromLiteral("savedNative"), hxrt.StringFromLiteral("value"))
 	case *haxe___Int64_____Int64:
 		return hxrt.NewArray(hxrt.StringFromLiteral("high"), hxrt.StringFromLiteral("low"))
 	default:
@@ -510,6 +688,154 @@ func hxrt__generated_field_set__Grandchild(value *Grandchild, key string, incomi
 	return hxrt__generated_field_set__Child(value.Child, key, incoming)
 }
 
+func hxrt__generated_field_lookup__haxe__Exception(value *haxe__Exception, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "savedMessage":
+		return hxrt.ReadStoredField(value.savedMessage)
+	case "savedNative":
+		return hxrt.ReadStoredField(value.savedNative)
+	case "savedPrevious":
+		return hxrt.ReadStoredField(value.savedPrevious)
+	case "savedStack":
+		return hxrt.ReadStoredField(value.savedStack)
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__haxe__Exception(value *haxe__Exception, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "savedMessage":
+		return true
+	case "savedNative":
+		return true
+	case "savedPrevious":
+		return true
+	case "savedStack":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__haxe__Exception(value *haxe__Exception, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "savedMessage":
+		if incoming == nil {
+			var zero *string
+			value.savedMessage = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *string:
+			value.savedMessage = typed
+			return true
+		default:
+			return false
+		}
+	case "savedNative":
+		if incoming == nil {
+			var zero any
+			value.savedNative = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case any:
+			value.savedNative = typed
+			return true
+		default:
+			return false
+		}
+	case "savedPrevious":
+		if incoming == nil {
+			var zero *haxe__Exception
+			value.savedPrevious = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *haxe__Exception:
+			value.savedPrevious = typed
+			return true
+		default:
+			return false
+		}
+	case "savedStack":
+		if incoming == nil {
+			var zero any
+			value.savedStack = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case any:
+			value.savedStack = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__haxe__ValueException(value *haxe__ValueException, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "value":
+		return hxrt.ReadStoredField(value.value)
+	}
+	if value.haxe__Exception == nil {
+		return nil
+	}
+	return hxrt__generated_field_lookup__haxe__Exception(value.haxe__Exception, key)
+}
+
+func hxrt__generated_field_has__haxe__ValueException(value *haxe__ValueException, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "value":
+		return true
+	}
+	if value.haxe__Exception == nil {
+		return false
+	}
+	return hxrt__generated_field_has__haxe__Exception(value.haxe__Exception, key)
+}
+
+func hxrt__generated_field_set__haxe__ValueException(value *haxe__ValueException, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "value":
+		if incoming == nil {
+			var zero any
+			value.value = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case any:
+			value.value = typed
+			return true
+		default:
+			return false
+		}
+	}
+	if value.haxe__Exception == nil {
+		return false
+	}
+	return hxrt__generated_field_set__haxe__Exception(value.haxe__Exception, key, incoming)
+}
+
 func hxrt__generated_field_lookup__haxe___Int64_____Int64(value *haxe___Int64_____Int64, key string) any {
 	if value == nil {
 		return nil
@@ -592,7 +918,12 @@ func reflaxe__go___internal__CompilerReflect_generatedMethod(object any, field *
 }
 
 func reflaxe__go___internal__CompilerReflect_isEnumValue(value any) bool {
-	return false
+	switch enumValue := value.(type) {
+	case *haxe__StackItem:
+		return (enumValue != nil)
+	default:
+		return false
+	}
 }
 
 func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []any) any {
@@ -613,12 +944,12 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 		if 0 < len(arguments) {
 			argument_0 = arguments[0]
 		}
-		return hxrt.FunctionCall(source)(func(hx_value_11 any) Named {
-			if hx_value_11 == nil {
-				var hx_zero_12 Named
-				return hx_zero_12
+		return hxrt.FunctionCall(source)(func(hx_value_27 any) Named {
+			if hx_value_27 == nil {
+				var hx_zero_28 Named
+				return hx_zero_28
 			}
-			return hx_value_11.(Named)
+			return hx_value_27.(Named)
 		}(hxrt.ObjectSource(argument_0)))
 	case *hxrt.Function[func() *Base]:
 		return hxrt.FunctionCall(source)()
@@ -631,6 +962,10 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 		}
 		return hxrt.FunctionCall(source)(argument_0...)
 	case *hxrt.Function[func() *string]:
+		return hxrt.FunctionCall(source)()
+	case *hxrt.Function[func() any]:
+		return hxrt.FunctionCall(source)()
+	case *hxrt.Function[func() *haxe__Exception]:
 		return hxrt.FunctionCall(source)()
 	default:
 		return hxrt.ReflectCallMethod(value, arguments)
@@ -656,28 +991,28 @@ func hx_recover_callable_0(value any) *hxrt.Function[func(any) int] {
 		})
 	case *hxrt.Function[func(Named) *string]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) int {
-			return func(hx_value_15 any) int {
-				if hx_value_15 == nil {
-					var hx_zero_16 int
-					return hx_zero_16
+			return func(hx_value_31 any) int {
+				if hx_value_31 == nil {
+					var hx_zero_32 int
+					return hx_zero_32
 				}
-				return hx_value_15.(int)
-			}(any(hxrt.FunctionCall(source)(func(hx_value_13 any) Named {
-				if hx_value_13 == nil {
-					var hx_zero_14 Named
-					return hx_zero_14
+				return hx_value_31.(int)
+			}(any(hxrt.FunctionCall(source)(func(hx_value_29 any) Named {
+				if hx_value_29 == nil {
+					var hx_zero_30 Named
+					return hx_zero_30
 				}
-				return hx_value_13.(Named)
+				return hx_value_29.(Named)
 			}(hxrt.ObjectSource(arg_0)))))
 		})
 	case *hxrt.Function[func(...any) any]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) int {
-			return func(hx_value_17 any) int {
-				if hx_value_17 == nil {
-					var hx_zero_18 int
-					return hx_zero_18
+			return func(hx_value_33 any) int {
+				if hx_value_33 == nil {
+					var hx_zero_34 int
+					return hx_zero_34
 				}
-				return hx_value_17.(int)
+				return hx_value_33.(int)
 			}(any(hxrt.FunctionCall(source)(arg_0)))
 		})
 	default:
@@ -700,5 +1035,33 @@ func hx_recover_class_0(value any) *Base {
 		return source.Child.Base
 	default:
 		return value.(*Base)
+	}
+}
+
+func hx_recover_class_1(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
+}
+
+func hx_recover_class_2(value any) *haxe__Exception {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__Exception:
+		return source
+	case *haxe__ValueException:
+		return source.haxe__Exception
+	default:
+		return value.(*haxe__Exception)
 	}
 }

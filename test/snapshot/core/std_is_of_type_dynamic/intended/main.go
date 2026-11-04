@@ -9,9 +9,25 @@ type Base struct {
 	__hx_this I_Base
 }
 
+func (self *Base) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_Base() *Base {
+	return hx_init_Base(hx_alloc_Base(nil))
+}
+
+func hx_alloc_Base(owner any) *Base {
 	self := &Base{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_Base)
+	}
+	return self
+}
+
+func hx_init_Base(self *Base) *Base {
 	return self
 }
 
@@ -23,11 +39,27 @@ type Child struct {
 	__hx_this I_Child
 }
 
+func (self *Child) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_Child() *Child {
+	return hx_init_Child(hx_alloc_Child(nil))
+}
+
+func hx_alloc_Child(owner any) *Child {
 	self := &Child{}
-	self.Base = New_Base()
-	self.Base.__hx_this = self
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_Child)
+	}
+	self.Base = hx_alloc_Base(self.__hx_this)
+	return self
+}
+
+func hx_init_Child(self *Child) *Child {
+	hx_init_Base(self.Base)
 	return self
 }
 
@@ -48,7 +80,7 @@ func main() {
 		default:
 			return false
 		}
-	}(d))
+	}(hxrt.ObjectSource(hxrt.ObjectSource(d))))
 	hxrt.Println(v)
 	var v_1 any = any(func(hx_value any) bool {
 		switch hx_carrier := hx_value.(type) {
@@ -66,7 +98,7 @@ func main() {
 		default:
 			return false
 		}
-	}(d))
+	}(hxrt.ObjectSource(hxrt.ObjectSource(d))))
 	hxrt.Println(v_1)
 	d = New_Base()
 	var v_2 any = any(func(hx_value any) bool {
@@ -85,7 +117,7 @@ func main() {
 		default:
 			return false
 		}
-	}(d))
+	}(hxrt.ObjectSource(hxrt.ObjectSource(d))))
 	hxrt.Println(v_2)
 	d = hxrt.NewArray(1, 2)
 	var v_3 any = any(func(hx_value any) bool {

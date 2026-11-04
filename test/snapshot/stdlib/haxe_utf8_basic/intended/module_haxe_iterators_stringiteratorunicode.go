@@ -13,9 +13,25 @@ type haxe__iterators__StringIteratorUnicode struct {
 	s         *string
 }
 
+func (self *haxe__iterators__StringIteratorUnicode) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe__iterators__StringIteratorUnicode(s *string) *haxe__iterators__StringIteratorUnicode {
+	return hx_init_haxe__iterators__StringIteratorUnicode(hx_alloc_haxe__iterators__StringIteratorUnicode(nil), s)
+}
+
+func hx_alloc_haxe__iterators__StringIteratorUnicode(owner any) *haxe__iterators__StringIteratorUnicode {
 	self := &haxe__iterators__StringIteratorUnicode{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__iterators__StringIteratorUnicode)
+	}
+	return self
+}
+
+func hx_init_haxe__iterators__StringIteratorUnicode(self *haxe__iterators__StringIteratorUnicode, s *string) *haxe__iterators__StringIteratorUnicode {
 	self.offset = 0
 	self.s = s
 	return self

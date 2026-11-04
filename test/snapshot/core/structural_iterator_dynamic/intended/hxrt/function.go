@@ -22,6 +22,7 @@ type Function[F any] struct {
 	call          F
 	identity      *functionIdentity
 	defaultMethod bool
+	origin        functionValue
 }
 
 // functionValue is the erased identity boundary used across adapted signatures.
@@ -30,6 +31,7 @@ type Function[F any] struct {
 type functionValue interface {
 	functionIdentity() *functionIdentity
 	functionPayload() any
+	functionOrigin() functionValue
 }
 
 // Erasure is confined to reflection; ordinary generated calls use FunctionCall.
@@ -45,6 +47,31 @@ func (value *Function[F]) functionIdentity() *functionIdentity {
 		return nil
 	}
 	return value.identity
+}
+
+// functionOrigin returns the normalized source without traversing projection
+// chains. Only ProjectFunction stores origin, and it stores the source root.
+func (value *Function[F]) functionOrigin() functionValue {
+	if value == nil {
+		return nil
+	}
+	if value.origin != nil {
+		return value.origin
+	}
+	return value
+}
+
+// FunctionOrigin exposes only the carrier at the erased recovery boundary.
+// Its concrete payload stays typed and generated type switches select adapters.
+// Foreign raw functions pass through for their existing reflective boundary.
+func FunctionOrigin(value any) any {
+	if function, ok := value.(functionValue); ok {
+		return function.functionOrigin()
+	}
+	if isAnyNil(value) {
+		return nil
+	}
+	return value
 }
 
 func sameFunctionIdentity(left, right functionValue) bool {
@@ -136,6 +163,22 @@ func AdaptFunction[F, G any](source *Function[F], call G) *Function[G] {
 		panic("hxrt.Function adapter requires a non-null callable")
 	}
 	return &Function[G]{call: call, identity: source.identity}
+}
+
+// ProjectFunction changes a typed representation while preserving the source
+// defaults and full result for later recovery or explicit reflection. Generated
+// recovery must build call from FunctionOrigin(source), not close over an older
+// projection. Provenance alone cannot flatten a caller-authored closure chain.
+// AdaptFunction remains a normalization boundary: its adapted invocation is the
+// new source contract, with the existing function identity retained.
+func ProjectFunction[F, G any](source *Function[F], call G) *Function[G] {
+	if source == nil {
+		return nil
+	}
+	if functionPayloadIsNil(call) {
+		panic("hxrt.Function projection requires a non-null callable")
+	}
+	return &Function[G]{call: call, identity: source.identity, origin: source.functionOrigin()}
 }
 
 // FunctionCall guards portable invocation before a nil Go callback can panic.

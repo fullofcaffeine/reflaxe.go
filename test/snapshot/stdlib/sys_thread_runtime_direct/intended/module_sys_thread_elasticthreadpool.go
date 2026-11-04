@@ -5,7 +5,7 @@ import "snapshot/hxrt"
 type I_sys__thread__ElasticThreadPool interface {
 	get_isShutdown() bool
 	get_threadsCount() int
-	run(task func())
+	run(task *hxrt.Function[func()])
 	shutdown()
 	startWorkerLocked()
 	workerResolveWait(worker *sys__thread__ElasticThreadPoolWorker, woke bool) bool
@@ -29,9 +29,25 @@ type sys__thread__ElasticThreadPool struct {
 	threadTimeout   float64
 }
 
+func (self *sys__thread__ElasticThreadPool) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_sys__thread__ElasticThreadPool(maxThreadsCount int, threadTimeout float64) *sys__thread__ElasticThreadPool {
+	return hx_init_sys__thread__ElasticThreadPool(hx_alloc_sys__thread__ElasticThreadPool(nil), maxThreadsCount, threadTimeout)
+}
+
+func hx_alloc_sys__thread__ElasticThreadPool(owner any) *sys__thread__ElasticThreadPool {
 	self := &sys__thread__ElasticThreadPool{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_sys__thread__ElasticThreadPool)
+	}
+	return self
+}
+
+func hx_init_sys__thread__ElasticThreadPool(self *sys__thread__ElasticThreadPool, maxThreadsCount int, threadTimeout float64) *sys__thread__ElasticThreadPool {
 	self.mutex = New_sys__thread__Mutex()
 	self.available = New_sys__thread__Lock()
 	self.queue = New_sys__thread__Deque()
@@ -40,7 +56,7 @@ func New_sys__thread__ElasticThreadPool(maxThreadsCount int, threadTimeout float
 	self.liveWorkers = 0
 	self._isShutdown = false
 	if maxThreadsCount < 1 {
-		hxrt.Throw(New_sys__thread__ThreadPoolException(hxrt.StringFromLiteral("ElasticThreadPool needs maxThreadsCount to be at least 1."), nil, nil))
+		hxrt.Throw(haxe__Exception_thrown(New_sys__thread__ThreadPoolException(hxrt.StringFromLiteral("ElasticThreadPool needs maxThreadsCount to be at least 1."), nil, nil)))
 	}
 	self.maxThreadsCount = maxThreadsCount
 	self.threadTimeout = threadTimeout
@@ -61,15 +77,15 @@ func (self *sys__thread__ElasticThreadPool) get_threadsCount() int {
 	return result
 }
 
-func (self *sys__thread__ElasticThreadPool) run(task func()) {
+func (self *sys__thread__ElasticThreadPool) run(task *hxrt.Function[func()]) {
 	self.mutex.__hx_this.acquire()
 	if self._isShutdown {
 		self.mutex.__hx_this.release()
-		hxrt.Throw(New_sys__thread__ThreadPoolException(hxrt.StringFromLiteral("Task is rejected. Thread pool is shut down."), nil, nil))
+		hxrt.Throw(haxe__Exception_thrown(New_sys__thread__ThreadPoolException(hxrt.StringFromLiteral("Task is rejected. Thread pool is shut down."), nil, nil)))
 	}
 	if task == nil {
 		self.mutex.__hx_this.release()
-		hxrt.Throw(New_sys__thread__ThreadPoolException(hxrt.StringFromLiteral("Task to run must not be null."), nil, nil))
+		hxrt.Throw(haxe__Exception_thrown(New_sys__thread__ThreadPoolException(hxrt.StringFromLiteral("Task to run must not be null."), nil, nil)))
 	}
 	self.pendingTasks = int(int32((self.pendingTasks + 1)))
 	self.queue.__hx_this.add(task)
@@ -104,13 +120,7 @@ func (self *sys__thread__ElasticThreadPool) startWorkerLocked() {
 	_g := 0
 	_g1 := self.pool
 	for _g < _g1.Len() {
-		worker := func(hx_value_2 any) *sys__thread__ElasticThreadPoolWorker {
-			if hx_value_2 == nil {
-				var hx_zero_3 *sys__thread__ElasticThreadPoolWorker
-				return hx_zero_3
-			}
-			return hx_value_2.(*sys__thread__ElasticThreadPoolWorker)
-		}(_g1.Get(_g))
+		worker := hx_recover_class_4(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if worker.dead {
 			selected = worker
@@ -119,8 +129,8 @@ func (self *sys__thread__ElasticThreadPool) startWorkerLocked() {
 	}
 	if selected == nil {
 		selected = New_sys__thread__ElasticThreadPoolWorker(self, self.available, self.threadTimeout)
-		hx_arr_4 := self.pool
-		hx_arr_4.Push(selected)
+		hx_arr_2 := self.pool
+		hx_arr_2.Push(selected)
 	}
 	self.liveWorkers = int(int32((self.liveWorkers + 1)))
 	selected.__hx_this.start()
@@ -133,13 +143,7 @@ func (self *sys__thread__ElasticThreadPool) workerResolveWait(worker *sys__threa
 		hasToken = self.available.__hx_this.wait(0)
 	}
 	if hasToken {
-		nextTask := func(hx_value_5 any) func() {
-			if hx_value_5 == nil {
-				var hx_zero_6 func()
-				return hx_zero_6
-			}
-			return hx_value_5.(func())
-		}(self.queue.__hx_this.pop(false))
+		nextTask := hx_recover_callable_1(self.queue.__hx_this.pop(false))
 		if nextTask != nil {
 			worker.task = nextTask
 			self.mutex.__hx_this.release()

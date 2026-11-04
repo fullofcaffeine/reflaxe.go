@@ -23,6 +23,7 @@ func reflectFieldName(field *string) (string, bool) {
 // Compiler-known RTTI and generated lowercase members remain same-package
 // metadata adapters so hxrt never becomes a registry of generated program types.
 func ReflectLookupField(object any, field *string) *ReflectFieldLookup {
+	object = ObjectSource(object)
 	key, valid := reflectFieldName(field)
 	if object == nil || !valid {
 		return &ReflectFieldLookup{}
@@ -68,7 +69,17 @@ func ReflectLookupField(object any, field *string) *ReflectFieldLookup {
 // ReflectLookupMethod exposes only exported native Go methods. Generated Haxe
 // methods are lowercase and are resolved by the compiler metadata adapter first.
 func ReflectLookupMethod(object any, field *string) *ReflectFieldLookup {
+	object = ObjectSource(object)
+	// Carrier methods implement runtime protocols, not Haxe function members.
+	if _, callable := object.(functionValue); callable {
+		return &ReflectFieldLookup{}
+	}
 	key, valid := reflectFieldName(field)
+	if key == "HxFunctionReceiver" {
+		if _, generated := object.(interface{ HxFunctionReceiver() any }); generated {
+			return &ReflectFieldLookup{}
+		}
+	}
 	if object == nil || !valid {
 		return &ReflectFieldLookup{}
 	}
@@ -106,6 +117,7 @@ func reflectAssignField(field reflect.Value, value any) bool {
 // ReflectSetField mutates anonymous maps and exported native struct fields. A
 // false result lets staged Reflect try the typed generated-field adapter.
 func ReflectSetField(object any, field *string, value any) bool {
+	object = ObjectSource(object)
 	key, valid := reflectFieldName(field)
 	if object == nil || !valid {
 		return false
@@ -161,6 +173,10 @@ func reflectCallArgument(value any, target reflect.Type) reflect.Value {
 // ReflectCallMethod invokes an already-resolved function. Object context is not
 // needed on Go because generated and reflected method values are already bound.
 func ReflectCallMethod(function any, arguments []any) any {
+	function = FunctionOrigin(function)
+	if value, ok := function.(functionValue); ok {
+		function = value.functionPayload()
+	}
 	if function == nil {
 		return nil
 	}
@@ -188,6 +204,7 @@ func ReflectCallMethod(function any, arguments []any) any {
 // ReflectFields returns deterministic native object field names. The public API
 // does not promise ordering, but sorting stabilizes generated tests and callers.
 func ReflectFields(object any) []*string {
+	object = ObjectSource(object)
 	if object == nil {
 		return nil
 	}
@@ -240,6 +257,9 @@ func ReflectFields(object any) []*string {
 }
 
 func ReflectIsFunction(value any) bool {
+	if function, ok := value.(functionValue); ok {
+		return function.functionIdentity() != nil
+	}
 	if value == nil {
 		return false
 	}
@@ -301,6 +321,17 @@ func ReflectCompare(left any, right any) int {
 }
 
 func ReflectCompareMethods(left any, right any) bool {
+	leftNil, rightNil := isAnyNil(left), isAnyNil(right)
+	if leftNil || rightNil {
+		return leftNil && rightNil
+	}
+	if function, ok := left.(functionValue); ok {
+		other, otherOK := right.(functionValue)
+		return otherOK && sameFunctionIdentity(function, other)
+	}
+	if _, ok := right.(functionValue); ok {
+		return false
+	}
 	if left == nil || right == nil {
 		return left == nil && right == nil
 	}
@@ -310,15 +341,18 @@ func ReflectCompareMethods(left any, right any) bool {
 		return !leftValue.IsValid() && !rightValue.IsValid()
 	}
 	if leftValue.Kind() == reflect.Func && rightValue.Kind() == reflect.Func {
-		if leftValue.IsNil() || rightValue.IsNil() {
-			return leftValue.IsNil() && rightValue.IsNil()
-		}
-		return leftValue.Pointer() == rightValue.Pointer()
+		// Raw native functions have no source identity. A Haxe import must create
+		// a Function value before comparison; executable addresses are not keys.
+		return false
 	}
 	return reflect.DeepEqual(left, right)
 }
 
 func ReflectIsObject(value any) bool {
+	value = ObjectSource(value)
+	if _, ok := value.(functionValue); ok {
+		return false
+	}
 	if value == nil {
 		return false
 	}
@@ -336,6 +370,7 @@ func ReflectIsObject(value any) bool {
 }
 
 func ReflectDeleteField(object any, field *string) bool {
+	object = ObjectSource(object)
 	key, valid := reflectFieldName(field)
 	if object == nil || !valid {
 		return false
@@ -369,6 +404,7 @@ func ReflectDeleteField(object any, field *string) bool {
 }
 
 func ReflectCopy(object any) any {
+	object = ObjectSource(object)
 	if object == nil {
 		return nil
 	}
@@ -408,7 +444,7 @@ func ReflectMakeVarArgs(callback any) any {
 	if callback == nil {
 		return nil
 	}
-	return func(arguments ...any) any {
+	return NewFunction(func(arguments ...any) any {
 		return ReflectCallMethod(callback, []any{ArrayFromValues(arguments)})
-	}
+	})
 }

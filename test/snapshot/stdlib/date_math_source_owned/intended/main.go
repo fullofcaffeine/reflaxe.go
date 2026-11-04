@@ -11,7 +11,10 @@ func invalidDateThrows() bool {
 	hxrt.TryCatch(func() {
 		Date_fromString(hxrt.StringFromLiteral("not-a-date"))
 	}, func(hx_caught_3 any) {
-		hx_tmp := hx_caught_3
+		hx_exception_4 := haxe__Exception_caught(hx_caught_3)
+		hx_payload_5 := haxe__Exception_catchValue(hx_caught_3)
+		_ = hx_exception_4
+		var hx_tmp any = hx_payload_5
 		_ = hx_tmp
 		hx_try_value_2 = true
 		hx_try_return_1 = true
@@ -34,4 +37,32 @@ func main() {
 	hxrt.Println(v_1)
 	var v_2 any = any(invalidDateThrows())
 	hxrt.Println(v_2)
+}
+
+func hx_recover_class_0(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
+}
+
+func hx_recover_class_1(value any) *haxe__Exception {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__Exception:
+		return source
+	case *haxe__ValueException:
+		return source.haxe__Exception
+	default:
+		return value.(*haxe__Exception)
+	}
 }

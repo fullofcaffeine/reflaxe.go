@@ -1,6 +1,7 @@
 package hxrt
 
 import (
+	"bytes"
 	"encoding/json"
 	"reflect"
 )
@@ -49,7 +50,13 @@ func jsonToHaxeValue(value any) any {
 // slices, and carriers that expose the internal Values protocol, so cyclic Dynamic
 // values retain the previous "null on error" behavior instead of recursing forever.
 func jsonFromHaxeValue(value any, visiting map[jsonVisit]bool) (any, bool) {
+	value = ObjectSource(value)
 	switch current := value.(type) {
+	case functionValue:
+		if current.functionIdentity() == nil {
+			return nil, true
+		}
+		return "<fun>", true
 	case interface{ Values() []any }:
 		ref := reflect.ValueOf(current)
 		if !ref.IsValid() || (ref.Kind() == reflect.Pointer && ref.IsNil()) {
@@ -108,6 +115,9 @@ func jsonFromHaxeValue(value any, visiting map[jsonVisit]bool) (any, bool) {
 
 		out := make(map[string]any, len(current))
 		for key, item := range current {
+			if fn, ok := item.(functionValue); ok && fn.functionIdentity() != nil {
+				continue
+			}
 			converted, ok := jsonFromHaxeValue(item, visiting)
 			if !ok {
 				return nil, false
@@ -137,15 +147,21 @@ func JsonStringify(value any, space *string) *string {
 	if !ok {
 		return StringFromLiteral("null")
 	}
-	var encoded []byte
-	var err error
-	if space == nil {
-		encoded, err = json.Marshal(normalized)
-	} else {
-		encoded, err = json.MarshalIndent(normalized, "", *space)
-	}
-	if err != nil {
+	// Haxe JSON does not use HTML escaping. Preserve a present empty indent as
+	// pretty-printing too; Encoder.SetIndent alone cannot represent that state.
+	var encoded bytes.Buffer
+	encoder := json.NewEncoder(&encoded)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(normalized); err != nil {
 		return StringFromLiteral("null")
 	}
-	return StringFromLiteral(string(encoded))
+	data := bytes.TrimSuffix(encoded.Bytes(), []byte{'\n'})
+	if space != nil {
+		var indented bytes.Buffer
+		if err := json.Indent(&indented, data, "", *space); err != nil {
+			return StringFromLiteral("null")
+		}
+		data = indented.Bytes()
+	}
+	return StringFromLiteral(string(data))
 }

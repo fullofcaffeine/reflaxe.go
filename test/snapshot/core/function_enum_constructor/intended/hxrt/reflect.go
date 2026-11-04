@@ -23,6 +23,7 @@ func reflectFieldName(field *string) (string, bool) {
 // Compiler-known RTTI and generated lowercase members remain same-package
 // metadata adapters so hxrt never becomes a registry of generated program types.
 func ReflectLookupField(object any, field *string) *ReflectFieldLookup {
+	object = ObjectSource(object)
 	key, valid := reflectFieldName(field)
 	if object == nil || !valid {
 		return &ReflectFieldLookup{}
@@ -68,6 +69,11 @@ func ReflectLookupField(object any, field *string) *ReflectFieldLookup {
 // ReflectLookupMethod exposes only exported native Go methods. Generated Haxe
 // methods are lowercase and are resolved by the compiler metadata adapter first.
 func ReflectLookupMethod(object any, field *string) *ReflectFieldLookup {
+	object = ObjectSource(object)
+	// Carrier methods implement runtime protocols, not Haxe function members.
+	if _, callable := object.(functionValue); callable {
+		return &ReflectFieldLookup{}
+	}
 	key, valid := reflectFieldName(field)
 	if key == "HxFunctionReceiver" {
 		if _, generated := object.(interface{ HxFunctionReceiver() any }); generated {
@@ -111,6 +117,7 @@ func reflectAssignField(field reflect.Value, value any) bool {
 // ReflectSetField mutates anonymous maps and exported native struct fields. A
 // false result lets staged Reflect try the typed generated-field adapter.
 func ReflectSetField(object any, field *string, value any) bool {
+	object = ObjectSource(object)
 	key, valid := reflectFieldName(field)
 	if object == nil || !valid {
 		return false
@@ -166,6 +173,7 @@ func reflectCallArgument(value any, target reflect.Type) reflect.Value {
 // ReflectCallMethod invokes an already-resolved function. Object context is not
 // needed on Go because generated and reflected method values are already bound.
 func ReflectCallMethod(function any, arguments []any) any {
+	function = FunctionOrigin(function)
 	if value, ok := function.(functionValue); ok {
 		function = value.functionPayload()
 	}
@@ -196,6 +204,7 @@ func ReflectCallMethod(function any, arguments []any) any {
 // ReflectFields returns deterministic native object field names. The public API
 // does not promise ordering, but sorting stabilizes generated tests and callers.
 func ReflectFields(object any) []*string {
+	object = ObjectSource(object)
 	if object == nil {
 		return nil
 	}
@@ -340,6 +349,7 @@ func ReflectCompareMethods(left any, right any) bool {
 }
 
 func ReflectIsObject(value any) bool {
+	value = ObjectSource(value)
 	if _, ok := value.(functionValue); ok {
 		return false
 	}
@@ -360,6 +370,7 @@ func ReflectIsObject(value any) bool {
 }
 
 func ReflectDeleteField(object any, field *string) bool {
+	object = ObjectSource(object)
 	key, valid := reflectFieldName(field)
 	if object == nil || !valid {
 		return false
@@ -393,6 +404,7 @@ func ReflectDeleteField(object any, field *string) bool {
 }
 
 func ReflectCopy(object any) any {
+	object = ObjectSource(object)
 	if object == nil {
 		return nil
 	}

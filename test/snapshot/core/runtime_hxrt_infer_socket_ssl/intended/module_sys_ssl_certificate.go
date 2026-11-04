@@ -23,9 +23,25 @@ type sys__ssl__Certificate struct {
 	notAfter   *Date
 }
 
+func (self *sys__ssl__Certificate) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_sys__ssl__Certificate(handle *hxrt.SslCertificate) *sys__ssl__Certificate {
+	return hx_init_sys__ssl__Certificate(hx_alloc_sys__ssl__Certificate(nil), handle)
+}
+
+func hx_alloc_sys__ssl__Certificate(owner any) *sys__ssl__Certificate {
 	self := &sys__ssl__Certificate{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_sys__ssl__Certificate)
+	}
+	return self
+}
+
+func hx_init_sys__ssl__Certificate(self *sys__ssl__Certificate, handle *hxrt.SslCertificate) *sys__ssl__Certificate {
 	self.handle = handle
 	return self
 }

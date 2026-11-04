@@ -439,7 +439,7 @@ func _UnicodeString__UnicodeString_Impl__validate(bytes *haxe__io__Bytes, encodi
 		}
 		return true
 	case 1:
-		hxrt.Throw(hxrt.StringFromLiteral("UnicodeString.validate: RawNative encoding is not supported"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("UnicodeString.validate: RawNative encoding is not supported")))
 	}
 	return false
 }

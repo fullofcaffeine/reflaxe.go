@@ -209,13 +209,56 @@ func main() {
 		haxe__io___ArrayBufferView__ArrayBufferView_Impl__fromBytes(bytes, 9, 4)
 		hxrt.Println(any(hxrt.StringFromLiteral("bounds=miss")))
 	}, func(hx_caught_5 any) {
-		switch hx_typed_6 := hx_caught_5.(type) {
-		case *haxe__io__Error:
-			err := hx_typed_6
+		hx_exception_6 := haxe__Exception_caught(hx_caught_5)
+		hx_payload_7 := haxe__Exception_catchValue(hx_caught_5)
+		_ = hx_exception_6
+		if func(hx_value any) bool {
+			switch hx_value.(type) {
+			case *haxe__io__Error:
+				return true
+			default:
+				return false
+			}
+		}(hx_payload_7) {
+			var err *haxe__io__Error = func(hx_value_8 any) *haxe__io__Error {
+				if hx_value_8 == nil {
+					var hx_zero_9 *haxe__io__Error
+					return hx_zero_9
+				}
+				return hx_value_8.(*haxe__io__Error)
+			}(hx_payload_7)
 			var v_9 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("bounds="), errTag(err)))
 			hxrt.Println(v_9)
-		default:
+		} else {
 			hxrt.Throw(hx_caught_5)
 		}
 	})
+}
+
+func hx_recover_class_0(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
+}
+
+func hx_recover_class_1(value any) *haxe__Exception {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__Exception:
+		return source
+	case *haxe__ValueException:
+		return source.haxe__Exception
+	default:
+		return value.(*haxe__Exception)
+	}
 }

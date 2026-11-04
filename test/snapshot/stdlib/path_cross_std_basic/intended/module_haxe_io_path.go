@@ -14,9 +14,25 @@ type haxe__io__Path struct {
 	backslash bool
 }
 
+func (self *haxe__io__Path) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe__io__Path(path *string) *haxe__io__Path {
+	return hx_init_haxe__io__Path(hx_alloc_haxe__io__Path(nil), path)
+}
+
+func hx_alloc_haxe__io__Path(owner any) *haxe__io__Path {
 	self := &haxe__io__Path{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__io__Path)
+	}
+	return self
+}
+
+func hx_init_haxe__io__Path(self *haxe__io__Path, path *string) *haxe__io__Path {
 	switch *hxrt.StdString(path) {
 	case *hxrt.StdString(hxrt.StringFromLiteral(".")), *hxrt.StdString(hxrt.StringFromLiteral("..")):
 		self.dir = path

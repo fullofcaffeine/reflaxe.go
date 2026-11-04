@@ -8,7 +8,7 @@ type I_haxe__ds__GenericStack interface {
 	pop() any
 	isEmpty() bool
 	remove(v any) bool
-	iterator() map[string]any
+	iterator() hxrt.Anonymous
 	toString() *string
 }
 
@@ -17,9 +17,25 @@ type haxe__ds__GenericStack struct {
 	head      *haxe__ds__GenericCell
 }
 
+func (self *haxe__ds__GenericStack) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe__ds__GenericStack() *haxe__ds__GenericStack {
+	return hx_init_haxe__ds__GenericStack(hx_alloc_haxe__ds__GenericStack(nil))
+}
+
+func hx_alloc_haxe__ds__GenericStack(owner any) *haxe__ds__GenericStack {
 	self := &haxe__ds__GenericStack{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__ds__GenericStack)
+	}
+	return self
+}
+
+func hx_init_haxe__ds__GenericStack(self *haxe__ds__GenericStack) *haxe__ds__GenericStack {
 	return self
 }
 
@@ -68,18 +84,18 @@ func (self *haxe__ds__GenericStack) remove(v any) bool {
 	return false
 }
 
-func (self *haxe__ds__GenericStack) iterator() map[string]any {
+func (self *haxe__ds__GenericStack) iterator() hxrt.Anonymous {
 	current := self.head
 	hx_obj_2 := map[string]any{}
-	hx_obj_2["hasNext"] = func() bool {
+	hx_obj_2["hasNext"] = hxrt.NewFunction(func() bool {
 		return (current != nil)
-	}
-	hx_obj_2["next"] = func() any {
+	})
+	hx_obj_2["next"] = hxrt.NewFunction(func() any {
 		cell := current
 		current = cell.next
 		return cell.elt
-	}
-	return hx_obj_2
+	})
+	return hxrt.AnonymousFromMap(hx_obj_2)
 }
 
 func (self *haxe__ds__GenericStack) toString() *string {
@@ -142,9 +158,25 @@ type haxe__ds__GenericCell struct {
 	next      *haxe__ds__GenericCell
 }
 
+func (self *haxe__ds__GenericCell) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe__ds__GenericCell(elt any, next *haxe__ds__GenericCell) *haxe__ds__GenericCell {
+	return hx_init_haxe__ds__GenericCell(hx_alloc_haxe__ds__GenericCell(nil), elt, next)
+}
+
+func hx_alloc_haxe__ds__GenericCell(owner any) *haxe__ds__GenericCell {
 	self := &haxe__ds__GenericCell{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__ds__GenericCell)
+	}
+	return self
+}
+
+func hx_init_haxe__ds__GenericCell(self *haxe__ds__GenericCell, elt any, next *haxe__ds__GenericCell) *haxe__ds__GenericCell {
 	self.elt = elt
 	self.next = next
 	return self

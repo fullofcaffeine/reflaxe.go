@@ -11,9 +11,25 @@ type Greeter struct {
 	__hx_this I_Greeter
 }
 
+func (self *Greeter) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_Greeter() *Greeter {
+	return hx_init_Greeter(hx_alloc_Greeter(nil))
+}
+
+func hx_alloc_Greeter(owner any) *Greeter {
 	self := &Greeter{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_Greeter)
+	}
+	return self
+}
+
+func hx_init_Greeter(self *Greeter) *Greeter {
 	return self
 }
 

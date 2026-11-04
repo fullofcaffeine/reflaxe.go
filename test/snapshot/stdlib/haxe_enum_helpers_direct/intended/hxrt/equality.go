@@ -52,6 +52,13 @@ func haxeNumericValue(value any) (float64, bool) {
 // How: Keep reflection in this selectively copied helper, reject unlike dynamic
 // types, preserve nil behavior, and compare only each reference carrier's pointer.
 func referenceEqual(left any, right any) bool {
+	if function, ok := left.(functionValue); ok {
+		other, otherOK := right.(functionValue)
+		return otherOK && equalFunctionIdentity(function, other)
+	}
+	if _, ok := right.(functionValue); ok {
+		return false
+	}
 	leftValue := reflect.ValueOf(left)
 	rightValue := reflect.ValueOf(right)
 	if !leftValue.IsValid() || !rightValue.IsValid() {
@@ -67,7 +74,10 @@ func referenceEqual(left any, right any) bool {
 			return leftValue.IsNil() && rightValue.IsNil()
 		}
 		return referenceEqual(leftValue.Elem().Interface(), rightValue.Elem().Interface())
-	case reflect.Ptr, reflect.UnsafePointer, reflect.Map, reflect.Slice, reflect.Func, reflect.Chan:
+	case reflect.Func:
+		// Portable function identity is handled by the explicit carrier above.
+		return false
+	case reflect.Ptr, reflect.UnsafePointer, reflect.Map, reflect.Slice, reflect.Chan:
 		if leftValue.IsNil() || rightValue.IsNil() {
 			return leftValue.IsNil() && rightValue.IsNil()
 		}
@@ -89,6 +99,8 @@ func referenceEqual(left any, right any) bool {
 // How: Normalize nil and numeric values, compare strings by contents, and delegate
 // reference-shaped carriers to the identity-only reflection island above.
 func HaxeEqual(left any, right any) bool {
+	left = ObjectSource(left)
+	right = ObjectSource(right)
 	leftNil := isAnyNil(left)
 	rightNil := isAnyNil(right)
 	if leftNil || rightNil {

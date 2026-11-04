@@ -16,14 +16,18 @@
 - none
 
 ## inferred features
+- `anonymous`
 - `array`
 - `core`
 - `exception`
+- `function`
 - `print`
 - `string`
 
 ## selected features
 - `core`
+- `function`
+- `anonymous`
 - `array`
 - `string`
 - `equality`
@@ -45,6 +49,7 @@
 - `atomic_object`
 
 ## runtime files
+- `anonymous.go`
 - `array.go`
 - `atomic_int.go`
 - `atomic_object.go`
@@ -55,6 +60,7 @@
 - `exception.go`
 - `file.go`
 - `filesystem.go`
+- `function.go`
 - `hxrt.go`
 - `json.go`
 - `map_int.go`
@@ -71,6 +77,11 @@
 - `core` -> `core.go, hxrt.go`
   - `baseline` (`compiler_baseline`)
   - `compatibility_contract` (`default_full_copy`)
+- `function` -> `function.go`
+  - `compatibility_contract` (`default_full_copy`)
+  - `compiler_surface` (`lowered_go_ast:hxrt.Function`)
+- `anonymous` -> `anonymous.go`
+  - `compiler_surface` (`lowered_go_ast:hxrt.Anonymous`)
 - `array` -> `array.go`
   - `surface_plan` (`go_build_context_plus_typed_registry_decision`)
 - `string` -> `string.go`
@@ -117,6 +128,9 @@
 ## selection reasons
 - `core` <- `baseline` (`compiler_baseline`)
 - `core` <- `compatibility_contract` (`default_full_copy`)
+- `function` <- `compatibility_contract` (`default_full_copy`)
+- `function` <- `compiler_surface` (`lowered_go_ast:hxrt.Function`)
+- `anonymous` <- `compiler_surface` (`lowered_go_ast:hxrt.Anonymous`)
 - `array` <- `surface_plan` (`go_build_context_plus_typed_registry_decision`)
 - `string` <- `baseline` (`compiler_baseline`)
 - `string` <- `compatibility_contract` (`default_full_copy`)

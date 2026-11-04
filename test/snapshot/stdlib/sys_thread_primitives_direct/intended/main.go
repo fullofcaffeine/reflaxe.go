@@ -106,27 +106,39 @@ func main() {
 	}(tls.__hx_this.get_value()))))
 	hxrt.Println(v_14)
 	noLoop := New_sys__thread__NoEventLoopException(hxrt.StringFromLiteral("Event loop is not available. Refer to sys.thread.Thread.runWithEventLoop."), nil)
-	var v_15 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("noLoop.msg="), hxrt.ExceptionMessage(noLoop)))
+	var v_15 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("noLoop.msg="), noLoop.__hx_this.get_message()))
 	hxrt.Println(v_15)
 	pool := New__Main__DummyPool()
-	pool.run(func() {
+	pool.run(hxrt.NewFunction(func() {
 		hxrt.Println(any(hxrt.StringFromLiteral("pool.task=ran")))
-	})
+	}))
 	var v_16 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("pool.runs="), pool.runCount()))
 	hxrt.Println(v_16)
 	pool.shutdown()
 	var v_17 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("pool.shutdown="), hxrt.StdString(pool.get_isShutdown())))
 	hxrt.Println(v_17)
 	hxrt.TryCatch(func() {
-		pool.run(func() {
-		})
+		pool.run(hxrt.NewFunction(func() {
+		}))
 	}, func(hx_caught_17 any) {
-		switch hx_typed_18 := hx_caught_17.(type) {
-		case *sys__thread__ThreadPoolException:
-			err := hx_typed_18
-			var v_18 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("pool.error="), hxrt.ExceptionMessage(err)))
+		hx_exception_18 := haxe__Exception_caught(hx_caught_17)
+		hx_payload_19 := haxe__Exception_catchValue(hx_caught_17)
+		_ = hx_payload_19
+		if func(hx_value any) bool {
+			switch hx_carrier := hx_value.(type) {
+			case *sys__thread__ThreadPoolException:
+				if hx_carrier == nil {
+					return false
+				}
+				return true
+			default:
+				return false
+			}
+		}(hxrt.ObjectSource(hxrt.ObjectSource(hx_exception_18))) {
+			var err *sys__thread__ThreadPoolException = hx_recover_class_0(hx_exception_18)
+			var v_18 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("pool.error="), err.__hx_this.get_message()))
 			hxrt.Println(v_18)
-		default:
+		} else {
 			hxrt.Throw(hx_caught_17)
 		}
 	})
@@ -135,7 +147,7 @@ func main() {
 type I__Main__DummyPool interface {
 	get_threadsCount() int
 	get_isShutdown() bool
-	run(task func())
+	run(task *hxrt.Function[func()])
 	shutdown()
 	runCount() int
 }
@@ -148,9 +160,25 @@ type _Main__DummyPool struct {
 	runs         int
 }
 
+func (self *_Main__DummyPool) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New__Main__DummyPool() *_Main__DummyPool {
+	return hx_init__Main__DummyPool(hx_alloc__Main__DummyPool(nil))
+}
+
+func hx_alloc__Main__DummyPool(owner any) *_Main__DummyPool {
 	self := &_Main__DummyPool{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I__Main__DummyPool)
+	}
+	return self
+}
+
+func hx_init__Main__DummyPool(self *_Main__DummyPool) *_Main__DummyPool {
 	self.runs = 0
 	self._isShutdown = false
 	return self
@@ -164,12 +192,15 @@ func (self *_Main__DummyPool) get_isShutdown() bool {
 	return self._isShutdown
 }
 
-func (self *_Main__DummyPool) run(task func()) {
+func (self *_Main__DummyPool) run(task *hxrt.Function[func()]) {
 	if self._isShutdown {
-		hxrt.Throw(New_sys__thread__ThreadPoolException(hxrt.StringFromLiteral("shutdown"), nil, nil))
+		hxrt.Throw(haxe__Exception_thrown(New_sys__thread__ThreadPoolException(hxrt.StringFromLiteral("shutdown"), nil, nil)))
 	}
 	self.runs = int(int32((self.runs + 1)))
-	task()
+	func() {
+		var hx_callable_20 *hxrt.Function[func()] = task
+		hxrt.FunctionCall(hx_callable_20)()
+	}()
 }
 
 func (self *_Main__DummyPool) shutdown() {
@@ -178,4 +209,62 @@ func (self *_Main__DummyPool) shutdown() {
 
 func (self *_Main__DummyPool) runCount() int {
 	return self.runs
+}
+
+func hx_recover_class_0(value any) *sys__thread__ThreadPoolException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *sys__thread__ThreadPoolException:
+		return source
+	default:
+		return value.(*sys__thread__ThreadPoolException)
+	}
+}
+
+func hx_recover_class_1(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
+}
+
+func hx_recover_class_2(value any) *haxe__Exception {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *sys__thread__ThreadPoolException:
+		return source.haxe__Exception
+	case *sys__thread__NoEventLoopException:
+		return source.haxe__Exception
+	case *haxe__Exception:
+		return source
+	case *haxe__ValueException:
+		return source.haxe__Exception
+	default:
+		return value.(*haxe__Exception)
+	}
+}
+
+func hx_recover_class_3(value any) *haxe__ds___List__GoListIterator {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ds___List__GoListIterator:
+		return source
+	default:
+		return value.(*haxe__ds___List__GoListIterator)
+	}
 }

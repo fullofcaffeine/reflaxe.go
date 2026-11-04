@@ -2,32 +2,20 @@ package main
 
 import "snapshot/hxrt"
 
-func Lambda_has(it map[string]any, expected any) bool {
+func Lambda_has(it hxrt.Anonymous, expected any) bool {
 	found := false
-	value := func(hx_obj_1 map[string]any) func() map[string]any {
-		hx_field_2 := hx_obj_1["iterator"]
-		if hx_field_2 == nil {
-			var hx_zero_3 func() map[string]any
-			return hx_zero_3
-		}
-		return hx_field_2.(func() map[string]any)
-	}(it)()
-	for func(hx_obj_4 map[string]any) func() bool {
-		hx_field_5 := hx_obj_4["hasNext"]
-		if hx_field_5 == nil {
-			var hx_zero_6 func() bool
-			return hx_zero_6
-		}
-		return hx_field_5.(func() bool)
-	}(value)() {
-		var value_1 any = func(hx_obj_7 map[string]any) func() any {
-			hx_field_8 := hx_obj_7["next"]
-			if hx_field_8 == nil {
-				var hx_zero_9 func() any
-				return hx_zero_9
-			}
-			return hx_field_8.(func() any)
-		}(value)()
+	value := func() hxrt.Anonymous {
+		var hx_callable_1 *hxrt.Function[func() hxrt.Anonymous] = hx_recover_callable_0(hxrt.AnonymousGet(it, "iterator"))
+		return hxrt.FunctionCall(hx_callable_1)()
+	}()
+	for func() bool {
+		var hx_callable_2 *hxrt.Function[func() bool] = hx_recover_callable_1(hxrt.AnonymousGet(value, "hasNext"))
+		return hxrt.FunctionCall(hx_callable_2)()
+	}() {
+		var value_1 any = func() any {
+			var hx_callable_3 *hxrt.Function[func() any] = hx_recover_callable_2(hxrt.AnonymousGet(value, "next"))
+			return hxrt.FunctionCall(hx_callable_3)()
+		}()
 		if hxrt.HaxeEqual(value_1, expected) {
 			found = true
 			break
