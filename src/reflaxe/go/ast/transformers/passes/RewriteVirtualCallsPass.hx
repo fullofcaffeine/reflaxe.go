@@ -289,6 +289,8 @@ class RewriteVirtualCallsPass implements IGoASTPass {
 		var rewritten = switch (expr) {
 			case GoExpr.GoSelector(target, field):
 				GoExpr.GoSelector(rewriteExpr(target, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets), field);
+			case GoExpr.GoInstantiate(target, arguments):
+				GoExpr.GoInstantiate(rewriteExpr(target, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets), arguments);
 			case GoExpr.GoIndex(target, index):
 				GoExpr.GoIndex(rewriteExpr(target, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets),
 					rewriteExpr(index, receiverName, canDevirtualizeSelf, localLeafVars, leafReceivers, leafReturnCallTargets));

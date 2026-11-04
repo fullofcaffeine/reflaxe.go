@@ -150,6 +150,10 @@ enum GoExpr {
 	GoNil;
 	GoSelector(target:GoExpr, field:String);
 	GoIndex(target:GoExpr, index:GoExpr);
+
+	/** Instantiate a native generic function with structural types, retaining import ownership. */
+	GoInstantiate(target:GoExpr, arguments:Array<GoType>);
+
 	GoSlice(target:GoExpr, start:Null<GoExpr>, end:Null<GoExpr>);
 
 	/**

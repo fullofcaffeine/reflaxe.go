@@ -140,6 +140,8 @@ class RewriteStringOpsPass implements IGoASTPass {
 		var rewritten = switch (expr) {
 			case GoExpr.GoSelector(target, field):
 				GoExpr.GoSelector(rewriteExpr(target), field);
+			case GoExpr.GoInstantiate(target, arguments):
+				GoExpr.GoInstantiate(rewriteExpr(target), arguments);
 			case GoExpr.GoIndex(target, index):
 				GoExpr.GoIndex(rewriteExpr(target), rewriteExpr(index));
 			case GoExpr.GoSlice(target, start, end):
