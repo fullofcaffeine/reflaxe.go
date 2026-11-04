@@ -24,6 +24,7 @@ import reflaxe.go.compiler.GoLambdaIterableLowering;
 import reflaxe.go.compiler.GoStructuralObjectLowering;
 import reflaxe.go.compiler.GoValueRecovery;
 import reflaxe.go.compiler.GoNominalValueRecovery;
+import reflaxe.go.compiler.GoNominalTypeTest;
 import reflaxe.go.compiler.GoRecoveryAvailability;
 import reflaxe.go.compiler.GoRecoveryDispatch.GoGuardedRecoveryDeclaration;
 import reflaxe.go.compiler.GoNativeTypeEligibility;
@@ -297,6 +298,7 @@ class GoCompiler {
 	final structuralObjectLowering:GoStructuralObjectLowering;
 	final valueRecovery:GoValueRecovery;
 	final nominalValueRecovery:GoNominalValueRecovery;
+	final nominalTypeTest:GoNominalTypeTest;
 	final recoveryAvailability:GoRecoveryAvailability;
 	final functionVarNameScopes:Array<Map<Int, String>>;
 	final functionVarNameCountScopes:Array<Map<String, Int>>;
@@ -429,6 +431,7 @@ class GoCompiler {
 		});
 		valueRecovery = new GoValueRecovery(recoveryAvailability, recoverStoredGoValue);
 		nominalValueRecovery = new GoNominalValueRecovery(recoveryAvailability, classTypeName, inheritancePath);
+		nominalTypeTest = new GoNominalTypeTest(recoveryAvailability, classTypeName);
 		structuralObjectLowering = new GoStructuralObjectLowering(recoveryAvailability, {
 			freshTempName: freshTempName,
 			sourceGoType: typeToGoType,
@@ -504,6 +507,7 @@ class GoCompiler {
 		structuralObjectLowering.reset();
 		valueRecovery.reset();
 		nominalValueRecovery.reset();
+		nominalTypeTest.reset();
 		generatedMethodMetadataPlan = [];
 		generatedFieldMetadataPlan = [];
 		resetRequiredNativeChanElementTypes();
@@ -584,6 +588,10 @@ class GoCompiler {
 				for (source in projectClasses)
 					if (hasGeneratedVirtualCarrier(source)) source
 			]));
+			guardedRecoveryDecls = guardedRecoveryDecls.concat(nominalTypeTest.discover([
+				for (source in projectClasses)
+					if (hasGeneratedVirtualCarrier(source)) source
+			]));
 			drainPendingClassQueue(moduleDecls, classQueue, queuedClassNames, projectClasses);
 			drainPendingEnumQueue(moduleDecls, enumQueue, queuedEnumNames, projectEnums);
 			moduleBuildConstraints = collectModuleBuildConstraints(projectClasses, projectEnums);
@@ -602,6 +610,7 @@ class GoCompiler {
 		}
 		valueRecovery.freeze();
 		nominalValueRecovery.freeze();
+		nominalTypeTest.freeze();
 		structuralObjectLowering.freeze();
 		populateLeafReturningFunctions(moduleDecls, preludeDecls, supportDecls);
 		requiresSharedArrayRuntime = moduleDeclsUseSharedArraySurface(moduleDecls)
@@ -706,7 +715,7 @@ class GoCompiler {
 	/** All counts are monotone; generated temporary names do not affect closure. */
 	function recoveryRequirementCount():Int {
 		var count = recoveryAvailability.revision() + projectClasses.length + projectEnums.length + valueRecovery.requirementCount()
-			+ nominalValueRecovery.requirementCount() + structuralObjectLowering.requirementCount();
+			+ nominalValueRecovery.requirementCount() + nominalTypeTest.requirementCount() + structuralObjectLowering.requirementCount();
 		for (_ in requiredStdlibShimGroups.keys())
 			count++;
 		for (_ in externImportPaths.keys())
@@ -4717,8 +4726,7 @@ class GoCompiler {
 			var isException = isHaxeExceptionFamilyType(type);
 			var input = GoExpr.GoIdent(isException ? exceptionName : payloadName);
 			var wildcard = isDynamicCatchType(type) || isHaxeExceptionType(type) || typeToGoType(type) == "any";
-			var value = owner != null
-				&& !owner.isExtern ? nominalValueRecovery.recover(input, owner) : lowerNullableAwareTypeAssertExpr(input, type);
+			var value = lowerNullableAwareTypeAssertExpr(input, type);
 			var body = [
 				GoStmt.GoVarDecl(name, typeToGoType(type), value, false),
 				GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent(name))
@@ -9231,7 +9239,7 @@ class GoCompiler {
 				];
 			} else if (generatedClassSpecs.exists(name)) {
 				[
-					GoStmt.GoReturn(stdIsOfTypeDynamicClassExpr(GoExpr.GoIdent("hx_value"), generatedClassSpecs.get(name)))
+					GoStmt.GoReturn(nominalTypeTest.matches(GoExpr.GoIdent("hx_value"), generatedClassSpecs.get(name)))
 				];
 			} else {
 				[
@@ -9430,6 +9438,8 @@ class GoCompiler {
 	}
 
 	function stdIsOfTypeClassExpr(valueExpr:GoExpr, valueType:Type, targetClass:ClassType):GoExpr {
+		if (!targetClass.isExtern && (targetClass.isInterface || hasGeneratedVirtualCarrier(targetClass)))
+			return nominalTypeTest.matches(valueExpr, targetClass);
 		var valueClass = classFromType(valueType);
 		if (valueClass != null) {
 			if (inheritancePath(valueClass, targetClass) != null) {
@@ -9459,87 +9469,7 @@ class GoCompiler {
 			return stdIsOfTypeTypeSwitch(valueExpr, stdIsOfTypeClassTypeNames(targetClass));
 		}
 
-		return stdIsOfTypeDynamicClassExpr(valueExpr, targetClass);
-	}
-
-	/**
-		What: Test an erased generated-class carrier against one concrete Haxe class.
-
-		Why: A value can enter `Dynamic` through a statically upcast base pointer even
-		though its runtime object is a subclass. A Go type switch over only the physical
-		pointer then loses the subclass identity stored in `__hx_this`.
-
-		How: Build a closed typed switch over only the target's reachable ancestors and
-		descendants. Concrete target/descendant pointers succeed directly; ancestor
-		carriers recover the canonical virtual receiver with a typed comma-ok assertion.
-	**/
-	function stdIsOfTypeDynamicClassExpr(valueExpr:GoExpr, targetClass:ClassType):GoExpr {
-		valueExpr = GoExpr.GoCall(GoExpr.GoIdent("hxrt.ObjectSource"), [valueExpr]);
-		var related = new Array<{typeName:String, usesVirtualReceiver:Bool}>();
-		var seen = new Map<String, Bool>();
-		var candidates = [
-			for (classType in projectClasses)
-				if (!buildConstrainedClassNames.exists(fullClassName(classType))) classType
-		];
-		if (!hasProjectClassNamed(candidates, fullClassName(targetClass))) {
-			candidates.push(targetClass);
-		}
-
-		for (candidate in candidates) {
-			if (!hasGeneratedVirtualCarrier(candidate)) {
-				continue;
-			}
-			var candidateIsTargetOrDescendant = inheritancePath(candidate, targetClass) != null;
-			var candidateIsAncestor = inheritancePath(targetClass, candidate) != null;
-			if (!candidateIsTargetOrDescendant && !candidateIsAncestor) {
-				continue;
-			}
-			var typeName = "*" + classTypeName(candidate);
-			if (seen.exists(typeName)) {
-				continue;
-			}
-			seen.set(typeName, true);
-			related.push({
-				typeName: typeName,
-				usesVirtualReceiver: candidateIsAncestor && !candidateIsTargetOrDescendant});
-		}
-		related.sort(function(a, b) return Reflect.compare(a.typeName, b.typeName));
-
-		var targetPointerType = GoType.pointer(GoType.named(classTypeName(targetClass)));
-		var cases = new Array<GoTypeSwitchCase>();
-		for (entry in related) {
-			var carrier = GoExpr.GoIdent("hx_carrier");
-			var body = [
-				GoStmt.GoIf(GoExpr.GoBinary(GoBinaryOperator.Equal, carrier, GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))], null)
-			];
-			if (entry.usesVirtualReceiver) {
-				body.push(GoStmt.GoMultiAssign(["_", "hx_ok"], GoExpr.GoTypeAssert(GoExpr.GoSelector(carrier, "__hx_this"), targetPointerType), true));
-				body.push(GoStmt.GoReturn(GoExpr.GoIdent("hx_ok")));
-			} else {
-				body.push(GoStmt.GoReturn(GoExpr.GoBoolLiteral(true)));
-			}
-			cases.push({typeName: GoType.parse(entry.typeName), body: body});
-		}
-
-		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: "hx_value", typeName: GoType.builtin(GoBuiltinType.AnyType)}], [GoType.builtin(GoBuiltinType.Bool)],
-			[
-				GoStmt.GoTypeSwitch(GoExpr.GoIdent("hx_value"), "hx_carrier", cases, [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))])
-			]), [valueExpr]);
-	}
-
-	/**
-		What: Test whether a class plan already contains one canonical Haxe name.
-		Why: The focused dynamic type-test plan may receive a target class that was not
-		copied into the project-class array used to seed its reachable candidates.
-		How: Compare canonical names without introducing a second class registry.
-	**/
-	function hasProjectClassNamed(classes:Array<ClassType>, name:String):Bool {
-		for (classType in classes) {
-			if (fullClassName(classType) == name) {
-				return true;
-			}
-		}
-		return false;
+		return nominalTypeTest.matches(valueExpr, targetClass);
 	}
 
 	function stdIsOfTypeEnumExpr(valueExpr:GoExpr, valueType:Type, targetEnum:EnumType):GoExpr {
