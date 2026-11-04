@@ -6680,9 +6680,13 @@ class GoCompiler {
 	/** Keep direct declarations as Go calls; only extracted values carry identity. */
 	function lowerDirectCallee(callee:TypedExpr):GoExpr {
 		return switch (callee.expr) {
-			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _): lowerDirectCallee(inner);
+			case TMeta(_, inner) | TParenthesis(inner): lowerDirectCallee(inner);
+			case TCast(_, _): lowerExpr(callee).expr;
 			case TField(target, access): lowerField(target, access, false).expr;
-			case _: lowerExpr(callee).expr;
+			case _:
+				var lowered = lowerExpr(callee).expr;
+				// Portable arrays erase element storage, including callable carriers.
+				isSharedArrayElementExpr(callee) ? coerceStoredArrayElementExpr(lowered, callee.t) : lowered;
 		};
 	}
 
@@ -7455,7 +7459,11 @@ class GoCompiler {
 	/** Classify stored function invocation separately from direct declaration calls. */
 	function isFunctionValueCall(callee:TypedExpr):Bool {
 		return switch (callee.expr) {
-			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _): isFunctionValueCall(inner);
+			case TMeta(_, inner) | TParenthesis(inner): isFunctionValueCall(inner);
+			case TCast(_, _): switch (Context.follow(callee.t)) {
+					case TFun(_, _): true;
+					case _: false;
+				}
 			case TField(_, FStatic(_, field)) | TField(_, FInstance(_, _, field)):
 				switch (field.get().kind) {
 					case FMethod(MethDynamic) | FVar(_, _): true;
