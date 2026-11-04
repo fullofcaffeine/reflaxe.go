@@ -3320,7 +3320,10 @@ class GoCompiler {
 		if (superClass != null) {
 			var superTypeName = classTypeName(superClass);
 			var superCarrier = GoExpr.GoSelector(GoExpr.GoIdent("self"), superTypeName);
-			var superCtorArgs = loweredCtorBody.superArgs == null ? [] : [for (arg in loweredCtorBody.superArgs) lowerExpr(arg).expr];
+			var superCtorArgs = loweredCtorBody.superArgs == null ? [] : [
+				for (index in 0...loweredCtorBody.superArgs.length)
+					lowerConstructorArg(superClass, loweredCtorBody.superArgs[index], index)
+			];
 			body.push(GoStmt.GoAssign(superCarrier, GoExpr.GoCall(GoExpr.GoIdent(constructorSymbol(superClass)), superCtorArgs)));
 			body = body.concat(lowerAncestorDispatchCarrierRebindings(superClass, superCarrier));
 		} else if (directHaxeExceptionSuperClass(classType)) {
@@ -6899,7 +6902,11 @@ class GoCompiler {
 		if (isDynamicMethod(field))
 			value = GoExpr.GoCall(GoExpr.GoIdent("hxrt.ReadDynamicFunction"), [value]);
 		value = adaptErasedFunctionCallArg(value, field.type, targetType);
-		return coerceAnyExprToType(value, field.type, targetType);
+		// A generic storage read must preserve null, including a null String.
+		// Dynamic string conversion would instead manufacture the text "null".
+		if (valueStorageGoType(field.type) == "any" && valueStorageGoType(targetType) != "any")
+			return lowerNullableAwareTypeAssertExpr(value, targetType);
+		return value;
 	}
 
 	/** Only source storage fields are writable; a target method declaration is not storage authority. */
@@ -7317,6 +7324,8 @@ class GoCompiler {
 		var callback = lowerImportedFunctionValue(value, type);
 		if (callback != null)
 			return callback;
+		if (isNullablePrimitiveType(type))
+			return value;
 		if (isIntType(type))
 			return GoExpr.GoCall(GoExpr.GoIdent("int"), [value]);
 		return importedExternMethodValueNeedsStringAdapter(type) ? GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [value]) : value;
@@ -7324,7 +7333,7 @@ class GoCompiler {
 
 	function lowerAnonymousFieldRead(targetExpr:GoExpr, fieldName:String, fieldType:Type):GoExpr {
 		var fieldExpr = GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousGet"), [targetExpr, GoExpr.GoStringLiteral(fieldName)]);
-		var fieldGoType = scalarGoType(fieldType);
+		var fieldGoType = valueStorageGoType(fieldType);
 		if (fieldGoType == "any") {
 			return fieldExpr;
 		}
@@ -10650,6 +10659,8 @@ class GoCompiler {
 					if (functionParameterStorageGoType(emittedArgs[index]) == "any"
 						&& functionParameterStorageGoType(concreteArgs[index]) != "any") {
 						callArg = lowerNullableAwareTypeAssertExpr(callArg, concreteArgs[index].t);
+					} else {
+						callArg = adaptErasedFunctionCallArg(callArg, emittedArgs[index].t, concreteArgs[index].t);
 					}
 					callArgs.push(callArg);
 				}
@@ -10662,10 +10673,12 @@ class GoCompiler {
 					adapter = GoExpr.GoFuncLiteral(params, [], [GoStmt.GoExprStmt(callbackCall)]);
 				} else {
 					var returnExpr = callbackCall;
-					if (typeToGoType(concreteReturn) == "any" && typeToGoType(emittedReturn) != "any") {
+					if (valueStorageGoType(concreteReturn) == "any" && valueStorageGoType(emittedReturn) != "any") {
 						returnExpr = lowerNullableAwareTypeAssertExpr(returnExpr, emittedReturn);
+					} else {
+						returnExpr = adaptErasedFunctionCallArg(returnExpr, concreteReturn, emittedReturn);
 					}
-					adapter = GoExpr.GoFuncLiteral(params, [GoType.parse(typeToGoType(emittedReturn))], [GoStmt.GoReturn(returnExpr)]);
+					adapter = GoExpr.GoFuncLiteral(params, lowerFunctionResults(emittedReturn), [GoStmt.GoReturn(returnExpr)]);
 				}
 				GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: capturedName, typeName: GoType.parse(typeToGoType(concreteType))}],
 					[GoType.parse(typeToGoType(emittedType))], [GoStmt.GoReturn(adaptFunctionValue(captured, adapter))]),
@@ -11335,7 +11348,11 @@ class GoCompiler {
 			actuals.push(actual);
 		}
 		var call = GoExpr.GoCall(functionValueCallable(GoExpr.GoIdent(capturedName)), actuals);
-		var results = lowerFunctionResults(func.t);
+		var targetReturn = switch (Context.follow(targetType)) {
+			case TFun(_, result): result;
+			case _: func.t;
+		};
+		var results = lowerFunctionResults(targetReturn);
 		if (results.length == 0) {
 			body.push(GoStmt.GoExprStmt(call));
 		} else {

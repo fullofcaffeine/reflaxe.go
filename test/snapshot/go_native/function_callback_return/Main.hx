@@ -40,5 +40,9 @@ class Main {
 		final nestedFactory:(Void->(Int->Int))->(Void->(Int->Int)) = NativeOnce.onceValue;
 		final fromFactory = nestedFactory(() -> (value:Int) -> value + 3);
 		Sys.println(fromFactory()(7));
+		final nullable = NativeOnce.onceValue(() -> (null : Null<Int>));
+		Sys.println(nullable() == null);
+		final present = NativeOnce.onceValue(() -> (5 : Null<Int>));
+		Sys.println(present());
 	}
 }
