@@ -19,14 +19,18 @@ STATUS_PATH = ROOT / "test" / "canonical_std_layout_status.json"
 # synthetic Sys and IO programs can reach.
 # Why: This fixture intentionally builds a small source/package tree instead of
 # the complete release archive. Once base haxe.io became source-owned, omitting
-# its override closure made the test select incompatible mainstream target
+# its override closure (including source-owned exception state and stacks)
+# made the test select incompatible mainstream target
 # implementations and no longer exercised the real haxe.go package boundary.
 # How: Copy the same exact closure into both canonical source and packaged
 # .cross.hx layouts so the source/package probe remains isolated and equivalent.
 SELECTION_OVERRIDE_DEPENDENCIES = (
     "Sys.hx",
     "StringTools.hx",
+    "haxe/CallStack.hx",
     "haxe/Constraints.hx",
+    "haxe/Exception.hx",
+    "haxe/ValueException.hx",
     "haxe/ds/StringMap.hx",
     "haxe/exceptions/NotImplementedException.hx",
     "haxe/exceptions/PosException.hx",

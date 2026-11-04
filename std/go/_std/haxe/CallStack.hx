@@ -128,8 +128,10 @@ abstract CallStack(Array<StackItem>) from Array<StackItem> {
 			case [CFunction, CFunction]: true;
 			case [Module(m1), Module(m2)]:
 				m1 == m2;
-			case [FilePos(item1, file1, line1, col1), FilePos(item2, file2, line2, col2)]: file1 == file2 && line1 == line2 && col1 == col2 && equalItems(item1,
-					item2);
+			case [
+				FilePos(nestedLeft, file1, line1, col1),
+				FilePos(nestedRight, file2, line2, col2)
+			]: file1 == file2 && line1 == line2 && col1 == col2 && equalItems(nestedLeft, nestedRight);
 			case [Method(class1, method1), Method(class2, method2)]: class1 == class2 && method1 == method2;
 			case [LocalFunction(v1), LocalFunction(v2)]:
 				v1 == v2;
@@ -137,12 +139,12 @@ abstract CallStack(Array<StackItem>) from Array<StackItem> {
 		}
 	}
 
-	static function exceptionToString(e:Exception):String {
-		if (e.previous == null) {
-			return 'Exception: ${e.toString()}${e.stack}';
+	static function exceptionToString(exception:Exception):String {
+		if (exception.previous == null) {
+			return 'Exception: ${exception.toString()}${exception.stack}';
 		}
 		var result = '';
-		var e:Null<Exception> = e;
+		var e:Null<Exception> = exception;
 		var prev:Null<Exception> = null;
 		while (e != null) {
 			if (prev == null) {

@@ -113,8 +113,8 @@ class GoRecoveryDispatch {
 				if (!stub.isNever())
 					output.push({selection: stub, declaration: GoFuncDecl(symbol, null, entry.params, results, missedBody(entry.result))});
 				var arguments = [entry.input];
-				for (index in 1...entry.params.length)
-					arguments.push(GoIdent(entry.params[index].name));
+				for (parameterIndex in 1...entry.params.length)
+					arguments.push(GoIdent(entry.params[parameterIndex].name));
 				body.push(GoMultiAssign(["hx_recovered", "hx_matched"], GoCall(GoIdent(symbol), arguments), index == 0));
 				body.push(GoIf(GoIdent("hx_matched"), [GoReturn(GoIdent("hx_recovered"))], null));
 			}
