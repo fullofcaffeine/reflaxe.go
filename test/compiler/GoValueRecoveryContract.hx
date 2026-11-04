@@ -4,13 +4,21 @@ import reflaxe.go.ast.GoAST.GoExpr;
 import reflaxe.go.ast.GoAST.GoDecl;
 import reflaxe.go.ast.GoType;
 import reflaxe.go.compiler.GoValueRecovery;
+import reflaxe.go.compiler.GoRecoveryAvailability;
+import reflaxe.go.compiler.GoBuildConstraint;
 #end
 
 /** Compiler-side discovery contracts; generated runtime regressions prove behavior. */
 class GoValueRecoveryContract {
 	#if macro
+	static function newAvailability():GoRecoveryAvailability {
+		var availability = new GoRecoveryAvailability(alias -> alias.value() == "hxrt" ? "runtime" : null);
+		availability.notePackage("runtime", GoBuildConstraint.always());
+		return availability;
+	}
+
 	public static function check():Void {
-		var owner = new GoValueRecovery((value, target) -> GoExpr.GoTypeAssert(value, target));
+		var owner = new GoValueRecovery(newAvailability(), (value, target) -> GoExpr.GoTypeAssert(value, target));
 		var source = GoType.parse("*hxrt.Function[func(int) int]");
 		var target = GoType.parse("*hxrt.Function[func(any) any]");
 		owner.noteSource(source);
@@ -29,7 +37,7 @@ class GoValueRecoveryContract {
 
 		// The named source is observed before its module declaration. Recovering
 		// the signature from applied Haxe typing would lose this physical ABI.
-		var named = new GoValueRecovery((value, target) -> GoExpr.GoTypeAssert(value, target));
+		var named = new GoValueRecovery(newAvailability(), (value, target) -> GoExpr.GoTypeAssert(value, target));
 		named.noteNamedSource("optional_source");
 		named.noteDeclarations([
 			GoDecl.GoFuncDecl("optional_source", null, [{name: "arg", typeName: "int"}], ["int"], [])
@@ -42,7 +50,7 @@ class GoValueRecoveryContract {
 
 		// Recovering a callback argument discovers a second target while the first
 		// helper is being built. Both demands must exist before emission freezes.
-		var nested = new GoValueRecovery((value, target) -> GoExpr.GoTypeAssert(value, target));
+		var nested = new GoValueRecovery(newAvailability(), (value, target) -> GoExpr.GoTypeAssert(value, target));
 		nested.noteSource(GoType.parse("*hxrt.Function[func(*hxrt.Function[func(int) int]) int]"));
 		nested.recover(GoExpr.GoIdent("stored"), GoType.parse("*hxrt.Function[func(*hxrt.Function[func(any) any]) any]"));
 		if (nested.discover().length != 2)

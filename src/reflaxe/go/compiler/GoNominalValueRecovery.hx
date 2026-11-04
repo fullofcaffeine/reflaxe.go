@@ -8,6 +8,9 @@ import reflaxe.go.ast.GoAST.GoExpr;
 import reflaxe.go.ast.GoAST.GoStmt;
 import reflaxe.go.ast.GoAST.GoTypeSwitchCase;
 import reflaxe.go.ast.GoType;
+import reflaxe.go.compiler.GoRecoveryDispatch.GoRecoveryCasePlan;
+import reflaxe.go.compiler.GoRecoveryDispatch.GoGuardedRecoveryDeclaration;
+import reflaxe.go.compiler.GoRecoveryAvailability.GoRecoveryDependency;
 
 /**
 	What: Recovers generated class storage after a value crosses an erased boundary.
@@ -17,12 +20,16 @@ import reflaxe.go.ast.GoType;
 	the compiler has discovered every reachable generated layout.
 **/
 class GoNominalValueRecovery {
+	final availability:GoRecoveryAvailability;
+	final dispatcher:GoRecoveryDispatch;
 	final className:ClassType->String;
 	final inheritancePath:(ClassType, ClassType) -> Null<Array<ClassType>>;
 	final targets:Array<ClassType> = [];
 	var frozen = false;
 
-	public function new(className:ClassType->String, inheritancePath:(ClassType, ClassType) -> Null<Array<ClassType>>) {
+	public function new(availability:GoRecoveryAvailability, className:ClassType->String, inheritancePath:(ClassType, ClassType) -> Null<Array<ClassType>>) {
+		this.availability = availability;
+		this.dispatcher = new GoRecoveryDispatch(availability);
 		this.className = className;
 		this.inheritancePath = inheritancePath;
 	}
@@ -51,16 +58,19 @@ class GoNominalValueRecovery {
 			index = targets.length;
 			targets.push(target);
 		}
-		return GoExpr.GoCall(GoExpr.GoIdent("hx_recover_class_" + index), [value]);
+		var symbol = "hx_recover_class_" + index;
+		availability.noteHelper(symbol, GoType.functionType([GoType.parse("any")], [GoType.pointer(GoType.named(className(target)))]));
+		availability.requireHelper(symbol);
+		return GoExpr.GoCall(GoExpr.GoIdent(symbol), [value]);
 	}
 
 	/** Candidates come from the compiler's emitted, same-package class layouts. */
-	public function discover(candidates:Array<ClassType>):Array<GoDecl> {
-		var declarations = new Array<GoDecl>();
+	public function discover(candidates:Array<ClassType>):Array<GoGuardedRecoveryDeclaration> {
+		var declarations = new Array<GoGuardedRecoveryDeclaration>();
 		for (index in 0...targets.length) {
 			var target = targets[index];
 			var targetType = GoType.pointer(GoType.named(className(target)));
-			var cases = new Array<GoTypeSwitchCase>();
+			var cases = new Array<GoRecoveryCasePlan>();
 			for (candidate in candidates) {
 				var path = inheritancePath(candidate, target);
 				if (path == null)
@@ -68,13 +78,29 @@ class GoNominalValueRecovery {
 				var result = GoExpr.GoIdent("source");
 				for (parent in path)
 					result = GoExpr.GoSelector(result, className(parent));
-				cases.push({typeName: GoType.pointer(GoType.named(className(candidate))), body: [GoStmt.GoReturn(result)]});
+				cases.push({
+					sourceType: GoType.pointer(GoType.named(className(candidate))),
+					body: [GoStmt.GoReturn(result)],
+					dependencies: [
+						for (parent in path)
+							TypeReference(GoType.pointer(GoType.named(className(parent))))
+					]
+				});
 			}
-			declarations.push(GoDecl.GoFuncDecl("hx_recover_class_" + index, null, [{name: "value", typeName: "any"}], [targetType], [
-				GoStmt.GoAssign(GoExpr.GoIdent("value"), GoExpr.GoCall(GoExpr.GoIdent("hxrt.ObjectSource"), [GoExpr.GoIdent("value")])),
-				GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("value"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null),
-				GoStmt.GoTypeSwitch(GoExpr.GoIdent("value"), "source", cases, [GoStmt.GoReturn(GoExpr.GoTypeAssert(GoExpr.GoIdent("value"), targetType))])
-			]));
+			var plan = dispatcher.lower({
+				symbol: "hx_recover_class_" + index,
+				params: [{name: "value", typeName: "any"}],
+				result: targetType,
+				prefix: [
+					GoStmt.GoAssign(GoExpr.GoIdent("value"), GoExpr.GoCall(GoExpr.GoIdent("hxrt.ObjectSource"), [GoExpr.GoIdent("value")])),
+					GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent("value"), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null)
+				],
+				input: GoExpr.GoIdent("value"),
+				cases: cases,
+				fallback: [GoStmt.GoReturn(GoExpr.GoTypeAssert(GoExpr.GoIdent("value"), targetType))]
+			});
+			if (plan != null)
+				declarations = declarations.concat(plan);
 		}
 		return declarations;
 	}

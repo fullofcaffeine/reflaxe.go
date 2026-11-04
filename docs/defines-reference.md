@@ -230,8 +230,21 @@ are present in report artifacts.
     enums so a complementary build never names an unavailable Go carrier. Keep
     conditional implementation types behind the common typed interface rather
     than exposing their class or enum tokens through shared dynamic RTTI.
+  - Always-true expressions emit no build header and retain common type metadata.
+    Always-false expressions omit the generated module file.
+  - Callable, class, and structural recovery follow the availability of their
+    physical Go types. Conditional sources use guarded probes with complementary
+    no-match stubs. A separate match result preserves successful null recovery.
+    Structural views retain the original object and its live fields.
+  - Native type ownership uses the import path and exported type name. The
+    compiler uses the binding module's declared constraint and does not infer
+    platform support from the external library. Unresolved ownership stops
+    recovery emission.
   - Validation commands:
-    - `python3 test/run-snapshots.py --case core/typed_go_build_constraints`
+    - `python3 test/run-snapshots.py --runtime --case core/typed_go_build_constraints`
+    - `python3 test/run-snapshots.py --runtime --case core/typed_go_build_constraint_constants`
+    - `python3 test/run-snapshots.py --runtime --case core/typed_go_build_constraint_recovery_views`
+    - `python3 test/test_conditional_recovery_runtime.py`
     - `python3 test/run-snapshots.py --case negative/go_build_constraint_invalid`
     - `python3 test/run-snapshots.py --case negative/go_build_constraint_main`
     - `python3 test/run-snapshots.py --case negative/go_build_constraint_module_conflict`

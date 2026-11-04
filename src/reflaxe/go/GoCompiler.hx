@@ -24,6 +24,8 @@ import reflaxe.go.compiler.GoLambdaIterableLowering;
 import reflaxe.go.compiler.GoStructuralObjectLowering;
 import reflaxe.go.compiler.GoValueRecovery;
 import reflaxe.go.compiler.GoNominalValueRecovery;
+import reflaxe.go.compiler.GoRecoveryAvailability;
+import reflaxe.go.compiler.GoRecoveryDispatch.GoGuardedRecoveryDeclaration;
 import reflaxe.go.compiler.GoNativeTypeEligibility;
 import reflaxe.go.compiler.GoNativeTypeEligibility.GoNativeEligibilityRole;
 import reflaxe.go.compiler.GoNativeTypeEligibility.GoNativeTypeEligibilityResult;
@@ -295,6 +297,7 @@ class GoCompiler {
 	final structuralObjectLowering:GoStructuralObjectLowering;
 	final valueRecovery:GoValueRecovery;
 	final nominalValueRecovery:GoNominalValueRecovery;
+	final recoveryAvailability:GoRecoveryAvailability;
 	final functionVarNameScopes:Array<Map<Int, String>>;
 	final functionVarNameCountScopes:Array<Map<String, Int>>;
 	final optionalPrimitiveParamScopes:Array<Map<Int, String>>;
@@ -416,9 +419,17 @@ class GoCompiler {
 			fullEnumName: fullEnumName,
 			requireStdlibShimGroup: requireStdlibShimGroup
 		});
-		valueRecovery = new GoValueRecovery(recoverStoredGoValue);
-		nominalValueRecovery = new GoNominalValueRecovery(classTypeName, inheritancePath);
-		structuralObjectLowering = new GoStructuralObjectLowering({
+		recoveryAvailability = new GoRecoveryAvailability(packageName -> {
+			if (packageName.value() == "hxrt")
+				return compilationContext.runtimeImportPath;
+			for (path => alias in externImportPackages)
+				if (alias == packageName.value())
+					return path;
+			return null;
+		});
+		valueRecovery = new GoValueRecovery(recoveryAvailability, recoverStoredGoValue);
+		nominalValueRecovery = new GoNominalValueRecovery(recoveryAvailability, classTypeName, inheritancePath);
+		structuralObjectLowering = new GoStructuralObjectLowering(recoveryAvailability, {
 			freshTempName: freshTempName,
 			sourceGoType: typeToGoType,
 			readMember: lowerStructuralMemberRead,
@@ -488,6 +499,8 @@ class GoCompiler {
 		requiresSharedArrayRuntime = false;
 		clearGeneratedMethodMetadata();
 		clearGeneratedFieldMetadata();
+		recoveryAvailability.reset();
+		recoveryAvailability.notePackage(compilationContext.runtimeImportPath, GoBuildConstraint.always());
 		structuralObjectLowering.reset();
 		valueRecovery.reset();
 		nominalValueRecovery.reset();
@@ -544,26 +557,32 @@ class GoCompiler {
 		// metadata and runtime imports. Close every queue before freezing output.
 		var preludeDecls = new Array<GoDecl>();
 		var supportDecls = new Array<GoDecl>();
+		var guardedRecoveryDecls = new Array<GoGuardedRecoveryDeclaration>();
 		while (true) {
+			recoveryAvailability.beginPass();
+			noteRecoveryModuleOwners(moduleDecls, moduleBuildConstraints);
 			var before = recoveryRequirementCount();
 			if (requiredStdlibShimGroups.exists("type_metadata") || requiresReflectTypeFieldMetadata)
 				requiresTypeValueSupport = true;
 			generatedMethodMetadataPlan = requiresGeneratedMethodLookup ? generatedMethodClassMetadata() : [];
 			generatedFieldMetadataPlan = requiresGeneratedFieldLookup ? generatedFieldClassMetadata() : [];
 			preludeDecls = requiresTypeValueSupport ? lowerTypeValueDecls() : [];
-			supportDecls = structuralObjectLowering.emitRecoveries([
+			guardedRecoveryDecls = structuralObjectLowering.emitRecoveries([
 				for (source in projectClasses)
-					if (generatedFieldMetadataByClassName.exists(fullClassName(source))
-						&& !buildConstrainedClassNames.exists(fullClassName(source))) source
+					if (generatedFieldMetadataByClassName.exists(fullClassName(source))) source
 			]);
-			supportDecls = supportDecls.concat(lowerGeneratedMethodMetadataShimDecls());
+			supportDecls = lowerGeneratedMethodMetadataShimDecls();
 			supportDecls = supportDecls.concat(lowerRegisteredCompilerCapabilityDecls());
 			supportDecls = supportDecls.concat(lowerTestAstStmtDecls());
+			noteRecoveryTypeOwners(preludeDecls.concat(supportDecls), "compiler-support", GoBuildConstraint.always());
 			valueRecovery.noteDeclarations(supportDecls);
-			supportDecls = supportDecls.concat(valueRecovery.discover());
-			supportDecls = supportDecls.concat(nominalValueRecovery.discover([
+			// Preserve common declaration order while conditional plans move to separate files.
+			for (declaration in supportDecls)
+				guardedRecoveryDecls.push({selection: GoBuildConstraint.always(), declaration: declaration});
+			guardedRecoveryDecls = guardedRecoveryDecls.concat(valueRecovery.discover());
+			guardedRecoveryDecls = guardedRecoveryDecls.concat(nominalValueRecovery.discover([
 				for (source in projectClasses)
-					if (hasGeneratedVirtualCarrier(source) && !buildConstrainedClassNames.exists(fullClassName(source))) source
+					if (hasGeneratedVirtualCarrier(source)) source
 			]));
 			drainPendingClassQueue(moduleDecls, classQueue, queuedClassNames, projectClasses);
 			drainPendingEnumQueue(moduleDecls, enumQueue, queuedEnumNames, projectEnums);
@@ -572,13 +591,23 @@ class GoCompiler {
 			if (before == recoveryRequirementCount())
 				break;
 		}
+		recoveryAvailability.freeze();
+		supportDecls = [];
+		var conditionalRecoveryDecls = new Array<GoGuardedRecoveryDeclaration>();
+		for (plan in guardedRecoveryDecls) {
+			if (plan.selection.isAlways())
+				supportDecls.push(plan.declaration);
+			else if (!plan.selection.isNever())
+				conditionalRecoveryDecls.push(plan);
+		}
 		valueRecovery.freeze();
 		nominalValueRecovery.freeze();
 		structuralObjectLowering.freeze();
 		populateLeafReturningFunctions(moduleDecls, preludeDecls, supportDecls);
 		requiresSharedArrayRuntime = moduleDeclsUseSharedArraySurface(moduleDecls)
 			|| declsUseSharedArraySurface(preludeDecls)
-			|| declsUseSharedArraySurface(supportDecls);
+			|| declsUseSharedArraySurface(supportDecls)
+			|| declsUseSharedArraySurface([for (plan in conditionalRecoveryDecls) plan.declaration]);
 		var requiredShimGroups = sortedRequiredStdlibShimGroups();
 		compilationContext.requiredStdlibShimGroups = requiredShimGroups.copy();
 		var inferredRuntimeFeatures = inferRuntimeFeatures(requiredShimGroups);
@@ -625,6 +654,22 @@ class GoCompiler {
 			generated.push(renderGeneratedFile(nextGoFileName("support", usedFileNames), preludeDecls.concat(supportDecls), supportImports));
 		}
 
+		var conditionalGroups = new Map<String, Array<GoDecl>>();
+		var conditionalSelections = new Map<String, GoBuildConstraint>();
+		for (plan in conditionalRecoveryDecls) {
+			var key = plan.selection.key();
+			if (!conditionalGroups.exists(key))
+				conditionalGroups.set(key, []);
+			conditionalGroups.get(key).push(plan.declaration);
+			conditionalSelections.set(key, plan.selection);
+		}
+		var conditionKeys = [for (key in conditionalGroups.keys()) key];
+		conditionKeys.sort((left, right) -> left < right ? -1 : left > right ? 1 : 0);
+		for (index in 0...conditionKeys.length) {
+			var key = conditionKeys[index];
+			generated.push(renderGeneratedFile(nextGoFileName("recovery_" + index, usedFileNames), conditionalGroups.get(key),
+				supportImports.concat(moduleImports), conditionalSelections.get(key)));
+		}
 		return generated;
 	}
 
@@ -660,8 +705,8 @@ class GoCompiler {
 
 	/** All counts are monotone; generated temporary names do not affect closure. */
 	function recoveryRequirementCount():Int {
-		var count = projectClasses.length + projectEnums.length + valueRecovery.requirementCount() + nominalValueRecovery.requirementCount()
-			+ structuralObjectLowering.requirementCount();
+		var count = recoveryAvailability.revision() + projectClasses.length + projectEnums.length + valueRecovery.requirementCount()
+			+ nominalValueRecovery.requirementCount() + structuralObjectLowering.requirementCount();
 		for (_ in requiredStdlibShimGroups.keys())
 			count++;
 		for (_ in externImportPaths.keys())
@@ -777,11 +822,50 @@ class GoCompiler {
 	function collectModuleBuildConstraints(classes:Array<ClassType>, enums:Array<EnumType>):Map<String, GoBuildConstraint> {
 		final result = new Map<String, GoBuildConstraint>();
 		final rendered = new Map<String, String>();
+		var modules = new Map<String, Bool>();
 		for (classType in classes)
-			collectModuleBuildConstraint(classType.module, classType.meta, result, rendered);
+			modules.set(classType.module, true);
 		for (enumType in enums)
-			collectModuleBuildConstraint(enumType.module, enumType.meta, result, rendered);
+			modules.set(enumType.module, true);
+		for (moduleName in modules.keys())
+			collectRecoveryModuleConstraint(moduleName, result, rendered);
 		return result;
+	}
+
+	/** Resolve the complete module contract before admitting an immutable owner witness. */
+	function collectRecoveryModuleConstraint(moduleName:String, result:Map<String, GoBuildConstraint>, rendered:Map<String, String>):Void {
+		for (type in Context.getModule(moduleName))
+			switch (type) {
+				case TInst(ref, _):
+					collectModuleBuildConstraint(moduleName, ref.get().meta, result, rendered);
+				case TEnum(ref, _):
+					collectModuleBuildConstraint(moduleName, ref.get().meta, result, rendered);
+				case _:
+			}
+	}
+
+	function recoveryModuleSelection(moduleName:String):GoBuildConstraint {
+		var conditions = new Map<String, GoBuildConstraint>();
+		collectRecoveryModuleConstraint(moduleName, conditions, []);
+		var condition = conditions.get(moduleName);
+		return condition == null ? GoBuildConstraint.always() : condition;
+	}
+
+	function noteRecoveryModuleOwners(modules:Map<String, Array<GoDecl>>, conditions:Map<String, GoBuildConstraint>):Void {
+		for (moduleName => declarations in modules) {
+			var condition = conditions.get(moduleName);
+			noteRecoveryTypeOwners(declarations, moduleName, condition == null ? GoBuildConstraint.always() : condition);
+		}
+	}
+
+	/** Only emitted type declarations witness generated storage availability. */
+	function noteRecoveryTypeOwners(declarations:Array<GoDecl>, owner:String, selection:GoBuildConstraint):Void {
+		for (declaration in declarations)
+			switch (declaration) {
+				case GoStructDecl(name, _), GoInterfaceDecl(name, _):
+					recoveryAvailability.noteGeneratedType(name, owner, selection);
+				case _:
+			}
 	}
 
 	function collectModuleBuildConstraint(moduleName:String, meta:MetaAccess, result:Map<String, GoBuildConstraint>, rendered:Map<String, String>):Void {
@@ -7469,6 +7553,7 @@ class GoCompiler {
 
 	/** Recover physical storage without invoking Dynamic string conversion. */
 	function recoverStoredGoValue(value:GoExpr, target:GoType):GoExpr {
+		recoveryAvailability.requireType(target);
 		if (target.isBuiltin(GoBuiltinType.AnyType))
 			return value;
 		if (target.functionCarrierSignature() != null)
@@ -11715,7 +11800,9 @@ class GoCompiler {
 	}
 
 	function typeToGoType(type:Type):String {
-		return GoTypeMapper.typeToGoType(type, classTypeNameForMappedType, enumTypeName);
+		var mapped = GoTypeMapper.typeToGoType(type, classTypeNameForMappedType, enumTypeName);
+		recoveryAvailability.requireMappedType(mapped);
+		return mapped;
 	}
 
 	function valueStorageGoType(type:Type):String {
@@ -12440,6 +12527,7 @@ class GoCompiler {
 		if (path == null || path == "") {
 			return;
 		}
+		recoveryAvailability.noteNativeType(path, externClassTypeName(classType), fullClassName(classType), recoveryModuleSelection(classType.module));
 		externImportPaths.set(path, true);
 		usedExternClassPaths.set(fullClassName(classType), true);
 		if (packageName != null && packageName != "") {
