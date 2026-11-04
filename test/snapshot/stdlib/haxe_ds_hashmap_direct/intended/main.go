@@ -56,3 +56,11 @@ func main() {
 	}(map_valuesByHash.__hx_this.get(key4.hashCode()))))
 	hxrt.Println(v_1)
 }
+
+func hx_structural_recover_0(value any) hxrt.Anonymous {
+	return hxrt.AnonymousFromValue(value)
+}
+
+func hx_structural_recover_1(value any) hxrt.Anonymous {
+	return hxrt.AnonymousFromValue(value)
+}

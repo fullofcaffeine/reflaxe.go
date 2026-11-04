@@ -476,6 +476,7 @@ class GoCompiler {
 		requiresSharedArrayRuntime = false;
 		clearGeneratedMethodMetadata();
 		clearGeneratedFieldMetadata();
+		structuralObjectLowering.reset();
 		generatedMethodMetadataPlan = [];
 		generatedFieldMetadataPlan = [];
 		resetRequiredNativeChanElementTypes();
@@ -538,6 +539,10 @@ class GoCompiler {
 			preludeDecls = preludeDecls.concat(lowerTypeValueDecls());
 		}
 		var supportDecls = new Array<GoDecl>();
+		supportDecls = supportDecls.concat(structuralObjectLowering.emitRecoveries([
+			for (source in projectClasses) if (generatedFieldMetadataByClassName.exists(fullClassName(source))
+				&& !buildConstrainedClassNames.exists(fullClassName(source))) source
+		]));
 		supportDecls = supportDecls.concat(lowerGeneratedMethodMetadataShimDecls());
 		supportDecls = supportDecls.concat(lowerRegisteredCompilerCapabilityDecls());
 		supportDecls = supportDecls.concat(lowerTestAstStmtDecls());
@@ -7354,7 +7359,7 @@ class GoCompiler {
 
 	function lowerNullableAwareTypeAssertExpr(expr:GoExpr, returnType:Type):GoExpr {
 		if (isAnonymousObjectType(returnType))
-			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromValue"), [expr]);
+			return structuralObjectLowering.recover(expr, returnType);
 		var expectedType = typeToGoType(returnType);
 		if (expectedType == "any") {
 			return expr;
@@ -10988,7 +10993,7 @@ class GoCompiler {
 
 	function coerceAnyExprToType(expr:GoExpr, fromType:Type, toType:Type, ?fromAnyOverride:Bool = false):GoExpr {
 		if (isAnonymousObjectType(toType) && (fromAnyOverride || typeToGoType(fromType) == "any"))
-			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromValue"), [expr]);
+			return structuralObjectLowering.recover(expr, toType);
 		var fromGoType = typeToGoType(fromType);
 		var toGoType = typeToGoType(toType);
 		if ((!fromAnyOverride && fromGoType != "any") || toGoType == "any") {
@@ -11461,7 +11466,7 @@ class GoCompiler {
 	function upcastIfNeeded(expr:GoExpr, fromType:Type, toType:Type, ?sourceTypedExpr:TypedExpr):GoExpr {
 		if (isAnonymousObjectType(toType)) {
 			if (typeToGoType(fromType) == "any")
-				return GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromValue"), [expr]);
+				return structuralObjectLowering.recover(expr, toType);
 			var structural = structuralObjectLowering.coerce(expr, fromType, toType);
 			if (structural != null)
 				return structural;

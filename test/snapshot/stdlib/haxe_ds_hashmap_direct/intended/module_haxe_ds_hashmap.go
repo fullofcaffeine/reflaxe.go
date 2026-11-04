@@ -128,7 +128,7 @@ func (self *haxe__ds__HashMap) keys() hxrt.Anonymous {
 		}()
 	})
 	hx_obj_23["next"] = hxrt.NewFunction(func() hxrt.Anonymous {
-		return hxrt.AnonymousFromValue(_gthis.keysByHash.__hx_this.get(func() int {
+		return hx_structural_recover_0(_gthis.keysByHash.__hx_this.get(func() int {
 			var hx_callable_31 *hxrt.Function[func() int] = func(hx_obj_28 hxrt.Anonymous) *hxrt.Function[func() int] {
 				hx_field_29 := hxrt.AnonymousGet(hx_obj_28, "next")
 				if hx_field_29 == nil {
@@ -205,7 +205,7 @@ func (self *haxe__ds__HashMap) copy() *haxe__ds__HashMap {
 			}(hash)
 			return hxrt.FunctionCall(hx_callable_49)()
 		}()
-		copied.keysByHash.__hx_this.set(hash_1, hxrt.AnonymousFromValue(self.keysByHash.__hx_this.get(hash_1)))
+		copied.keysByHash.__hx_this.set(hash_1, hx_structural_recover_0(self.keysByHash.__hx_this.get(hash_1)))
 		copied.valuesByHash.__hx_this.set(hash_1, self.valuesByHash.__hx_this.get(hash_1))
 	}
 	return copied
