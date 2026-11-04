@@ -11,9 +11,25 @@ type Base struct {
 	__hx_this I_Base
 }
 
+func (self *Base) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_Base() *Base {
+	return hx_init_Base(hx_alloc_Base(nil))
+}
+
+func hx_alloc_Base(owner any) *Base {
 	self := &Base{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_Base)
+	}
+	return self
+}
+
+func hx_init_Base(self *Base) *Base {
 	return self
 }
 
@@ -36,12 +52,27 @@ type Leaf struct {
 	constructedAs *string
 }
 
+func (self *Leaf) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_Leaf() *Leaf {
+	return hx_init_Leaf(hx_alloc_Leaf(nil))
+}
+
+func hx_alloc_Leaf(owner any) *Leaf {
 	self := &Leaf{}
-	self.Middle = New_Middle()
-	self.Middle.Base.__hx_this = self
-	self.Middle.__hx_this = self
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_Leaf)
+	}
+	self.Middle = hx_alloc_Middle(self.__hx_this)
+	return self
+}
+
+func hx_init_Leaf(self *Leaf) *Leaf {
+	hx_init_Middle(self.Middle)
 	self.constructedAs = self.__hx_this.callWho()
 	return self
 }
@@ -52,9 +83,26 @@ func (self *Leaf) who() *string {
 
 func main() {
 	leaf := New_Leaf()
-	middle := leaf.Middle
-	base := leaf.Middle.Base
-	boundBaseMethod := base.callWho
+	middle := func(hx_value *Leaf) *Middle {
+		if hx_value == nil {
+			return nil
+		}
+		return hx_value.Middle
+	}(leaf)
+	base := func(hx_value *Leaf) *Base {
+		if hx_value == nil {
+			return nil
+		}
+		return hx_value.Middle.Base
+	}(leaf)
+	boundBaseMethod := func() *hxrt.Function[func() *string] {
+		hx_receiver_1 := base
+		return hxrt.BoundFunction(func() *string {
+			return hx_receiver_1.__hx_this.callWho()
+		}, func() any {
+			return hx_receiver_1.__hx_this
+		}, "callWho")
+	}()
 	var v any = any(leaf.constructedAs)
 	hxrt.Println(v)
 	var v_1 any = any(leaf.who())
@@ -65,7 +113,10 @@ func main() {
 	hxrt.Println(v_3)
 	var v_4 any = any(base.__hx_this.callWho())
 	hxrt.Println(v_4)
-	var v_5 any = any(boundBaseMethod())
+	var v_5 any = any(func() *string {
+		var hx_callable_2 *hxrt.Function[func() *string] = boundBaseMethod
+		return hxrt.FunctionCall(hx_callable_2)()
+	}())
 	hxrt.Println(v_5)
 }
 
@@ -79,11 +130,27 @@ type Middle struct {
 	__hx_this I_Middle
 }
 
+func (self *Middle) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_Middle() *Middle {
+	return hx_init_Middle(hx_alloc_Middle(nil))
+}
+
+func hx_alloc_Middle(owner any) *Middle {
 	self := &Middle{}
-	self.Base = New_Base()
-	self.Base.__hx_this = self
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_Middle)
+	}
+	self.Base = hx_alloc_Base(self.__hx_this)
+	return self
+}
+
+func hx_init_Middle(self *Middle) *Middle {
+	hx_init_Base(self.Base)
 	return self
 }
 

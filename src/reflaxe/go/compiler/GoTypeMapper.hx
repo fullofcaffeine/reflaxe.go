@@ -48,13 +48,11 @@ class GoTypeMapper {
 		var followed = Context.follow(type);
 		return switch (followed) {
 			case TFun(args, returnType):
-				goFunctionType(args, returnType, classTypeName, enumTypeName);
+				"*hxrt.Function[" + goFunctionType(args, returnType, classTypeName, enumTypeName) + "]";
 			case TInst(classRef, params):
 				var classType = classRef.get();
 				if (isTypeParameterClass(classType)) {
 					typeParameterGoType(classType, classTypeName, enumTypeName);
-				} else if (isHaxeExceptionClass(classType)) {
-					"*hxrt.ExceptionValue";
 				} else if (classType.isInterface) {
 					classTypeName(classType);
 				} else if (classType.pack.length == 0 && classType.name == "String") {
@@ -67,7 +65,7 @@ class GoTypeMapper {
 			case TEnum(enumRef, _):
 				"*" + enumTypeName(enumRef.get());
 			case TAnonymous(_):
-				"map[string]any";
+				"hxrt.Anonymous";
 			case TAbstract(abstractRef, params):
 				var abstractType = abstractRef.get();
 				var mapped = abstractGoType(abstractType, params, classTypeName, enumTypeName);
@@ -248,14 +246,43 @@ class GoTypeMapper {
 		return isBoolType(type) || isIntType(type) || isHaxeInt32Type(type) || isFloatType(type);
 	}
 
-	public static function isAnonymousObjectType(type:Type):Bool {
-		var followed = Context.follow(type);
-		return switch (followed) {
-			case TAnonymous(_):
-				true;
-			case _:
-				false;
+	/** Structural constraints and concrete anonymous values share one storage contract. */
+	public static function anonymousFields(type:Type):Null<Array<ClassField>> {
+		return switch (Context.follow(type)) {
+			case TAnonymous(ref): ref.get().fields;
+			case TInst(ref, _): switch (ref.get().kind) {
+					case KTypeParameter(constraints): anonymousConstraintFields(constraints);
+					case _: null;
+				}
+			case _: null;
 		};
+	}
+
+	/** Merge only fully structural constraint sets; nominal constraints keep their owner. */
+	static function anonymousConstraintFields(constraints:Array<Type>):Null<Array<ClassField>> {
+		if (constraints == null || constraints.length == 0)
+			return null;
+		var fields = new Array<ClassField>();
+		var names = new Map<String, Bool>();
+		for (constraint in constraints) {
+			var current = switch (Context.follow(constraint)) {
+				case TAnonymous(ref): ref.get().fields;
+				case _: null;
+			};
+			if (current == null)
+				return null;
+			for (field in current)
+				if (!names.exists(field.name)) {
+					names.set(field.name, true);
+					fields.push(field);
+				}
+		}
+		// An empty constraint admits nominal objects; it promises no structural slots.
+		return fields.length == 0 ? null : fields;
+	}
+
+	public static function isAnonymousObjectType(type:Type):Bool {
+		return anonymousFields(type) != null;
 	}
 
 	public static function isArrayType(type:Type):Bool {
@@ -367,13 +394,11 @@ class GoTypeMapper {
 		var followed = Context.follow(type);
 		return switch (followed) {
 			case TFun(args, returnType):
-				goFunctionType(args, returnType, classTypeName, enumTypeName);
+				"*hxrt.Function[" + goFunctionType(args, returnType, classTypeName, enumTypeName) + "]";
 			case TInst(classRef, params):
 				var classType = classRef.get();
 				if (isTypeParameterClass(classType)) {
 					typeParameterGoType(classType, classTypeName, enumTypeName);
-				} else if (isHaxeExceptionClass(classType)) {
-					"*hxrt.ExceptionValue";
 				} else if (classType.isInterface) {
 					classTypeName(classType);
 				} else if (classType.pack.length == 0 && classType.name == "String") {
@@ -386,7 +411,7 @@ class GoTypeMapper {
 			case TEnum(enumRef, _):
 				"*" + enumTypeName(enumRef.get());
 			case TAnonymous(_):
-				"map[string]any";
+				"hxrt.Anonymous";
 			case TAbstract(abstractRef, params):
 				var abstractType = abstractRef.get();
 				var mapped = abstractGoType(abstractType, params, classTypeName, enumTypeName);
@@ -489,7 +514,16 @@ class GoTypeMapper {
 		if (isVoidType(returnType)) {
 			return "func(" + params + ")";
 		}
-		return "func(" + params + ") " + scalarGoType(returnType, classTypeName, enumTypeName);
+		return "func(" + params + ") " + functionResultStorageGoType(returnType, classTypeName, enumTypeName);
+	}
+
+	/**
+		What: Selects the result storage shared by declarations and callable carriers.
+		Why: Scalar mapping erases Null, but callable results must retain its nil state.
+		How: Preserve nullable primitives in the runtime boundary's nil-capable storage.
+	**/
+	public static function functionResultStorageGoType(type:Type, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):String {
+		return isNullablePrimitiveType(type) ? "any" : scalarGoType(type, classTypeName, enumTypeName);
 	}
 
 	/**
@@ -500,13 +534,14 @@ class GoTypeMapper {
 		therefore share one signature. Mapping only the carrier as `func(any)` makes a
 		non-null-default implementation such as `func(int)` fail Go type checking.
 
-		How: Keep pointer/nil-capable parameter mappings unchanged and widen only
-		optional scalar value types to `any`. `lowerFunctionParams` uses the same rule
+		How: Keep pointer/nil-capable mappings unchanged and widen nullable primitives
+		and optional scalar values to `any`. `lowerFunctionParams` uses the same rule
 		and asserts the scalar type when the function body reads the parameter.
 	**/
 	public static function functionParameterStorageGoType(arg:{name:String, opt:Bool, t:Type}, classTypeName:GoClassTypeNamer,
 			enumTypeName:GoEnumTypeNamer):String {
-		return arg.opt && isPrimitiveValueType(arg.t) ? "any" : scalarGoType(arg.t, classTypeName, enumTypeName);
+		return isNullablePrimitiveType(arg.t)
+			|| (arg.opt && isPrimitiveValueType(arg.t)) ? "any" : scalarGoType(arg.t, classTypeName, enumTypeName);
 	}
 
 	/** Resolves the element type of the explicit `go.NativeSlice<T>` boundary. */
@@ -660,76 +695,21 @@ class GoTypeMapper {
 	}
 
 	/**
-		What
-		Maps a constrained Haxe type parameter to a Go type.
-
-		Why
-		Most type parameters still erase to `any` on `haxe.go`, but some staged-stdlib
-		surfaces depend on method-only constraints such as `K:{function hashCode():Int;}`.
-		Erasing those to `any` breaks direct method dispatch and forces incorrect
-		reflective fallbacks.
-
-		How
-		When the constraint set is a method-only anonymous structure, synthesize a local
-		Go interface with matching method signatures. Otherwise, keep the existing `any`
-		fallback.
+		What: Map structural type constraints to the shared anonymous boundary.
+		Why: A constraint admits both generated methods and map-backed callbacks;
+		a Go method interface cannot represent both without losing source semantics.
+		How: Recognize fully anonymous constraint sets and keep other erasure intact.
 	**/
 	static function typeParameterGoType(classType:ClassType, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):String {
 		return switch (classType.kind) {
-			case KTypeParameter(constraints):
-				var mapped = anonymousMethodConstraintGoType(constraints, classTypeName, enumTypeName);
-				mapped == null ? "any" : mapped;
-			case _:
-				"any";
-		};
-	}
-
-	static function anonymousMethodConstraintGoType(constraints:Array<Type>, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):Null<String> {
-		if (constraints == null || constraints.length == 0) {
-			return null;
-		}
-
-		var signatures = new Map<String, String>();
-		for (constraint in constraints) {
-			switch (Context.follow(constraint)) {
-				case TAnonymous(anonRef):
-					for (field in anonRef.get().fields) {
-						var signature = constraintMethodSignature(field, classTypeName, enumTypeName);
-						if (signature == null) {
-							return null;
-						}
-						signatures.set(GoNaming.normalizeIdent(field.name), signature);
-					}
-				case _:
-					return null;
-			}
-		}
-
-		var ordered = [for (signature in signatures) signature];
-		if (ordered.length == 0) {
-			return null;
-		}
-		ordered.sort(Reflect.compare);
-		return "interface{" + ordered.join("; ") + "}";
-	}
-
-	static function constraintMethodSignature(field:ClassField, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):Null<String> {
-		return switch (Context.follow(field.type)) {
-			case TFun(args, returnType):
-				var params = [
-					for (arg in args)
-						functionParameterStorageGoType(arg, classTypeName, enumTypeName)
-				].join(", ");
-				var returnSuffix = isVoidType(returnType) ? "" : " " + scalarGoType(returnType, classTypeName, enumTypeName);
-				GoNaming.normalizeIdent(field.name) + "(" + params + ")" + returnSuffix;
-			case _:
-				null;
+			case KTypeParameter(constraints): anonymousConstraintFields(constraints) == null ? "any" : "hxrt.Anonymous";
+			case _: "any";
 		};
 	}
 
 	public static function isHaxeExceptionClass(classType:ClassType):Bool {
 		return switch (classType.pack.join(".") + "." + classType.name) {
-			case "haxe.Exception", "haxe.ValueException":
+			case "haxe.Exception":
 				true;
 			case _:
 				false;

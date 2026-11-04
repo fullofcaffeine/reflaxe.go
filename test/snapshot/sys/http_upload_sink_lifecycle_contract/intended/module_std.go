@@ -142,381 +142,57 @@ func Std_downcast(value any, c any) any {
 					}
 				}(hx_value)
 			case "_Main.TrackingInput":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *_Main__TrackingInput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					case *haxe__io__Input:
-						if hx_carrier == nil {
-							return false
-						}
-						_, hx_ok := hx_carrier.__hx_this.(*_Main__TrackingInput)
-						return hx_ok
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_3(hx_value)
+			case "haxe.Exception":
+				return hx_is_nominal_2(hx_value)
+			case "haxe.ValueException":
+				return hx_is_nominal_1(hx_value)
 			case "haxe._Int64.___Int64":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe___Int64_____Int64:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_4(hx_value)
 			case "haxe.ds.StringMap":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__ds__StringMap:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_5(hx_value)
 			case "haxe.exceptions.NotImplementedException":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__exceptions__NotImplementedException:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					case *haxe__exceptions__PosException:
-						if hx_carrier == nil {
-							return false
-						}
-						_, hx_ok := hx_carrier.__hx_this.(*haxe__exceptions__NotImplementedException)
-						return hx_ok
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_6(hx_value)
 			case "haxe.exceptions.PosException":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__exceptions__NotImplementedException:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					case *haxe__exceptions__PosException:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_7(hx_value)
 			case "haxe.http.HttpBase":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__http__HttpBase:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					case *sys__Http:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_8(hx_value)
 			case "haxe.io.Bytes":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__io__Bytes:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_9(hx_value)
 			case "haxe.io.BytesBuffer":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__io__BytesBuffer:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_10(hx_value)
 			case "haxe.io.BytesOutput":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__io__BytesOutput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					case *haxe__io__Output:
-						if hx_carrier == nil {
-							return false
-						}
-						_, hx_ok := hx_carrier.__hx_this.(*haxe__io__BytesOutput)
-						return hx_ok
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_11(hx_value)
 			case "haxe.io.Eof":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__io__Eof:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_0(hx_value)
 			case "haxe.io.Input":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *_Main__TrackingInput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					case *haxe__io__Input:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					case *sys__io___Process__ProcessOutput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					case *sys__net__SocketInput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_12(hx_value)
 			case "haxe.io.Output":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__io__BytesOutput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					case *haxe__io__Output:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					case *sys__io___Process__ProcessInput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					case *sys__net__SocketOutput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_13(hx_value)
 			case "haxe.iterators.MapKeyValueIterator":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__iterators__MapKeyValueIterator:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_14(hx_value)
 			case "haxe.iterators.StringIterator":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__iterators__StringIterator:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_15(hx_value)
 			case "haxe.iterators.StringKeyValueIterator":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__iterators__StringKeyValueIterator:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_16(hx_value)
 			case "sys.Http":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__http__HttpBase:
-						if hx_carrier == nil {
-							return false
-						}
-						_, hx_ok := hx_carrier.__hx_this.(*sys__Http)
-						return hx_ok
-					case *sys__Http:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_17(hx_value)
 			case "sys.io.Process":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *sys__io__Process:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_18(hx_value)
 			case "sys.io._Process.ProcessInput":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__io__Output:
-						if hx_carrier == nil {
-							return false
-						}
-						_, hx_ok := hx_carrier.__hx_this.(*sys__io___Process__ProcessInput)
-						return hx_ok
-					case *sys__io___Process__ProcessInput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_19(hx_value)
 			case "sys.io._Process.ProcessOutput":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__io__Input:
-						if hx_carrier == nil {
-							return false
-						}
-						_, hx_ok := hx_carrier.__hx_this.(*sys__io___Process__ProcessOutput)
-						return hx_ok
-					case *sys__io___Process__ProcessOutput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_20(hx_value)
 			case "sys.net.Host":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *sys__net__Host:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_21(hx_value)
 			case "sys.net.Socket":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *sys__net__Socket:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_22(hx_value)
 			case "sys.net.SocketInput":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__io__Input:
-						if hx_carrier == nil {
-							return false
-						}
-						_, hx_ok := hx_carrier.__hx_this.(*sys__net__SocketInput)
-						return hx_ok
-					case *sys__net__SocketInput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_23(hx_value)
 			case "sys.net.SocketOutput":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__io__Output:
-						if hx_carrier == nil {
-							return false
-						}
-						_, hx_ok := hx_carrier.__hx_this.(*sys__net__SocketOutput)
-						return hx_ok
-					case *sys__net__SocketOutput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_24(hx_value)
 			case "sys.thread.Tls":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *sys__thread__Tls:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_25(hx_value)
 			default:
 				return false
 			}
@@ -667,381 +343,57 @@ func Std_instance(value any, c any) any {
 						}
 					}(hx_value)
 				case "_Main.TrackingInput":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *_Main__TrackingInput:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						case *haxe__io__Input:
-							if hx_carrier == nil {
-								return false
-							}
-							_, hx_ok := hx_carrier.__hx_this.(*_Main__TrackingInput)
-							return hx_ok
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_3(hx_value)
+				case "haxe.Exception":
+					return hx_is_nominal_2(hx_value)
+				case "haxe.ValueException":
+					return hx_is_nominal_1(hx_value)
 				case "haxe._Int64.___Int64":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe___Int64_____Int64:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_4(hx_value)
 				case "haxe.ds.StringMap":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__ds__StringMap:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_5(hx_value)
 				case "haxe.exceptions.NotImplementedException":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__exceptions__NotImplementedException:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						case *haxe__exceptions__PosException:
-							if hx_carrier == nil {
-								return false
-							}
-							_, hx_ok := hx_carrier.__hx_this.(*haxe__exceptions__NotImplementedException)
-							return hx_ok
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_6(hx_value)
 				case "haxe.exceptions.PosException":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__exceptions__NotImplementedException:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						case *haxe__exceptions__PosException:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_7(hx_value)
 				case "haxe.http.HttpBase":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__http__HttpBase:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						case *sys__Http:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_8(hx_value)
 				case "haxe.io.Bytes":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__io__Bytes:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_9(hx_value)
 				case "haxe.io.BytesBuffer":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__io__BytesBuffer:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_10(hx_value)
 				case "haxe.io.BytesOutput":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__io__BytesOutput:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						case *haxe__io__Output:
-							if hx_carrier == nil {
-								return false
-							}
-							_, hx_ok := hx_carrier.__hx_this.(*haxe__io__BytesOutput)
-							return hx_ok
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_11(hx_value)
 				case "haxe.io.Eof":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__io__Eof:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_0(hx_value)
 				case "haxe.io.Input":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *_Main__TrackingInput:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						case *haxe__io__Input:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						case *sys__io___Process__ProcessOutput:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						case *sys__net__SocketInput:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_12(hx_value)
 				case "haxe.io.Output":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__io__BytesOutput:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						case *haxe__io__Output:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						case *sys__io___Process__ProcessInput:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						case *sys__net__SocketOutput:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_13(hx_value)
 				case "haxe.iterators.MapKeyValueIterator":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__iterators__MapKeyValueIterator:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_14(hx_value)
 				case "haxe.iterators.StringIterator":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__iterators__StringIterator:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_15(hx_value)
 				case "haxe.iterators.StringKeyValueIterator":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__iterators__StringKeyValueIterator:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_16(hx_value)
 				case "sys.Http":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__http__HttpBase:
-							if hx_carrier == nil {
-								return false
-							}
-							_, hx_ok := hx_carrier.__hx_this.(*sys__Http)
-							return hx_ok
-						case *sys__Http:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_17(hx_value)
 				case "sys.io.Process":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *sys__io__Process:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_18(hx_value)
 				case "sys.io._Process.ProcessInput":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__io__Output:
-							if hx_carrier == nil {
-								return false
-							}
-							_, hx_ok := hx_carrier.__hx_this.(*sys__io___Process__ProcessInput)
-							return hx_ok
-						case *sys__io___Process__ProcessInput:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_19(hx_value)
 				case "sys.io._Process.ProcessOutput":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__io__Input:
-							if hx_carrier == nil {
-								return false
-							}
-							_, hx_ok := hx_carrier.__hx_this.(*sys__io___Process__ProcessOutput)
-							return hx_ok
-						case *sys__io___Process__ProcessOutput:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_20(hx_value)
 				case "sys.net.Host":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *sys__net__Host:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_21(hx_value)
 				case "sys.net.Socket":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *sys__net__Socket:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_22(hx_value)
 				case "sys.net.SocketInput":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__io__Input:
-							if hx_carrier == nil {
-								return false
-							}
-							_, hx_ok := hx_carrier.__hx_this.(*sys__net__SocketInput)
-							return hx_ok
-						case *sys__net__SocketInput:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_23(hx_value)
 				case "sys.net.SocketOutput":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__io__Output:
-							if hx_carrier == nil {
-								return false
-							}
-							_, hx_ok := hx_carrier.__hx_this.(*sys__net__SocketOutput)
-							return hx_ok
-						case *sys__net__SocketOutput:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_24(hx_value)
 				case "sys.thread.Tls":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *sys__thread__Tls:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_25(hx_value)
 				default:
 					return false
 				}
@@ -1199,381 +551,57 @@ func Std_is(v any, t any) bool {
 					}
 				}(hx_value)
 			case "_Main.TrackingInput":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *_Main__TrackingInput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					case *haxe__io__Input:
-						if hx_carrier == nil {
-							return false
-						}
-						_, hx_ok := hx_carrier.__hx_this.(*_Main__TrackingInput)
-						return hx_ok
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_3(hx_value)
+			case "haxe.Exception":
+				return hx_is_nominal_2(hx_value)
+			case "haxe.ValueException":
+				return hx_is_nominal_1(hx_value)
 			case "haxe._Int64.___Int64":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe___Int64_____Int64:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_4(hx_value)
 			case "haxe.ds.StringMap":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__ds__StringMap:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_5(hx_value)
 			case "haxe.exceptions.NotImplementedException":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__exceptions__NotImplementedException:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					case *haxe__exceptions__PosException:
-						if hx_carrier == nil {
-							return false
-						}
-						_, hx_ok := hx_carrier.__hx_this.(*haxe__exceptions__NotImplementedException)
-						return hx_ok
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_6(hx_value)
 			case "haxe.exceptions.PosException":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__exceptions__NotImplementedException:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					case *haxe__exceptions__PosException:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_7(hx_value)
 			case "haxe.http.HttpBase":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__http__HttpBase:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					case *sys__Http:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_8(hx_value)
 			case "haxe.io.Bytes":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__io__Bytes:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_9(hx_value)
 			case "haxe.io.BytesBuffer":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__io__BytesBuffer:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_10(hx_value)
 			case "haxe.io.BytesOutput":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__io__BytesOutput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					case *haxe__io__Output:
-						if hx_carrier == nil {
-							return false
-						}
-						_, hx_ok := hx_carrier.__hx_this.(*haxe__io__BytesOutput)
-						return hx_ok
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_11(hx_value)
 			case "haxe.io.Eof":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__io__Eof:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_0(hx_value)
 			case "haxe.io.Input":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *_Main__TrackingInput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					case *haxe__io__Input:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					case *sys__io___Process__ProcessOutput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					case *sys__net__SocketInput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_12(hx_value)
 			case "haxe.io.Output":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__io__BytesOutput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					case *haxe__io__Output:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					case *sys__io___Process__ProcessInput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					case *sys__net__SocketOutput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_13(hx_value)
 			case "haxe.iterators.MapKeyValueIterator":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__iterators__MapKeyValueIterator:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_14(hx_value)
 			case "haxe.iterators.StringIterator":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__iterators__StringIterator:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_15(hx_value)
 			case "haxe.iterators.StringKeyValueIterator":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__iterators__StringKeyValueIterator:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_16(hx_value)
 			case "sys.Http":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__http__HttpBase:
-						if hx_carrier == nil {
-							return false
-						}
-						_, hx_ok := hx_carrier.__hx_this.(*sys__Http)
-						return hx_ok
-					case *sys__Http:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_17(hx_value)
 			case "sys.io.Process":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *sys__io__Process:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_18(hx_value)
 			case "sys.io._Process.ProcessInput":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__io__Output:
-						if hx_carrier == nil {
-							return false
-						}
-						_, hx_ok := hx_carrier.__hx_this.(*sys__io___Process__ProcessInput)
-						return hx_ok
-					case *sys__io___Process__ProcessInput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_19(hx_value)
 			case "sys.io._Process.ProcessOutput":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__io__Input:
-						if hx_carrier == nil {
-							return false
-						}
-						_, hx_ok := hx_carrier.__hx_this.(*sys__io___Process__ProcessOutput)
-						return hx_ok
-					case *sys__io___Process__ProcessOutput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_20(hx_value)
 			case "sys.net.Host":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *sys__net__Host:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_21(hx_value)
 			case "sys.net.Socket":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *sys__net__Socket:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_22(hx_value)
 			case "sys.net.SocketInput":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__io__Input:
-						if hx_carrier == nil {
-							return false
-						}
-						_, hx_ok := hx_carrier.__hx_this.(*sys__net__SocketInput)
-						return hx_ok
-					case *sys__net__SocketInput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_23(hx_value)
 			case "sys.net.SocketOutput":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__io__Output:
-						if hx_carrier == nil {
-							return false
-						}
-						_, hx_ok := hx_carrier.__hx_this.(*sys__net__SocketOutput)
-						return hx_ok
-					case *sys__net__SocketOutput:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_24(hx_value)
 			case "sys.thread.Tls":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *sys__thread__Tls:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_25(hx_value)
 			default:
 				return false
 			}

@@ -78,9 +78,9 @@ func TestArrayCopyHasDistinctIdentity(t *testing.T) {
 func TestArraySortMutatesSharedIdentity(t *testing.T) {
 	array := NewArray("beta", "alpha", "gamma")
 	alias := array
-	ArraySort(array, func(left, right any) int {
+	ArraySort(array, NewFunction(func(left, right any) int {
 		return strings.Compare(left.(string), right.(string))
-	})
+	}))
 	if got, want := alias.Values(), []any{"alpha", "beta", "gamma"}; !equalArrayValues(got, want) {
 		t.Fatalf("Sort() through alias = %#v, want %#v", got, want)
 	}

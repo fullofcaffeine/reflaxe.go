@@ -2,6 +2,8 @@ package hxrt
 
 import (
 	"bytes"
+	"fmt"
+	"os"
 	"runtime"
 	"sort"
 	"sync"
@@ -352,37 +354,40 @@ func ThreadSpawnDetached(job func()) {
 	go runDetachedThreadJob(job)
 }
 
-func runPortableThreadJob(id int, job func()) {
+func runPortableThreadJob(id int, job func(), report func(any)) {
 	registerCurrentGoroutineThreadID(id)
+	completed := false
+	defer func() {
+		// Always remove lookup state, even if reporting itself panics. A fatal
+		// native unwind must retain the foreground count so normal main exit
+		// cannot race with the panic that terminates the process.
+		unregisterCurrentGoroutineThreadID(id, completed)
+	}()
 	defer func() {
 		if recovered := recover(); recovered != nil {
 			value, ok := unwrapHaxeException(recovered)
 			if !ok {
-				// Remove lookup state but keep the foreground count nonzero until
-				// the re-panic terminates the process. Waking generated main here
-				// would let normal process exit race with the fatal native panic.
-				unregisterCurrentGoroutineThreadID(id, false)
 				panic(recovered)
 			}
-			ReportUncaughtException(value)
+			report(value)
 		}
-		unregisterCurrentGoroutineThreadID(id, true)
+		completed = true
 	}()
 	job()
 }
 
-func ThreadSpawn(job func()) int {
+func ThreadSpawn(job func(), report func(any)) int {
 	if job == nil {
 		return 0
 	}
 	id := allocateThreadState(nil)
 	go func() {
-		runPortableThreadJob(id, job)
+		runPortableThreadJob(id, job, report)
 	}()
 	return id
 }
 
-func ThreadSpawnWithEventLoop(job func()) int {
+func ThreadSpawnWithEventLoop(job func(), report func(any)) int {
 	if job == nil {
 		return 0
 	}
@@ -393,7 +398,7 @@ func ThreadSpawnWithEventLoop(job func()) int {
 			withThreadState(id, func(state *ThreadState) {
 				ThreadEventLoopLoop(threadEventLoop(state))
 			})
-		})
+		}, report)
 	}()
 	return id
 }
@@ -1137,4 +1142,10 @@ func waitForConditionWithTimeout(mu *sync.Mutex, cond *sync.Cond, timeoutSeconds
 		}
 	}
 	return false
+}
+
+// ThreadWriteStderr writes already-formatted source-owned diagnostics. The
+// runtime owns only the output effect; exception formatting remains in Haxe.
+func ThreadWriteStderr(message *string) {
+	fmt.Fprint(os.Stderr, *message)
 }

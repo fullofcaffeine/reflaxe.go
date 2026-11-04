@@ -11,8 +11,8 @@ type I_sys__net__UdpSocket interface {
 	shutdown(read bool, write bool)
 	bind(host *sys__net__Host, port int)
 	accept() *sys__net__Socket
-	peer() map[string]any
-	host() map[string]any
+	peer() hxrt.Anonymous
+	host() hxrt.Anonymous
 	setTimeout(timeout float64)
 	waitForRead()
 	setBlocking(blocking bool)
@@ -28,18 +28,34 @@ type sys__net__UdpSocket struct {
 	__hx_this I_sys__net__UdpSocket
 }
 
+func (self *sys__net__UdpSocket) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_sys__net__UdpSocket() *sys__net__UdpSocket {
+	return hx_init_sys__net__UdpSocket(hx_alloc_sys__net__UdpSocket(nil))
+}
+
+func hx_alloc_sys__net__UdpSocket(owner any) *sys__net__UdpSocket {
 	self := &sys__net__UdpSocket{}
-	self.sys__net__Socket = New_sys__net__Socket()
-	self.sys__net__Socket.__hx_this = self
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_sys__net__UdpSocket)
+	}
+	self.sys__net__Socket = hx_alloc_sys__net__Socket(self.__hx_this)
+	return self
+}
+
+func hx_init_sys__net__UdpSocket(self *sys__net__UdpSocket) *sys__net__UdpSocket {
+	hx_init_sys__net__Socket(self.sys__net__Socket)
 	self.__hx_this.replaceHandle(hxrt.SocketNewUDP())
 	return self
 }
 
 func (self *sys__net__UdpSocket) bind(host *sys__net__Host, port int) {
 	if host == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("udp bind requires host"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("udp bind requires host")))
 	}
 	hxrt.SocketUdpBind(self.handle, host.__hx_this.toString(), port)
 }
@@ -50,7 +66,7 @@ func (self *sys__net__UdpSocket) setBroadcast(enabled bool) {
 
 func (self *sys__net__UdpSocket) sendTo(bytes *haxe__io__Bytes, pos int, length int, address *sys__net__Address) int {
 	if ((((bytes == nil) || (address == nil)) || (pos < 0)) || (length < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(length))) > bytes.length) {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	values := hxrt.NewArray()
 	_g := 0
@@ -75,27 +91,27 @@ func (self *sys__net__UdpSocket) sendTo(bytes *haxe__io__Bytes, pos int, length 
 		return hx_lambda_out_4
 	}(values.Values()), address.host, address.port)
 	if result.Status == hxrt.SocketIOBlocked {
-		hxrt.Throw(haxe__io__Error_Blocked)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_Blocked))
 	}
 	if result.Status == hxrt.SocketIOEOF {
-		hxrt.Throw(New_haxe__io__Eof())
+		hxrt.Throw(haxe__Exception_thrown(New_haxe__io__Eof()))
 	}
 	return result.Count
 }
 
 func (self *sys__net__UdpSocket) readFrom(bytes *haxe__io__Bytes, pos int, length int, address *sys__net__Address) int {
 	if ((((bytes == nil) || (address == nil)) || (pos < 0)) || (length < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(length))) > bytes.length) {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	if length == 0 {
 		return 0
 	}
 	result := hxrt.SocketUdpReadFrom(self.handle, length)
 	if result.Status == hxrt.SocketIOBlocked {
-		hxrt.Throw(haxe__io__Error_Blocked)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_Blocked))
 	}
 	if result.Status == hxrt.SocketIOEOF {
-		hxrt.Throw(New_haxe__io__Eof())
+		hxrt.Throw(haxe__Exception_thrown(New_haxe__io__Eof()))
 	}
 	_g := 0
 	_g1 := result.Count

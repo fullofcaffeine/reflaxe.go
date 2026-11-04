@@ -2,12 +2,12 @@ package main
 
 import "snapshot/hxrt"
 
-func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor *haxe___Int64_____Int64) map[string]any {
+func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor *haxe___Int64_____Int64) hxrt.Anonymous {
 	if divisor.high == 0 {
 		_g := divisor.low
 		switch _g {
 		case 0:
-			hxrt.Throw(hxrt.StringFromLiteral("divide by zero"))
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("divide by zero")))
 		case 1:
 			hx_obj_1 := map[string]any{}
 			high := dividend.high
@@ -20,7 +20,7 @@ func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor 
 			var this1_1 *haxe___Int64_____Int64
 			this1_1 = x_1
 			hx_obj_1["modulus"] = this1_1
-			return hx_obj_1
+			return hxrt.AnonymousFromMap(hx_obj_1)
 		}
 	}
 	divSign := ((dividend.high < 0) != (divisor.high < 0))
@@ -275,7 +275,7 @@ func haxe___Int64__Int64_Impl__divMod(dividend *haxe___Int64_____Int64, divisor 
 	hx_obj_19 := map[string]any{}
 	hx_obj_19["quotient"] = quotient
 	hx_obj_19["modulus"] = modulus
-	return hx_obj_19
+	return hxrt.AnonymousFromMap(hx_obj_19)
 }
 
 func haxe___Int64__Int64_Impl__toString(this1 *haxe___Int64_____Int64) *string {
@@ -306,32 +306,30 @@ func haxe___Int64__Int64_Impl__toString(this1 *haxe___Int64_____Int64) *string {
 		return ((i.high != b_high_1) || (i.low != b_low_1))
 	}() {
 		r := haxe___Int64__Int64_Impl__divMod(i, ten)
-		if func(hx_obj_34 map[string]any) *haxe___Int64_____Int64 {
-			hx_field_35 := hx_obj_34["modulus"]
-			if hx_field_35 == nil {
-				var hx_zero_36 *haxe___Int64_____Int64
-				return hx_zero_36
+		if func(hx_value_30 any) *haxe___Int64_____Int64 {
+			if hx_value_30 == nil {
+				var hx_zero_31 *haxe___Int64_____Int64
+				return hx_zero_31
 			}
-			return hx_field_35.(*haxe___Int64_____Int64)
-		}(r).high < 0 {
+			return hx_value_30.(*haxe___Int64_____Int64)
+		}(hxrt.AnonymousGet(r, "modulus")).high < 0 {
 			str = hxrt.StringConcatAny(func() int {
 				var this_low int
 				var this_high int
 				_ = this_high
-				x_1 := func(hx_obj_20 map[string]any) *haxe___Int64_____Int64 {
-					hx_field_21 := hx_obj_20["modulus"]
-					if hx_field_21 == nil {
-						var hx_zero_22 *haxe___Int64_____Int64
-						return hx_zero_22
+				x_1 := func(hx_value_20 any) *haxe___Int64_____Int64 {
+					if hx_value_20 == nil {
+						var hx_zero_21 *haxe___Int64_____Int64
+						return hx_zero_21
 					}
-					return hx_field_21.(*haxe___Int64_____Int64)
-				}(r)
+					return hx_value_20.(*haxe___Int64_____Int64)
+				}(hxrt.AnonymousGet(r, "modulus"))
 				high := int(^int32(x_1.high))
 				low := int((hxrt.Int32Wrap(int(^int32(x_1.low))) + hxrt.Int32Wrap(1)))
 				if low == 0 {
-					hx_post_23 := high
+					hx_post_22 := high
 					high = int(int32((high + 1)))
-					ret := hx_post_23
+					ret := hx_post_22
 					_ = ret
 					high = high
 				}
@@ -339,20 +337,19 @@ func haxe___Int64__Int64_Impl__toString(this1 *haxe___Int64_____Int64) *string {
 				this_low = low
 				return this_low
 			}(), str)
-			x_2 := func(hx_obj_24 map[string]any) *haxe___Int64_____Int64 {
-				hx_field_25 := hx_obj_24["quotient"]
-				if hx_field_25 == nil {
-					var hx_zero_26 *haxe___Int64_____Int64
-					return hx_zero_26
+			x_2 := func(hx_value_23 any) *haxe___Int64_____Int64 {
+				if hx_value_23 == nil {
+					var hx_zero_24 *haxe___Int64_____Int64
+					return hx_zero_24
 				}
-				return hx_field_25.(*haxe___Int64_____Int64)
-			}(r)
+				return hx_value_23.(*haxe___Int64_____Int64)
+			}(hxrt.AnonymousGet(r, "quotient"))
 			high_1 := int(^int32(x_2.high))
 			low_1 := int((hxrt.Int32Wrap(int(^int32(x_2.low))) + hxrt.Int32Wrap(1)))
 			if low_1 == 0 {
-				hx_post_27 := high_1
+				hx_post_25 := high_1
 				high_1 = int(int32((high_1 + 1)))
-				ret_1 := hx_post_27
+				ret_1 := hx_post_25
 				_ = ret_1
 				high_1 = high_1
 			}
@@ -361,22 +358,20 @@ func haxe___Int64__Int64_Impl__toString(this1 *haxe___Int64_____Int64) *string {
 			this1_2 = x_3
 			i = this1_2
 		} else {
-			str = hxrt.StringConcatAny(func(hx_obj_28 map[string]any) *haxe___Int64_____Int64 {
-				hx_field_29 := hx_obj_28["modulus"]
-				if hx_field_29 == nil {
-					var hx_zero_30 *haxe___Int64_____Int64
-					return hx_zero_30
+			str = hxrt.StringConcatAny(func(hx_value_26 any) *haxe___Int64_____Int64 {
+				if hx_value_26 == nil {
+					var hx_zero_27 *haxe___Int64_____Int64
+					return hx_zero_27
 				}
-				return hx_field_29.(*haxe___Int64_____Int64)
-			}(r).low, str)
-			i = func(hx_obj_31 map[string]any) *haxe___Int64_____Int64 {
-				hx_field_32 := hx_obj_31["quotient"]
-				if hx_field_32 == nil {
-					var hx_zero_33 *haxe___Int64_____Int64
-					return hx_zero_33
+				return hx_value_26.(*haxe___Int64_____Int64)
+			}(hxrt.AnonymousGet(r, "modulus")).low, str)
+			i = func(hx_value_28 any) *haxe___Int64_____Int64 {
+				if hx_value_28 == nil {
+					var hx_zero_29 *haxe___Int64_____Int64
+					return hx_zero_29
 				}
-				return hx_field_32.(*haxe___Int64_____Int64)
-			}(r)
+				return hx_value_28.(*haxe___Int64_____Int64)
+			}(hxrt.AnonymousGet(r, "quotient"))
 		}
 	}
 	if neg {
@@ -394,9 +389,25 @@ type haxe___Int64_____Int64 struct {
 	low       int
 }
 
+func (self *haxe___Int64_____Int64) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe___Int64_____Int64(high int, low int) *haxe___Int64_____Int64 {
+	return hx_init_haxe___Int64_____Int64(hx_alloc_haxe___Int64_____Int64(nil), high, low)
+}
+
+func hx_alloc_haxe___Int64_____Int64(owner any) *haxe___Int64_____Int64 {
 	self := &haxe___Int64_____Int64{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe___Int64_____Int64)
+	}
+	return self
+}
+
+func hx_init_haxe___Int64_____Int64(self *haxe___Int64_____Int64, high int, low int) *haxe___Int64_____Int64 {
 	self.high = high
 	self.low = low
 	return self

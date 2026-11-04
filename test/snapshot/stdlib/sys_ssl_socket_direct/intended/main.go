@@ -16,35 +16,22 @@ func main() {
 	server.__hx_this.listen(1)
 	bound := server.__hx_this.host()
 	acceptedSockets := New_sys__thread__Deque()
-	sys__thread__Thread_create(func() {
+	sys__thread__Thread_create(hxrt.NewFunction(func() {
 		acceptedSockets.__hx_this.add(server.__hx_this.accept())
-	})
+	}))
 	client := New_sys__ssl__Socket()
 	client.verifyCert = false
 	client.__hx_this.setCA(cert)
-	client.__hx_this.connect(New_sys__net__Host(hxrt.StringFromLiteral("localhost")), func(hx_obj_1 map[string]any) int {
-		hx_field_2 := hx_obj_1["port"]
-		if hx_field_2 == nil {
-			var hx_zero_3 int
-			return hx_zero_3
+	client.__hx_this.connect(New_sys__net__Host(hxrt.StringFromLiteral("localhost")), func(hx_value_1 any) int {
+		if hx_value_1 == nil {
+			var hx_zero_2 int
+			return hx_zero_2
 		}
-		return hx_field_2.(int)
-	}(bound))
+		return hx_value_1.(int)
+	}(hxrt.AnonymousGet(bound, "port")))
 	client.__hx_this.handshake()
-	accepted := func(hx_value_4 any) *sys__net__Socket {
-		if hx_value_4 == nil {
-			var hx_zero_5 *sys__net__Socket
-			return hx_zero_5
-		}
-		return hx_value_4.(*sys__net__Socket)
-	}(acceptedSockets.__hx_this.pop(true))
-	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("server.accept.ssl="), hxrt.StdString(func(hx_value *sys__net__Socket) bool {
-		if hx_value == nil {
-			return false
-		}
-		_, ok := hx_value.__hx_this.(*sys__ssl__Socket)
-		return ok
-	}(accepted))))
+	accepted := hx_recover_class_0(acceptedSockets.__hx_this.pop(true))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("server.accept.ssl="), hxrt.StdString(hx_is_nominal_0(accepted))))
 	hxrt.Println(v)
 	client.output.__hx_this.writeString(hxrt.StringFromLiteral("ping\n"), nil)
 	client.output.__hx_this.flush()
@@ -57,9 +44,12 @@ func main() {
 	readShutdownError := hxrt.StringFromLiteral("missing")
 	hxrt.TryCatch(func() {
 		client.__hx_this.shutdown(true, false)
-	}, func(hx_caught_6 any) {
-		error := hxrt.ExceptionCaught(hx_caught_6)
-		readShutdownError = hxrt.ExceptionMessage(error)
+	}, func(hx_caught_3 any) {
+		hx_exception_4 := haxe__Exception_caught(hx_caught_3)
+		hx_payload_5 := haxe__Exception_catchValue(hx_caught_3)
+		_ = hx_payload_5
+		var error *haxe__Exception = hx_recover_class_1(hx_exception_4)
+		readShutdownError = error.__hx_this.get_message()
 	})
 	hxrt.Println(any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("tls.read.shutdown="), readShutdownError)))
 	client.__hx_this.setFastSend(true)
@@ -72,14 +62,16 @@ func main() {
 	serverSawWriteEof := false
 	hxrt.TryCatch(func() {
 		accepted.input.__hx_this.readByte()
-	}, func(hx_caught_8 any) {
-		switch hx_typed_9 := hx_caught_8.(type) {
-		case *haxe__io__Eof:
-			hx_tmp := hx_typed_9
+	}, func(hx_caught_6 any) {
+		hx_exception_7 := haxe__Exception_caught(hx_caught_6)
+		hx_payload_8 := haxe__Exception_catchValue(hx_caught_6)
+		_ = hx_exception_7
+		if hx_is_nominal_1(hx_payload_8) {
+			var hx_tmp *haxe__io__Eof = hx_recover_class_2(hx_payload_8)
 			_ = hx_tmp
 			serverSawWriteEof = true
-		default:
-			hxrt.Throw(hx_caught_8)
+		} else {
+			hxrt.Throw(hx_caught_6)
 		}
 	})
 	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("server.write.eof="), hxrt.StdString(serverSawWriteEof)))
@@ -98,4 +90,127 @@ func main() {
 	client.__hx_this.close()
 	accepted.__hx_this.close()
 	server.__hx_this.close()
+}
+
+func hx_recover_class_0(value any) *sys__net__Socket {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *sys__ssl__Socket:
+		return source.sys__net__Socket
+	case *sys__net__Socket:
+		return source
+	default:
+		return value.(*sys__net__Socket)
+	}
+}
+
+func hx_recover_class_1(value any) *haxe__Exception {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *sys__thread__NoEventLoopException:
+		return source.haxe__Exception
+	case *haxe__exceptions__NotImplementedException:
+		return source.haxe__exceptions__PosException.haxe__Exception
+	case *haxe__ValueException:
+		return source.haxe__Exception
+	case *haxe__Exception:
+		return source
+	case *haxe__exceptions__PosException:
+		return source.haxe__Exception
+	default:
+		return value.(*haxe__Exception)
+	}
+}
+
+func hx_recover_class_2(value any) *haxe__io__Eof {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__io__Eof:
+		return source
+	default:
+		return value.(*haxe__io__Eof)
+	}
+}
+
+func hx_recover_class_3(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
+}
+
+func hx_recover_class_4(value any) *haxe__ds___List__GoListIterator {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ds___List__GoListIterator:
+		return source
+	default:
+		return value.(*haxe__ds___List__GoListIterator)
+	}
+}
+
+func hx_is_nominal_0(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__ssl__Socket:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_1(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__io__Eof:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_2(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_3(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__thread__NoEventLoopException:
+		return (source != nil)
+	case *haxe__exceptions__NotImplementedException:
+		return (source != nil)
+	case *haxe__ValueException:
+		return (source != nil)
+	case *haxe__Exception:
+		return (source != nil)
+	case *haxe__exceptions__PosException:
+		return (source != nil)
+	default:
+		return false
+	}
 }

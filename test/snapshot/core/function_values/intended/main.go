@@ -3,17 +3,26 @@ package main
 import "snapshot/hxrt"
 
 func main() {
-	add := func(a int, b int) int {
+	add := hxrt.NewFunction(func(a int, b int) int {
 		return int((hxrt.Int32Wrap(a) + hxrt.Int32Wrap(b)))
-	}
-	mul := func(v int) int {
+	})
+	mul := hxrt.NewFunction(func(v int) int {
 		return int((hxrt.Int32Wrap(v) * hxrt.Int32Wrap(3)))
-	}
+	})
 	var v any = any(twice(5))
 	hxrt.Println(v)
-	var v_1 any = any(add(2, 7))
+	var v_1 any = any(func() int {
+		var hx_callable_1 *hxrt.Function[func(int, int) int] = add
+		var hx_argument_2 int = 2
+		var hx_argument_3 int = 7
+		return hxrt.FunctionCall(hx_callable_1)(hx_argument_2, hx_argument_3)
+	}())
 	hxrt.Println(v_1)
-	var v_2 any = any(mul(4))
+	var v_2 any = any(func() int {
+		var hx_callable_4 *hxrt.Function[func(int) int] = mul
+		var hx_argument_5 int = 4
+		return hxrt.FunctionCall(hx_callable_4)(hx_argument_5)
+	}())
 	hxrt.Println(v_2)
 }
 

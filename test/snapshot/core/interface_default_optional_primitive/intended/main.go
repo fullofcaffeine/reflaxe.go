@@ -15,9 +15,25 @@ type DefaultedValueBase struct {
 	__hx_this I_DefaultedValueBase
 }
 
+func (self *DefaultedValueBase) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_DefaultedValueBase() *DefaultedValueBase {
+	return hx_init_DefaultedValueBase(hx_alloc_DefaultedValueBase(nil))
+}
+
+func hx_alloc_DefaultedValueBase(owner any) *DefaultedValueBase {
 	self := &DefaultedValueBase{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_DefaultedValueBase)
+	}
+	return self
+}
+
+func hx_init_DefaultedValueBase(self *DefaultedValueBase) *DefaultedValueBase {
 	return self
 }
 
@@ -38,11 +54,27 @@ type DefaultedValueImpl struct {
 	__hx_this I_DefaultedValueImpl
 }
 
+func (self *DefaultedValueImpl) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_DefaultedValueImpl() *DefaultedValueImpl {
+	return hx_init_DefaultedValueImpl(hx_alloc_DefaultedValueImpl(nil))
+}
+
+func hx_alloc_DefaultedValueImpl(owner any) *DefaultedValueImpl {
 	self := &DefaultedValueImpl{}
-	self.DefaultedValueBase = New_DefaultedValueBase()
-	self.DefaultedValueBase.__hx_this = self
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_DefaultedValueImpl)
+	}
+	self.DefaultedValueBase = hx_alloc_DefaultedValueBase(self.__hx_this)
+	return self
+}
+
+func hx_init_DefaultedValueImpl(self *DefaultedValueImpl) *DefaultedValueImpl {
+	hx_init_DefaultedValueBase(self.DefaultedValueBase)
 	return self
 }
 

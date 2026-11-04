@@ -3,9 +3,9 @@ package main
 import "snapshot/hxrt"
 
 func main() {
-	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("startup.throws="), hxrt.StdString(throws(func() {
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("startup.throws="), hxrt.StdString(throws(hxrt.NewFunction(func() {
 		New_sys__io__Process(hxrt.StringFromLiteral("__haxe_go_missing_process__"), hxrt.NewArray(), false)
-	}))))
+	})))))
 	hxrt.Println(v)
 	empty := New_sys__io__Process(hxrt.StringFromLiteral("sh"), hxrt.NewArray(hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("printf '\\n'")), false)
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("empty.line="), hxrt.StdString(hxrt.StringEqualStringPtr(empty.stdout.__hx_this.readLine(), hxrt.StringFromLiteral("")))))
@@ -63,9 +63,9 @@ func main() {
 	if sys__FileSystem_exists(marker) {
 		sys__FileSystem_deleteFile(marker)
 	}
-	var v_15 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("detached.throws="), hxrt.StdString(throws(func() {
+	var v_15 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("detached.throws="), hxrt.StdString(throws(hxrt.NewFunction(func() {
 		New_sys__io__Process(hxrt.StringFromLiteral("sh"), hxrt.NewArray(hxrt.StringFromLiteral("-c"), hxrt.StringFromLiteral("exit 0")), true)
-	}))))
+	})))))
 	hxrt.Println(v_15)
 }
 
@@ -78,16 +78,18 @@ func reachesEof(process *sys__io__Process) bool {
 		hx_try_return_1 = true
 		return
 	}, func(hx_caught_3 any) {
-		switch hx_typed_4 := hx_caught_3.(type) {
-		case *haxe__io__Eof:
-			hx_tmp := hx_typed_4
-			_ = hx_tmp
+		hx_exception_4 := haxe__Exception_caught(hx_caught_3)
+		hx_payload_5 := haxe__Exception_catchValue(hx_caught_3)
+		_ = hx_exception_4
+		if hx_is_nominal_0(hx_payload_5) {
+			var hx_tmp_1 *haxe__io__Eof = hx_recover_class_0(hx_payload_5)
+			_ = hx_tmp_1
 			hx_try_value_2 = true
 			hx_try_return_1 = true
 			return
-		default:
-			hx_tmp_1 := hx_caught_3
-			_ = hx_tmp_1
+		} else {
+			var hx_tmp any = hx_payload_5
+			_ = hx_tmp
 			hx_try_value_2 = false
 			hx_try_return_1 = true
 			return
@@ -99,23 +101,29 @@ func reachesEof(process *sys__io__Process) bool {
 	return false
 }
 
-func throws(action func()) bool {
-	hx_try_return_5 := false
-	var hx_try_value_6 bool
+func throws(action *hxrt.Function[func()]) bool {
+	hx_try_return_6 := false
+	var hx_try_value_7 bool
 	hxrt.TryCatch(func() {
-		action()
-		hx_try_value_6 = false
-		hx_try_return_5 = true
+		func() {
+			var hx_callable_11 *hxrt.Function[func()] = action
+			hxrt.FunctionCall(hx_callable_11)()
+		}()
+		hx_try_value_7 = false
+		hx_try_return_6 = true
 		return
-	}, func(hx_caught_7 any) {
-		hx_tmp := hx_caught_7
+	}, func(hx_caught_8 any) {
+		hx_exception_9 := haxe__Exception_caught(hx_caught_8)
+		hx_payload_10 := haxe__Exception_catchValue(hx_caught_8)
+		_ = hx_exception_9
+		var hx_tmp any = hx_payload_10
 		_ = hx_tmp
-		hx_try_value_6 = true
-		hx_try_return_5 = true
+		hx_try_value_7 = true
+		hx_try_return_6 = true
 		return
 	})
-	if hx_try_return_5 {
-		return hx_try_value_6
+	if hx_try_return_6 {
+		return hx_try_value_7
 	}
 	return false
 }
@@ -124,4 +132,85 @@ func waitForChild(seconds *string) {
 	waiter := New_sys__io__Process(hxrt.StringFromLiteral("sh"), hxrt.NewArray(hxrt.StringFromLiteral("-c"), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("sleep "), seconds)), false)
 	waiter.__hx_this.exitCode(true)
 	waiter.__hx_this.close()
+}
+
+func hx_recover_class_0(value any) *haxe__io__Eof {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__io__Eof:
+		return source
+	default:
+		return value.(*haxe__io__Eof)
+	}
+}
+
+func hx_recover_class_1(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
+}
+
+func hx_recover_class_2(value any) *haxe__Exception {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__exceptions__NotImplementedException:
+		return source.haxe__exceptions__PosException.haxe__Exception
+	case *haxe__Exception:
+		return source
+	case *haxe__exceptions__PosException:
+		return source.haxe__Exception
+	case *haxe__ValueException:
+		return source.haxe__Exception
+	default:
+		return value.(*haxe__Exception)
+	}
+}
+
+func hx_is_nominal_0(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__io__Eof:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_1(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_2(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__exceptions__NotImplementedException:
+		return (source != nil)
+	case *haxe__Exception:
+		return (source != nil)
+	case *haxe__exceptions__PosException:
+		return (source != nil)
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
 }

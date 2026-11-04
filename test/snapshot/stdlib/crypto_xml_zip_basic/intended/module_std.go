@@ -142,149 +142,35 @@ func Std_downcast(value any, c any) any {
 					}
 				}(hx_value)
 			case "StringBuf":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *StringBuf:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_2(hx_value)
 			case "Xml":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *Xml:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_3(hx_value)
+			case "haxe.Exception":
+				return hx_is_nominal_1(hx_value)
+			case "haxe.ValueException":
+				return hx_is_nominal_0(hx_value)
 			case "haxe._Int64.___Int64":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe___Int64_____Int64:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_4(hx_value)
 			case "haxe.ds.StringMap":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__ds__StringMap:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_5(hx_value)
 			case "haxe.io.Bytes":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__io__Bytes:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_6(hx_value)
+			case "haxe.iterators.ArrayIterator":
+				return hx_is_nominal_7(hx_value)
 			case "haxe.iterators.MapKeyValueIterator":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__iterators__MapKeyValueIterator:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_8(hx_value)
 			case "haxe.iterators.StringIterator":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__iterators__StringIterator:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_9(hx_value)
 			case "haxe.iterators.StringKeyValueIterator":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__iterators__StringKeyValueIterator:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_10(hx_value)
 			case "haxe.xml.Printer":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__xml__Printer:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_11(hx_value)
 			case "haxe.xml.XmlParserException":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__xml__XmlParserException:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_12(hx_value)
 			case "haxe.zip.Compress":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__zip__Compress:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_13(hx_value)
 			case "haxe.zip.Uncompress":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__zip__Uncompress:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_14(hx_value)
 			default:
 				return false
 			}
@@ -435,149 +321,35 @@ func Std_instance(value any, c any) any {
 						}
 					}(hx_value)
 				case "StringBuf":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *StringBuf:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_2(hx_value)
 				case "Xml":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *Xml:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_3(hx_value)
+				case "haxe.Exception":
+					return hx_is_nominal_1(hx_value)
+				case "haxe.ValueException":
+					return hx_is_nominal_0(hx_value)
 				case "haxe._Int64.___Int64":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe___Int64_____Int64:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_4(hx_value)
 				case "haxe.ds.StringMap":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__ds__StringMap:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_5(hx_value)
 				case "haxe.io.Bytes":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__io__Bytes:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_6(hx_value)
+				case "haxe.iterators.ArrayIterator":
+					return hx_is_nominal_7(hx_value)
 				case "haxe.iterators.MapKeyValueIterator":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__iterators__MapKeyValueIterator:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_8(hx_value)
 				case "haxe.iterators.StringIterator":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__iterators__StringIterator:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_9(hx_value)
 				case "haxe.iterators.StringKeyValueIterator":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__iterators__StringKeyValueIterator:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_10(hx_value)
 				case "haxe.xml.Printer":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__xml__Printer:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_11(hx_value)
 				case "haxe.xml.XmlParserException":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__xml__XmlParserException:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_12(hx_value)
 				case "haxe.zip.Compress":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__zip__Compress:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_13(hx_value)
 				case "haxe.zip.Uncompress":
-					return func(hx_value any) bool {
-						switch hx_carrier := hx_value.(type) {
-						case *haxe__zip__Uncompress:
-							if hx_carrier == nil {
-								return false
-							}
-							return true
-						default:
-							return false
-						}
-					}(hx_value)
+					return hx_is_nominal_14(hx_value)
 				default:
 					return false
 				}
@@ -735,149 +507,35 @@ func Std_is(v any, t any) bool {
 					}
 				}(hx_value)
 			case "StringBuf":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *StringBuf:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_2(hx_value)
 			case "Xml":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *Xml:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_3(hx_value)
+			case "haxe.Exception":
+				return hx_is_nominal_1(hx_value)
+			case "haxe.ValueException":
+				return hx_is_nominal_0(hx_value)
 			case "haxe._Int64.___Int64":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe___Int64_____Int64:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_4(hx_value)
 			case "haxe.ds.StringMap":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__ds__StringMap:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_5(hx_value)
 			case "haxe.io.Bytes":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__io__Bytes:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_6(hx_value)
+			case "haxe.iterators.ArrayIterator":
+				return hx_is_nominal_7(hx_value)
 			case "haxe.iterators.MapKeyValueIterator":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__iterators__MapKeyValueIterator:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_8(hx_value)
 			case "haxe.iterators.StringIterator":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__iterators__StringIterator:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_9(hx_value)
 			case "haxe.iterators.StringKeyValueIterator":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__iterators__StringKeyValueIterator:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_10(hx_value)
 			case "haxe.xml.Printer":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__xml__Printer:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_11(hx_value)
 			case "haxe.xml.XmlParserException":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__xml__XmlParserException:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_12(hx_value)
 			case "haxe.zip.Compress":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__zip__Compress:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_13(hx_value)
 			case "haxe.zip.Uncompress":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *haxe__zip__Uncompress:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_14(hx_value)
 			default:
 				return false
 			}

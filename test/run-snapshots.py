@@ -411,18 +411,18 @@ def expected_runtime_exit(case: SnapshotCase) -> int:
         raise SystemExit(f"{expected_exit} must contain an integer exit code") from exc
 
 
-def run_runtime_smoke(case: SnapshotCase, out_dir: Path, expected_exit: int, timeout_s: int) -> subprocess.CompletedProcess[str]:
+def run_runtime_smoke(case: SnapshotCase, out_dir: Path, expected_exit: int, timeout_s: int, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
     if expected_exit == 0:
-        return run_command(["go", "run", "."], cwd=out_dir, timeout_s=timeout_s)
+        return run_command(["go", "run", "."], cwd=out_dir, timeout_s=timeout_s, env=env)
 
     CACHE_ROOT.mkdir(parents=True, exist_ok=True)
     safe_case_id = re.sub(r"[^A-Za-z0-9_.-]+", "_", case.case_id)
     binary = CACHE_ROOT / f"snapshot-runtime-{safe_case_id}"
-    build_proc = run_command(["go", "build", "-o", str(binary), "."], cwd=out_dir, timeout_s=timeout_s)
+    build_proc = run_command(["go", "build", "-o", str(binary), "."], cwd=out_dir, timeout_s=timeout_s, env=env)
     if build_proc.returncode != 0:
         return build_proc
     try:
-        return run_command([str(binary)], cwd=out_dir, timeout_s=timeout_s)
+        return run_command([str(binary)], cwd=out_dir, timeout_s=timeout_s, env=env)
     finally:
         try:
             binary.unlink()
@@ -568,13 +568,14 @@ def run_case(case: SnapshotCase, args: argparse.Namespace) -> CaseResult:
         out_dir = case.case_path / "out"
         go_files = list(out_dir.rglob("*.go")) if out_dir.exists() else []
 
+        cgo_modes: tuple[str | None, ...] = (None,)
         if go_files:
             gofmt_proc = run_command(["gofmt", "-w", *[str(p) for p in sorted(go_files)]], cwd=case.case_path, timeout_s=args.timeout)
             if gofmt_proc.returncode != 0:
                 duration = time.monotonic() - started
                 return CaseResult(case.case_id, False, duration, "gofmt", command_output(gofmt_proc))
 
-            cgo_modes: tuple[str | None, ...] = (
+            cgo_modes = (
                 ("1", "0") if uses_complementary_cgo_files(go_files) else (None,)
             )
             for cgo_enabled in cgo_modes:
@@ -616,20 +617,29 @@ def run_case(case: SnapshotCase, args: argparse.Namespace) -> CaseResult:
             expected_stdout = case.case_path / "expected.stdout"
             if expected_stdout.exists():
                 expected_exit = expected_runtime_exit(case)
-                run_proc = run_runtime_smoke(case, out_dir, expected_exit, args.timeout)
-                if run_proc.returncode != expected_exit:
-                    duration = time.monotonic() - started
-                    output = command_output(run_proc)
-                    message = f"exit code mismatch: expected {expected_exit}, got {run_proc.returncode}"
-                    if output:
-                        message += "\n" + output
-                    return CaseResult(case.case_id, False, duration, "runtime", message)
+                for cgo_enabled in cgo_modes:
+                    env = None if cgo_enabled is None else {"CGO_ENABLED": cgo_enabled, "GOWORK": "off"}
+                    step = "runtime" if cgo_enabled is None else f"runtime (CGO_ENABLED={cgo_enabled})"
+                    run_proc = run_runtime_smoke(case, out_dir, expected_exit, args.timeout, env)
+                    if run_proc.returncode != expected_exit:
+                        duration = time.monotonic() - started
+                        output = command_output(run_proc)
+                        message = f"exit code mismatch: expected {expected_exit}, got {run_proc.returncode}"
+                        if output:
+                            message += "\n" + output
+                        return CaseResult(case.case_id, False, duration, step, message)
 
-                expected = expected_stdout.read_text(encoding="utf-8").replace("\r\n", "\n")
-                actual = run_proc.stdout.replace("\r\n", "\n")
-                if actual != expected:
-                    duration = time.monotonic() - started
-                    return CaseResult(case.case_id, False, duration, "runtime", "stdout mismatch")
+                    expected = expected_stdout.read_text(encoding="utf-8").replace("\r\n", "\n")
+                    actual = run_proc.stdout.replace("\r\n", "\n")
+                    if actual != expected:
+                        duration = time.monotonic() - started
+                        return CaseResult(case.case_id, False, duration, step, "stdout mismatch")
+                    expected_stderr = case.case_path / "expected.stderr"
+                    if expected_stderr.exists():
+                        expected = expected_stderr.read_text(encoding="utf-8").replace("\r\n", "\n")
+                        if run_proc.stderr.replace("\r\n", "\n") != expected:
+                            duration = time.monotonic() - started
+                            return CaseResult(case.case_id, False, duration, step, "stderr mismatch")
 
         duration = time.monotonic() - started
         return CaseResult(case.case_id, True, duration, "done", "ok")

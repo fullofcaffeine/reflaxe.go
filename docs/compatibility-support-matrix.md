@@ -27,7 +27,7 @@ Default disposition: Any unlisted module operation, member, platform, architectu
 | --- | --- |
 | Haxe compiler | `4.3.7` |
 | Generated Go language floor | `1.22` |
-| Go build lines | `1.25, 1.26`; latest patch required |
+| Go build lines | `1.26, 1.27`; latest patch required |
 | Node tooling line | `24` |
 
 ## Platforms and architectures

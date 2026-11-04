@@ -378,9 +378,11 @@ class GoSourceOwnedStdlibPlanner {
 				requireSourceOwnedStdlibClass("sys.thread.ThreadPoolException");
 			case "haxe.Template":
 				requireSourceOwnedStdlibModule("haxe.Template");
-			case "haxe.ValueException":
-				// Direct ValueException usage lowers to the existing hxrt exception
-				// carrier rather than emitting a separate source-owned class body.
+			case "haxe.Exception", "haxe.ValueException":
+				// Both source classes participate in throw/catch conversion. Require
+				// their bodies in flattened .cross.hx packages as well as source trees.
+				requireSourceOwnedStdlibClass("haxe.Exception");
+				requireSourceOwnedStdlibClass("haxe.ValueException");
 			case _:
 		}
 	}

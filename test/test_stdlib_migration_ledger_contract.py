@@ -998,7 +998,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             "CompilerReflect.generatedFields",
             "CompilerReflect.generatedMethod",
             "NativeReflect.lookupMethod",
-            "NativeReflect.callMethod",
+            "CompilerReflect.callMethod",
             "NativeReflect.fields",
             "NativeReflect.deleteField",
             "NativeReflect.copy",
@@ -1027,7 +1027,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
 
         self.assertIn('var HxrtReflection = "reflection";', feature_analyzer)
         self.assertIn('path == "Reflect" || path == "hxrt.reflect.NativeReflect"', feature_analyzer)
-        self.assertIn('[FEATURE_STRING, FEATURE_ARRAY]', feature_analyzer)
+        self.assertRegex(feature_analyzer, r"case FEATURE_REFLECTION:\s*\[FEATURE_STRING, FEATURE_ARRAY, FEATURE_FUNCTION\]")
         self.assertIn('["reflect.go"]', feature_analyzer)
         self.assertNotIn('case "reflect.go":', reflaxe_compiler)
         self.assertIn("GoRuntimeCapabilityManifest.build", reflaxe_compiler)
@@ -1076,7 +1076,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             )
         )
         self.assertEqual(
-            {"field", "fields", "hasField", "isEnumValue", "setField"},
+            {"callMethod", "field", "fields", "hasField", "isEnumValue", "setField"},
             registered_reflect_members,
         )
 
@@ -1218,7 +1218,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             self.assertIn(signature, runtime_template, signature)
 
         self.assertIn('var HxrtTemplate = "template";', feature_analyzer)
-        self.assertIn('[FEATURE_CORE, FEATURE_ARRAY]', feature_analyzer)
+        self.assertRegex(feature_analyzer, r"case FEATURE_TEMPLATE:\s*\[FEATURE_CORE, FEATURE_ARRAY, FEATURE_REFLECTION\]")
         self.assertIn('path == "hxrt.template.NativeTemplate"', feature_analyzer)
         self.assertIn('["template.go"]', feature_analyzer)
         self.assertNotIn('case "template.go":', reflaxe_compiler)
@@ -1313,11 +1313,8 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             "func hxrt__generated_method_field(obj any, key string) any",
             "func hxrt__generated_method_field__MethodLeaf",
             'case "leafOnly":',
-            "return value.leafOnly",
             'case "type":',
-            "return value.type_",
             'case "secret":',
-            "return value.secret",
             "if value.MethodMiddle == nil",
             "return hxrt__generated_method_field__MethodMiddle(value.MethodMiddle, key)",
             "if value.MethodBase == nil",
@@ -1325,6 +1322,23 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             "func (self *ConcreteIterable) iterator() *SpecializedIterator",
         ):
             self.assertIn(fragment, generated_main, fragment)
+
+        # Reflected methods remain typed and retain the logical receiver and
+        # method slot, rather than returning a fresh bare Go method value.
+        metadata = generated_main.split("func hxrt__generated_method_field(obj", 1)[1]
+        for key, selector in (
+            ("leafOnly", "leafOnly"), ("type", "type_"), ("secret", "secret")
+        ):
+            body = (
+                metadata.split(f'case "{key}":', 1)[1]
+                .split("\n\tcase ", 1)[0]
+                .split("\n\t}", 1)[0]
+            )
+            self.assertIn("return func() *hxrt.Function[func(", body)
+            self.assertIn("return hxrt.BoundFunction(", body)
+            self.assertRegex(body, rf"return hx_receiver_\d+\.__hx_this\.{selector}\(")
+            self.assertRegex(body, r"return hx_receiver_\d+\.__hx_this\n")
+            self.assertIn(f'}}, "{key}")', body)
 
         field_body = generated_reflect.split("func Reflect_field", 1)[1].split(
             "func Reflect_fields", 1
@@ -1375,16 +1389,24 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             unrelated_output,
             "method metadata must be absent when Reflect.field/hasField is unreachable",
         )
-        reflect_without_generated_methods = "\n".join(
+        reflect_with_source_exceptions = "\n".join(
             path.read_text(encoding="utf-8")
             for path in (
                 ROOT / "test/snapshot/stdlib/dynamic_access_basic/intended"
             ).glob("*.go")
         )
-        self.assertNotIn(
-            "hxrt__generated_method_field",
-            reflect_without_generated_methods,
-            "a reachable Reflect call must not emit an empty method-metadata plan",
+        # Exception classes are now ordinary Haxe source and legitimately add
+        # method metadata even to this small Reflect program. No application or
+        # Template class should leak into its selective plan.
+        self.assertEqual(
+            {"haxe__Exception", "haxe__ValueException"},
+            set(re.findall(r"func hxrt__generated_method_field__(\w+)\(", reflect_with_source_exceptions)),
+        )
+        compiler = (ROOT / "src/reflaxe/go/GoCompiler.hx").read_text(encoding="utf-8")
+        self.assertIn(
+            "generatedMethodMetadataPlan.length > 0 ? GoGeneratedMethodMetadataEmitter.emit(generatedMethodMetadataPlan) : []",
+            compiler,
+            "an empty method-metadata plan must still emit no helper",
         )
 
     def test_crypto_is_source_owned_instead_of_a_compiler_shim(self) -> None:
@@ -2489,7 +2511,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             ROOT
             / "test/snapshot/sys/http_request_callbacks_smoke/intended/module_haxe_http_httpbase.go"
         ).read_text(encoding="utf-8")
-        self.assertRegex(callback_shape, r"(?m)^\s+onData\s+func\(\*string\)$")
+        self.assertRegex(callback_shape, r"(?m)^\s+onData\s+\*hxrt\.Function\[func\(\*string\)\]$")
         self.assertNotRegex(callback_shape, r"(?m)^\s+onData\(data \*string\)$")
         self.assertFalse(
             (

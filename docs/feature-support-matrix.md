@@ -97,7 +97,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | `String` core subset (`length`, `charAt`, `charCodeAt` with null on out-of-range, `substring`, `fromCharCode`, `toLowerCase`, `toUpperCase`) | `semantic-diff` + `snapshot` | `array_string_intiterator_contract`, `string_charcodeat_bounds_contract`, `sys/socket_input_service_surface` |
 | `StringBuf` + `DateTools` (`add`/`addChar`/`addSub`, `DateTools.delta` with duration helpers, staged-std `DateTools.format` strftime subset plus `getMonthDays`/`parse`/`make`) | `semantic-diff` | `stringbuf_datetools_lambda_contract`, `datetools_cross_std_contract` |
 | Complete Haxe 4.3.7 `Lambda` API: `array`, `list`, `map`, `mapi`, `flatten`, `flatMap`, `has`, `exists`, `foreach`, `iter`, `filter`, `fold`, `foldi`, `count`, `empty`, `indexOf`, `find`, `findIndex`, and `concat`. Every input-taking helper accepts `Array<T>`, `haxe.ds.List<T>`, and a concrete manual `Iterable<T>` carrier; callbacks and generic/nullable results are restored to their typed Haxe contract. Existing function-value coverage includes `map` and `fold`. | `semantic-diff` | `lambda_full_api_contract`, `lambda_list_contract`, `lambda_generic_iterable_count_empty_contract`, `lambda_iter_array_list_contract`, `lambda_iter_generic_iterable_contract` |
-| `Lambda.flatten` / `Lambda.flatMap` nested-carrier boundary: nested arrays, staged lists, and concrete manual iterables are supported, as are callbacks returning concrete arrays or lists. A value already erased to structural `Iterable<Iterable<T>>`, or a callback already erased to `T -> Iterable<U>`, is rejected during Haxe compilation because Go cannot recover the missing nominal carrier after erasure. | `semantic-diff` + negative snapshot | `lambda_full_api_contract`, `negative/lambda_flatten_erased_nested`, `negative/lambda_flat_map_erased_result` |
+| `Lambda.flatten` / `Lambda.flatMap` nested-carrier boundary: nested arrays, staged lists, and concrete manual iterables are supported, as are callbacks returning concrete arrays or lists. Array-to-structural casts used to erase a nested array to `Iterable<Iterable<T>>`, or an array result to `Iterable<U>`, are rejected at the cast during Haxe compilation, including inside inlined calls. Source-retaining structural views of runtime arrays are not implemented; keep the concrete array carrier. This diagnostic is a limitation, not erased-iterable support. | `semantic-diff` + negative snapshot | `lambda_full_api_contract`, `negative/lambda_flatten_erased_nested`, `negative/lambda_flat_map_erased_result`, `negative/array_structural_cast` |
 | Core `Class`/`Enum`/`EnumValue` type-value subset | `semantic-diff` | `type_expr_contract` |
 | `Type` reflection subset (`getClass`, `getSuperClass`, `getClassFields`, `getInstanceFields`, `resolveClass`, `createInstance`, `createEmptyInstance`, `getEnum`, `getEnumConstructs`, `resolveEnum`, `allEnums`, enum constructor/index/parameters/equality) | `semantic-diff` | `type_reflection_contract`, `type_reflection_extended_contract` |
 | `haxe.ds.Vector` | `semantic-diff` | `vector_contract`, `stdlib/vector_basic` |
@@ -229,7 +229,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | Compatibility selector enforcement | Supported | `negative/profile_conflict`, `negative/profile_invalid` |
 | Native policy axes, precedence, and invalid/conflicting inputs | Supported | `core/report_artifacts_native_policy_overrides`, `core/report_artifacts_metal_proven_override`, `core/report_artifacts_lane_fallback_portable_surfaces`, `negative/native_authority_invalid`, `negative/native_specialization_invalid`, `negative/native_fallback_invalid`, `negative/native_fallback_conflict`, `negative/native_authority_guarded_metal`, `negative/native_fallback_error_portable` |
 | Canonical `@:goNative` boundary plus `@:goMetal` compatibility | Supported | `core/native_boundary_guarded_authority`, `negative/go_metal_lane_injection`, existing `go_metal_lane_*` fixtures |
-| Typed Go file build constraints | Supported for non-main Haxe modules (`@:goBuildConstraint`) | `core/typed_go_build_constraints`, `negative/go_build_constraint_invalid`, `negative/go_build_constraint_main`, `negative/go_build_constraint_module_conflict`, `negative/go_build_constraint_repeated` |
+| Typed Go file build constraints | Supported for non-main Haxe modules (`@:goBuildConstraint`), including guarded callable, class, and structural recovery | `core/typed_go_build_constraints`, `core/typed_go_build_constraint_constants`, `core/typed_go_build_constraint_recovery`, `core/typed_go_build_constraint_recovery_views`, `core/typed_go_build_constraint_overlap`, `test_conditional_recovery_runtime.py`, `negative/go_build_constraint_invalid`, `negative/go_build_constraint_main`, `negative/go_build_constraint_module_conflict`, `negative/go_build_constraint_repeated` |
 | Strict examples/app boundary policy + guarded native-usage policy modes | Supported | `negative/strict_examples_injection`, `negative/strict_mode_injection`, `negative/metal_profile_injection`, `negative/go_metal_lane_injection`, `negative/portable_native_import_error`, `core/portable_native_import_warn_policy` |
 | RawNative encoding policy define (`reflaxe_go_raw_native_mode`) | Supported | `core/raw_native_utf16_mode`, `negative/raw_native_mode_invalid` |
 
@@ -774,3 +774,21 @@ and closure artifacts above for the current live status.
 - `haxe.go-14as.19` is now closed end-to-end. The first wave (`Condition`, `Deque`, `IThreadPool`, `Lock`, `Mutex`, `NoEventLoopException`, `Semaphore`, `ThreadPoolException`, `Tls`) stays covered by `sys_thread_primitives_contract` and `stdlib/sys_thread_primitives_direct`, and the second wave (`Thread`, `EventLoop`, `ElasticThreadPool`, `FixedThreadPool`) is now covered by `sys_thread_runtime_contract` and `stdlib/sys_thread_runtime_direct`.
 - `haxe.go-14as.69`: direct `haxe.EntryPoint` / `haxe.MainLoop` / `haxe.Timer` usage now has staged-stdlib baseline support over the runtime-backed `sys.thread.EventLoop` contract. Evidence: `stdlib/haxe_main_loop_runtime_direct`. This stays snapshot/runtime coverage for now because asynchronous timing is target-sensitive rather than a clean semantic-diff comparison.
 - No compile-only portable blocker families remain in the generated inventory. Use `test/portable_stdlib_inventory.json` plus `test/.test-cache/portable_parity_closure_summary.md` as the authoritative current list for snapshot-only and explicitly unsupported surfaces.
+
+### Source-owned exception migration
+
+`haxe.Exception` and `haxe.ValueException` now use ordinary generated Haxe
+inheritance. Their source owns messages, previous links, native attachments,
+conversion policy, saved stacks, and chained details. Both forms of catch use
+the same ordered compiler dispatch: exception catches receive the wrapper;
+other catches receive the original payload. Foreign Go panics remain outside
+Haxe catches. Portable thread diagnostics are formatted in Haxe and passed to
+a typed native output boundary.
+
+Focused contracts are `portable_exception_structural_view`,
+`portable_exception_transport`, and `portable_constructor_defaults_any_block`.
+The documented default empty-stack mode remains a limitation. Native diagnostic
+stacks must retain their construction snapshot; complete source-position parity
+and the full compiler regression gates remain required before broader readiness
+claims. This migration does not establish BeadsHX replacement or performance
+parity.

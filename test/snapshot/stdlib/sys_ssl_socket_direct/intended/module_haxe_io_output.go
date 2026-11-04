@@ -28,26 +28,42 @@ type haxe__io__Output struct {
 	bigEndian bool
 }
 
+func (self *haxe__io__Output) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe__io__Output() *haxe__io__Output {
+	return hx_init_haxe__io__Output(hx_alloc_haxe__io__Output(nil))
+}
+
+func hx_alloc_haxe__io__Output(owner any) *haxe__io__Output {
 	self := &haxe__io__Output{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__io__Output)
+	}
+	return self
+}
+
+func hx_init_haxe__io__Output(self *haxe__io__Output) *haxe__io__Output {
 	return self
 }
 
 func (self *haxe__io__Output) writeByte(value int) {
-	hxrt.Throw(New_haxe__exceptions__NotImplementedException(nil, nil, func() map[string]any {
+	hxrt.Throw(haxe__Exception_thrown(New_haxe__exceptions__NotImplementedException(nil, nil, func() hxrt.Anonymous {
 		hx_obj_1 := map[string]any{}
 		hx_obj_1["fileName"] = hxrt.StringFromLiteral("haxe/io/Output.hx")
 		hx_obj_1["lineNumber"] = 17
 		hx_obj_1["className"] = hxrt.StringFromLiteral("haxe.io.Output")
 		hx_obj_1["methodName"] = hxrt.StringFromLiteral("writeByte")
-		return hx_obj_1
-	}()))
+		return hxrt.AnonymousFromMap(hx_obj_1)
+	}())))
 }
 
 func (self *haxe__io__Output) writeBytes(bytes *haxe__io__Bytes, pos int, len int) int {
 	if ((pos < 0) || (len < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len))) > bytes.length) {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	total := len
 	for len > 0 {
@@ -77,7 +93,7 @@ func (self *haxe__io__Output) writeFullBytes(bytes *haxe__io__Bytes, pos int, le
 	for len > 0 {
 		count := self.__hx_this.writeBytes(bytes, pos, len)
 		if count == 0 {
-			hxrt.Throw(haxe__io__Error_Blocked)
+			hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_Blocked))
 		}
 		pos = int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(count)))
 		len = int((hxrt.Int32Wrap(len) - hxrt.Int32Wrap(count)))
@@ -101,21 +117,21 @@ func (self *haxe__io__Output) writeDouble(value float64) {
 
 func (self *haxe__io__Output) writeInt8(value int) {
 	if (value < -128) || (value >= 128) {
-		hxrt.Throw(haxe__io__Error_Overflow)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_Overflow))
 	}
 	self.__hx_this.writeByte(int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255))))
 }
 
 func (self *haxe__io__Output) writeInt16(value int) {
 	if (value < -32768) || (value >= 32768) {
-		hxrt.Throw(haxe__io__Error_Overflow)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_Overflow))
 	}
 	self.__hx_this.writeUInt16(int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(65535))))
 }
 
 func (self *haxe__io__Output) writeUInt16(value int) {
 	if (value < 0) || (value >= 65536) {
-		hxrt.Throw(haxe__io__Error_Overflow)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_Overflow))
 	}
 	if self.bigEndian {
 		self.__hx_this.writeByte(int((hxrt.Int32Wrap(value) >> uint(8))))
@@ -128,14 +144,14 @@ func (self *haxe__io__Output) writeUInt16(value int) {
 
 func (self *haxe__io__Output) writeInt24(value int) {
 	if (value < -8388608) || (value >= 8388608) {
-		hxrt.Throw(haxe__io__Error_Overflow)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_Overflow))
 	}
 	self.__hx_this.writeUInt24(int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(16777215))))
 }
 
 func (self *haxe__io__Output) writeUInt24(value int) {
 	if (value < 0) || (value >= 16777216) {
-		hxrt.Throw(haxe__io__Error_Overflow)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_Overflow))
 	}
 	if self.bigEndian {
 		self.__hx_this.writeByte(int((hxrt.Int32Wrap(value) >> uint(16))))
@@ -174,16 +190,18 @@ func (self *haxe__io__Output) writeInput(input *haxe__io__Input, bufsize any) {
 		for true {
 			count := input.__hx_this.readBytes(buffer, 0, hxrt.IntFromNullableAny(bufsize.(int)))
 			if count == 0 {
-				hxrt.Throw(haxe__io__Error_Blocked)
+				hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_Blocked))
 			}
 			self.__hx_this.writeFullBytes(buffer, 0, count)
 		}
 	}, func(hx_caught_2 any) {
-		switch hx_typed_3 := hx_caught_2.(type) {
-		case *haxe__io__Eof:
-			hx_tmp := hx_typed_3
+		hx_exception_3 := haxe__Exception_caught(hx_caught_2)
+		hx_payload_4 := haxe__Exception_catchValue(hx_caught_2)
+		_ = hx_exception_3
+		if hx_is_nominal_1(hx_payload_4) {
+			var hx_tmp *haxe__io__Eof = hx_recover_class_2(hx_payload_4)
 			_ = hx_tmp
-		default:
+		} else {
 			hxrt.Throw(hx_caught_2)
 		}
 	})

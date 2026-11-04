@@ -3,7 +3,13 @@ package main
 import "examples_incident_api_portable/hxrt"
 
 type I_haxe__exceptions__NotImplementedException interface {
+	get_message() *string
+	get_stack() any
+	get_previous() *haxe__Exception
+	get_native() any
+	unwrap() any
 	toString() *string
+	details() *string
 }
 
 type haxe__exceptions__NotImplementedException struct {
@@ -11,9 +17,27 @@ type haxe__exceptions__NotImplementedException struct {
 	__hx_this I_haxe__exceptions__NotImplementedException
 }
 
-func New_haxe__exceptions__NotImplementedException(message *string, previous *hxrt.ExceptionValue, pos map[string]any) *haxe__exceptions__NotImplementedException {
+func (self *haxe__exceptions__NotImplementedException) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
+func New_haxe__exceptions__NotImplementedException(message *string, previous *haxe__Exception, pos hxrt.Anonymous) *haxe__exceptions__NotImplementedException {
+	return hx_init_haxe__exceptions__NotImplementedException(hx_alloc_haxe__exceptions__NotImplementedException(nil), message, previous, pos)
+}
+
+func hx_alloc_haxe__exceptions__NotImplementedException(owner any) *haxe__exceptions__NotImplementedException {
 	self := &haxe__exceptions__NotImplementedException{}
-	self.haxe__exceptions__PosException = New_haxe__exceptions__PosException(func() *string {
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__exceptions__NotImplementedException)
+	}
+	self.haxe__exceptions__PosException = hx_alloc_haxe__exceptions__PosException(self.__hx_this)
+	return self
+}
+
+func hx_init_haxe__exceptions__NotImplementedException(self *haxe__exceptions__NotImplementedException, message *string, previous *haxe__Exception, pos hxrt.Anonymous) *haxe__exceptions__NotImplementedException {
+	hx_init_haxe__exceptions__PosException(self.haxe__exceptions__PosException, func() *string {
 		var hx_if_1 *string
 		if hxrt.StringEqualStringPtr(message, nil) {
 			hx_if_1 = hxrt.StringFromLiteral("Not implemented")
@@ -22,8 +46,6 @@ func New_haxe__exceptions__NotImplementedException(message *string, previous *hx
 		}
 		return hx_if_1
 	}(), previous, pos)
-	self.haxe__exceptions__PosException.__hx_this = self
-	self.__hx_this = self
 	return self
 }
 

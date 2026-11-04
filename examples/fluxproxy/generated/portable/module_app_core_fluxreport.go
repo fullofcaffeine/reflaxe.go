@@ -36,9 +36,25 @@ type app__core__FluxReport struct {
 	runtimeScore        int
 }
 
+func (self *app__core__FluxReport) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_app__core__FluxReport(profile *string, variant *string, capability *string, ingressReceived int, ingressAccepted int, ingressBackpressure int, proxyResponses int, proxyRetries int, rateLimitedCount int, breakerOpenCount int, routesCount int, routesSummary *string, errorsCount int, runtimeScore int) *app__core__FluxReport {
+	return hx_init_app__core__FluxReport(hx_alloc_app__core__FluxReport(nil), profile, variant, capability, ingressReceived, ingressAccepted, ingressBackpressure, proxyResponses, proxyRetries, rateLimitedCount, breakerOpenCount, routesCount, routesSummary, errorsCount, runtimeScore)
+}
+
+func hx_alloc_app__core__FluxReport(owner any) *app__core__FluxReport {
 	self := &app__core__FluxReport{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_app__core__FluxReport)
+	}
+	return self
+}
+
+func hx_init_app__core__FluxReport(self *app__core__FluxReport, profile *string, variant *string, capability *string, ingressReceived int, ingressAccepted int, ingressBackpressure int, proxyResponses int, proxyRetries int, rateLimitedCount int, breakerOpenCount int, routesCount int, routesSummary *string, errorsCount int, runtimeScore int) *app__core__FluxReport {
 	self.profile = profile
 	self.variant = variant
 	self.capability = capability

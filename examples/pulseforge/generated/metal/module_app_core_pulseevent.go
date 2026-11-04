@@ -12,9 +12,25 @@ type app__core__PulseEvent struct {
 	value     int
 }
 
+func (self *app__core__PulseEvent) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_app__core__PulseEvent(id int, source *string, region *string, value int) *app__core__PulseEvent {
+	return hx_init_app__core__PulseEvent(hx_alloc_app__core__PulseEvent(nil), id, source, region, value)
+}
+
+func hx_alloc_app__core__PulseEvent(owner any) *app__core__PulseEvent {
 	self := &app__core__PulseEvent{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_app__core__PulseEvent)
+	}
+	return self
+}
+
+func hx_init_app__core__PulseEvent(self *app__core__PulseEvent, id int, source *string, region *string, value int) *app__core__PulseEvent {
 	self.id = id
 	self.source = source
 	self.region = region

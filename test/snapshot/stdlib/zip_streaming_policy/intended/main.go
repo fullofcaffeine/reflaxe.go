@@ -4,24 +4,24 @@ import "snapshot/hxrt"
 
 func flushPolicy() *string {
 	fullCompressor := New_haxe__zip__Compress(6)
-	full := throws(func() {
+	full := throws(hxrt.NewFunction(func() {
 		fullCompressor.__hx_this.setFlushMode(haxe__zip__FlushMode_FULL)
-	})
+	}))
 	fullCompressor.__hx_this.close()
 	blockCompressor := New_haxe__zip__Compress(6)
-	block := throws(func() {
+	block := throws(hxrt.NewFunction(func() {
 		blockCompressor.__hx_this.setFlushMode(haxe__zip__FlushMode_BLOCK)
-	})
+	}))
 	blockCompressor.__hx_this.close()
 	fullInflater := New_haxe__zip__Uncompress(nil)
-	inflateFull := throws(func() {
+	inflateFull := throws(hxrt.NewFunction(func() {
 		fullInflater.__hx_this.setFlushMode(haxe__zip__FlushMode_FULL)
-	})
+	}))
 	fullInflater.__hx_this.close()
 	blockInflater := New_haxe__zip__Uncompress(nil)
-	inflateBlock := throws(func() {
+	inflateBlock := throws(hxrt.NewFunction(func() {
 		blockInflater.__hx_this.setFlushMode(haxe__zip__FlushMode_BLOCK)
-	})
+	}))
 	blockInflater.__hx_this.close()
 	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), hxrt.StdString(full)), hxrt.StringFromLiteral(":")), hxrt.StdString(block)), hxrt.StringFromLiteral(":")), hxrt.StdString(inflateFull)), hxrt.StringFromLiteral(":")), hxrt.StdString(inflateBlock))
 }
@@ -30,70 +30,64 @@ func lifecycleAndBounds(payload *haxe__io__Bytes) *string {
 	closedCompressor := New_haxe__zip__Compress(6)
 	closedCompressor.__hx_this.close()
 	closedCompressor.__hx_this.close()
-	compressClosed := throws(func() {
+	compressClosed := throws(hxrt.NewFunction(func() {
 		closedCompressor.__hx_this.execute(payload, 0, haxe__io__Bytes_alloc(16), 0)
-	})
+	}))
 	closedInflater := New_haxe__zip__Uncompress(nil)
 	closedInflater.__hx_this.close()
 	closedInflater.__hx_this.close()
-	inflateClosed := throws(func() {
+	inflateClosed := throws(hxrt.NewFunction(func() {
 		closedInflater.__hx_this.execute(payload, 0, haxe__io__Bytes_alloc(16), 0)
-	})
+	}))
 	compressor := New_haxe__zip__Compress(6)
-	compressBounds := throws(func() {
+	compressBounds := throws(hxrt.NewFunction(func() {
 		compressor.__hx_this.execute(payload, -1, haxe__io__Bytes_alloc(16), 0)
-	})
+	}))
 	zeroCompress := compressor.__hx_this.execute(payload, 0, haxe__io__Bytes_alloc(0), 0)
 	compressor.__hx_this.close()
 	inflater := New_haxe__zip__Uncompress(nil)
-	inflateBounds := throws(func() {
+	inflateBounds := throws(hxrt.NewFunction(func() {
 		inflater.__hx_this.execute(payload, 0, haxe__io__Bytes_alloc(16), 17)
-	})
+	}))
 	zeroInflate := inflater.__hx_this.execute(payload, 0, haxe__io__Bytes_alloc(0), 0)
 	inflater.__hx_this.close()
-	zeroCapacity := ((((((func(hx_obj_1 map[string]any) int {
-		hx_field_2 := hx_obj_1["read"]
-		if hx_field_2 == nil {
-			var hx_zero_3 int
-			return hx_zero_3
+	zeroCapacity := ((((((func(hx_value_1 any) int {
+		if hx_value_1 == nil {
+			var hx_zero_2 int
+			return hx_zero_2
 		}
-		return hx_field_2.(int)
-	}(zeroCompress) == 0) && (func(hx_obj_4 map[string]any) int {
-		hx_field_5 := hx_obj_4["write"]
-		if hx_field_5 == nil {
-			var hx_zero_6 int
+		return hx_value_1.(int)
+	}(hxrt.AnonymousGet(zeroCompress, "read")) == 0) && (func(hx_value_3 any) int {
+		if hx_value_3 == nil {
+			var hx_zero_4 int
+			return hx_zero_4
+		}
+		return hx_value_3.(int)
+	}(hxrt.AnonymousGet(zeroCompress, "write")) == 0)) && !func(hx_value_5 any) bool {
+		if hx_value_5 == nil {
+			var hx_zero_6 bool
 			return hx_zero_6
 		}
-		return hx_field_5.(int)
-	}(zeroCompress) == 0)) && !func(hx_obj_7 map[string]any) bool {
-		hx_field_8 := hx_obj_7["done"]
-		if hx_field_8 == nil {
-			var hx_zero_9 bool
-			return hx_zero_9
+		return hx_value_5.(bool)
+	}(hxrt.AnonymousGet(zeroCompress, "done"))) && (func(hx_value_7 any) int {
+		if hx_value_7 == nil {
+			var hx_zero_8 int
+			return hx_zero_8
 		}
-		return hx_field_8.(bool)
-	}(zeroCompress)) && (func(hx_obj_10 map[string]any) int {
-		hx_field_11 := hx_obj_10["read"]
-		if hx_field_11 == nil {
-			var hx_zero_12 int
+		return hx_value_7.(int)
+	}(hxrt.AnonymousGet(zeroInflate, "read")) == 0)) && (func(hx_value_9 any) int {
+		if hx_value_9 == nil {
+			var hx_zero_10 int
+			return hx_zero_10
+		}
+		return hx_value_9.(int)
+	}(hxrt.AnonymousGet(zeroInflate, "write")) == 0)) && !func(hx_value_11 any) bool {
+		if hx_value_11 == nil {
+			var hx_zero_12 bool
 			return hx_zero_12
 		}
-		return hx_field_11.(int)
-	}(zeroInflate) == 0)) && (func(hx_obj_13 map[string]any) int {
-		hx_field_14 := hx_obj_13["write"]
-		if hx_field_14 == nil {
-			var hx_zero_15 int
-			return hx_zero_15
-		}
-		return hx_field_14.(int)
-	}(zeroInflate) == 0)) && !func(hx_obj_16 map[string]any) bool {
-		hx_field_17 := hx_obj_16["done"]
-		if hx_field_17 == nil {
-			var hx_zero_18 bool
-			return hx_zero_18
-		}
-		return hx_field_17.(bool)
-	}(zeroInflate))
+		return hx_value_11.(bool)
+	}(hxrt.AnonymousGet(zeroInflate, "done")))
 	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), hxrt.StdString(compressClosed)), hxrt.StringFromLiteral(":")), hxrt.StdString(inflateClosed)), hxrt.StringFromLiteral(":")), hxrt.StdString(compressBounds)), hxrt.StringFromLiteral(":")), hxrt.StdString(inflateBounds)), hxrt.StringFromLiteral(":")), hxrt.StdString(zeroCapacity))
 }
 
@@ -117,34 +111,31 @@ func streamRoundTrip(payload *haxe__io__Bytes) *string {
 	for !compressDone {
 		destination := haxe__io__Bytes_alloc(4)
 		result := compressor.__hx_this.execute(payload, sourcePosition, destination, 0)
-		sourcePosition = int((hxrt.Int32Wrap(sourcePosition) + hxrt.Int32Wrap(func(hx_obj_19 map[string]any) int {
-			hx_field_20 := hx_obj_19["read"]
-			if hx_field_20 == nil {
-				var hx_zero_21 int
-				return hx_zero_21
+		sourcePosition = int((hxrt.Int32Wrap(sourcePosition) + hxrt.Int32Wrap(func(hx_value_13 any) int {
+			if hx_value_13 == nil {
+				var hx_zero_14 int
+				return hx_zero_14
 			}
-			return hx_field_20.(int)
-		}(result))))
-		len := func(hx_obj_22 map[string]any) int {
-			hx_field_23 := hx_obj_22["write"]
-			if hx_field_23 == nil {
-				var hx_zero_24 int
-				return hx_zero_24
+			return hx_value_13.(int)
+		}(hxrt.AnonymousGet(result, "read")))))
+		len := func(hx_value_15 any) int {
+			if hx_value_15 == nil {
+				var hx_zero_16 int
+				return hx_zero_16
 			}
-			return hx_field_23.(int)
-		}(result)
+			return hx_value_15.(int)
+		}(hxrt.AnonymousGet(result, "write"))
 		if (len < 0) || (len > destination.length) {
-			hxrt.Throw(haxe__io__Error_OutsideBounds)
+			hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 		}
 		compressedOutput.b = hxrt.BytesBufferAddSlice(compressedOutput.b, destination.__hx_this.getData(), 0, len)
-		compressDone = func(hx_obj_25 map[string]any) bool {
-			hx_field_26 := hx_obj_25["done"]
-			if hx_field_26 == nil {
-				var hx_zero_27 bool
-				return hx_zero_27
+		compressDone = func(hx_value_17 any) bool {
+			if hx_value_17 == nil {
+				var hx_zero_18 bool
+				return hx_zero_18
 			}
-			return hx_field_26.(bool)
-		}(result)
+			return hx_value_17.(bool)
+		}(hxrt.AnonymousGet(result, "done"))
 		compressCalls = int(int32((compressCalls + 1)))
 	}
 	compressor.__hx_this.close()
@@ -158,54 +149,107 @@ func streamRoundTrip(payload *haxe__io__Bytes) *string {
 	for !inflateDone {
 		destination_1 := haxe__io__Bytes_alloc(3)
 		result_1 := inflater.__hx_this.execute(compressed, compressedPosition, destination_1, 0)
-		compressedPosition = int((hxrt.Int32Wrap(compressedPosition) + hxrt.Int32Wrap(func(hx_obj_28 map[string]any) int {
-			hx_field_29 := hx_obj_28["read"]
-			if hx_field_29 == nil {
-				var hx_zero_30 int
-				return hx_zero_30
+		compressedPosition = int((hxrt.Int32Wrap(compressedPosition) + hxrt.Int32Wrap(func(hx_value_19 any) int {
+			if hx_value_19 == nil {
+				var hx_zero_20 int
+				return hx_zero_20
 			}
-			return hx_field_29.(int)
-		}(result_1))))
-		len_1 := func(hx_obj_31 map[string]any) int {
-			hx_field_32 := hx_obj_31["write"]
-			if hx_field_32 == nil {
-				var hx_zero_33 int
-				return hx_zero_33
+			return hx_value_19.(int)
+		}(hxrt.AnonymousGet(result_1, "read")))))
+		len_1 := func(hx_value_21 any) int {
+			if hx_value_21 == nil {
+				var hx_zero_22 int
+				return hx_zero_22
 			}
-			return hx_field_32.(int)
-		}(result_1)
+			return hx_value_21.(int)
+		}(hxrt.AnonymousGet(result_1, "write"))
 		if (len_1 < 0) || (len_1 > destination_1.length) {
-			hxrt.Throw(haxe__io__Error_OutsideBounds)
+			hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 		}
 		restoredOutput.b = hxrt.BytesBufferAddSlice(restoredOutput.b, destination_1.__hx_this.getData(), 0, len_1)
-		inflateDone = func(hx_obj_34 map[string]any) bool {
-			hx_field_35 := hx_obj_34["done"]
-			if hx_field_35 == nil {
-				var hx_zero_36 bool
-				return hx_zero_36
+		inflateDone = func(hx_value_23 any) bool {
+			if hx_value_23 == nil {
+				var hx_zero_24 bool
+				return hx_zero_24
 			}
-			return hx_field_35.(bool)
-		}(result_1)
+			return hx_value_23.(bool)
+		}(hxrt.AnonymousGet(result_1, "done"))
 		inflateCalls = int(int32((inflateCalls + 1)))
 	}
 	inflater.__hx_this.close()
 	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), hxrt.StdString(hxrt.StringEqualStringPtr(restoredOutput.__hx_this.getBytes().__hx_this.toString(), payload.__hx_this.toString()))), hxrt.StringFromLiteral(":")), hxrt.StdString((compressCalls > 1))), hxrt.StringFromLiteral(":")), hxrt.StdString((inflateCalls > 1)))
 }
 
-func throws(block func()) bool {
-	hx_try_return_37 := false
-	var hx_try_value_38 bool
+func throws(block *hxrt.Function[func()]) bool {
+	hx_try_return_25 := false
+	var hx_try_value_26 bool
 	hxrt.TryCatch(func() {
-		block()
-	}, func(hx_caught_39 any) {
-		hx_tmp := hx_caught_39
+		func() {
+			var hx_callable_30 *hxrt.Function[func()] = block
+			hxrt.FunctionCall(hx_callable_30)()
+		}()
+	}, func(hx_caught_27 any) {
+		hx_exception_28 := haxe__Exception_caught(hx_caught_27)
+		hx_payload_29 := haxe__Exception_catchValue(hx_caught_27)
+		_ = hx_exception_28
+		var hx_tmp any = hx_payload_29
 		_ = hx_tmp
-		hx_try_value_38 = true
-		hx_try_return_37 = true
+		hx_try_value_26 = true
+		hx_try_return_25 = true
 		return
 	})
-	if hx_try_return_37 {
-		return hx_try_value_38
+	if hx_try_return_25 {
+		return hx_try_value_26
 	}
 	return false
+}
+
+func hx_recover_class_0(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
+}
+
+func hx_recover_class_1(value any) *haxe__Exception {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__Exception:
+		return source
+	case *haxe__ValueException:
+		return source.haxe__Exception
+	default:
+		return value.(*haxe__Exception)
+	}
+}
+
+func hx_is_nominal_0(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_1(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__Exception:
+		return (source != nil)
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
 }

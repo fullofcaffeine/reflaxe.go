@@ -32,7 +32,7 @@ func sum(values []int) int {
 		hx_post_6 := _g_current
 		_g_current = int(int32((_g_current + 1)))
 		index := hx_post_6
-		value := hxrt.IntFromNullableAny(this1.Get(index))
+		value := hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(this1.Get(index)))
 		total = int((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(value)))
 	}
 	return total

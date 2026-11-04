@@ -11,9 +11,25 @@ type app__core__PulseEnrichedEvent struct {
 	weightedValue int
 }
 
+func (self *app__core__PulseEnrichedEvent) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_app__core__PulseEnrichedEvent(event *app__core__PulseEvent, severity int, weightedValue int) *app__core__PulseEnrichedEvent {
+	return hx_init_app__core__PulseEnrichedEvent(hx_alloc_app__core__PulseEnrichedEvent(nil), event, severity, weightedValue)
+}
+
+func hx_alloc_app__core__PulseEnrichedEvent(owner any) *app__core__PulseEnrichedEvent {
 	self := &app__core__PulseEnrichedEvent{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_app__core__PulseEnrichedEvent)
+	}
+	return self
+}
+
+func hx_init_app__core__PulseEnrichedEvent(self *app__core__PulseEnrichedEvent, event *app__core__PulseEvent, severity int, weightedValue int) *app__core__PulseEnrichedEvent {
 	self.event = event
 	self.severity = severity
 	self.weightedValue = weightedValue

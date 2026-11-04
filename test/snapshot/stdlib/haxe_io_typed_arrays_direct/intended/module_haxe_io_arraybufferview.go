@@ -23,7 +23,7 @@ func haxe__io___ArrayBufferView__ArrayBufferView_Impl__fromBytes(bytes *haxe__io
 	}
 	resolvedLength := hx_if_1
 	if ((pos < 0) || (resolvedLength < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(resolvedLength))) > bytes.length) {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	a := New_haxe__io__ArrayBufferViewImpl(bytes, pos, resolvedLength)
 	return a
@@ -71,9 +71,25 @@ type haxe__io__ArrayBufferViewImpl struct {
 	byteLength int
 }
 
+func (self *haxe__io__ArrayBufferViewImpl) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe__io__ArrayBufferViewImpl(bytes *haxe__io__Bytes, pos int, length int) *haxe__io__ArrayBufferViewImpl {
+	return hx_init_haxe__io__ArrayBufferViewImpl(hx_alloc_haxe__io__ArrayBufferViewImpl(nil), bytes, pos, length)
+}
+
+func hx_alloc_haxe__io__ArrayBufferViewImpl(owner any) *haxe__io__ArrayBufferViewImpl {
 	self := &haxe__io__ArrayBufferViewImpl{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__io__ArrayBufferViewImpl)
+	}
+	return self
+}
+
+func hx_init_haxe__io__ArrayBufferViewImpl(self *haxe__io__ArrayBufferViewImpl, bytes *haxe__io__Bytes, pos int, length int) *haxe__io__ArrayBufferViewImpl {
 	self.bytes = bytes
 	self.byteOffset = pos
 	self.byteLength = length
@@ -89,7 +105,7 @@ func (self *haxe__io__ArrayBufferViewImpl) sub(begin int, length any) *haxe__io_
 	}
 	resolvedLength := hx_if_2
 	if ((begin < 0) || (resolvedLength < 0)) || (int((hxrt.Int32Wrap(begin) + hxrt.Int32Wrap(resolvedLength))) > self.byteLength) {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	return New_haxe__io__ArrayBufferViewImpl(self.bytes, int((hxrt.Int32Wrap(self.byteOffset) + hxrt.Int32Wrap(begin))), resolvedLength)
 }

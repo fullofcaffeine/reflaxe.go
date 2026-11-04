@@ -8,111 +8,160 @@ func main() {
 	hxrt.Println(v)
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("format.pos="), haxe__Log_formatOutput(hxrt.StringFromLiteral("value"), manual)))
 	hxrt.Println(v_1)
-	func(hx_fn func(any, map[string]any), hx_arg_0 any, hx_arg_1 map[string]any) {
-		if hx_fn == nil {
-			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null function"))
-			return
-		}
-		hx_fn(hx_arg_0, hx_arg_1)
-	}(haxe__Log_trace, hxrt.StringFromLiteral("default"), manual)
+	func() {
+		var hx_callable_1 *hxrt.Function[func(any, hxrt.Anonymous)] = haxe__Log_trace
+		var hx_argument_2 any = hxrt.StringFromLiteral("default")
+		var hx_argument_3 hxrt.Anonymous = manual
+		hxrt.FunctionCall(hx_callable_1)(hx_argument_2, hx_argument_3)
+	}()
 	original := haxe__Log_trace
-	haxe__Log_trace = func(value any, infos map[string]any) {
+	haxe__Log_trace = hxrt.NewFunction(func(value any, infos hxrt.Anonymous) {
 		var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("custom.value="), hxrt.StdString(value)))
 		hxrt.Println(v)
-		var hx_if_7 int
-		if (infos == nil) || (func(hx_obj_1 map[string]any) *hxrt.Array {
-			hx_field_2 := hx_obj_1["customParams"]
-			if hx_field_2 == nil {
-				var hx_zero_3 *hxrt.Array
-				return hx_zero_3
+		var hx_if_8 int
+		if (infos == nil) || (func(hx_value_4 any) *hxrt.Array {
+			if hx_value_4 == nil {
+				var hx_zero_5 *hxrt.Array
+				return hx_zero_5
 			}
-			return hx_field_2.(*hxrt.Array)
-		}(infos) == nil) {
-			hx_if_7 = -1
+			return hx_value_4.(*hxrt.Array)
+		}(hxrt.AnonymousGet(infos, "customParams")) == nil) {
+			hx_if_8 = -1
 		} else {
-			hx_if_7 = func(hx_obj_4 map[string]any) *hxrt.Array {
-				hx_field_5 := hx_obj_4["customParams"]
-				if hx_field_5 == nil {
-					var hx_zero_6 *hxrt.Array
-					return hx_zero_6
+			hx_if_8 = func(hx_value_6 any) *hxrt.Array {
+				if hx_value_6 == nil {
+					var hx_zero_7 *hxrt.Array
+					return hx_zero_7
 				}
-				return hx_field_5.(*hxrt.Array)
-			}(infos).Len()
+				return hx_value_6.(*hxrt.Array)
+			}(hxrt.AnonymousGet(infos, "customParams")).Len()
 		}
-		count := hx_if_7
-		var v_1 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("custom.info="), hxrt.StdString((infos != nil))), hxrt.StringFromLiteral(":")), func(hx_obj_8 map[string]any) *string {
-			hx_field_9 := hx_obj_8["className"]
-			if hx_field_9 == nil {
+		count := hx_if_8
+		var v_1 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("custom.info="), hxrt.StdString((infos != nil))), hxrt.StringFromLiteral(":")), func(hx_value_9 any) *string {
+			if hx_value_9 == nil {
 				var hx_zero_10 *string
 				return hx_zero_10
 			}
-			return hx_field_9.(*string)
-		}(infos)), hxrt.StringFromLiteral(":")), func(hx_obj_11 map[string]any) *string {
-			hx_field_12 := hx_obj_11["methodName"]
-			if hx_field_12 == nil {
-				var hx_zero_13 *string
-				return hx_zero_13
+			return hx_value_9.(*string)
+		}(hxrt.AnonymousGet(infos, "className"))), hxrt.StringFromLiteral(":")), func(hx_value_11 any) *string {
+			if hx_value_11 == nil {
+				var hx_zero_12 *string
+				return hx_zero_12
 			}
-			return hx_field_12.(*string)
-		}(infos)), hxrt.StringFromLiteral(":")), hxrt.StdString(hxrt.StringEqualStringPtr(func(hx_obj_14 map[string]any) *string {
-			hx_field_15 := hx_obj_14["fileName"]
-			if hx_field_15 == nil {
-				var hx_zero_16 *string
-				return hx_zero_16
+			return hx_value_11.(*string)
+		}(hxrt.AnonymousGet(infos, "methodName"))), hxrt.StringFromLiteral(":")), hxrt.StdString(hxrt.StringEqualStringPtr(func(hx_value_13 any) *string {
+			if hx_value_13 == nil {
+				var hx_zero_14 *string
+				return hx_zero_14
 			}
-			return hx_field_15.(*string)
-		}(infos), hxrt.StringFromLiteral("Main.hx")))), hxrt.StringFromLiteral(":")), count))
+			return hx_value_13.(*string)
+		}(hxrt.AnonymousGet(infos, "fileName")), hxrt.StringFromLiteral("Main.hx")))), hxrt.StringFromLiteral(":")), count))
 		hxrt.Println(v_1)
-	}
-	func(hx_fn func(any, map[string]any), hx_arg_0 any, hx_arg_1 map[string]any) {
-		if hx_fn == nil {
-			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null function"))
-			return
-		}
-		hx_fn(hx_arg_0, hx_arg_1)
-	}(haxe__Log_trace, hxrt.StringFromLiteral("rebound"), func() map[string]any {
-		hx_obj_17 := map[string]any{}
-		hx_obj_17["fileName"] = hxrt.StringFromLiteral("Main.hx")
-		hx_obj_17["lineNumber"] = 35
-		hx_obj_17["className"] = hxrt.StringFromLiteral("Main")
-		hx_obj_17["methodName"] = hxrt.StringFromLiteral("main")
-		hx_obj_17["customParams"] = hxrt.NewArray(hxrt.StringFromLiteral("tail"), nil)
-		return hx_obj_17
-	}())
+	})
+	func() {
+		var hx_callable_16 *hxrt.Function[func(any, hxrt.Anonymous)] = haxe__Log_trace
+		var hx_argument_17 any = hxrt.StringFromLiteral("rebound")
+		var hx_argument_18 hxrt.Anonymous = func() hxrt.Anonymous {
+			hx_obj_15 := map[string]any{}
+			hx_obj_15["fileName"] = hxrt.StringFromLiteral("Main.hx")
+			hx_obj_15["lineNumber"] = 35
+			hx_obj_15["className"] = hxrt.StringFromLiteral("Main")
+			hx_obj_15["methodName"] = hxrt.StringFromLiteral("main")
+			hx_obj_15["customParams"] = hxrt.NewArray(hxrt.StringFromLiteral("tail"), nil)
+			return hxrt.AnonymousFromMap(hx_obj_15)
+		}()
+		hxrt.FunctionCall(hx_callable_16)(hx_argument_17, hx_argument_18)
+	}()
 	haxe__Log_trace = original
 	direct := haxe__Log_trace
-	direct(hxrt.StringFromLiteral("function.value"), nil)
+	func() {
+		var hx_callable_19 *hxrt.Function[func(any, hxrt.Anonymous)] = direct
+		var hx_argument_20 any = hxrt.StringFromLiteral("function.value")
+		var hx_argument_21 hxrt.Anonymous = nil
+		hxrt.FunctionCall(hx_callable_19)(hx_argument_20, hx_argument_21)
+	}()
 	haxe__Log_trace = nil
 	hxrt.TryCatch(func() {
-		func(hx_fn func(any, map[string]any), hx_arg_0 any, hx_arg_1 map[string]any) {
-			if hx_fn == nil {
-				hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null function"))
-				return
-			}
-			hx_fn(hx_arg_0, hx_arg_1)
-		}(haxe__Log_trace, hxrt.StringFromLiteral("ignored"), nil)
+		func() {
+			var hx_callable_25 *hxrt.Function[func(any, hxrt.Anonymous)] = haxe__Log_trace
+			var hx_argument_26 any = hxrt.StringFromLiteral("ignored")
+			var hx_argument_27 hxrt.Anonymous = nil
+			hxrt.FunctionCall(hx_callable_25)(hx_argument_26, hx_argument_27)
+		}()
 		hxrt.Println(any(hxrt.StringFromLiteral("null=no-throw")))
-	}, func(hx_caught_18 any) {
-		hx_tmp := hx_caught_18
+	}, func(hx_caught_22 any) {
+		hx_exception_23 := haxe__Exception_caught(hx_caught_22)
+		hx_payload_24 := haxe__Exception_catchValue(hx_caught_22)
+		_ = hx_exception_23
+		var hx_tmp any = hx_payload_24
 		_ = hx_tmp
 		hxrt.Println(any(hxrt.StringFromLiteral("null=throws")))
 	})
 	haxe__Log_trace = original
-	func(hx_fn func(any, map[string]any), hx_arg_0 any, hx_arg_1 map[string]any) {
-		if hx_fn == nil {
-			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null function"))
-			return
-		}
-		hx_fn(hx_arg_0, hx_arg_1)
-	}(haxe__Log_trace, hxrt.StringFromLiteral("restored"), nil)
+	func() {
+		var hx_callable_28 *hxrt.Function[func(any, hxrt.Anonymous)] = haxe__Log_trace
+		var hx_argument_29 any = hxrt.StringFromLiteral("restored")
+		var hx_argument_30 hxrt.Anonymous = nil
+		hxrt.FunctionCall(hx_callable_28)(hx_argument_29, hx_argument_30)
+	}()
 }
 
-func position(fileName *string, lineNumber int, customParams *hxrt.Array) map[string]any {
-	hx_obj_20 := map[string]any{}
-	hx_obj_20["fileName"] = fileName
-	hx_obj_20["lineNumber"] = lineNumber
-	hx_obj_20["className"] = hxrt.StringFromLiteral("Main")
-	hx_obj_20["methodName"] = hxrt.StringFromLiteral("main")
-	hx_obj_20["customParams"] = customParams
-	return hx_obj_20
+func position(fileName *string, lineNumber int, customParams *hxrt.Array) hxrt.Anonymous {
+	hx_obj_31 := map[string]any{}
+	hx_obj_31["fileName"] = fileName
+	hx_obj_31["lineNumber"] = lineNumber
+	hx_obj_31["className"] = hxrt.StringFromLiteral("Main")
+	hx_obj_31["methodName"] = hxrt.StringFromLiteral("main")
+	hx_obj_31["customParams"] = customParams
+	return hxrt.AnonymousFromMap(hx_obj_31)
+}
+
+func hx_recover_class_0(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
+}
+
+func hx_recover_class_1(value any) *haxe__Exception {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__Exception:
+		return source
+	case *haxe__ValueException:
+		return source.haxe__Exception
+	default:
+		return value.(*haxe__Exception)
+	}
+}
+
+func hx_is_nominal_0(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_1(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__Exception:
+		return (source != nil)
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
 }

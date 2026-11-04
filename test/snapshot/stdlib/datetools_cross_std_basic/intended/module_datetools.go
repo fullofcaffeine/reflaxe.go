@@ -178,7 +178,7 @@ func DateTools___format_get(d *Date, e *string) *string {
 	if hxrt.StringEqualStringPtr(e, hxrt.StringFromLiteral("Y")) {
 		return hxrt.StdString(d.__hx_this.getFullYear())
 	}
-	hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Date.format %"), e), hxrt.StringFromLiteral(" not implemented yet.")))
+	hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Date.format %"), e), hxrt.StringFromLiteral(" not implemented yet."))))
 	var hx_throw_zero_14 *string
 	return hx_throw_zero_14
 }
@@ -215,60 +215,55 @@ func DateTools_hours(n float64) float64 {
 	return (((n * 60.0) * 60.0) * 1000.0)
 }
 
-func DateTools_make(o map[string]any) float64 {
-	return (func(hx_obj_16 map[string]any) float64 {
-		hx_field_17 := hx_obj_16["ms"]
-		if hx_field_17 == nil {
-			var hx_zero_18 float64
-			return hx_zero_18
+func DateTools_make(o hxrt.Anonymous) float64 {
+	return (func(hx_value_16 any) float64 {
+		if hx_value_16 == nil {
+			var hx_zero_17 float64
+			return hx_zero_17
 		}
-		return hx_field_17.(float64)
-	}(o) + (1000.0 * (float64(func(hx_obj_19 map[string]any) int {
-		hx_field_20 := hx_obj_19["seconds"]
-		if hx_field_20 == nil {
+		return hx_value_16.(float64)
+	}(hxrt.AnonymousGet(o, "ms")) + (1000.0 * (float64(func(hx_value_18 any) int {
+		if hx_value_18 == nil {
+			var hx_zero_19 int
+			return hx_zero_19
+		}
+		return hx_value_18.(int)
+	}(hxrt.AnonymousGet(o, "seconds"))) + (60.0 * (float64(func(hx_value_20 any) int {
+		if hx_value_20 == nil {
 			var hx_zero_21 int
 			return hx_zero_21
 		}
-		return hx_field_20.(int)
-	}(o)) + (60.0 * (float64(func(hx_obj_22 map[string]any) int {
-		hx_field_23 := hx_obj_22["minutes"]
-		if hx_field_23 == nil {
-			var hx_zero_24 int
-			return hx_zero_24
+		return hx_value_20.(int)
+	}(hxrt.AnonymousGet(o, "minutes"))) + (60.0 * (float64(func(hx_value_22 any) int {
+		if hx_value_22 == nil {
+			var hx_zero_23 int
+			return hx_zero_23
 		}
-		return hx_field_23.(int)
-	}(o)) + (60.0 * (float64(func(hx_obj_25 map[string]any) int {
-		hx_field_26 := hx_obj_25["hours"]
-		if hx_field_26 == nil {
-			var hx_zero_27 int
-			return hx_zero_27
+		return hx_value_22.(int)
+	}(hxrt.AnonymousGet(o, "hours"))) + (24.0 * float64(func(hx_value_24 any) int {
+		if hx_value_24 == nil {
+			var hx_zero_25 int
+			return hx_zero_25
 		}
-		return hx_field_26.(int)
-	}(o)) + (24.0 * float64(func(hx_obj_28 map[string]any) int {
-		hx_field_29 := hx_obj_28["days"]
-		if hx_field_29 == nil {
-			var hx_zero_30 int
-			return hx_zero_30
-		}
-		return hx_field_29.(int)
-	}(o))))))))))
+		return hx_value_24.(int)
+	}(hxrt.AnonymousGet(o, "days")))))))))))
 }
 
 func DateTools_minutes(n float64) float64 {
 	return ((n * 60.0) * 1000.0)
 }
 
-func DateTools_parse(t float64) map[string]any {
+func DateTools_parse(t float64) hxrt.Anonymous {
 	s := (t / float64(1000))
 	m := (s / float64(60))
 	h := (m / float64(60))
-	hx_obj_31 := map[string]any{}
-	hx_obj_31["ms"] = hxrt.FloatMod(t, float64(1000))
-	hx_obj_31["seconds"] = hxrt.MathFloorInt(hxrt.FloatMod(s, float64(60)))
-	hx_obj_31["minutes"] = hxrt.MathFloorInt(hxrt.FloatMod(m, float64(60)))
-	hx_obj_31["hours"] = hxrt.MathFloorInt(hxrt.FloatMod(h, float64(24)))
-	hx_obj_31["days"] = hxrt.MathFloorInt((h / float64(24)))
-	return hx_obj_31
+	hx_obj_26 := map[string]any{}
+	hx_obj_26["ms"] = hxrt.FloatMod(t, float64(1000))
+	hx_obj_26["seconds"] = hxrt.MathFloorInt(hxrt.FloatMod(s, float64(60)))
+	hx_obj_26["minutes"] = hxrt.MathFloorInt(hxrt.FloatMod(m, float64(60)))
+	hx_obj_26["hours"] = hxrt.MathFloorInt(hxrt.FloatMod(h, float64(24)))
+	hx_obj_26["days"] = hxrt.MathFloorInt((h / float64(24)))
+	return hxrt.AnonymousFromMap(hx_obj_26)
 }
 
 func DateTools_seconds(n float64) float64 {

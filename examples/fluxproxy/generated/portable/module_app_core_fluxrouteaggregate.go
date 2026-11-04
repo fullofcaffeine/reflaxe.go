@@ -17,9 +17,25 @@ type app__core__FluxRouteAggregate struct {
 	totalLatencyMs int
 }
 
+func (self *app__core__FluxRouteAggregate) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_app__core__FluxRouteAggregate(route *string) *app__core__FluxRouteAggregate {
+	return hx_init_app__core__FluxRouteAggregate(hx_alloc_app__core__FluxRouteAggregate(nil), route)
+}
+
+func hx_alloc_app__core__FluxRouteAggregate(owner any) *app__core__FluxRouteAggregate {
 	self := &app__core__FluxRouteAggregate{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_app__core__FluxRouteAggregate)
+	}
+	return self
+}
+
+func hx_init_app__core__FluxRouteAggregate(self *app__core__FluxRouteAggregate, route *string) *app__core__FluxRouteAggregate {
 	self.route = route
 	self.count = 0
 	self.successCount = 0

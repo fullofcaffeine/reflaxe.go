@@ -12,9 +12,25 @@ type haxe__Utf8 struct {
 	__b       *string
 }
 
+func (self *haxe__Utf8) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe__Utf8(size int) *haxe__Utf8 {
+	return hx_init_haxe__Utf8(hx_alloc_haxe__Utf8(nil), size)
+}
+
+func hx_alloc_haxe__Utf8(owner any) *haxe__Utf8 {
 	self := &haxe__Utf8{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__Utf8)
+	}
+	return self
+}
+
+func hx_init_haxe__Utf8(self *haxe__Utf8, size int) *haxe__Utf8 {
 	self.__b = hxrt.StringFromLiteral("")
 	return self
 }
@@ -146,7 +162,7 @@ func haxe__Utf8_encode(s *string) *string {
 	return out
 }
 
-func haxe__Utf8_iter(s *string, chars func(int)) {
+func haxe__Utf8_iter(s *string, chars *hxrt.Function[func(int)]) {
 	var unicode any = s
 	_g := 0
 	_g1 := hxrt.StringLengthStringPtr(hxrt.StdString(func(hx_value_11 any) *string {
@@ -160,7 +176,11 @@ func haxe__Utf8_iter(s *string, chars func(int)) {
 		hx_post_13 := _g
 		_g = int(int32((_g + 1)))
 		index := hx_post_13
-		chars(hxrt.StringCharCodeAtStringPtr(s, index))
+		func() {
+			var hx_callable_14 *hxrt.Function[func(int)] = chars
+			var hx_argument_15 int = hxrt.StringCharCodeAtStringPtr(s, index)
+			hxrt.FunctionCall(hx_callable_14)(hx_argument_15)
+		}()
 	}
 }
 

@@ -7,14 +7,14 @@ import (
 
 func haxe__Int64Helper_fromFloat(f float64) *haxe___Int64_____Int64 {
 	if math.IsNaN(f) || !(!math.IsInf(f, 0) && !math.IsNaN(f)) {
-		hxrt.Throw(hxrt.StringFromLiteral("Number is NaN or Infinite"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Number is NaN or Infinite")))
 	}
 	noFractions := (f - hxrt.FloatMod(f, float64(1)))
 	if noFractions > 9007199254740991 {
-		hxrt.Throw(hxrt.StringFromLiteral("Conversion overflow"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Conversion overflow")))
 	}
 	if noFractions < -9007199254740991 {
-		hxrt.Throw(hxrt.StringFromLiteral("Conversion underflow"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Conversion underflow")))
 	}
 	x := New_haxe___Int64_____Int64(0, 0)
 	var this1 *haxe___Int64_____Int64
@@ -128,7 +128,7 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 		i := hx_post_6
 		digitInt := int((hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(s, int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(len)-hxrt.Int32Wrap(1))))-hxrt.Int32Wrap(i))))))) - hxrt.Int32Wrap(48)))
 		if (digitInt < 0) || (digitInt > 9) {
-			hxrt.Throw(hxrt.StringFromLiteral("NumberFormatError"))
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("NumberFormatError")))
 		}
 		if digitInt != 0 {
 			var digit_low int
@@ -184,7 +184,7 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 				this1_2 = x_2
 				current = this1_2
 				if !(current.high < 0) {
-					hxrt.Throw(hxrt.StringFromLiteral("NumberFormatError: Underflow"))
+					hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("NumberFormatError: Underflow")))
 				}
 			} else {
 				var b_low_1 int
@@ -235,7 +235,7 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 				this1_3 = x_3
 				current = this1_3
 				if current.high < 0 {
-					hxrt.Throw(hxrt.StringFromLiteral("NumberFormatError: Overflow"))
+					hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("NumberFormatError: Overflow")))
 				}
 			}
 		}

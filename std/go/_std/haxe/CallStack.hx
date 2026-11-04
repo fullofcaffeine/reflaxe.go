@@ -1,3 +1,25 @@
+/*
+ * Copyright (C)2005-2019 Haxe Foundation
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+
 package haxe;
 
 #if reflaxe_go_native_stack_trace
@@ -67,7 +89,25 @@ abstract CallStack(Array<StackItem>) from Array<StackItem> {
 	}
 
 	public function subtract(stack:CallStack):CallStack {
-		return this;
+		var startIndex = -1;
+		var i = -1;
+		while (++i < this.length) {
+			for (j in 0...stack.length) {
+				if (equalItems(this[i], stack[j])) {
+					if (startIndex < 0) {
+						startIndex = i;
+					}
+					++i;
+					if (i >= this.length)
+						break;
+				} else {
+					startIndex = -1;
+				}
+			}
+			if (startIndex >= 0)
+				break;
+		}
+		return startIndex >= 0 ? this.slice(0, startIndex) : this;
 	}
 
 	public inline function copy():CallStack {
@@ -82,8 +122,41 @@ abstract CallStack(Array<StackItem>) from Array<StackItem> {
 		return this;
 	}
 
-	static function exceptionToString(e:Exception):String {
-		return "Exception: " + e.toString();
+	static function equalItems(item1:Null<StackItem>, item2:Null<StackItem>):Bool {
+		return switch ([item1, item2]) {
+			case [null, null]: true;
+			case [CFunction, CFunction]: true;
+			case [Module(m1), Module(m2)]:
+				m1 == m2;
+			case [
+				FilePos(nestedLeft, file1, line1, col1),
+				FilePos(nestedRight, file2, line2, col2)
+			]: file1 == file2 && line1 == line2 && col1 == col2 && equalItems(nestedLeft, nestedRight);
+			case [Method(class1, method1), Method(class2, method2)]: class1 == class2 && method1 == method2;
+			case [LocalFunction(v1), LocalFunction(v2)]:
+				v1 == v2;
+			case _: false;
+		}
+	}
+
+	static function exceptionToString(exception:Exception):String {
+		if (exception.previous == null) {
+			return 'Exception: ${exception.toString()}${exception.stack}';
+		}
+		var result = '';
+		var e:Null<Exception> = exception;
+		var prev:Null<Exception> = null;
+		while (e != null) {
+			if (prev == null) {
+				result = 'Exception: ${e.message}${e.stack}' + result;
+			} else {
+				var prevStack = @:privateAccess e.stack.subtract(prev.stack);
+				result = 'Exception: ${e.message}${prevStack}\n\nNext ' + result;
+			}
+			prev = e;
+			e = e.previous;
+		}
+		return result;
 	}
 
 	static function itemToString(item:StackItem):String {

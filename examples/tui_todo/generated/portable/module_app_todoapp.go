@@ -23,9 +23,25 @@ type app__TodoApp struct {
 	store     *model__TodoStore
 }
 
+func (self *app__TodoApp) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_app__TodoApp(runtime profile__TodoRuntime) *app__TodoApp {
+	return hx_init_app__TodoApp(hx_alloc_app__TodoApp(nil), runtime)
+}
+
+func hx_alloc_app__TodoApp(owner any) *app__TodoApp {
 	self := &app__TodoApp{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_app__TodoApp)
+	}
+	return self
+}
+
+func hx_init_app__TodoApp(self *app__TodoApp, runtime profile__TodoRuntime) *app__TodoApp {
 	self.runtime = runtime
 	self.store = New_model__TodoStore()
 	return self
@@ -89,13 +105,7 @@ func (self *app__TodoApp) buildRuntimeMetrics() *profile__TodoRuntimeMetrics {
 	p1 := 0
 	_g := 0
 	for _g < items.Len() {
-		item := func(hx_value_3 any) *model__TodoItem {
-			if hx_value_3 == nil {
-				var hx_zero_4 *model__TodoItem
-				return hx_zero_4
-			}
-			return hx_value_3.(*model__TodoItem)
-		}(items.Get(_g))
+		item := hx_recover_class_1(items.Get(_g))
 		_g = int(int32((_g + 1)))
 		if item.done {
 			done = int(int32((done + 1)))
@@ -112,13 +122,7 @@ func (self *app__TodoApp) render() *string {
 	items := self.store.list()
 	_g := 0
 	for _g < items.Len() {
-		item := func(hx_value_5 any) *model__TodoItem {
-			if hx_value_5 == nil {
-				var hx_zero_6 *model__TodoItem
-				return hx_zero_6
-			}
-			return hx_value_5.(*model__TodoItem)
-		}(items.Get(_g))
+		item := hx_recover_class_1(items.Get(_g))
 		_g = int(int32((_g + 1)))
 		state := hxrt.StringFromLiteral("[ ]")
 		if item.done {
@@ -143,12 +147,12 @@ func app__TodoApp_joinStringList(values *hxrt.Array, separator *string) *string 
 	first := true
 	_g := 0
 	for _g < values.Len() {
-		value := func(hx_value_7 any) *string {
-			if hx_value_7 == nil {
-				var hx_zero_8 *string
-				return hx_zero_8
+		value := func(hx_value_3 any) *string {
+			if hx_value_3 == nil {
+				var hx_zero_4 *string
+				return hx_zero_4
 			}
-			return hx_value_7.(*string)
+			return hx_value_3.(*string)
 		}(values.Get(_g))
 		_g = int(int32((_g + 1)))
 		if !first {

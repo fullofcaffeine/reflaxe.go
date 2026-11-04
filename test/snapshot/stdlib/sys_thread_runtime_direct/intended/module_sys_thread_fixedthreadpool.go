@@ -5,7 +5,7 @@ import "snapshot/hxrt"
 type I_sys__thread__FixedThreadPool interface {
 	get_threadsCount() int
 	get_isShutdown() bool
-	run(task func())
+	run(task *hxrt.Function[func()])
 	shutdown()
 }
 
@@ -19,14 +19,30 @@ type sys__thread__FixedThreadPool struct {
 	mutex        *sys__thread__Mutex
 }
 
+func (self *sys__thread__FixedThreadPool) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_sys__thread__FixedThreadPool(threadsCount int) *sys__thread__FixedThreadPool {
+	return hx_init_sys__thread__FixedThreadPool(hx_alloc_sys__thread__FixedThreadPool(nil), threadsCount)
+}
+
+func hx_alloc_sys__thread__FixedThreadPool(owner any) *sys__thread__FixedThreadPool {
 	self := &sys__thread__FixedThreadPool{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_sys__thread__FixedThreadPool)
+	}
+	return self
+}
+
+func hx_init_sys__thread__FixedThreadPool(self *sys__thread__FixedThreadPool, threadsCount int) *sys__thread__FixedThreadPool {
 	self.mutex = New_sys__thread__Mutex()
 	self.queue = New_sys__thread__Deque()
 	self._isShutdown = false
 	if threadsCount < 1 {
-		hxrt.Throw(New_sys__thread__ThreadPoolException(hxrt.StringFromLiteral("FixedThreadPool needs threadsCount to be at least 1."), nil, nil))
+		hxrt.Throw(haxe__Exception_thrown(New_sys__thread__ThreadPoolException(hxrt.StringFromLiteral("FixedThreadPool needs threadsCount to be at least 1."), nil, nil)))
 	}
 	workers := hxrt.NewArray()
 	_g := 0
@@ -53,15 +69,15 @@ func (self *sys__thread__FixedThreadPool) get_isShutdown() bool {
 	return result
 }
 
-func (self *sys__thread__FixedThreadPool) run(task func()) {
+func (self *sys__thread__FixedThreadPool) run(task *hxrt.Function[func()]) {
 	self.mutex.__hx_this.acquire()
 	if self._isShutdown {
 		self.mutex.__hx_this.release()
-		hxrt.Throw(New_sys__thread__ThreadPoolException(hxrt.StringFromLiteral("Task is rejected. Thread pool is shut down."), nil, nil))
+		hxrt.Throw(haxe__Exception_thrown(New_sys__thread__ThreadPoolException(hxrt.StringFromLiteral("Task is rejected. Thread pool is shut down."), nil, nil)))
 	}
 	if task == nil {
 		self.mutex.__hx_this.release()
-		hxrt.Throw(New_sys__thread__ThreadPoolException(hxrt.StringFromLiteral("Task to run must not be null."), nil, nil))
+		hxrt.Throw(haxe__Exception_thrown(New_sys__thread__ThreadPoolException(hxrt.StringFromLiteral("Task to run must not be null."), nil, nil)))
 	}
 	self.queue.__hx_this.add(task)
 	self.mutex.__hx_this.release()
@@ -77,20 +93,14 @@ func (self *sys__thread__FixedThreadPool) shutdown() {
 	_g := 0
 	_g1 := self.pool
 	for _g < _g1.Len() {
-		hx_tmp := func(hx_value_3 any) *sys__thread__FixedThreadPoolWorker {
-			if hx_value_3 == nil {
-				var hx_zero_4 *sys__thread__FixedThreadPoolWorker
-				return hx_zero_4
-			}
-			return hx_value_3.(*sys__thread__FixedThreadPoolWorker)
-		}(_g1.Get(_g))
+		hx_tmp := hx_recover_class_3(_g1.Get(_g))
 		_ = hx_tmp
 		_g = int(int32((_g + 1)))
-		self.queue.__hx_this.add(sys__thread__FixedThreadPool_shutdownTask)
+		self.queue.__hx_this.add(hxrt.NamedFunction(sys__thread__FixedThreadPool_shutdownTask, "sys.thread.FixedThreadPool.shutdownTask"))
 	}
 	self.mutex.__hx_this.release()
 }
 
 func sys__thread__FixedThreadPool_shutdownTask() {
-	hxrt.Throw(New_sys__thread__FixedThreadPoolShutdownException(hxrt.StringFromLiteral(""), nil, nil))
+	hxrt.Throw(haxe__Exception_thrown(New_sys__thread__FixedThreadPoolShutdownException(hxrt.StringFromLiteral(""), nil, nil)))
 }

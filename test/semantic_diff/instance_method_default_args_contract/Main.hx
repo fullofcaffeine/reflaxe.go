@@ -5,6 +5,10 @@ class Greeter {
 		return "hello " + name + punct;
 	}
 
+	public function add(value:Int = 5):Int {
+		return value + 1;
+	}
+
 	public function wrap(prefix:String = "[", suffix:String = "]"):String {
 		return prefix + "go" + suffix;
 	}
@@ -19,5 +23,8 @@ class Main {
 		Sys.println(greeter.wrap());
 		Sys.println(greeter.wrap("<"));
 		Sys.println(greeter.wrap("<", ">"));
+		final greet = greeter.greet;
+		final add = greeter.add;
+		Sys.println("bound=" + greet() + ":" + greet("Haxe") + ":" + add() + ":" + add(8));
 	}
 }

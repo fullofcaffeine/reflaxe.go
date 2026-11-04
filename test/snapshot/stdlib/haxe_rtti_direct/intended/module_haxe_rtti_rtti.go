@@ -2,21 +2,21 @@ package main
 
 import "snapshot/hxrt"
 
-func haxe__rtti__Rtti_getRtti(c any) map[string]any {
+func haxe__rtti__Rtti_getRtti(c any) hxrt.Anonymous {
 	var rtti any = Reflect_field(c, hxrt.StringFromLiteral("__rtti"))
 	if hxrt.AnyEqualsNull(rtti) {
-		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Class "), Type_getClassName(c)), hxrt.StringFromLiteral(" has no RTTI information, consider adding @:rtti")))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Class "), Type_getClassName(c)), hxrt.StringFromLiteral(" has no RTTI information, consider adding @:rtti"))))
 	}
 	x := Xml_parse(hxrt.StdString(rtti)).__hx_this.firstElement()
 	infos := New_haxe__rtti__XmlParser().__hx_this.processElement(x)
 	if infos.tag == 1 {
-		_g := infos.params[0].(map[string]any)
+		_g := hx_structural_recover(infos.params[0])
 		c_1 := _g
 		return c_1
 	} else {
 		t := infos
-		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Enum mismatch: expected TClassDecl but found "), hxrt.StdString(t)))
-		var hx_throw_zero_1 map[string]any
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Enum mismatch: expected TClassDecl but found "), hxrt.StdString(t))))
+		var hx_throw_zero_1 hxrt.Anonymous
 		return hx_throw_zero_1
 	}
 }

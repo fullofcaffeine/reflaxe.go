@@ -3,7 +3,7 @@ package main
 import "examples_portable_beta/hxrt"
 
 func Reflect_callMethod(o any, func_ any, args *hxrt.Array) any {
-	return hxrt.ReflectCallMethod(func_, args.ValuesCopy())
+	return reflaxe__go___internal__CompilerReflect_callMethod(func_, args.ValuesCopy())
 }
 
 func Reflect_compare(a any, b any) int {
@@ -15,7 +15,28 @@ func Reflect_compareMethods(f1 any, f2 any) bool {
 }
 
 func Reflect_copy(o any) any {
-	return hxrt.ReflectCopy(o)
+	if hxrt.AnyEqualsNull(o) {
+		return nil
+	}
+	fields := reflaxe__go___internal__CompilerReflect_generatedFields(o)
+	if fields == nil {
+		return hxrt.ReflectCopy(o)
+	}
+	hx_obj_1 := map[string]any{}
+	result := hxrt.AnonymousFromMap(hx_obj_1)
+	_g := 0
+	for _g < fields.Len() {
+		field := func(hx_value_2 any) *string {
+			if hx_value_2 == nil {
+				var hx_zero_3 *string
+				return hx_zero_3
+			}
+			return hx_value_2.(*string)
+		}(fields.Get(_g))
+		_g = int(int32((_g + 1)))
+		Reflect_setField(result, field, Reflect_field(o, field))
+	}
+	return any(result)
 }
 
 func Reflect_deleteField(o any, field *string) bool {
@@ -43,13 +64,13 @@ func Reflect_field(o any, field *string) any {
 		return generatedMethod
 	}
 	nativeMethod := hxrt.ReflectLookupMethod(o, field)
-	var hx_if_1 any
+	var hx_if_4 any
 	if nativeMethod.Found {
-		hx_if_1 = nativeMethod.Value
+		hx_if_4 = nativeMethod.Value
 	} else {
-		hx_if_1 = nil
+		hx_if_4 = nil
 	}
-	return hx_if_1
+	return hx_if_4
 }
 
 func Reflect_fields(o any) *hxrt.Array {
@@ -57,24 +78,24 @@ func Reflect_fields(o any) *hxrt.Array {
 	if generatedFields != nil {
 		return generatedFields
 	}
-	return hxrt.ArrayFromValues(func(hx_sort_src_2 []*string) []any {
-		hx_sort_out_4 := make([]any, 0, len(hx_sort_src_2))
-		for _, hx_sort_item_3 := range hx_sort_src_2 {
-			hx_sort_out_4 = append(hx_sort_out_4, hx_sort_item_3)
+	return hxrt.ArrayFromValues(func(hx_sort_src_5 []*string) []any {
+		hx_sort_out_7 := make([]any, 0, len(hx_sort_src_5))
+		for _, hx_sort_item_6 := range hx_sort_src_5 {
+			hx_sort_out_7 = append(hx_sort_out_7, hx_sort_item_6)
 		}
-		return hx_sort_out_4
+		return hx_sort_out_7
 	}(hxrt.ReflectFields(o)))
 }
 
 func Reflect_getProperty(o any, field *string) any {
 	var getter any = Reflect_field(o, hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("get_"), field))
-	var hx_if_5 any
+	var hx_if_8 any
 	if hxrt.AnyEqualsNull(getter) {
-		hx_if_5 = Reflect_field(o, field)
+		hx_if_8 = Reflect_field(o, field)
 	} else {
-		hx_if_5 = Reflect_callMethod(o, getter, hxrt.NewArray())
+		hx_if_8 = Reflect_callMethod(o, getter, hxrt.NewArray())
 	}
-	return hx_if_5
+	return hx_if_8
 }
 
 func Reflect_hasField(o any, field *string) bool {
@@ -108,13 +129,13 @@ func Reflect_isObject(v any) bool {
 	return hxrt.ReflectIsObject(v)
 }
 
-func Reflect_makeVarArgs(f func(*hxrt.Array) any) any {
+func Reflect_makeVarArgs(f *hxrt.Function[func(*hxrt.Array) any]) any {
 	return hxrt.ReflectMakeVarArgs(f)
 }
 
 func Reflect_setField(o any, field *string, value any) {
 	if hxrt.AnyEqualsNull(o) {
-		hxrt.Throw(hxrt.StringFromLiteral("Null Access"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Null Access")))
 	}
 	if hxrt.ReflectSetField(o, field, value) {
 		return

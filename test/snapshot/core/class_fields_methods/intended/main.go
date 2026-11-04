@@ -11,9 +11,25 @@ type Counter struct {
 	value     int
 }
 
+func (self *Counter) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_Counter(start int) *Counter {
+	return hx_init_Counter(hx_alloc_Counter(nil), start)
+}
+
+func hx_alloc_Counter(owner any) *Counter {
 	self := &Counter{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_Counter)
+	}
+	return self
+}
+
+func hx_init_Counter(self *Counter, start int) *Counter {
 	self.value = start
 	return self
 }

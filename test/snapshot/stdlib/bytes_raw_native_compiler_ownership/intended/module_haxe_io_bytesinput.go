@@ -37,11 +37,27 @@ type haxe__io__BytesInput struct {
 	length    int
 }
 
+func (self *haxe__io__BytesInput) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe__io__BytesInput(bytes *haxe__io__Bytes, pos any, len any) *haxe__io__BytesInput {
+	return hx_init_haxe__io__BytesInput(hx_alloc_haxe__io__BytesInput(nil), bytes, pos, len)
+}
+
+func hx_alloc_haxe__io__BytesInput(owner any) *haxe__io__BytesInput {
 	self := &haxe__io__BytesInput{}
-	self.haxe__io__Input = New_haxe__io__Input()
-	self.haxe__io__Input.__hx_this = self
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__io__BytesInput)
+	}
+	self.haxe__io__Input = hx_alloc_haxe__io__Input(self.__hx_this)
+	return self
+}
+
+func hx_init_haxe__io__BytesInput(self *haxe__io__BytesInput, bytes *haxe__io__Bytes, pos any, len any) *haxe__io__BytesInput {
+	hx_init_haxe__io__Input(self.haxe__io__Input)
 	if pos == nil {
 		pos = 0
 	}
@@ -49,7 +65,7 @@ func New_haxe__io__BytesInput(bytes *haxe__io__Bytes, pos any, len any) *haxe__i
 		len = int((hxrt.Int32Wrap(bytes.length) - hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(pos.(int))))))
 	}
 	if ((hxrt.IntFromNullableAny(pos.(int)) < 0) || (hxrt.IntFromNullableAny(len.(int)) < 0)) || (int((hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(pos.(int)))) + hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(len.(int)))))) > bytes.length) {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	self.b = bytes.__hx_this.getData()
 	self.pos = pos.(int)
@@ -83,7 +99,7 @@ func (self *haxe__io__BytesInput) set_position(value int) int {
 
 func (self *haxe__io__BytesInput) readByte() int {
 	if self.len == 0 {
-		hxrt.Throw(New_haxe__io__Eof())
+		hxrt.Throw(haxe__Exception_thrown(New_haxe__io__Eof()))
 	}
 	self.len = int(int32((self.len - 1)))
 	hx_post_1 := self.pos
@@ -93,10 +109,10 @@ func (self *haxe__io__BytesInput) readByte() int {
 
 func (self *haxe__io__BytesInput) readBytes(bytes *haxe__io__Bytes, targetPos int, requested int) int {
 	if ((targetPos < 0) || (requested < 0)) || (int((hxrt.Int32Wrap(targetPos) + hxrt.Int32Wrap(requested))) > bytes.length) {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	if (self.len == 0) && (requested > 0) {
-		hxrt.Throw(New_haxe__io__Eof())
+		hxrt.Throw(haxe__Exception_thrown(New_haxe__io__Eof()))
 	}
 	if requested > self.len {
 		requested = self.len

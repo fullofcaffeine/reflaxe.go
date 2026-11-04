@@ -12,9 +12,25 @@ type Base struct {
 	id        int
 }
 
+func (self *Base) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_Base(id int) *Base {
+	return hx_init_Base(hx_alloc_Base(nil), id)
+}
+
+func hx_alloc_Base(owner any) *Base {
 	self := &Base{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_Base)
+	}
+	return self
+}
+
+func hx_init_Base(self *Base, id int) *Base {
 	self.id = id
 	return self
 }
@@ -39,11 +55,27 @@ type Child struct {
 	__hx_this I_Child
 }
 
+func (self *Child) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_Child() *Child {
+	return hx_init_Child(hx_alloc_Child(nil))
+}
+
+func hx_alloc_Child(owner any) *Child {
 	self := &Child{}
-	self.Base = New_Base(7)
-	self.Base.__hx_this = self
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_Child)
+	}
+	self.Base = hx_alloc_Base(self.__hx_this)
+	return self
+}
+
+func hx_init_Child(self *Child) *Child {
+	hx_init_Base(self.Base, 7)
 	return self
 }
 

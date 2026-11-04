@@ -32,11 +32,27 @@ type haxe__io__BytesOutput struct {
 	length    int
 }
 
+func (self *haxe__io__BytesOutput) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe__io__BytesOutput() *haxe__io__BytesOutput {
+	return hx_init_haxe__io__BytesOutput(hx_alloc_haxe__io__BytesOutput(nil))
+}
+
+func hx_alloc_haxe__io__BytesOutput(owner any) *haxe__io__BytesOutput {
 	self := &haxe__io__BytesOutput{}
-	self.haxe__io__Output = New_haxe__io__Output()
-	self.haxe__io__Output.__hx_this = self
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__io__BytesOutput)
+	}
+	self.haxe__io__Output = hx_alloc_haxe__io__Output(self.__hx_this)
+	return self
+}
+
+func hx_init_haxe__io__BytesOutput(self *haxe__io__BytesOutput) *haxe__io__BytesOutput {
+	hx_init_haxe__io__Output(self.haxe__io__Output)
 	self.b = New_haxe__io__BytesBuffer()
 	return self
 }
@@ -53,7 +69,7 @@ func (self *haxe__io__BytesOutput) writeByte(value int) {
 func (self *haxe__io__BytesOutput) writeBytes(bytes *haxe__io__Bytes, pos int, len int) int {
 	_this := self.b
 	if ((pos < 0) || (len < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len))) > bytes.length) {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	_this.b = hxrt.BytesBufferAddSlice(_this.b, bytes.__hx_this.getData(), pos, len)
 	return len

@@ -29,39 +29,55 @@ type sys__io___Process__ProcessOutput struct {
 	handle    *hxrt.ProcessOutput
 }
 
+func (self *sys__io___Process__ProcessOutput) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_sys__io___Process__ProcessOutput(handle *hxrt.ProcessOutput) *sys__io___Process__ProcessOutput {
+	return hx_init_sys__io___Process__ProcessOutput(hx_alloc_sys__io___Process__ProcessOutput(nil), handle)
+}
+
+func hx_alloc_sys__io___Process__ProcessOutput(owner any) *sys__io___Process__ProcessOutput {
 	self := &sys__io___Process__ProcessOutput{}
-	self.haxe__io__Input = New_haxe__io__Input()
-	self.haxe__io__Input.__hx_this = self
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_sys__io___Process__ProcessOutput)
+	}
+	self.haxe__io__Input = hx_alloc_haxe__io__Input(self.__hx_this)
+	return self
+}
+
+func hx_init_sys__io___Process__ProcessOutput(self *sys__io___Process__ProcessOutput, handle *hxrt.ProcessOutput) *sys__io___Process__ProcessOutput {
+	hx_init_haxe__io__Input(self.haxe__io__Input)
 	self.handle = handle
 	return self
 }
 
 func (self *sys__io___Process__ProcessOutput) readByte() int {
 	if self.handle == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("Process output is closed"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Process output is closed")))
 	}
 	value := hxrt.ProcessOutputReadByteValue(self.handle)
 	if value < 0 {
-		hxrt.Throw(New_haxe__io__Eof())
+		hxrt.Throw(haxe__Exception_thrown(New_haxe__io__Eof()))
 	}
 	return value
 }
 
 func (self *sys__io___Process__ProcessOutput) readBytes(bytes *haxe__io__Bytes, pos int, length int) int {
 	if ((pos < 0) || (length < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(length))) > bytes.length) {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	if length == 0 {
 		return 0
 	}
 	if self.handle == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("Process output is closed"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Process output is closed")))
 	}
 	values := hxrt.ProcessOutputReadValues(self.handle, length)
 	if len(values) == 0 {
-		hxrt.Throw(New_haxe__io__Eof())
+		hxrt.Throw(haxe__Exception_thrown(New_haxe__io__Eof()))
 	}
 	_g := 0
 	_g1 := len(values)
@@ -110,24 +126,40 @@ type sys__io___Process__ProcessInput struct {
 	handle    *hxrt.ProcessInput
 }
 
+func (self *sys__io___Process__ProcessInput) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_sys__io___Process__ProcessInput(handle *hxrt.ProcessInput) *sys__io___Process__ProcessInput {
+	return hx_init_sys__io___Process__ProcessInput(hx_alloc_sys__io___Process__ProcessInput(nil), handle)
+}
+
+func hx_alloc_sys__io___Process__ProcessInput(owner any) *sys__io___Process__ProcessInput {
 	self := &sys__io___Process__ProcessInput{}
-	self.haxe__io__Output = New_haxe__io__Output()
-	self.haxe__io__Output.__hx_this = self
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_sys__io___Process__ProcessInput)
+	}
+	self.haxe__io__Output = hx_alloc_haxe__io__Output(self.__hx_this)
+	return self
+}
+
+func hx_init_sys__io___Process__ProcessInput(self *sys__io___Process__ProcessInput, handle *hxrt.ProcessInput) *sys__io___Process__ProcessInput {
+	hx_init_haxe__io__Output(self.haxe__io__Output)
 	self.handle = handle
 	return self
 }
 
 func (self *sys__io___Process__ProcessInput) writeByte(value int) {
 	if (self.handle == nil) || !hxrt.ProcessInputWriteByteValue(self.handle, value) {
-		hxrt.Throw(New_haxe__io__Eof())
+		hxrt.Throw(haxe__Exception_thrown(New_haxe__io__Eof()))
 	}
 }
 
 func (self *sys__io___Process__ProcessInput) writeBytes(bytes *haxe__io__Bytes, pos int, length int) int {
 	if ((pos < 0) || (length < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(length))) > bytes.length) {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	if length == 0 {
 		return 0
@@ -154,7 +186,7 @@ func (self *sys__io___Process__ProcessInput) writeBytes(bytes *haxe__io__Bytes, 
 		}
 		return hx_lambda_out_5
 	}(values.Values())) {
-		hxrt.Throw(New_haxe__io__Eof())
+		hxrt.Throw(haxe__Exception_thrown(New_haxe__io__Eof()))
 	}
 	return length
 }
@@ -189,11 +221,27 @@ type sys__io__Process struct {
 	handle    *hxrt.Process
 }
 
+func (self *sys__io__Process) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_sys__io__Process(cmd *string, args *hxrt.Array, detached bool) *sys__io__Process {
+	return hx_init_sys__io__Process(hx_alloc_sys__io__Process(nil), cmd, args, detached)
+}
+
+func hx_alloc_sys__io__Process(owner any) *sys__io__Process {
 	self := &sys__io__Process{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_sys__io__Process)
+	}
+	return self
+}
+
+func hx_init_sys__io__Process(self *sys__io__Process, cmd *string, args *hxrt.Array, detached bool) *sys__io__Process {
 	if detached {
-		hxrt.Throw(hxrt.StringFromLiteral("Detached process is not supported on this platform"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Detached process is not supported on this platform")))
 	}
 	self.handle = hxrt.ProcessCreate(cmd, func() []*string {
 		var hx_if_14 []*string
@@ -216,9 +264,24 @@ func New_sys__io__Process(cmd *string, args *hxrt.Array, detached bool) *sys__io
 		}
 		return hx_if_14
 	}())
-	self.stdout = New_sys__io___Process__ProcessOutput(hxrt.ProcessStdout(self.handle)).haxe__io__Input
-	self.stderr = New_sys__io___Process__ProcessOutput(hxrt.ProcessStderr(self.handle)).haxe__io__Input
-	self.stdin = New_sys__io___Process__ProcessInput(hxrt.ProcessStdin(self.handle)).haxe__io__Output
+	self.stdout = func(hx_value *sys__io___Process__ProcessOutput) *haxe__io__Input {
+		if hx_value == nil {
+			return nil
+		}
+		return hx_value.haxe__io__Input
+	}(New_sys__io___Process__ProcessOutput(hxrt.ProcessStdout(self.handle)))
+	self.stderr = func(hx_value *sys__io___Process__ProcessOutput) *haxe__io__Input {
+		if hx_value == nil {
+			return nil
+		}
+		return hx_value.haxe__io__Input
+	}(New_sys__io___Process__ProcessOutput(hxrt.ProcessStderr(self.handle)))
+	self.stdin = func(hx_value *sys__io___Process__ProcessInput) *haxe__io__Output {
+		if hx_value == nil {
+			return nil
+		}
+		return hx_value.haxe__io__Output
+	}(New_sys__io___Process__ProcessInput(hxrt.ProcessStdin(self.handle)))
 	return self
 }
 
@@ -251,7 +314,7 @@ func (self *sys__io__Process) kill() {
 
 func (self *sys__io__Process) requireHandle() *hxrt.Process {
 	if self.handle == nil {
-		hxrt.Throw(hxrt.StringFromLiteral("Process is closed"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Process is closed")))
 	}
 	return self.handle
 }

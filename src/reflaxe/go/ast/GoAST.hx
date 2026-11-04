@@ -136,6 +136,9 @@ enum GoStmt {
 	GoBreak(label:Null<String>);
 	GoContinue;
 	GoReturn(expr:Null<GoExpr>);
+
+	/** Return two or more typed values, including a successful nil result and match flag. */
+	GoReturnValues(values:Array<GoExpr>);
 }
 
 enum GoExpr {

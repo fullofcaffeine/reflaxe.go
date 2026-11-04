@@ -3,7 +3,7 @@ package main
 import "snapshot/hxrt"
 
 type I_haxe__zip__Compress interface {
-	execute(src *haxe__io__Bytes, srcPos int, dst *haxe__io__Bytes, dstPos int) map[string]any
+	execute(src *haxe__io__Bytes, srcPos int, dst *haxe__io__Bytes, dstPos int) hxrt.Anonymous
 	setFlushMode(f *haxe__zip__FlushMode)
 	close()
 	ensureOpen()
@@ -16,9 +16,25 @@ type haxe__zip__Compress struct {
 	closed    bool
 }
 
+func (self *haxe__zip__Compress) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe__zip__Compress(level int) *haxe__zip__Compress {
+	return hx_init_haxe__zip__Compress(hx_alloc_haxe__zip__Compress(nil), level)
+}
+
+func hx_alloc_haxe__zip__Compress(owner any) *haxe__zip__Compress {
 	self := &haxe__zip__Compress{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__zip__Compress)
+	}
+	return self
+}
+
+func hx_init_haxe__zip__Compress(self *haxe__zip__Compress, level int) *haxe__zip__Compress {
 	haxe__zip__Compress_validateLevel(level)
 	self.handle = hxrt.ZipDeflateCreate(level)
 	self.flushMode = hxrt.ZipFlushNo
@@ -26,7 +42,7 @@ func New_haxe__zip__Compress(level int) *haxe__zip__Compress {
 	return self
 }
 
-func (self *haxe__zip__Compress) execute(src *haxe__io__Bytes, srcPos int, dst *haxe__io__Bytes, dstPos int) map[string]any {
+func (self *haxe__zip__Compress) execute(src *haxe__io__Bytes, srcPos int, dst *haxe__io__Bytes, dstPos int) hxrt.Anonymous {
 	self.__hx_this.ensureOpen()
 	haxe__zip__Compress_validatePosition(srcPos, src.length)
 	haxe__zip__Compress_validatePosition(dstPos, dst.length)
@@ -36,7 +52,7 @@ func (self *haxe__zip__Compress) execute(src *haxe__io__Bytes, srcPos int, dst *
 		hx_obj_1["done"] = false
 		hx_obj_1["read"] = 0
 		hx_obj_1["write"] = 0
-		return hx_obj_1
+		return hxrt.AnonymousFromMap(hx_obj_1)
 	}
 	step := hxrt.ZipDeflateExecute(self.handle, haxe__zip__Compress_toValuesFrom(src, srcPos), outputLimit, self.flushMode)
 	write := haxe__zip__Compress_writeValues(dst, dstPos, step.Values)
@@ -44,7 +60,7 @@ func (self *haxe__zip__Compress) execute(src *haxe__io__Bytes, srcPos int, dst *
 	hx_obj_2["done"] = step.Done
 	hx_obj_2["read"] = step.Read
 	hx_obj_2["write"] = write
-	return hx_obj_2
+	return hxrt.AnonymousFromMap(hx_obj_2)
 }
 
 func (self *haxe__zip__Compress) setFlushMode(f *haxe__zip__FlushMode) {
@@ -62,7 +78,7 @@ func (self *haxe__zip__Compress) close() {
 
 func (self *haxe__zip__Compress) ensureOpen() {
 	if self.closed {
-		hxrt.Throw(hxrt.StringFromLiteral("haxe.zip.Compress is closed"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("haxe.zip.Compress is closed")))
 	}
 }
 
@@ -75,7 +91,7 @@ func haxe__zip__Compress_flushModeCode(mode *haxe__zip__FlushMode) int {
 		hx_switch_3 = hxrt.ZipFlushSync
 	case 2:
 		hx_switch_3 = func() int {
-			hxrt.Throw(hxrt.StringFromLiteral("haxe.zip.FlushMode.FULL is not supported by Go's standard compressor"))
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("haxe.zip.FlushMode.FULL is not supported by Go's standard compressor")))
 			var hx_throw_zero_4 int
 			return hx_throw_zero_4
 		}()
@@ -83,7 +99,7 @@ func haxe__zip__Compress_flushModeCode(mode *haxe__zip__FlushMode) int {
 		hx_switch_3 = hxrt.ZipFlushFinish
 	case 4:
 		hx_switch_3 = func() int {
-			hxrt.Throw(hxrt.StringFromLiteral("haxe.zip.FlushMode.BLOCK is not supported by Go's standard compressor"))
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("haxe.zip.FlushMode.BLOCK is not supported by Go's standard compressor")))
 			var hx_throw_zero_5 int
 			return hx_throw_zero_5
 		}()
@@ -141,13 +157,13 @@ func haxe__zip__Compress_toValuesFrom(bytes *haxe__io__Bytes, position int) []in
 
 func haxe__zip__Compress_validateLevel(level int) {
 	if (level < -1) || (level > 9) {
-		hxrt.Throw(hxrt.StringConcatAny(hxrt.StringFromLiteral("Invalid zlib compression level: "), level))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatAny(hxrt.StringFromLiteral("Invalid zlib compression level: "), level)))
 	}
 }
 
 func haxe__zip__Compress_validatePosition(position int, length int) {
 	if (position < 0) || (position > length) {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 }
 

@@ -11,6 +11,7 @@
 	"manualFeatures": [
 	],
 	"inferredFeatures": [
+		"anonymous",
 		"array",
 		"core",
 		"exception",
@@ -20,6 +21,7 @@
 	],
 	"selectedFeatures": [
 		"core",
+		"anonymous",
 		"array",
 		"string",
 		"print",
@@ -27,6 +29,7 @@
 		"stack"
 	],
 	"files": [
+		"anonymous.go",
 		"array.go",
 		"core.go",
 		"exception.go",
@@ -47,6 +50,19 @@
 					"feature": "core",
 					"sourceKind": "baseline",
 					"source": "compiler_baseline"
+				}
+			]
+		},
+		{
+			"id": "anonymous",
+			"files": [
+				"anonymous.go"
+			],
+			"reasons": [
+				{
+					"feature": "anonymous",
+					"sourceKind": "compiler_surface",
+					"source": "lowered_go_ast:hxrt.Anonymous"
 				}
 			]
 		},
@@ -502,6 +518,11 @@
 			"feature": "core",
 			"sourceKind": "baseline",
 			"source": "compiler_baseline"
+		},
+		{
+			"feature": "anonymous",
+			"sourceKind": "compiler_surface",
+			"source": "lowered_go_ast:hxrt.Anonymous"
 		},
 		{
 			"feature": "array",

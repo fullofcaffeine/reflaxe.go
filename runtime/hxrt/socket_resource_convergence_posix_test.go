@@ -215,11 +215,12 @@ func socketResourceExercise(
 	SocketClose(client)
 
 	timed := SocketNewTCP()
-	SocketSetTimeout(timed, 0.01)
 	SocketConnectTCP(timed, socketTestString(socketTestHost), stall.port())
 	if write := SocketWriteValues(timed, []int{'t'}); write.Status != SocketIOReady || write.Count != 1 {
 		t.Fatalf("attempt %d timeout write = %#v", attempt, write)
 	}
+	// The short budget tests a stalled read, not connection or write setup.
+	SocketSetTimeout(timed, 0.01)
 	if read := SocketReadValues(timed, 1); read.Status != SocketIOBlocked {
 		t.Fatalf("attempt %d timeout read = %#v, want blocked", attempt, read)
 	}

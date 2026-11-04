@@ -12,6 +12,18 @@ typedef GoTypeInterfaceMethod = {
 	final results:Array<GoType>;
 }
 
+/** Exact emitted callable storage, copied before it leaves the type owner. */
+typedef GoFunctionSignature = {
+	final params:Array<GoType>;
+	final results:Array<GoType>;
+}
+
+/** A physical named type dependency; package aliases are resolved by import ownership. */
+typedef GoNamedTypeDependency = {
+	final packageName:Null<GoPackageName>;
+	final name:String;
+}
+
 private enum GoTypeKind {
 	Builtin(value:GoBuiltinType);
 	Named(packageName:Null<GoPackageName>, name:String);
@@ -269,6 +281,133 @@ abstract GoType(GoTypeKind) {
 			case Builtin(current): current == value;
 			case _: false;
 		};
+	}
+
+	/**
+		Compare emitted type structure without using printed type spellings as keys.
+		Go builtin aliases and empty interfaces denote the same representation;
+		nominal names, channel direction, and variadic parameters remain distinct.
+	**/
+	public function sameRepresentation(other:GoType):Bool {
+		return switch ([this, other.kind()]) {
+			case [Builtin(a), Builtin(b)]: normalizedBuiltin(a) == normalizedBuiltin(b);
+			case [Builtin(AnyType), InterfaceType(methods)] | [InterfaceType(methods), Builtin(AnyType)]: methods.length == 0;
+			case [Named(ap, an), Named(bp, bn)]: an == bn && (ap == null ? bp == null : bp != null && ap.value() == bp.value());
+			case [Pointer(a), Pointer(b)] | [Slice(a), Slice(b)] | [Variadic(a), Variadic(b)]: a.sameRepresentation(b);
+			case [ArrayType(al, a), ArrayType(bl, b)]: al == bl && a.sameRepresentation(b);
+			case [MapType(ak, av), MapType(bk, bv)]: ak.sameRepresentation(bk) && av.sameRepresentation(bv);
+			case [Channel(ad, a), Channel(bd, b)]: ad == bd && a.sameRepresentation(b);
+			case [FunctionType(ap, ar), FunctionType(bp, br)]: sameTypeList(ap, bp) && sameOptionalType(ar, br);
+			case [GenericType(ab, aa), GenericType(bb, ba)]: ab.sameRepresentation(bb) && sameTypeList(aa, ba);
+			case [MultiResult(a), MultiResult(b)]: sameTypeList(a, b);
+			case [InterfaceType(a), InterfaceType(b)]: sameMethodSet(a, b);
+			case _: false;
+		};
+	}
+
+	/** Inspect only the compiler-owned Function carrier, preserving exact arity. */
+	public function functionCarrierSignature():Null<GoFunctionSignature> {
+		return switch (this) {
+			case Pointer(element): switch (element.kind()) {
+					case GenericType(base, arguments) if (arguments.length == 1): switch (base.kind()) {
+							case Named(pack, "Function") if (pack != null && pack.value() == "hxrt"): switch (arguments[0].kind()) {
+									case FunctionType(params, result): {params: params.copy(), results: flattenResult(result)};
+									case _: null;
+								}
+							case _: null;
+						}
+					case _: null;
+				}
+			case _: null;
+		};
+	}
+
+	/** Return the element of a final variadic parameter, without its call marker. */
+	public function variadicElement():Null<GoType> {
+		return switch (this) {
+			case Variadic(element): element;
+			case _: null;
+		};
+	}
+
+	static function normalizedBuiltin(value:GoBuiltinType):GoBuiltinType {
+		return switch (value) {
+			case Byte: GoBuiltinType.Uint8;
+			case Rune: GoBuiltinType.Int32;
+			case _: value;
+		};
+	}
+
+	static function sameTypeList(left:Array<GoType>, right:Array<GoType>):Bool {
+		if (left.length != right.length)
+			return false;
+		for (index in 0...left.length)
+			if (!left[index].sameRepresentation(right[index]))
+				return false;
+		return true;
+	}
+
+	static function sameOptionalType(left:Null<GoType>, right:Null<GoType>):Bool {
+		return left == null ? right == null : right != null && left.sameRepresentation(right);
+	}
+
+	static function sameMethodSet(left:Array<GoTypeInterfaceMethod>, right:Array<GoTypeInterfaceMethod>):Bool {
+		if (left.length != right.length)
+			return false;
+		for (method in left) {
+			var found = false;
+			for (candidate in right)
+				if (method.name == candidate.name
+					&& sameTypeList(method.params, candidate.params)
+					&& sameTypeList(method.results, candidate.results)) {
+					found = true;
+					break;
+				}
+			if (!found)
+				return false;
+		}
+		return true;
+	}
+
+	/** Collect every physical named dependency, including nested signatures and generics. */
+	public function namedDependencies():Array<GoNamedTypeDependency> {
+		var found = new Map<String, GoNamedTypeDependency>();
+		function visit(type:GoType):Void {
+			switch (type.kind()) {
+				case Builtin(_):
+				case Named(packageName, name):
+					var key = (packageName == null ? "" : packageName.value() + ".") + name;
+					found.set(key, {packageName: packageName, name: name});
+				case Pointer(element) | Slice(element) | ArrayType(_, element) | Channel(_, element) | Variadic(element):
+					visit(element);
+				case MapType(key, value):
+					visit(key);
+					visit(value);
+				case FunctionType(params, result):
+					for (param in params)
+						visit(param);
+					if (result != null)
+						visit(result);
+				case InterfaceType(methods):
+					for (method in methods) {
+						for (param in method.params)
+							visit(param);
+						for (result in method.results)
+							visit(result);
+					}
+				case GenericType(base, arguments):
+					visit(base);
+					for (argument in arguments)
+						visit(argument);
+				case MultiResult(results):
+					for (result in results)
+						visit(result);
+			}
+		}
+		visit(new GoType(this));
+		var keys = [for (key in found.keys()) key];
+		keys.sort((left, right) -> left < right ? -1 : left > right ? 1 : 0);
+		return [for (key in keys) found.get(key)];
 	}
 
 	/** Traverse structural type nodes to discover use of an imported package. */

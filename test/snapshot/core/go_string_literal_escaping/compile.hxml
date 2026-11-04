@@ -3,7 +3,9 @@
 -D go_output=out
 -D reflaxe_go_profile=portable
 -D reflaxe_go_strict_examples
--D reflaxe_go_hxrt_features=core,string,bytes
+# Bytes validation can throw source-owned exceptions, whose stacks and identity
+# require arrays and object views when automatic feature inference is disabled.
+-D reflaxe_go_hxrt_features=core,string,bytes,array,anonymous
 -D reflaxe_go_hxrt_no_feature_infer
 -D reflaxe.dont_output_metadata_id
 -D no-traces

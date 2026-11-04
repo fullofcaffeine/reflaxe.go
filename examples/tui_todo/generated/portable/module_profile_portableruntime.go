@@ -13,9 +13,25 @@ type profile__PortableRuntime struct {
 	__hx_this I_profile__PortableRuntime
 }
 
+func (self *profile__PortableRuntime) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_profile__PortableRuntime() *profile__PortableRuntime {
+	return hx_init_profile__PortableRuntime(hx_alloc_profile__PortableRuntime(nil))
+}
+
+func hx_alloc_profile__PortableRuntime(owner any) *profile__PortableRuntime {
 	self := &profile__PortableRuntime{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_profile__PortableRuntime)
+	}
+	return self
+}
+
+func hx_init_profile__PortableRuntime(self *profile__PortableRuntime) *profile__PortableRuntime {
 	return self
 }
 

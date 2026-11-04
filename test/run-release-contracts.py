@@ -38,6 +38,8 @@ def main() -> int:
         ["python3", "test/test_haxe_dynamic_boundaries.py"],
         ["python3", "test/test_haxe_macro_lifecycle.py"],
         ["python3", "test/test_haxe_typed_identifiers.py"],
+        ["haxe", "-cp", "src", "-cp", "test/compiler", "-main", "GoTypeRecoveryContract", "--interp"],
+        ["haxe", "-cp", "src", "-cp", "test/compiler", "--macro", "GoValueRecoveryContract.check()", "--no-output"],
         ["python3", "test/test_haxe_warning_ratchet.py"],
         ["python3", "test/test_http_admission_design_contract.py"],
         ["python3", "test/test_http_upload_sink_race_contract.py"],

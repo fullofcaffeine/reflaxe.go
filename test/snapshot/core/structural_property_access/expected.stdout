@@ -1,0 +1,8 @@
+before=4
+assigned=9
+after=12
+reads=3
+writes=2
+raw-absent=true
+raw-null=true
+plain-null=true

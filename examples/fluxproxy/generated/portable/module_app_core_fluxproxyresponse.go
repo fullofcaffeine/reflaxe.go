@@ -14,9 +14,25 @@ type app__core__FluxProxyResponse struct {
 	success   bool
 }
 
+func (self *app__core__FluxProxyResponse) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_app__core__FluxProxyResponse(requestId int, route *string, upstream *string, status int, latencyMs int, attempts int, success bool) *app__core__FluxProxyResponse {
+	return hx_init_app__core__FluxProxyResponse(hx_alloc_app__core__FluxProxyResponse(nil), requestId, route, upstream, status, latencyMs, attempts, success)
+}
+
+func hx_alloc_app__core__FluxProxyResponse(owner any) *app__core__FluxProxyResponse {
 	self := &app__core__FluxProxyResponse{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_app__core__FluxProxyResponse)
+	}
+	return self
+}
+
+func hx_init_app__core__FluxProxyResponse(self *app__core__FluxProxyResponse, requestId int, route *string, upstream *string, status int, latencyMs int, attempts int, success bool) *app__core__FluxProxyResponse {
 	self.requestId = requestId
 	self.route = route
 	self.upstream = upstream

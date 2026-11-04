@@ -13,9 +13,25 @@ type app__core__IncidentConfig struct {
 	statePath   *string
 }
 
+func (self *app__core__IncidentConfig) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_app__core__IncidentConfig(serviceName *string, host *string, port int, statePath *string) *app__core__IncidentConfig {
+	return hx_init_app__core__IncidentConfig(hx_alloc_app__core__IncidentConfig(nil), serviceName, host, port, statePath)
+}
+
+func hx_alloc_app__core__IncidentConfig(owner any) *app__core__IncidentConfig {
 	self := &app__core__IncidentConfig{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_app__core__IncidentConfig)
+	}
+	return self
+}
+
+func hx_init_app__core__IncidentConfig(self *app__core__IncidentConfig, serviceName *string, host *string, port int, statePath *string) *app__core__IncidentConfig {
 	self.serviceName = serviceName
 	self.host = host
 	self.port = port

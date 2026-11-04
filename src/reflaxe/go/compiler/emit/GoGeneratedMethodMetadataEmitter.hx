@@ -39,6 +39,7 @@ class GoGeneratedMethodMetadataEmitter {
 		final ownMethods:Array<{
 			final lookupKey:String;
 			final selector:String;
+			final boundValue:Void->GoExpr;
 		}>;
 	}>):Array<GoDecl> {
 		var declarations = [centralLookupDecl(entries)];
@@ -56,6 +57,7 @@ class GoGeneratedMethodMetadataEmitter {
 		final ownMethods:Array<{
 			final lookupKey:String;
 			final selector:String;
+			final boundValue:Void->GoExpr;
 		}>;
 	}>):GoDecl {
 		var body = new Array<GoStmt>();
@@ -77,7 +79,8 @@ class GoGeneratedMethodMetadataEmitter {
 					]
 				});
 			}
-			body.push(GoStmt.GoTypeSwitch(GoExpr.GoIdent("obj"), "value", carrierCases, [GoStmt.GoReturn(GoExpr.GoNil)]));
+			body.push(GoStmt.GoTypeSwitch(GoExpr.GoCall(GoExpr.GoIdent("hxrt.ObjectSource"), [GoExpr.GoIdent("obj")]), "value", carrierCases,
+				[GoStmt.GoReturn(GoExpr.GoNil)]));
 
 			var receiverCases = new Array<GoTypeSwitchCase>();
 			for (entry in entries) {
@@ -105,6 +108,7 @@ class GoGeneratedMethodMetadataEmitter {
 		final ownMethods:Array<{
 			final lookupKey:String;
 			final selector:String;
+			final boundValue:Void->GoExpr;
 		}>;
 	}):GoDecl {
 		var value = GoExpr.GoIdent("value");
@@ -116,7 +120,7 @@ class GoGeneratedMethodMetadataEmitter {
 			for (method in entry.ownMethods) {
 				methodCases.push({
 					values: [GoExpr.GoStringLiteral(method.lookupKey)],
-					body: [GoStmt.GoReturn(GoExpr.GoSelector(value, method.selector))]
+					body: [GoStmt.GoReturn(method.boundValue())]
 				});
 			}
 			body.push(GoStmt.GoSwitch(GoExpr.GoIdent("key"), methodCases, null));

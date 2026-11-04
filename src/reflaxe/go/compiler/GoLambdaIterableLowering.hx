@@ -1,6 +1,7 @@
 package reflaxe.go.compiler;
 
 #if macro
+import reflaxe.go.compiler.GoFunctionValueLowering.callable as functionValueCallable;
 import haxe.macro.Context;
 import haxe.macro.Type;
 import haxe.macro.TypeTools;
@@ -97,6 +98,9 @@ private typedef GoNativeArrayCursorPlan = {
 }
 
 private typedef GoLambdaIterableLoweringConfig = {
+	final freshFunctionValue:GoExpr->GoExpr;
+	final adaptFunctionValue:(GoExpr, GoExpr) -> GoExpr;
+	final structuralObjectCoerce:(GoExpr, Type, Type) -> Null<GoExpr>;
 	final lowerExpr:TypedExpr->GoLambdaLoweredExpr;
 	final lowerToStatements:TypedExpr->Array<GoStmt>;
 	final freshTempName:String->String;
@@ -139,6 +143,9 @@ private typedef GoLambdaIterableLoweringConfig = {
 	shared-Array or native-slice storage.
 **/
 class GoLambdaIterableLowering {
+	final freshFunctionValue:GoExpr->GoExpr;
+	final adaptFunctionValue:(GoExpr, GoExpr) -> GoExpr;
+	final structuralObjectCoerce:(GoExpr, Type, Type) -> Null<GoExpr>;
 	final lowerExpr:TypedExpr->GoLambdaLoweredExpr;
 	final lowerToStatements:TypedExpr->Array<GoStmt>;
 	final freshTempName:String->String;
@@ -156,6 +163,9 @@ class GoLambdaIterableLowering {
 	final lookupLocalLambdaAlias:String->Null<String>;
 
 	public function new(config:GoLambdaIterableLoweringConfig) {
+		freshFunctionValue = config.freshFunctionValue;
+		adaptFunctionValue = config.adaptFunctionValue;
+		structuralObjectCoerce = config.structuralObjectCoerce;
 		lowerExpr = config.lowerExpr;
 		lowerToStatements = config.lowerToStatements;
 		freshTempName = config.freshTempName;
@@ -381,18 +391,19 @@ class GoLambdaIterableLowering {
 		var lengthExpr = sourcePlan.sharedArray ? GoExpr.GoCall(GoExpr.GoSelector(sourceExpr, "Len"), []) : GoExpr.GoCall(GoExpr.GoIdent("len"), [sourceExpr]);
 		var indexedValue = sourcePlan.sharedArray ? GoExpr.GoCall(GoExpr.GoSelector(sourceExpr, "Get"), [indexExpr]) : GoExpr.GoIndex(sourceExpr, indexExpr);
 
-		return GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["map[string]any"], [
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["hxrt.Anonymous"], [
 			GoStmt.GoVarDecl(sourceName, sourcePlan.sourceType, sourcePlan.sourceExpr, true),
 			GoStmt.GoVarDecl(indexName, "int", GoExpr.GoIntLiteral(0), true),
 			GoStmt.GoVarDecl(mapName, "map[string]any", emptyDynamicFieldMapExpr(), true),
 			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(mapName), GoExpr.GoStringLiteral("hasNext")),
-				GoExpr.GoFuncLiteral([], ["bool"], [GoStmt.GoReturn(GoExpr.GoBinary("<", indexExpr, lengthExpr))])),
-			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(mapName), GoExpr.GoStringLiteral("next")), GoExpr.GoFuncLiteral([], [targetResultGoType], [
-				GoStmt.GoVarDecl(valueName, null, indexedValue, true),
-				GoStmt.GoAssign(indexExpr, GoExpr.GoBinary("+", indexExpr, GoExpr.GoIntLiteral(1))),
-				GoStmt.GoReturn(nextValue)
-			])),
-			GoStmt.GoReturn(GoExpr.GoIdent(mapName))
+				freshFunctionValue(GoExpr.GoFuncLiteral([], ["bool"], [GoStmt.GoReturn(GoExpr.GoBinary("<", indexExpr, lengthExpr))]))),
+			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(mapName), GoExpr.GoStringLiteral("next")),
+				freshFunctionValue(GoExpr.GoFuncLiteral([], [targetResultGoType], [
+					GoStmt.GoVarDecl(valueName, null, indexedValue, true),
+					GoStmt.GoAssign(indexExpr, GoExpr.GoBinary("+", indexExpr, GoExpr.GoIntLiteral(1))),
+					GoStmt.GoReturn(nextValue)
+				]))),
+			GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromMap"), [GoExpr.GoIdent(mapName)]))
 		]), []);
 	}
 
@@ -420,6 +431,11 @@ class GoLambdaIterableLowering {
 		if (sourcePlan == null || sourcePlan.domain != "array") {
 			return null;
 		}
+		// Portable ArrayIterator already stores the shared Array carrier. Keep
+		// that source object observable so extraction, reflection and identity
+		// follow its Haxe methods. Native slices still need the storage adapter.
+		if (sourcePlan.sharedArray)
+			return null;
 		var prefix = new Array<GoStmt>();
 		for (setupExpr in cursorPlan.setup) {
 			prefix = prefix.concat(lowerToStatements(setupExpr));
@@ -492,108 +508,24 @@ class GoLambdaIterableLowering {
 	}
 
 	/**
-		What:
-		- Adapts one concrete generated iterator class to Haxe's structural
-		  `Iterator<T>` carrier.
-
-		Why:
-		- Haxe accepts classes with typed `hasNext()` and `next()` methods as
-		  iterators, but generated classes are pointers while anonymous structural
-		  values are `map[string]any` on Go. Generic generated methods can also return
-		  erased `any`, even when the assigned `Iterator<T>` has a concrete element
-		  type.
-
-		How:
-		- Recognize only the canonical two-method structural shape, evaluate the
-		  concrete source once, and expose typed closures through the existing map
-		  carrier. Calls go through `__hx_this` so overrides remain virtual, and an
-		  erased `next()` result is asserted back to the target element type.
+		What: Admit a concrete iterator through the shared structural storage owner.
+		Why: Copying bound callbacks into a map loses object identity and live slots.
+		How: Delegate member classification and source retention to the same view
+		builder used for other anonymous projections.
 	**/
 	public function structuralIteratorCoerce(expr:GoExpr, fromType:Type, toType:Type):Null<GoExpr> {
-		var plan = concreteStructuralIteratorPlan(fromType, toType);
-		if (plan == null) {
-			return null;
-		}
-		var targetShape = plan.targetShape;
-		var sourceClass = plan.sourceClass;
-		var hasNextMethod = plan.hasNextMethod;
-		var nextMethod = plan.nextMethod;
-		noteSourceOwnedStdlibUsage(sourceClass);
-		var sourceName = freshTempName("hx_structural_iterator");
-		var mapName = freshTempName("hx_structural_iterator_map");
-		var sourceExpr = GoExpr.GoIdent(sourceName);
-		var dispatchReceiver = GoExpr.GoSelector(GoExpr.GoIdent(sourceName), "__hx_this");
-		var hasNextCall = GoExpr.GoCall(GoExpr.GoSelector(dispatchReceiver, interfaceFieldName(sourceClass, hasNextMethod.field)), []);
-		var nextCall = GoExpr.GoCall(GoExpr.GoSelector(dispatchReceiver, interfaceFieldName(sourceClass, nextMethod.field)), []);
-		var targetResultGoType = functionResultGoType(targetShape.nextReturnType);
-		var declaredResultGoType = functionResultGoType(plan.declaredNextReturn);
-		var adaptedNext:GoExpr = nextCall;
-		if (targetResultGoType == "any") {
-			adaptedNext = GoExpr.GoCall(GoExpr.GoIdent("any"), [nextCall]);
-		} else if (declaredResultGoType != targetResultGoType) {
-			adaptedNext = lowerNullableAwareTypeAssertExpr(GoExpr.GoCall(GoExpr.GoIdent("any"), [nextCall]), targetShape.nextReturnType);
-		}
-
-		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: sourceName, typeName: scalarGoType(fromType)}], ["map[string]any"], [
-			GoStmt.GoVarDecl(mapName, "map[string]any", emptyDynamicFieldMapExpr(), true),
-			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(mapName), GoExpr.GoStringLiteral("hasNext")),
-				GoExpr.GoFuncLiteral([], ["bool"], [GoStmt.GoReturn(hasNextCall)])),
-			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(mapName), GoExpr.GoStringLiteral("next")),
-				GoExpr.GoFuncLiteral([], [targetResultGoType], [GoStmt.GoReturn(adaptedNext)])),
-			GoStmt.GoReturn(GoExpr.GoIdent(mapName))
-		]), [expr]);
+		return structuralObjectCoerce(expr, fromType, toType);
 	}
 
 	/**
-		What: Adapts an erased generic method result to its applied structural
-		`Iterator<T>` closure ABI.
-
-		Why: A generated generic method such as `StringMap<T>.iterator()` is emitted
-		once, so its `next` field stores `func() any`. The applied Haxe call can expose
-		`next():Concrete`; asserting the stored function itself to `func() Concrete`
-		would panic because Go function types are invariant.
-
-		How: Admit only the canonical two-field iterator shape and only when the
-		declared result is erased while the applied result is concrete. Capture the
-		raw iterator once, retain its `hasNext` closure, and wrap `next` with the
-		existing typed result assertion.
+		What: Preserve a concrete class through the exact structural Iterable boundary.
+		Why: Inlined Haxe helpers read an anonymous iterator field, while Go infers
+		a class pointer from the initializer unless the assignment builds that view.
+		How: Capture the class once, retain its virtual iterator method identity, and
+		adapt each returned cursor through the shared typed Iterator conversion.
 	**/
-	public function adaptErasedGenericStructuralIteratorResult(expr:GoExpr, declaredFunctionType:Type, appliedFunctionType:Type):Null<GoExpr> {
-		var declaredReturn = functionReturnType(declaredFunctionType);
-		var appliedReturn = functionReturnType(appliedFunctionType);
-		if (declaredReturn == null || appliedReturn == null) {
-			return null;
-		}
-		var declaredShape = structuralIteratorShape(declaredReturn);
-		var appliedShape = structuralIteratorShape(appliedReturn);
-		if (declaredShape == null || appliedShape == null) {
-			return null;
-		}
-
-		var declaredResultType = functionResultGoType(declaredShape.nextReturnType);
-		var appliedResultType = functionResultGoType(appliedShape.nextReturnType);
-		if (declaredResultType != "any" || appliedResultType == "any") {
-			return null;
-		}
-
-		var rawName = freshTempName("hx_erased_iterator");
-		var hasNextName = freshTempName("hx_erased_iterator_has_next");
-		var nextName = freshTempName("hx_erased_iterator_next");
-		var mapName = freshTempName("hx_applied_iterator");
-		var rawExpr = GoExpr.GoIdent(rawName);
-		var nextCall = GoExpr.GoCall(GoExpr.GoIdent(nextName), []);
-		var adaptedNext = lowerNullableAwareTypeAssertExpr(nextCall, appliedShape.nextReturnType);
-
-		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: rawName, typeName: "map[string]any"}], ["map[string]any"], [
-			GoStmt.GoVarDecl(hasNextName, "func() bool", GoExpr.GoTypeAssert(GoExpr.GoIndex(rawExpr, GoExpr.GoStringLiteral("hasNext")), "func() bool"), true),
-			GoStmt.GoVarDecl(nextName, "func() any", GoExpr.GoTypeAssert(GoExpr.GoIndex(rawExpr, GoExpr.GoStringLiteral("next")), "func() any"), true),
-			GoStmt.GoVarDecl(mapName, "map[string]any", emptyDynamicFieldMapExpr(), true),
-			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(mapName), GoExpr.GoStringLiteral("hasNext")),
-				GoExpr.GoFuncLiteral([], ["bool"], [GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent(hasNextName), []))])),
-			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(mapName), GoExpr.GoStringLiteral("next")),
-				GoExpr.GoFuncLiteral([], [appliedResultType], [GoStmt.GoReturn(adaptedNext)])),
-			GoStmt.GoReturn(GoExpr.GoIdent(mapName))
-		]), [expr]);
+	public function structuralIterableCoerce(expr:GoExpr, fromType:Type, toType:Type):Null<GoExpr> {
+		return structuralObjectCoerce(expr, fromType, toType);
 	}
 
 	public function trySourcePlan(sourceExpr:TypedExpr):Null<GoLambdaSourcePlan> {
@@ -642,7 +574,7 @@ class GoLambdaIterableLowering {
 	}
 
 	public function manualIteratorProtocolSource(sourceExpr:GoExpr, ?sourcePlan:Null<GoLambdaSourcePlan>, ?adaptElement:GoExpr->GoExpr,
-			?adaptedElementType:String):GoExpr {
+			?adaptedElementType:String, ?protocolType:Type):GoExpr {
 		var sourceName = freshTempName("hx_lambda_source");
 		var wrappedName = freshTempName("hx_lambda_wrapped");
 		var iteratorMapName = freshTempName("hx_lambda_iterator_map");
@@ -662,6 +594,23 @@ class GoLambdaIterableLowering {
 			nextValueExpr = sourcePlan.sharedArray ? GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent(sourceName), "Get"),
 				[indexExpr]) : GoExpr.GoIndex(GoExpr.GoIdent(sourceName), indexExpr);
 			nextPrefix.push(GoStmt.GoAssign(indexExpr, GoExpr.GoBinary("+", indexExpr, GoExpr.GoIntLiteral(1))));
+		} else if (protocolType != null && scalarGoType(protocolType) == "hxrt.Anonymous") {
+			var factoryType = instanceFieldType(protocolType, "iterator");
+			var iteratorType = factoryType == null ? null : zeroArgReturnType(factoryType);
+			var hasNextType = iteratorType == null ? null : instanceFieldType(iteratorType, "hasNext");
+			var nextType = iteratorType == null ? null : instanceFieldType(iteratorType, "next");
+			if (factoryType == null || hasNextType == null || nextType == null)
+				Context.fatalError("Expected a typed structural Iterable protocol", Context.currentPos());
+			function invokeField(receiver:GoExpr, name:String, fieldType:Type):GoExpr {
+				var value = lowerNullableAwareTypeAssertExpr(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousGet"), [receiver, GoExpr.GoStringLiteral(name)]),
+					fieldType);
+				return GoExpr.GoCall(functionValueCallable(value), []);
+			}
+			var iteratorName = freshTempName("hx_lambda_iterator");
+			var iteratorExpr = GoExpr.GoIdent(iteratorName);
+			iteratorFactoryBody.push(GoStmt.GoVarDecl(iteratorName, null, invokeField(GoExpr.GoIdent(sourceName), "iterator", factoryType), true));
+			hasNextExpr = invokeField(iteratorExpr, "hasNext", hasNextType);
+			nextValueExpr = invokeField(iteratorExpr, "next", nextType);
 		} else {
 			var iteratorName = freshTempName("hx_lambda_iterator");
 			var iteratorExpr = GoExpr.GoIdent(iteratorName);
@@ -678,28 +627,28 @@ class GoLambdaIterableLowering {
 		iteratorFactoryBody = iteratorFactoryBody.concat([
 			GoStmt.GoVarDecl(iteratorMapName, "map[string]any", emptyDynamicFieldMapExpr(), true),
 			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(iteratorMapName), GoExpr.GoStringLiteral("hasNext")),
-				GoExpr.GoFuncLiteral([], ["bool"], [GoStmt.GoReturn(hasNextExpr)])),
+				freshFunctionValue(GoExpr.GoFuncLiteral([], ["bool"], [GoStmt.GoReturn(hasNextExpr)]))),
 			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(iteratorMapName), GoExpr.GoStringLiteral("next")),
-				GoExpr.GoFuncLiteral([], [adaptedElementType == null ? "any" : adaptedElementType], nextBody)),
-			GoStmt.GoReturn(GoExpr.GoIdent(iteratorMapName))
+				freshFunctionValue(GoExpr.GoFuncLiteral([], [adaptedElementType == null ? "any" : adaptedElementType], nextBody))),
+			GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromMap"), [GoExpr.GoIdent(iteratorMapName)]))
 		]);
-		return GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["map[string]any"], [
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["hxrt.Anonymous"], [
 			GoStmt.GoVarDecl(sourceName, null, sourceExpr, true),
 			GoStmt.GoVarDecl(wrappedName, "map[string]any", emptyDynamicFieldMapExpr(), true),
 			GoStmt.GoAssign(GoExpr.GoIndex(GoExpr.GoIdent(wrappedName), GoExpr.GoStringLiteral("iterator")),
-				GoExpr.GoFuncLiteral([], ["map[string]any"], iteratorFactoryBody)),
-			GoStmt.GoReturn(GoExpr.GoIdent(wrappedName))
+				freshFunctionValue(GoExpr.GoFuncLiteral([], ["hxrt.Anonymous"], iteratorFactoryBody))),
+			GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousFromMap"), [GoExpr.GoIdent(wrappedName)]))
 		]), []);
 	}
 
 	public function dynamicIterableSource(sourceExpr:TypedExpr):GoExpr {
 		var sourcePlan = trySourcePlan(sourceExpr);
-		return manualIteratorProtocolSource(sourcePlan == null ? lowerExpr(sourceExpr).expr : sourcePlan.sourceExpr, sourcePlan);
+		return manualIteratorProtocolSource(sourcePlan == null ? lowerExpr(sourceExpr).expr : sourcePlan.sourceExpr, sourcePlan, null, null, sourceExpr.t);
 	}
 
 	function dynamicIterableValue(sourceExpr:GoExpr, sourceType:Type):GoExpr {
 		var sourcePlan = tryValuePlan(sourceExpr, sourceType);
-		return manualIteratorProtocolSource(sourcePlan == null ? sourceExpr : sourcePlan.sourceExpr, sourcePlan);
+		return manualIteratorProtocolSource(sourcePlan == null ? sourceExpr : sourcePlan.sourceExpr, sourcePlan, null, null, sourceType);
 	}
 
 	function classInstanceFieldType(classType:ClassType, params:Array<Type>, fieldName:String):Null<Type> {
@@ -766,7 +715,7 @@ class GoLambdaIterableLowering {
 
 	public function dynamicNestedIterableSource(sourceExpr:TypedExpr):GoExpr {
 		var nestedType = iterableElementType(sourceExpr.t);
-		if (nestedType == null || scalarGoType(nestedType) == "any" || scalarGoType(nestedType) == "map[string]any") {
+		if (nestedType == null || scalarGoType(nestedType) == "any" || scalarGoType(nestedType) == "hxrt.Anonymous") {
 			Context.fatalError("Lambda.flatten requires a statically concrete nested iterable carrier on Go", sourceExpr.pos);
 		}
 		var sourcePlan = trySourcePlan(sourceExpr);
@@ -776,7 +725,7 @@ class GoLambdaIterableLowering {
 			var nestedElement = lowerNullableAwareTypeAssertExpr(boxedElement, nestedType);
 			var dynamicNestedElement = dynamicIterableValue(nestedElement, nestedType);
 			return GoExpr.GoCall(GoExpr.GoIdent("Lambda_goIterableCarrierAdapter"), [dynamicNestedElement]);
-		}, "interface{iterator() map[string]any}");
+		}, "interface{iterator() hxrt.Anonymous}", sourceExpr.t);
 	}
 
 	public function firstFunctionArgType(type:Type):Null<Type> {
@@ -811,6 +760,19 @@ class GoLambdaIterableLowering {
 		};
 	}
 
+	/**
+		Capture the source callback before adapting its signature. Later invocation
+		must not repeat a factory call or reread a reassigned callback variable.
+		The adapter keeps the source identity and null state across generic erasure.
+	**/
+	function captureCallbackAdapter(source:GoExpr, sourceType:Type, signature:String, build:GoExpr->GoExpr):GoExpr {
+		var name = freshTempName("hx_lambda_callback");
+		var captured = GoExpr.GoIdent(name);
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: name, typeName: scalarGoType(sourceType)}], ["*hxrt.Function[" + signature + "]"], [
+			GoStmt.GoReturn(adaptFunctionValue(captured, build(functionValueCallable(captured))))
+		]), [source]);
+	}
+
 	public function predicateAnyAdapter(predicateExpr:GoExpr, predicateType:Type):GoExpr {
 		var rawArgName = freshTempName("hx_lambda_arg");
 		var adaptedArgExpr:GoExpr = GoExpr.GoIdent(rawArgName);
@@ -818,7 +780,8 @@ class GoLambdaIterableLowering {
 		if (argType != null) {
 			adaptedArgExpr = lowerNullableAwareTypeAssertExpr(adaptedArgExpr, argType);
 		}
-		return GoExpr.GoFuncLiteral([{name: rawArgName, typeName: "any"}], ["bool"], [GoStmt.GoReturn(GoExpr.GoCall(predicateExpr, [adaptedArgExpr]))]);
+		return captureCallbackAdapter(predicateExpr, predicateType, "func(any) bool",
+			callable -> GoExpr.GoFuncLiteral([{name: rawArgName, typeName: "any"}], ["bool"], [GoStmt.GoReturn(GoExpr.GoCall(callable, [adaptedArgExpr]))]));
 	}
 
 	public function mapperAnyAdapter(mapperExpr:GoExpr, mapperType:Type):GoExpr {
@@ -828,7 +791,8 @@ class GoLambdaIterableLowering {
 		if (argType != null) {
 			adaptedArgExpr = lowerNullableAwareTypeAssertExpr(adaptedArgExpr, argType);
 		}
-		return GoExpr.GoFuncLiteral([{name: rawArgName, typeName: "any"}], ["any"], [GoStmt.GoReturn(GoExpr.GoCall(mapperExpr, [adaptedArgExpr]))]);
+		return captureCallbackAdapter(mapperExpr, mapperType, "func(any) any",
+			callable -> GoExpr.GoFuncLiteral([{name: rawArgName, typeName: "any"}], ["any"], [GoStmt.GoReturn(GoExpr.GoCall(callable, [adaptedArgExpr]))]));
 	}
 
 	public function indexedMapperAnyAdapter(mapperExpr:GoExpr, mapperType:Type):GoExpr {
@@ -842,9 +806,10 @@ class GoLambdaIterableLowering {
 				}
 			case _:
 		}
-		return GoExpr.GoFuncLiteral([{name: rawIndexName, typeName: "int"}, {name: rawValueName, typeName: "any"}], ["any"], [
-			GoStmt.GoReturn(GoExpr.GoCall(mapperExpr, [GoExpr.GoIdent(rawIndexName), adaptedValueExpr]))
-		]);
+		return captureCallbackAdapter(mapperExpr, mapperType, "func(int, any) any",
+			callable -> GoExpr.GoFuncLiteral([{name: rawIndexName, typeName: "int"}, {name: rawValueName, typeName: "any"}], ["any"], [
+				GoStmt.GoReturn(GoExpr.GoCall(callable, [GoExpr.GoIdent(rawIndexName), adaptedValueExpr]))
+			]));
 	}
 
 	public function iterableMapperAnyAdapter(mapperExpr:GoExpr, mapperType:Type):GoExpr {
@@ -859,13 +824,15 @@ class GoLambdaIterableLowering {
 				returnType = mappedType;
 			case _:
 		}
-		if (returnType == null || scalarGoType(returnType) == "any" || scalarGoType(returnType) == "map[string]any") {
+		if (returnType == null || scalarGoType(returnType) == "any" || scalarGoType(returnType) == "hxrt.Anonymous") {
 			Context.fatalError("Lambda.flatMap requires a callback with a statically concrete iterable result on Go", Context.currentPos());
 		}
-		var mappedExpr = GoExpr.GoCall(mapperExpr, [adaptedArgExpr]);
-		var dynamicMappedExpr = dynamicIterableValue(mappedExpr, returnType);
-		var carrierExpr = GoExpr.GoCall(GoExpr.GoIdent("Lambda_goIterableCarrierAdapter"), [dynamicMappedExpr]);
-		return GoExpr.GoFuncLiteral([{name: rawArgName, typeName: "any"}], ["interface{iterator() map[string]any}"], [GoStmt.GoReturn(carrierExpr)]);
+		return captureCallbackAdapter(mapperExpr, mapperType, "func(any) interface{iterator() hxrt.Anonymous}", callable -> {
+			var mappedExpr = GoExpr.GoCall(callable, [adaptedArgExpr]);
+			var dynamicMappedExpr = dynamicIterableValue(mappedExpr, returnType);
+			var carrierExpr = GoExpr.GoCall(GoExpr.GoIdent("Lambda_goIterableCarrierAdapter"), [dynamicMappedExpr]);
+			return GoExpr.GoFuncLiteral([{name: rawArgName, typeName: "any"}], ["interface{iterator() hxrt.Anonymous}"], [GoStmt.GoReturn(carrierExpr)]);
+		});
 	}
 
 	public function consumerAnyAdapter(consumerExpr:GoExpr, consumerType:Type):GoExpr {
@@ -875,7 +842,8 @@ class GoLambdaIterableLowering {
 		if (argType != null) {
 			adaptedArgExpr = lowerNullableAwareTypeAssertExpr(adaptedArgExpr, argType);
 		}
-		return GoExpr.GoFuncLiteral([{name: rawArgName, typeName: "any"}], [], [GoStmt.GoExprStmt(GoExpr.GoCall(consumerExpr, [adaptedArgExpr]))]);
+		return captureCallbackAdapter(consumerExpr, consumerType, "func(any)",
+			callable -> GoExpr.GoFuncLiteral([{name: rawArgName, typeName: "any"}], [], [GoStmt.GoExprStmt(GoExpr.GoCall(callable, [adaptedArgExpr]))]));
 	}
 
 	public function folderAnyAdapter(folderExpr:GoExpr, folderType:Type):GoExpr {
@@ -893,8 +861,9 @@ class GoLambdaIterableLowering {
 				}
 			case _:
 		}
-		return GoExpr.GoFuncLiteral([{name: rawValueName, typeName: "any"}, {name: rawAccName, typeName: "any"}], ["any"],
-			[GoStmt.GoReturn(GoExpr.GoCall(folderExpr, [adaptedValueExpr, adaptedAccExpr]))]);
+		return captureCallbackAdapter(folderExpr, folderType, "func(any, any) any",
+			callable -> GoExpr.GoFuncLiteral([{name: rawValueName, typeName: "any"}, {name: rawAccName, typeName: "any"}], ["any"],
+				[GoStmt.GoReturn(GoExpr.GoCall(callable, [adaptedValueExpr, adaptedAccExpr]))]));
 	}
 
 	public function indexedFolderAnyAdapter(folderExpr:GoExpr, folderType:Type):GoExpr {
@@ -913,13 +882,13 @@ class GoLambdaIterableLowering {
 				}
 			case _:
 		}
-		return GoExpr.GoFuncLiteral([
+		return captureCallbackAdapter(folderExpr, folderType, "func(any, any, int) any", callable -> GoExpr.GoFuncLiteral([
 			{name: rawValueName, typeName: "any"},
 			{name: rawAccName, typeName: "any"},
 			{name: rawIndexName, typeName: "int"}
 		], ["any"], [
-			GoStmt.GoReturn(GoExpr.GoCall(folderExpr, [adaptedValueExpr, adaptedAccExpr, GoExpr.GoIdent(rawIndexName)]))
-		]);
+			GoStmt.GoReturn(GoExpr.GoCall(callable, [adaptedValueExpr, adaptedAccExpr, GoExpr.GoIdent(rawIndexName)]))
+		]));
 	}
 
 	public function anyArrayCoerce(anySliceExpr:GoExpr, targetArrayType:Type):GoExpr {

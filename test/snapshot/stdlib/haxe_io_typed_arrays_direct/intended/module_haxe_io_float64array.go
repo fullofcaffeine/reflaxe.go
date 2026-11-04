@@ -23,7 +23,7 @@ func haxe__io___Float64Array__Float64Array_Impl__fromArray(a *hxrt.Array, pos in
 	}
 	resolvedLength := hx_if_1
 	if ((pos < 0) || (resolvedLength < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(resolvedLength))) > a.Len()) {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	var this1 *haxe__io__ArrayBufferViewImpl
 	size := int((hxrt.Int32Wrap(resolvedLength) * hxrt.Int32Wrap(8)))

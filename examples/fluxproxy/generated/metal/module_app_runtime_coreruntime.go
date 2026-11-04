@@ -14,9 +14,25 @@ type app__runtime__CoreRuntime struct {
 	__hx_this I_app__runtime__CoreRuntime
 }
 
+func (self *app__runtime__CoreRuntime) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_app__runtime__CoreRuntime() *app__runtime__CoreRuntime {
+	return hx_init_app__runtime__CoreRuntime(hx_alloc_app__runtime__CoreRuntime(nil))
+}
+
+func hx_alloc_app__runtime__CoreRuntime(owner any) *app__runtime__CoreRuntime {
 	self := &app__runtime__CoreRuntime{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_app__runtime__CoreRuntime)
+	}
+	return self
+}
+
+func hx_init_app__runtime__CoreRuntime(self *app__runtime__CoreRuntime) *app__runtime__CoreRuntime {
 	return self
 }
 
@@ -36,13 +52,7 @@ func (self *app__runtime__CoreRuntime) dispatch(requests *hxrt.Array, workerCoun
 	responses := hxrt.NewArray()
 	_g := 0
 	for _g < requests.Len() {
-		request := func(hx_value_1 any) *app__core__FluxRequest {
-			if hx_value_1 == nil {
-				var hx_zero_2 *app__core__FluxRequest
-				return hx_zero_2
-			}
-			return hx_value_1.(*app__core__FluxRequest)
-		}(requests.Get(_g))
+		request := hx_recover_class_0(requests.Get(_g))
 		_g = int(int32((_g + 1)))
 		responses.Push(app__core__FluxCodec_proxy(request, 50))
 	}
@@ -54,13 +64,7 @@ func (self *app__runtime__CoreRuntime) stageScore(responses *hxrt.Array, retryCo
 	errorCount := 0
 	_g := 0
 	for _g < responses.Len() {
-		response := func(hx_value_4 any) *app__core__FluxProxyResponse {
-			if hx_value_4 == nil {
-				var hx_zero_5 *app__core__FluxProxyResponse
-				return hx_zero_5
-			}
-			return hx_value_4.(*app__core__FluxProxyResponse)
-		}(responses.Get(_g))
+		response := hx_recover_class_1(responses.Get(_g))
 		_g = int(int32((_g + 1)))
 		if response.success {
 			successCount = int(int32((successCount + 1)))

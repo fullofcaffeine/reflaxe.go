@@ -65,17 +65,7 @@ func main() {
 					}
 				}(hx_value)
 			case "FeatureBase":
-				return func(hx_value any) bool {
-					switch hx_carrier := hx_value.(type) {
-					case *FeatureBase:
-						if hx_carrier == nil {
-							return false
-						}
-						return true
-					default:
-						return false
-					}
-				}(hx_value)
+				return hx_is_nominal_0(hx_value)
 			case "Float":
 				return func(hx_value any) bool {
 					switch hx_value.(type) {
@@ -167,20 +157,10 @@ func main() {
 			return false
 		}
 	}(value, target) {
-		hxrt.Throw(hxrt.StringFromLiteral("dynamic type lookup failed"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("dynamic type lookup failed")))
 	}
-	if func(hx_value any) bool {
-		switch hx_carrier := hx_value.(type) {
-		case *FeatureBase:
-			if hx_carrier == nil {
-				return false
-			}
-			return true
-		default:
-			return false
-		}
-	}(value) {
-		hxrt.Throw(hxrt.StringFromLiteral("constrained subclass leaked into common type lookup"))
+	if hx_is_nominal_0(value) {
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("constrained subclass leaked into common type lookup")))
 	}
 	var feature any = New_FeatureBase()
 	if hxrt.AnyEqualsNull(Reflect_field(feature, hxrt.StringFromLiteral("label"))) || (func() int {
@@ -211,20 +191,30 @@ func main() {
 		}
 		return -1
 	}() < 0) {
-		hxrt.Throw(hxrt.StringFromLiteral("common reflection metadata is missing"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("common reflection metadata is missing")))
 	}
 	if hxrt.AnyEqualsNull(Type_resolveClass(hxrt.StringFromLiteral("Registry"))) {
-		hxrt.Throw(hxrt.StringFromLiteral("unconstrained type metadata is missing"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("unconstrained type metadata is missing")))
 	}
 	if hxrt.StringEqualStringPtr(Registry_selected, hxrt.StringFromLiteral("common")) {
-		hxrt.Throw(hxrt.StringFromLiteral("build-constrained installer did not run"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("build-constrained installer did not run")))
 	}
 }
 
 func hxrt__generated_method_field(obj any, key string) any {
 	var receiver any
-	switch value := obj.(type) {
+	switch value := hxrt.ObjectSource(obj).(type) {
 	case *FeatureBase:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__Exception:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__ValueException:
 		if (value == nil) || (value.__hx_this == nil) {
 			return nil
 		}
@@ -235,6 +225,10 @@ func hxrt__generated_method_field(obj any, key string) any {
 	switch value := receiver.(type) {
 	case *FeatureBase:
 		return hxrt__generated_method_field__FeatureBase(value, key)
+	case *haxe__Exception:
+		return hxrt__generated_method_field__haxe__Exception(value, key)
+	case *haxe__ValueException:
+		return hxrt__generated_method_field__haxe__ValueException(value, key)
 	default:
 		return nil
 	}
@@ -246,9 +240,109 @@ func hxrt__generated_method_field__FeatureBase(value *FeatureBase, key string) a
 	}
 	switch key {
 	case "label":
-		return value.label
+		return func() *hxrt.Function[func() *string] {
+			hx_receiver_10 := value
+			return hxrt.BoundFunction(func() *string {
+				return hx_receiver_10.__hx_this.label()
+			}, func() any {
+				return hx_receiver_10.__hx_this
+			}, "label")
+		}()
 	}
 	return nil
+}
+
+func hxrt__generated_method_field__haxe__Exception(value *haxe__Exception, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "details":
+		return func() *hxrt.Function[func() *string] {
+			hx_receiver_11 := value
+			return hxrt.BoundFunction(func() *string {
+				return hx_receiver_11.__hx_this.details()
+			}, func() any {
+				return hx_receiver_11.__hx_this
+			}, "details")
+		}()
+	case "get_message":
+		return func() *hxrt.Function[func() *string] {
+			hx_receiver_12 := value
+			return hxrt.BoundFunction(func() *string {
+				return hx_receiver_12.__hx_this.get_message()
+			}, func() any {
+				return hx_receiver_12.__hx_this
+			}, "get_message")
+		}()
+	case "get_native":
+		return func() *hxrt.Function[func() any] {
+			hx_receiver_13 := value
+			return hxrt.BoundFunction(func() any {
+				return hx_receiver_13.__hx_this.get_native()
+			}, func() any {
+				return hx_receiver_13.__hx_this
+			}, "get_native")
+		}()
+	case "get_previous":
+		return func() *hxrt.Function[func() *haxe__Exception] {
+			hx_receiver_14 := value
+			return hxrt.BoundFunction(func() *haxe__Exception {
+				return hx_receiver_14.__hx_this.get_previous()
+			}, func() any {
+				return hx_receiver_14.__hx_this
+			}, "get_previous")
+		}()
+	case "get_stack":
+		return func() *hxrt.Function[func() any] {
+			hx_receiver_15 := value
+			return hxrt.BoundFunction(func() any {
+				return hx_receiver_15.__hx_this.get_stack()
+			}, func() any {
+				return hx_receiver_15.__hx_this
+			}, "get_stack")
+		}()
+	case "toString":
+		return func() *hxrt.Function[func() *string] {
+			hx_receiver_16 := value
+			return hxrt.BoundFunction(func() *string {
+				return hx_receiver_16.__hx_this.toString()
+			}, func() any {
+				return hx_receiver_16.__hx_this
+			}, "toString")
+		}()
+	case "unwrap":
+		return func() *hxrt.Function[func() any] {
+			hx_receiver_17 := value
+			return hxrt.BoundFunction(func() any {
+				return hx_receiver_17.__hx_this.unwrap()
+			}, func() any {
+				return hx_receiver_17.__hx_this
+			}, "unwrap")
+		}()
+	}
+	return nil
+}
+
+func hxrt__generated_method_field__haxe__ValueException(value *haxe__ValueException, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "unwrap":
+		return func() *hxrt.Function[func() any] {
+			hx_receiver_18 := value
+			return hxrt.BoundFunction(func() any {
+				return hx_receiver_18.__hx_this.unwrap()
+			}, func() any {
+				return hx_receiver_18.__hx_this
+			}, "unwrap")
+		}()
+	}
+	if value.haxe__Exception == nil {
+		return nil
+	}
+	return hxrt__generated_method_field__haxe__Exception(value.haxe__Exception, key)
 }
 
 type Type struct {
@@ -256,6 +350,20 @@ type Type struct {
 
 func hxrt_typeCreateEmpty__FeatureBase() *FeatureBase {
 	instance := &FeatureBase{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__Exception() *haxe__Exception {
+	instance := &haxe__Exception{}
+	instance.__hx_this = instance
+	return instance
+}
+
+func hxrt_typeCreateEmpty__haxe__ValueException() *haxe__ValueException {
+	instance := &haxe__ValueException{}
+	instance.haxe__Exception = &haxe__Exception{}
+	instance.haxe__Exception.__hx_this = instance
 	instance.__hx_this = instance
 	return instance
 }
@@ -408,6 +516,12 @@ func hxrt_typeCreateClassInstance(className string, args []any) (any, bool) {
 		return nil, false
 	case "Registry":
 		return nil, false
+	case "haxe.Exception":
+		return hxrt_typeCallAny(New_haxe__Exception, args)
+	case "haxe.ValueException":
+		return hxrt_typeCallAny(New_haxe__ValueException, args)
+	case "haxe._CallStack.CallStack_Impl_":
+		return nil, false
 	default:
 		return nil, false
 	}
@@ -417,6 +531,10 @@ func hxrt_typeCreateClassEmptyInstance(className string) (any, bool) {
 	switch className {
 	case "FeatureBase":
 		return hxrt_typeCreateEmpty__FeatureBase(), true
+	case "haxe.Exception":
+		return hxrt_typeCreateEmpty__haxe__Exception(), true
+	case "haxe.ValueException":
+		return hxrt_typeCreateEmpty__haxe__ValueException(), true
 	default:
 		return nil, false
 	}
@@ -525,12 +643,74 @@ func hxrt_typeCreateEnumInstance(enumName string, constructorName string, constr
 		default:
 			return nil, false
 		}
+	case "haxe.StackItem":
+		if useIndex {
+			switch constructorIndex {
+			case 0:
+				if len(args) != 0 {
+					return nil, false
+				}
+				return haxe__StackItem_CFunction, true
+			case 1:
+				if len(args) != 1 {
+					return nil, false
+				}
+				return hxrt_typeCallAny(haxe__StackItem_Module, args)
+			case 2:
+				if len(args) != 4 {
+					return nil, false
+				}
+				return hxrt_typeCallAny(haxe__StackItem_FilePos, args)
+			case 3:
+				if len(args) != 2 {
+					return nil, false
+				}
+				return hxrt_typeCallAny(haxe__StackItem_Method, args)
+			case 4:
+				if len(args) != 1 {
+					return nil, false
+				}
+				return hxrt_typeCallAny(haxe__StackItem_LocalFunction, args)
+			default:
+				return nil, false
+			}
+		}
+		switch constructorName {
+		case "CFunction":
+			if len(args) != 0 {
+				return nil, false
+			}
+			return haxe__StackItem_CFunction, true
+		case "Module":
+			if len(args) != 1 {
+				return nil, false
+			}
+			return hxrt_typeCallAny(haxe__StackItem_Module, args)
+		case "FilePos":
+			if len(args) != 4 {
+				return nil, false
+			}
+			return hxrt_typeCallAny(haxe__StackItem_FilePos, args)
+		case "Method":
+			if len(args) != 2 {
+				return nil, false
+			}
+			return hxrt_typeCallAny(haxe__StackItem_Method, args)
+		case "LocalFunction":
+			if len(args) != 1 {
+				return nil, false
+			}
+			return hxrt_typeCallAny(haxe__StackItem_LocalFunction, args)
+		default:
+			return nil, false
+		}
 	default:
 		return nil, false
 	}
 }
 
 func Type_getClass(o any) any {
+	o = hxrt.ObjectSource(o)
 	if hxrt.AnyEqualsNull(o) {
 		return nil
 	}
@@ -553,6 +733,16 @@ func Type_getClass(o any) any {
 			return nil
 		}
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("FeatureBase")}
+	case *haxe__Exception:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.Exception")}
+	case *haxe__ValueException:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.ValueException")}
 	default:
 		return nil
 	}
@@ -576,6 +766,11 @@ func Type_getEnum(o any) any {
 			return nil
 		}
 		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral("ValueType")}
+	case *haxe__StackItem:
+		if value == nil {
+			return nil
+		}
+		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral("haxe.StackItem")}
 	default:
 		return nil
 	}
@@ -594,6 +789,12 @@ func Type_getSuperClass(c any) any {
 	case "Reflect":
 		return nil
 	case "Registry":
+		return nil
+	case "haxe.Exception":
+		return nil
+	case "haxe.ValueException":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.Exception")}
+	case "haxe._CallStack.CallStack_Impl_":
 		return nil
 	default:
 		return nil
@@ -622,6 +823,12 @@ func Type_getClassFields(c any) *hxrt.Array {
 		return hxrt.NewArray(hxrt.StringFromLiteral("callMethod"), hxrt.StringFromLiteral("compare"), hxrt.StringFromLiteral("compareMethods"), hxrt.StringFromLiteral("copy"), hxrt.StringFromLiteral("deleteField"), hxrt.StringFromLiteral("field"), hxrt.StringFromLiteral("fields"), hxrt.StringFromLiteral("getProperty"), hxrt.StringFromLiteral("hasField"), hxrt.StringFromLiteral("isEnumValue"), hxrt.StringFromLiteral("isFunction"), hxrt.StringFromLiteral("isObject"), hxrt.StringFromLiteral("makeVarArgs"), hxrt.StringFromLiteral("setField"), hxrt.StringFromLiteral("setProperty"))
 	case "Registry":
 		return hxrt.NewArray(hxrt.StringFromLiteral("install"), hxrt.StringFromLiteral("selected"))
+	case "haxe.Exception":
+		return hxrt.NewArray(hxrt.StringFromLiteral("catchValue"), hxrt.StringFromLiteral("caught"), hxrt.StringFromLiteral("thrown"))
+	case "haxe.ValueException":
+		return hxrt.NewArray()
+	case "haxe._CallStack.CallStack_Impl_":
+		return hxrt.NewArray(hxrt.StringFromLiteral("asArray"), hxrt.StringFromLiteral("callStack"), hxrt.StringFromLiteral("copy"), hxrt.StringFromLiteral("equalItems"), hxrt.StringFromLiteral("exceptionStack"), hxrt.StringFromLiteral("exceptionToString"), hxrt.StringFromLiteral("get"), hxrt.StringFromLiteral("get_length"), hxrt.StringFromLiteral("itemToString"), hxrt.StringFromLiteral("length"), hxrt.StringFromLiteral("subtract"), hxrt.StringFromLiteral("toString"))
 	default:
 		return hxrt.NewArray()
 	}
@@ -640,6 +847,12 @@ func Type_getInstanceFields(c any) *hxrt.Array {
 	case "Reflect":
 		return hxrt.NewArray()
 	case "Registry":
+		return hxrt.NewArray()
+	case "haxe.Exception":
+		return hxrt.NewArray(hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("savedMessage"), hxrt.StringFromLiteral("savedNative"), hxrt.StringFromLiteral("savedPrevious"), hxrt.StringFromLiteral("savedStack"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap"))
+	case "haxe.ValueException":
+		return hxrt.NewArray(hxrt.StringFromLiteral("details"), hxrt.StringFromLiteral("get_message"), hxrt.StringFromLiteral("get_native"), hxrt.StringFromLiteral("get_previous"), hxrt.StringFromLiteral("get_stack"), hxrt.StringFromLiteral("message"), hxrt.StringFromLiteral("native"), hxrt.StringFromLiteral("previous"), hxrt.StringFromLiteral("savedMessage"), hxrt.StringFromLiteral("savedNative"), hxrt.StringFromLiteral("savedPrevious"), hxrt.StringFromLiteral("savedStack"), hxrt.StringFromLiteral("stack"), hxrt.StringFromLiteral("toString"), hxrt.StringFromLiteral("unwrap"), hxrt.StringFromLiteral("value"))
+	case "haxe._CallStack.CallStack_Impl_":
 		return hxrt.NewArray()
 	default:
 		return hxrt.NewArray()
@@ -668,6 +881,12 @@ func Type_resolveClass(name *string) any {
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	case "Registry":
 		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.Exception":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.ValueException":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe._CallStack.CallStack_Impl_":
+		return &hxrt__TypeClassValue{name: hxrt.StringFromLiteral(rawName)}
 	default:
 		return nil
 	}
@@ -680,6 +899,8 @@ func Type_resolveEnum(name *string) any {
 	rawName := *hxrt.StdString(name)
 	switch rawName {
 	case "ValueType":
+		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral(rawName)}
+	case "haxe.StackItem":
 		return &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral(rawName)}
 	default:
 		return nil
@@ -769,6 +990,24 @@ func Type_enumConstructor(e any) *string {
 		default:
 			return nil
 		}
+	case *haxe__StackItem:
+		if value == nil {
+			return nil
+		}
+		switch value.tag {
+		case 0:
+			return hxrt.StringFromLiteral("CFunction")
+		case 1:
+			return hxrt.StringFromLiteral("Module")
+		case 2:
+			return hxrt.StringFromLiteral("FilePos")
+		case 3:
+			return hxrt.StringFromLiteral("Method")
+		case 4:
+			return hxrt.StringFromLiteral("LocalFunction")
+		default:
+			return nil
+		}
 	default:
 		return nil
 	}
@@ -780,6 +1019,11 @@ func Type_enumIndex(e any) int {
 	}
 	switch value := e.(type) {
 	case *ValueType:
+		if value == nil {
+			return -1
+		}
+		return value.tag
+	case *haxe__StackItem:
 		if value == nil {
 			return -1
 		}
@@ -797,6 +1041,8 @@ func Type_getEnumConstructs(e any) *hxrt.Array {
 	switch enumName {
 	case "ValueType":
 		return hxrt.NewArray(hxrt.StringFromLiteral("TNull"), hxrt.StringFromLiteral("TInt"), hxrt.StringFromLiteral("TFloat"), hxrt.StringFromLiteral("TBool"), hxrt.StringFromLiteral("TObject"), hxrt.StringFromLiteral("TFunction"), hxrt.StringFromLiteral("TClass"), hxrt.StringFromLiteral("TEnum"), hxrt.StringFromLiteral("TUnknown"))
+	case "haxe.StackItem":
+		return hxrt.NewArray(hxrt.StringFromLiteral("CFunction"), hxrt.StringFromLiteral("Module"), hxrt.StringFromLiteral("FilePos"), hxrt.StringFromLiteral("Method"), hxrt.StringFromLiteral("LocalFunction"))
 	default:
 		return hxrt.NewArray()
 	}
@@ -808,6 +1054,11 @@ func Type_enumParameters(e any) *hxrt.Array {
 	}
 	switch value := e.(type) {
 	case *ValueType:
+		if value == nil || value.params == nil {
+			return hxrt.NewArray()
+		}
+		return hxrt.NewArray(value.params...)
+	case *haxe__StackItem:
 		if value == nil || value.params == nil {
 			return hxrt.NewArray()
 		}
@@ -825,12 +1076,18 @@ func Type_allEnums(e any) *hxrt.Array {
 	switch enumName {
 	case "ValueType":
 		return hxrt.NewArray(ValueType_TNull, ValueType_TInt, ValueType_TFloat, ValueType_TBool, ValueType_TObject, ValueType_TFunction, ValueType_TUnknown)
+	case "haxe.StackItem":
+		return hxrt.NewArray(haxe__StackItem_CFunction)
 	default:
 		return hxrt.NewArray()
 	}
 }
 
 func Type_typeof(v any) *ValueType {
+	v = hxrt.ObjectSource(v)
+	if hxrt.ReflectIsFunction(v) {
+		return ValueType_TFunction
+	}
 	if hxrt.AnyEqualsNull(v) {
 		return ValueType_TNull
 	}
@@ -861,8 +1118,6 @@ func Type_typeof(v any) *ValueType {
 		return ValueType_TNull
 	}
 	switch ref.Kind() {
-	case reflect.Func:
-		return ValueType_TFunction
 	case reflect.Slice, reflect.Array:
 		return ValueType_TClass(&hxrt__TypeClassValue{name: hxrt.StringFromLiteral("Array")})
 	case reflect.Map, reflect.Struct, reflect.Interface, reflect.Pointer:
@@ -891,8 +1146,18 @@ func hxrt_typeClassMetadataField(value any, key string) (any, bool) {
 func reflaxe__go___internal__CompilerReflect_generatedField(object any, field *string) any {
 	key := *hxrt.StdString(field)
 	var receiver any
-	switch value := object.(type) {
+	switch value := hxrt.ObjectSource(object).(type) {
 	case *FeatureBase:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__Exception:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__ValueException:
 		if (value == nil) || (value.__hx_this == nil) {
 			return nil
 		}
@@ -903,6 +1168,10 @@ func reflaxe__go___internal__CompilerReflect_generatedField(object any, field *s
 	switch value := receiver.(type) {
 	case *FeatureBase:
 		return hxrt__generated_field_lookup__FeatureBase(value, key)
+	case *haxe__Exception:
+		return hxrt__generated_field_lookup__haxe__Exception(value, key)
+	case *haxe__ValueException:
+		return hxrt__generated_field_lookup__haxe__ValueException(value, key)
 	default:
 		return nil
 	}
@@ -911,8 +1180,18 @@ func reflaxe__go___internal__CompilerReflect_generatedField(object any, field *s
 func reflaxe__go___internal__CompilerReflect_hasGeneratedField(object any, field *string) bool {
 	key := *hxrt.StdString(field)
 	var receiver any
-	switch value := object.(type) {
+	switch value := hxrt.ObjectSource(object).(type) {
 	case *FeatureBase:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__Exception:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__ValueException:
 		if (value == nil) || (value.__hx_this == nil) {
 			return false
 		}
@@ -923,6 +1202,10 @@ func reflaxe__go___internal__CompilerReflect_hasGeneratedField(object any, field
 	switch value := receiver.(type) {
 	case *FeatureBase:
 		return hxrt__generated_field_has__FeatureBase(value, key)
+	case *haxe__Exception:
+		return hxrt__generated_field_has__haxe__Exception(value, key)
+	case *haxe__ValueException:
+		return hxrt__generated_field_has__haxe__ValueException(value, key)
 	default:
 		return false
 	}
@@ -931,8 +1214,18 @@ func reflaxe__go___internal__CompilerReflect_hasGeneratedField(object any, field
 func reflaxe__go___internal__CompilerReflect_setGeneratedField(object any, field *string, incoming any) bool {
 	key := *hxrt.StdString(field)
 	var receiver any
-	switch value := object.(type) {
+	switch value := hxrt.ObjectSource(object).(type) {
 	case *FeatureBase:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__Exception:
+		if (value == nil) || (value.__hx_this == nil) {
+			return false
+		}
+		receiver = value.__hx_this
+	case *haxe__ValueException:
 		if (value == nil) || (value.__hx_this == nil) {
 			return false
 		}
@@ -943,6 +1236,10 @@ func reflaxe__go___internal__CompilerReflect_setGeneratedField(object any, field
 	switch value := receiver.(type) {
 	case *FeatureBase:
 		return hxrt__generated_field_set__FeatureBase(value, key, incoming)
+	case *haxe__Exception:
+		return hxrt__generated_field_set__haxe__Exception(value, key, incoming)
+	case *haxe__ValueException:
+		return hxrt__generated_field_set__haxe__ValueException(value, key, incoming)
 	default:
 		return false
 	}
@@ -950,8 +1247,18 @@ func reflaxe__go___internal__CompilerReflect_setGeneratedField(object any, field
 
 func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.Array {
 	var receiver any
-	switch value := object.(type) {
+	switch value := hxrt.ObjectSource(object).(type) {
 	case *FeatureBase:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__Exception:
+		if (value == nil) || (value.__hx_this == nil) {
+			return nil
+		}
+		receiver = value.__hx_this
+	case *haxe__ValueException:
 		if (value == nil) || (value.__hx_this == nil) {
 			return nil
 		}
@@ -962,6 +1269,10 @@ func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.A
 	switch receiver.(type) {
 	case *FeatureBase:
 		return hxrt.NewArray(hxrt.StringFromLiteral("name"))
+	case *haxe__Exception:
+		return hxrt.NewArray(hxrt.StringFromLiteral("savedMessage"), hxrt.StringFromLiteral("savedStack"), hxrt.StringFromLiteral("savedPrevious"), hxrt.StringFromLiteral("savedNative"))
+	case *haxe__ValueException:
+		return hxrt.NewArray(hxrt.StringFromLiteral("savedMessage"), hxrt.StringFromLiteral("savedStack"), hxrt.StringFromLiteral("savedPrevious"), hxrt.StringFromLiteral("savedNative"), hxrt.StringFromLiteral("value"))
 	default:
 		return nil
 	}
@@ -973,7 +1284,7 @@ func hxrt__generated_field_lookup__FeatureBase(value *FeatureBase, key string) a
 	}
 	switch key {
 	case "name":
-		return value.name
+		return hxrt.ReadStoredField(value.name)
 	}
 	return nil
 }
@@ -1011,6 +1322,154 @@ func hxrt__generated_field_set__FeatureBase(value *FeatureBase, key string, inco
 	return false
 }
 
+func hxrt__generated_field_lookup__haxe__Exception(value *haxe__Exception, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "savedMessage":
+		return hxrt.ReadStoredField(value.savedMessage)
+	case "savedNative":
+		return hxrt.ReadStoredField(value.savedNative)
+	case "savedPrevious":
+		return hxrt.ReadStoredField(value.savedPrevious)
+	case "savedStack":
+		return hxrt.ReadStoredField(value.savedStack)
+	}
+	return nil
+}
+
+func hxrt__generated_field_has__haxe__Exception(value *haxe__Exception, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "savedMessage":
+		return true
+	case "savedNative":
+		return true
+	case "savedPrevious":
+		return true
+	case "savedStack":
+		return true
+	}
+	return false
+}
+
+func hxrt__generated_field_set__haxe__Exception(value *haxe__Exception, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "savedMessage":
+		if incoming == nil {
+			var zero *string
+			value.savedMessage = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *string:
+			value.savedMessage = typed
+			return true
+		default:
+			return false
+		}
+	case "savedNative":
+		if incoming == nil {
+			var zero any
+			value.savedNative = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case any:
+			value.savedNative = typed
+			return true
+		default:
+			return false
+		}
+	case "savedPrevious":
+		if incoming == nil {
+			var zero *haxe__Exception
+			value.savedPrevious = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case *haxe__Exception:
+			value.savedPrevious = typed
+			return true
+		default:
+			return false
+		}
+	case "savedStack":
+		if incoming == nil {
+			var zero any
+			value.savedStack = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case any:
+			value.savedStack = typed
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
+func hxrt__generated_field_lookup__haxe__ValueException(value *haxe__ValueException, key string) any {
+	if value == nil {
+		return nil
+	}
+	switch key {
+	case "value":
+		return hxrt.ReadStoredField(value.value)
+	}
+	if value.haxe__Exception == nil {
+		return nil
+	}
+	return hxrt__generated_field_lookup__haxe__Exception(value.haxe__Exception, key)
+}
+
+func hxrt__generated_field_has__haxe__ValueException(value *haxe__ValueException, key string) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "value":
+		return true
+	}
+	if value.haxe__Exception == nil {
+		return false
+	}
+	return hxrt__generated_field_has__haxe__Exception(value.haxe__Exception, key)
+}
+
+func hxrt__generated_field_set__haxe__ValueException(value *haxe__ValueException, key string, incoming any) bool {
+	if value == nil {
+		return false
+	}
+	switch key {
+	case "value":
+		if incoming == nil {
+			var zero any
+			value.value = zero
+			return true
+		}
+		switch typed := incoming.(type) {
+		case any:
+			value.value = typed
+			return true
+		default:
+			return false
+		}
+	}
+	if value.haxe__Exception == nil {
+		return false
+	}
+	return hxrt__generated_field_set__haxe__Exception(value.haxe__Exception, key, incoming)
+}
+
 func reflaxe__go___internal__CompilerReflect_typeField(object any, field *string) any {
 	key := *hxrt.StdString(field)
 	value, found := hxrt_typeClassMetadataField(object, key)
@@ -1032,5 +1491,103 @@ func reflaxe__go___internal__CompilerReflect_generatedMethod(object any, field *
 }
 
 func reflaxe__go___internal__CompilerReflect_isEnumValue(value any) bool {
+	switch enumValue := value.(type) {
+	case *haxe__StackItem:
+		return (enumValue != nil)
+	default:
+		return false
+	}
+}
+
+func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []any) any {
+	origin := hxrt.FunctionOrigin(value)
+	if origin == nil {
+		hxrt.Throw(hxrt.StringFromLiteral("Cannot call null"))
+		return nil
+	}
+	switch source := origin.(type) {
+	case *hxrt.Function[func(...any) any]:
+		var argument_0 []any = nil
+		for index, argument := range arguments {
+			if index >= 0 {
+				argument_0 = append(argument_0, argument)
+			}
+		}
+		return hxrt.FunctionCall(source)(argument_0...)
+	case *hxrt.Function[func() *string]:
+		return hxrt.FunctionCall(source)()
+	case *hxrt.Function[func() any]:
+		return hxrt.FunctionCall(source)()
+	case *hxrt.Function[func() *haxe__Exception]:
+		return hxrt.FunctionCall(source)()
+	default:
+		return hxrt.ReflectCallMethod(value, arguments)
+	}
+}
+
+func hx_recover_class_0(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
+}
+
+func hx_recover_class_1(value any) *haxe__Exception {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__Exception:
+		return source
+	case *haxe__ValueException:
+		return source.haxe__Exception
+	default:
+		return value.(*haxe__Exception)
+	}
+}
+
+func hx_is_nominal_0(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *FeatureBase:
+		return (source != nil)
+	}
+	hx_recovered, hx_matched := hx_is_nominal_0__probe_0(value)
+	if hx_matched {
+		return hx_recovered
+	}
+	hx_recovered, hx_matched = hx_is_nominal_0__probe_1(value)
+	if hx_matched {
+		return hx_recovered
+	}
 	return false
+}
+
+func hx_is_nominal_1(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_2(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__Exception:
+		return (source != nil)
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
 }

@@ -13,9 +13,25 @@ type sys__net__Host struct {
 	ip        int
 }
 
+func (self *sys__net__Host) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_sys__net__Host(name *string) *sys__net__Host {
+	return hx_init_sys__net__Host(hx_alloc_sys__net__Host(nil), name)
+}
+
+func hx_alloc_sys__net__Host(owner any) *sys__net__Host {
 	self := &sys__net__Host{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_sys__net__Host)
+	}
+	return self
+}
+
+func hx_init_sys__net__Host(self *sys__net__Host, name *string) *sys__net__Host {
 	self.host = name
 	self.ip = hxrt.HostResolve(name)
 	return self

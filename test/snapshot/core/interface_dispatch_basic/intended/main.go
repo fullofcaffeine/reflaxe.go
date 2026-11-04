@@ -25,9 +25,25 @@ type Person struct {
 	__hx_this I_Person
 }
 
+func (self *Person) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_Person() *Person {
+	return hx_init_Person(hx_alloc_Person(nil))
+}
+
+func hx_alloc_Person(owner any) *Person {
 	self := &Person{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_Person)
+	}
+	return self
+}
+
+func hx_init_Person(self *Person) *Person {
 	return self
 }
 

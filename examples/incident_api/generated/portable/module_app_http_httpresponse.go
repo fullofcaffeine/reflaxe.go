@@ -9,9 +9,25 @@ type app__http__HttpResponse struct {
 	body      *string
 }
 
+func (self *app__http__HttpResponse) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_app__http__HttpResponse(status int, body *string) *app__http__HttpResponse {
+	return hx_init_app__http__HttpResponse(hx_alloc_app__http__HttpResponse(nil), status, body)
+}
+
+func hx_alloc_app__http__HttpResponse(owner any) *app__http__HttpResponse {
 	self := &app__http__HttpResponse{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_app__http__HttpResponse)
+	}
+	return self
+}
+
+func hx_init_app__http__HttpResponse(self *app__http__HttpResponse, status int, body *string) *app__http__HttpResponse {
 	self.status = status
 	self.body = body
 	return self

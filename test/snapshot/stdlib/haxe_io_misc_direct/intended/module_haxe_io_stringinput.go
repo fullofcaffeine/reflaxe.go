@@ -29,11 +29,26 @@ type haxe__io__StringInput struct {
 	__hx_this I_haxe__io__StringInput
 }
 
+func (self *haxe__io__StringInput) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_haxe__io__StringInput(value *string) *haxe__io__StringInput {
+	return hx_init_haxe__io__StringInput(hx_alloc_haxe__io__StringInput(nil), value)
+}
+
+func hx_alloc_haxe__io__StringInput(owner any) *haxe__io__StringInput {
 	self := &haxe__io__StringInput{}
-	self.haxe__io__BytesInput = New_haxe__io__BytesInput(haxe__io__Bytes_ofString(value, nil), nil, nil)
-	self.haxe__io__BytesInput.haxe__io__Input.__hx_this = self
-	self.haxe__io__BytesInput.__hx_this = self
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_haxe__io__StringInput)
+	}
+	self.haxe__io__BytesInput = hx_alloc_haxe__io__BytesInput(self.__hx_this)
+	return self
+}
+
+func hx_init_haxe__io__StringInput(self *haxe__io__StringInput, value *string) *haxe__io__StringInput {
+	hx_init_haxe__io__BytesInput(self.haxe__io__BytesInput, haxe__io__Bytes_ofString(value, nil), nil, nil)
 	return self
 }

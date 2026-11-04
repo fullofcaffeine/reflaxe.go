@@ -13,9 +13,25 @@ type go___Map struct {
 	inner     *haxe__ds__StringMap
 }
 
+func (self *go___Map) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_go___Map() *go___Map {
+	return hx_init_go___Map(hx_alloc_go___Map(nil))
+}
+
+func hx_alloc_go___Map(owner any) *go___Map {
 	self := &go___Map{}
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_go___Map)
+	}
+	return self
+}
+
+func hx_init_go___Map(self *go___Map) *go___Map {
 	self.inner = New_haxe__ds__StringMap()
 	return self
 }

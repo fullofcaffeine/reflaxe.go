@@ -11,14 +11,18 @@
 	"manualFeatures": [
 	],
 	"inferredFeatures": [
+		"anonymous",
 		"array",
 		"core",
 		"exception",
+		"function",
 		"print",
 		"string"
 	],
 	"selectedFeatures": [
 		"core",
+		"function",
+		"anonymous",
 		"array",
 		"string",
 		"equality",
@@ -40,6 +44,7 @@
 		"atomic_object"
 	],
 	"files": [
+		"anonymous.go",
 		"array.go",
 		"atomic_int.go",
 		"atomic_object.go",
@@ -50,6 +55,7 @@
 		"exception.go",
 		"file.go",
 		"filesystem.go",
+		"function.go",
 		"hxrt.go",
 		"json.go",
 		"map_int.go",
@@ -79,6 +85,37 @@
 					"feature": "core",
 					"sourceKind": "compatibility_contract",
 					"source": "default_full_copy"
+				}
+			]
+		},
+		{
+			"id": "function",
+			"files": [
+				"function.go"
+			],
+			"reasons": [
+				{
+					"feature": "function",
+					"sourceKind": "compatibility_contract",
+					"source": "default_full_copy"
+				},
+				{
+					"feature": "function",
+					"sourceKind": "compiler_surface",
+					"source": "lowered_go_ast:hxrt.Function"
+				}
+			]
+		},
+		{
+			"id": "anonymous",
+			"files": [
+				"anonymous.go"
+			],
+			"reasons": [
+				{
+					"feature": "anonymous",
+					"sourceKind": "compiler_surface",
+					"source": "lowered_go_ast:hxrt.Anonymous"
 				}
 			]
 		},
@@ -497,6 +534,21 @@
 			"feature": "core",
 			"sourceKind": "compatibility_contract",
 			"source": "default_full_copy"
+		},
+		{
+			"feature": "function",
+			"sourceKind": "compatibility_contract",
+			"source": "default_full_copy"
+		},
+		{
+			"feature": "function",
+			"sourceKind": "compiler_surface",
+			"source": "lowered_go_ast:hxrt.Function"
+		},
+		{
+			"feature": "anonymous",
+			"sourceKind": "compiler_surface",
+			"source": "lowered_go_ast:hxrt.Anonymous"
 		},
 		{
 			"feature": "array",

@@ -29,11 +29,27 @@ type sys__net__SocketOutput struct {
 	handle    *hxrt.SocketHandle
 }
 
+func (self *sys__net__SocketOutput) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_sys__net__SocketOutput(handle *hxrt.SocketHandle) *sys__net__SocketOutput {
+	return hx_init_sys__net__SocketOutput(hx_alloc_sys__net__SocketOutput(nil), handle)
+}
+
+func hx_alloc_sys__net__SocketOutput(owner any) *sys__net__SocketOutput {
 	self := &sys__net__SocketOutput{}
-	self.haxe__io__Output = New_haxe__io__Output()
-	self.haxe__io__Output.__hx_this = self
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_sys__net__SocketOutput)
+	}
+	self.haxe__io__Output = hx_alloc_haxe__io__Output(self.__hx_this)
+	return self
+}
+
+func hx_init_sys__net__SocketOutput(self *sys__net__SocketOutput, handle *hxrt.SocketHandle) *sys__net__SocketOutput {
+	hx_init_haxe__io__Output(self.haxe__io__Output)
 	self.handle = handle
 	return self
 }
@@ -45,7 +61,7 @@ func (self *sys__net__SocketOutput) writeByte(value int) {
 
 func (self *sys__net__SocketOutput) writeBytes(bytes *haxe__io__Bytes, pos int, length int) int {
 	if ((pos < 0) || (length < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(length))) > bytes.length) {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	if length == 0 {
 		return 0
@@ -86,10 +102,10 @@ func (self *sys__net__SocketOutput) close() {
 
 func sys__net__SocketOutput_translateWriteStatus(result *hxrt.SocketIOResult) {
 	if result.Status == hxrt.SocketIOBlocked {
-		hxrt.Throw(haxe__io__Error_Blocked)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_Blocked))
 	}
 	if result.Status == hxrt.SocketIOEOF {
-		hxrt.Throw(New_haxe__io__Eof())
+		hxrt.Throw(haxe__Exception_thrown(New_haxe__io__Eof()))
 	}
 }
 
@@ -120,11 +136,27 @@ type sys__net__SocketInput struct {
 	handle    *hxrt.SocketHandle
 }
 
+func (self *sys__net__SocketInput) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
 func New_sys__net__SocketInput(handle *hxrt.SocketHandle) *sys__net__SocketInput {
+	return hx_init_sys__net__SocketInput(hx_alloc_sys__net__SocketInput(nil), handle)
+}
+
+func hx_alloc_sys__net__SocketInput(owner any) *sys__net__SocketInput {
 	self := &sys__net__SocketInput{}
-	self.haxe__io__Input = New_haxe__io__Input()
-	self.haxe__io__Input.__hx_this = self
-	self.__hx_this = self
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_sys__net__SocketInput)
+	}
+	self.haxe__io__Input = hx_alloc_haxe__io__Input(self.__hx_this)
+	return self
+}
+
+func hx_init_sys__net__SocketInput(self *sys__net__SocketInput, handle *hxrt.SocketHandle) *sys__net__SocketInput {
+	hx_init_haxe__io__Input(self.haxe__io__Input)
 	self.handle = handle
 	return self
 }
@@ -132,17 +164,17 @@ func New_sys__net__SocketInput(handle *hxrt.SocketHandle) *sys__net__SocketInput
 func (self *sys__net__SocketInput) readByte() int {
 	value := hxrt.SocketReadByteValue(self.handle)
 	if value == hxrt.SocketReadBlocked {
-		hxrt.Throw(haxe__io__Error_Blocked)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_Blocked))
 	}
 	if value == hxrt.SocketReadEOF {
-		hxrt.Throw(New_haxe__io__Eof())
+		hxrt.Throw(haxe__Exception_thrown(New_haxe__io__Eof()))
 	}
 	return value
 }
 
 func (self *sys__net__SocketInput) readBytes(bytes *haxe__io__Bytes, pos int, length int) int {
 	if ((pos < 0) || (length < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(length))) > bytes.length) {
-		hxrt.Throw(haxe__io__Error_OutsideBounds)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	if length == 0 {
 		return 0
@@ -168,9 +200,9 @@ func (self *sys__net__SocketInput) close() {
 
 func sys__net__SocketInput_translateReadStatus(result *hxrt.SocketIOResult) {
 	if result.Status == hxrt.SocketIOBlocked {
-		hxrt.Throw(haxe__io__Error_Blocked)
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_Blocked))
 	}
 	if result.Status == hxrt.SocketIOEOF {
-		hxrt.Throw(New_haxe__io__Eof())
+		hxrt.Throw(haxe__Exception_thrown(New_haxe__io__Eof()))
 	}
 }

@@ -28,6 +28,7 @@ class GoTestAstFixtureEmitter {
 	public static function imports(testCase:String):Array<String> {
 		return switch (testCase) {
 			case "typed_types": ["sync/atomic"];
+			case "multi_return": ["strconv"];
 			case _: [];
 		};
 	}
@@ -104,6 +105,35 @@ class GoTestAstFixtureEmitter {
 							GoCompositeElement.GoCompositeValue(GoExpr.GoIntLiteral(2)),
 							GoCompositeElement.GoCompositeValue(GoExpr.GoIntLiteral(3))
 						]), true, [GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("index"))])
+					])
+				];
+			case "multi_return":
+				[
+					GoDecl.GoFuncDecl("hx_test_return_pair", null, [], ["string", "bool"],
+						[
+							GoStmt.GoVarDecl("value", "int", GoExpr.GoIntLiteral(42), true),
+							GoStmt.GoAssign(GoExpr.GoIdent("_"), GoExpr.GoIdent("value")),
+							GoStmt.GoReturnValues([
+								GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent("strconv"), "Itoa"), [GoExpr.GoIdent("value")]),
+								GoExpr.GoBoolLiteral(true)
+							])
+						]),
+					GoDecl.GoFuncDecl("hx_test_return_nil_pair", null, [], ["any", "bool"],
+						[GoStmt.GoReturnValues([GoExpr.GoNil, GoExpr.GoBoolLiteral(true)])]),
+					GoDecl.GoFuncDecl("init", null, [], [], [
+						GoStmt.GoMultiAssign(["value", "matched"], GoExpr.GoCall(GoExpr.GoIdent("hx_test_return_pair"), []), true),
+						GoStmt.GoIf(GoExpr.GoBinary("||", GoExpr.GoUnary("!", GoExpr.GoIdent("matched")),
+							GoExpr.GoBinary("!=", GoExpr.GoIdent("value"), GoExpr.GoStringLiteral("42"))),
+							[
+								GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("panic"), [GoExpr.GoStringLiteral("multiple return lost value or match")]))
+							],
+							null),
+						GoStmt.GoMultiAssign(["empty", "found"], GoExpr.GoCall(GoExpr.GoIdent("hx_test_return_nil_pair"), []), true),
+						GoStmt.GoIf(GoExpr.GoBinary("||", GoExpr.GoUnary("!", GoExpr.GoIdent("found")),
+							GoExpr.GoBinary("!=", GoExpr.GoIdent("empty"), GoExpr.GoNil)),
+							[
+								GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("panic"), [GoExpr.GoStringLiteral("successful nil result was lost")]))
+							], null)
 					])
 				];
 			case "multi_assign":

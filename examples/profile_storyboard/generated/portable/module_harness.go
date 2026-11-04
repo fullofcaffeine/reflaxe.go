@@ -12,14 +12,14 @@ func Harness_assertContract(runtime profile__StoryboardRuntime) *string {
 	cards := Harness_buildCards()
 	summary := hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("cards="), cards.Len()), hxrt.StringFromLiteral(",points=")), Harness_totalPoints(cards)), hxrt.StringFromLiteral(",done_points=")), Harness_donePoints(cards)), hxrt.StringFromLiteral(",open_points=")), Harness_openPoints(cards)), hxrt.StringFromLiteral(",readiness=")), Harness_readinessPercent(Harness_donePoints(cards), Harness_totalPoints(cards)))
 	if !hxrt.StringEqualStringPtr(summary, hxrt.StringFromLiteral("cards=5,points=21,done_points=8,open_points=13,readiness=38")) {
-		hxrt.Throw(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("baseline drift: "), summary))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("baseline drift: "), summary)))
 	}
 	extra := runtime.extraSignal(Harness_buildSignalMetrics(cards))
 	if hxrt.StringEqualStringPtr(extra, nil) || hxrt.StringEqualStringPtr(extra, hxrt.StringFromLiteral("")) {
-		hxrt.Throw(hxrt.StringFromLiteral("missing extra signal"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("missing extra signal")))
 	}
 	if runtime.velocityPerSprint() <= 0 {
-		hxrt.Throw(hxrt.StringFromLiteral("invalid velocity"))
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("invalid velocity")))
 	}
 	return hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("OK "), runtime.profileId())
 }
@@ -39,13 +39,7 @@ func Harness_buildSignalMetrics(cards *hxrt.Array) *profile__StorySignalMetrics 
 	openHighValue := 0
 	_g := 0
 	for _g < cards.Len() {
-		card := func(hx_value_6 any) *domain__StoryCard {
-			if hx_value_6 == nil {
-				var hx_zero_7 *domain__StoryCard
-				return hx_zero_7
-			}
-			return hx_value_6.(*domain__StoryCard)
-		}(cards.Get(_g))
+		card := hx_recover_class_0(cards.Get(_g))
 		_g = int(int32((_g + 1)))
 		if card.points >= 5 {
 			highValue = int(int32((highValue + 1)))
@@ -65,13 +59,7 @@ func Harness_countByState(cards *hxrt.Array, state *string) int {
 	total := 0
 	_g := 0
 	for _g < cards.Len() {
-		card := func(hx_value_8 any) *domain__StoryCard {
-			if hx_value_8 == nil {
-				var hx_zero_9 *domain__StoryCard
-				return hx_zero_9
-			}
-			return hx_value_8.(*domain__StoryCard)
-		}(cards.Get(_g))
+		card := hx_recover_class_0(cards.Get(_g))
 		_g = int(int32((_g + 1)))
 		if hxrt.StringEqualStringPtr(card.state, state) {
 			total = int(int32((total + 1)))
@@ -84,13 +72,7 @@ func Harness_donePoints(cards *hxrt.Array) int {
 	total := 0
 	_g := 0
 	for _g < cards.Len() {
-		card := func(hx_value_10 any) *domain__StoryCard {
-			if hx_value_10 == nil {
-				var hx_zero_11 *domain__StoryCard
-				return hx_zero_11
-			}
-			return hx_value_10.(*domain__StoryCard)
-		}(cards.Get(_g))
+		card := hx_recover_class_0(cards.Get(_g))
 		_g = int(int32((_g + 1)))
 		if hxrt.StringEqualStringPtr(card.state, hxrt.StringFromLiteral("done")) {
 			total = int((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(card.points)))
@@ -104,12 +86,12 @@ func Harness_formatCard(card *domain__StoryCard, runtime profile__StoryboardRunt
 	_g := 0
 	_g1 := card.tags
 	for _g < _g1.Len() {
-		tag := func(hx_value_12 any) *string {
-			if hx_value_12 == nil {
-				var hx_zero_13 *string
-				return hx_zero_13
+		tag := func(hx_value_6 any) *string {
+			if hx_value_6 == nil {
+				var hx_zero_7 *string
+				return hx_zero_7
 			}
-			return hx_value_12.(*string)
+			return hx_value_6.(*string)
 		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		tags.Push(runtime.highlightTag(tag))
@@ -122,13 +104,7 @@ func Harness_formatLane(cards *hxrt.Array, state *string, title *string, runtime
 	hasEntries := false
 	_g := 0
 	for _g < cards.Len() {
-		card := func(hx_value_15 any) *domain__StoryCard {
-			if hx_value_15 == nil {
-				var hx_zero_16 *domain__StoryCard
-				return hx_zero_16
-			}
-			return hx_value_15.(*domain__StoryCard)
-		}(cards.Get(_g))
+		card := hx_recover_class_0(cards.Get(_g))
 		_g = int(int32((_g + 1)))
 		if hxrt.StringEqualStringPtr(card.state, state) {
 			out = hxrt.StringConcatStringPtr(out, hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("  - "), Harness_formatCard(card, runtime)), hxrt.StringFromLiteral("\n")))
@@ -145,12 +121,12 @@ func Harness_hasTag(card *domain__StoryCard, needle *string) bool {
 	_g := 0
 	_g1 := card.tags
 	for _g < _g1.Len() {
-		tag := func(hx_value_17 any) *string {
-			if hx_value_17 == nil {
-				var hx_zero_18 *string
-				return hx_zero_18
+		tag := func(hx_value_9 any) *string {
+			if hx_value_9 == nil {
+				var hx_zero_10 *string
+				return hx_zero_10
 			}
-			return hx_value_17.(*string)
+			return hx_value_9.(*string)
 		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if hxrt.StringEqualStringPtr(tag, needle) {
@@ -178,12 +154,12 @@ func Harness_joinStringList(values *hxrt.Array, separator *string) *string {
 	first := true
 	_g := 0
 	for _g < values.Len() {
-		value := func(hx_value_19 any) *string {
-			if hx_value_19 == nil {
-				var hx_zero_20 *string
-				return hx_zero_20
+		value := func(hx_value_11 any) *string {
+			if hx_value_11 == nil {
+				var hx_zero_12 *string
+				return hx_zero_12
 			}
-			return hx_value_19.(*string)
+			return hx_value_11.(*string)
 		}(values.Get(_g))
 		_g = int(int32((_g + 1)))
 		if !first {
@@ -208,13 +184,7 @@ func Harness_openHighRisk(cards *hxrt.Array, threshold int) int {
 	total := 0
 	_g := 0
 	for _g < cards.Len() {
-		card := func(hx_value_23 any) *domain__StoryCard {
-			if hx_value_23 == nil {
-				var hx_zero_24 *domain__StoryCard
-				return hx_zero_24
-			}
-			return hx_value_23.(*domain__StoryCard)
-		}(cards.Get(_g))
+		card := hx_recover_class_0(cards.Get(_g))
 		_g = int(int32((_g + 1)))
 		if !hxrt.StringEqualStringPtr(card.state, hxrt.StringFromLiteral("done")) && (card.points >= threshold) {
 			total = int(int32((total + 1)))
@@ -227,13 +197,7 @@ func Harness_openOwnerFocus(cards *hxrt.Array) *string {
 	owners := hxrt.NewArray()
 	_g := 0
 	for _g < cards.Len() {
-		card := func(hx_value_25 any) *domain__StoryCard {
-			if hx_value_25 == nil {
-				var hx_zero_26 *domain__StoryCard
-				return hx_zero_26
-			}
-			return hx_value_25.(*domain__StoryCard)
-		}(cards.Get(_g))
+		card := hx_recover_class_0(cards.Get(_g))
 		_g = int(int32((_g + 1)))
 		if !hxrt.StringEqualStringPtr(card.state, hxrt.StringFromLiteral("done")) {
 			owners.Push(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(card.owner, hxrt.StringFromLiteral("(p")), card.points), hxrt.StringFromLiteral(")")))
@@ -249,13 +213,7 @@ func Harness_openPoints(cards *hxrt.Array) int {
 	total := 0
 	_g := 0
 	for _g < cards.Len() {
-		card := func(hx_value_28 any) *domain__StoryCard {
-			if hx_value_28 == nil {
-				var hx_zero_29 *domain__StoryCard
-				return hx_zero_29
-			}
-			return hx_value_28.(*domain__StoryCard)
-		}(cards.Get(_g))
+		card := hx_recover_class_0(cards.Get(_g))
 		_g = int(int32((_g + 1)))
 		if !hxrt.StringEqualStringPtr(card.state, hxrt.StringFromLiteral("done")) {
 			total = int((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(card.points)))
@@ -292,13 +250,7 @@ func Harness_releaseTaggedOpen(cards *hxrt.Array) int {
 	total := 0
 	_g := 0
 	for _g < cards.Len() {
-		card := func(hx_value_30 any) *domain__StoryCard {
-			if hx_value_30 == nil {
-				var hx_zero_31 *domain__StoryCard
-				return hx_zero_31
-			}
-			return hx_value_30.(*domain__StoryCard)
-		}(cards.Get(_g))
+		card := hx_recover_class_0(cards.Get(_g))
 		_g = int(int32((_g + 1)))
 		if !hxrt.StringEqualStringPtr(card.state, hxrt.StringFromLiteral("done")) && Harness_hasTag(card, hxrt.StringFromLiteral("release")) {
 			total = int(int32((total + 1)))
@@ -322,13 +274,13 @@ func Harness_render(runtime profile__StoryboardRuntime) *string {
 	highRisk := Harness_openHighRisk(cards, riskThreshold)
 	releaseOpen := Harness_releaseTaggedOpen(cards)
 	signalMetrics := Harness_buildSignalMetrics(cards)
-	var hx_if_32 *string
+	var hx_if_16 *string
 	if runtime.supportsVelocityHint() {
-		hx_if_32 = hxrt.StringFromLiteral("adaptive")
+		hx_if_16 = hxrt.StringFromLiteral("adaptive")
 	} else {
-		hx_if_32 = hxrt.StringFromLiteral("baseline")
+		hx_if_16 = hxrt.StringFromLiteral("baseline")
 	}
-	velocityHint := hx_if_32
+	velocityHint := hx_if_16
 	bar := Harness_progressBar(done, total, 24)
 	action := hxrt.StringFromLiteral("ready to cut release")
 	if highRisk > 0 {
@@ -365,13 +317,7 @@ func Harness_totalPoints(cards *hxrt.Array) int {
 	totalPoints := 0
 	_g := 0
 	for _g < cards.Len() {
-		card := func(hx_value_33 any) *domain__StoryCard {
-			if hx_value_33 == nil {
-				var hx_zero_34 *domain__StoryCard
-				return hx_zero_34
-			}
-			return hx_value_33.(*domain__StoryCard)
-		}(cards.Get(_g))
+		card := hx_recover_class_0(cards.Get(_g))
 		_g = int(int32((_g + 1)))
 		totalPoints = int((hxrt.Int32Wrap(totalPoints) + hxrt.Int32Wrap(card.points)))
 	}
