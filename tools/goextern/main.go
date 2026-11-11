@@ -863,6 +863,11 @@ func mapTypeResult(t types.Type, ctx mappingContext) mappedType {
 	switch alias := t.(type) {
 	case *types.Alias:
 		obj := alias.Obj()
+		// Predeclared aliases such as any have no package-owned declaration.
+		// Classify their underlying boundary instead of inventing a private type.
+		if obj != nil && obj.Pkg() == nil {
+			return mapTypeResult(types.Unalias(alias), ctx)
+		}
 		if obj == nil || obj.Pkg() == nil || !obj.Exported() {
 			return mappedType{Haxe: "Dynamic", Reason: "unexported_named_type"}
 		}

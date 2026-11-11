@@ -846,6 +846,30 @@ func TestWriteDynamicFallbackReportIsDeterministic(t *testing.T) {
 	}
 }
 
+func TestPredeclaredAliasesKeepUnderlyingFallbackReason(t *testing.T) {
+	ctx := mappingContext{currentPackagePath: "example.com/aliases", haxePackagePrefix: "goextern"}
+	empty := types.NewInterfaceType(nil, nil).Complete()
+	builtin := types.NewAlias(types.NewTypeName(token.NoPos, nil, "any", nil), empty)
+	private := types.NewAlias(types.NewTypeName(token.NoPos, types.NewPackage("example.com/aliases", "aliases"), "hidden", nil), empty)
+	for _, tc := range []struct {
+		name   string
+		typ    types.Type
+		haxe   string
+		reason string
+	}{
+		{"builtin alias", builtin, "Dynamic", "empty_interface"},
+		{"builtin alias slice", types.NewSlice(builtin), "go.NativeSlice<Dynamic>", "empty_interface"},
+		{"package private alias", private, "Dynamic", "unexported_named_type"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got := mapTypeResult(tc.typ, ctx)
+			if got.Haxe != tc.haxe || got.Reason != tc.reason || len(got.References) != 0 {
+				t.Fatalf("mapping = %+v, want %s with %s and no named dependency", got, tc.haxe, tc.reason)
+			}
+		})
+	}
+}
+
 func TestRunWritesDynamicFallbackReport(t *testing.T) {
 	dir := t.TempDir()
 	outDir := filepath.Join(dir, "out")
