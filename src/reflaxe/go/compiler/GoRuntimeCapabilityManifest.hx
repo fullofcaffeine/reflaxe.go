@@ -100,6 +100,7 @@ class GoRuntimeCapabilityManifest {
 	];
 
 	static final FULL_COPY_INFERENCE_DISABLED_FEATURES:Array<String> = [
+		GoHxrtFeatureAnalyzer.FEATURE_NATIVE_ERROR,
 		GoHxrtFeatureAnalyzer.FEATURE_ARRAY,
 		GoHxrtFeatureAnalyzer.FEATURE_TERMINAL,
 		GoHxrtFeatureAnalyzer.FEATURE_HTTP,
@@ -279,6 +280,7 @@ class GoRuntimeCapabilityManifest {
 		return switch (feature) {
 			case GoHxrtFeatureAnalyzer.FEATURE_CORE: GoHxrtFeatureId.HxrtCore;
 			case GoHxrtFeatureAnalyzer.FEATURE_FUNCTION: GoHxrtFeatureId.HxrtFunction;
+			case GoHxrtFeatureAnalyzer.FEATURE_NATIVE_ERROR: GoHxrtFeatureId.HxrtNativeError;
 			case GoHxrtFeatureAnalyzer.FEATURE_ANONYMOUS: GoHxrtFeatureId.HxrtAnonymous;
 			case GoHxrtFeatureAnalyzer.FEATURE_ARRAY: GoHxrtFeatureId.HxrtArray;
 			case GoHxrtFeatureAnalyzer.FEATURE_ARRAY_SORT: GoHxrtFeatureId.HxrtArraySort;

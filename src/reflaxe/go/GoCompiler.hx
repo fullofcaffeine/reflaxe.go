@@ -927,6 +927,16 @@ class GoCompiler {
 
 	function noteTransformedRuntimeFeatures(decls:Array<GoDecl>):Void {
 		for (symbol in [
+			"hxrt.NativeErrorValue",
+			"hxrt.RawError",
+			"hxrt.ImportNativeError",
+			"hxrt.ExportNativeError"
+		])
+			if (declsUseRuntimeSymbol(decls, symbol)) {
+				requireGeneratedRuntimeFeature(GoHxrtFeatureAnalyzer.FEATURE_NATIVE_ERROR, "lowered_go_ast:" + symbol);
+				break;
+			}
+		for (symbol in [
 			"hxrt.Anonymous",
 			"hxrt.AnonymousField",
 			"hxrt.AnonymousFromMap",
@@ -7092,7 +7102,16 @@ class GoCompiler {
 			case FClosure(owner, field) if (owner != null && !owner.c.get().isExtern): field.get().type;
 			case _: null;
 		};
-		return declared == null ? value : adaptErasedFunctionCallArg(value, declared, applied);
+		if (declared == null) {
+			return value;
+		}
+		if (valueStorageGoType(declared) == "any" && valueStorageGoType(applied) != "any") {
+			// A source generic field has erased physical storage even when its use
+			// has a precise type. Recover once before a receiver, argument or scalar
+			// operation can consume it; nil remains a valid reference value.
+			return lowerNullableAwareTypeAssertExpr(value, applied);
+		}
+		return adaptErasedFunctionCallArg(value, declared, applied);
 	}
 
 	function lowerField(target:TypedExpr, access:FieldAccess, asValue:Bool = true, ?appliedType:Type):LoweredExpr {
@@ -7321,13 +7340,11 @@ class GoCompiler {
 	}
 
 	/**
-		What: Adapts an imported Go instance method value to its Haxe function ABI.
-		Why: Direct extern calls normalize Haxe's pointer-backed strings at the native
-		boundary, but a raw Go method value retains `func(string)` or a `string` result
-		and cannot be called through Haxe's `func(*string)` carrier.
+		What: Adapts an imported Go method value to its Haxe function ABI.
+		Why: Native strings, errors, callbacks and multiple results have different
+		storage from their Haxe carriers, even after a method is stored as a value.
 		How: Capture the native method value once, then return a typed Haxe-facing
-		closure that applies the same narrow string argument and result conversions as
-		an ordinary imported extern call.
+		closure that imports results and exports arguments at the declared boundary.
 	**/
 	function lowerImportedExternMethodValue(target:GoExpr, classType:ClassType, field:ClassField, selector:String, ?appliedType:Type):Null<GoExpr> {
 		var importPath = externClassImportPath(classType);
@@ -7342,7 +7359,7 @@ class GoCompiler {
 		if (genericDeclaration) {
 			value = instantiateImportedGeneric(value, field, appliedType, field.pos);
 		}
-		return lowerImportedFunctionValue(value, genericDeclaration ? appliedType : field.type, genericDeclaration);
+		return lowerImportedFunctionValue(value, genericDeclaration ? appliedType : field.type, genericDeclaration, field);
 	}
 
 	/**
@@ -7352,7 +7369,7 @@ class GoCompiler {
 		How: Capture the native expression once, preserve nil, and wrap its callable
 		in a fresh identity carrier. Nested callback results cross this boundary too.
 	**/
-	function lowerImportedFunctionValue(value:GoExpr, type:Type, nativeGenericDeclaration:Bool = false):Null<GoExpr> {
+	function lowerImportedFunctionValue(value:GoExpr, type:Type, nativeGenericDeclaration:Bool = false, ?field:ClassField):Null<GoExpr> {
 		return switch (Context.follow(type)) {
 			case TFun(args, returnType):
 				var methodName = freshTempName("hx_extern_method");
@@ -7366,6 +7383,8 @@ class GoCompiler {
 				var call = GoExpr.GoCall(nativeGenericDeclaration ? value : GoExpr.GoIdent(methodName), callArgs);
 				var innerBody = if (isVoidType(returnType)) {
 					[GoStmt.GoExprStmt(call)];
+				} else if (field != null && hasExternTupleReturnMeta(field)) {
+					[GoStmt.GoReturn(lowerTupleReturnValue(field, returnType, call, true, field.pos))];
 				} else {
 					[GoStmt.GoReturn(normalizeImportedExternMethodValueResult(call, returnType))];
 				};
@@ -7398,10 +7417,13 @@ class GoCompiler {
 
 	/**
 		What: Describes a native callback payload, recursively through callback slots.
-		Why: Native string values and nested raw functions differ from Haxe carriers.
-		How: Change only proven string/function boundaries; retain scalar/null storage.
+		Why: Native strings, error interfaces and raw functions differ from Haxe carriers.
+		How: Map those explicit boundaries recursively; retain other scalar/null storage.
 	**/
 	function nativeCallbackStorageType(type:Type):GoType {
+		if (isGoNativeErrorType(type)) {
+			return GoType.parse("hxrt.RawError");
+		}
 		if (importedExternMethodValueNeedsStringAdapter(type)) {
 			return GoType.builtin(GoBuiltinType.StringType);
 		}
@@ -7452,6 +7474,9 @@ class GoCompiler {
 	}
 
 	function normalizeImportedExternMethodValueArg(value:GoExpr, type:Type):GoExpr {
+		if (isGoNativeErrorType(type)) {
+			return exportNativeError(value);
+		}
 		switch (Context.follow(type)) {
 			case TFun(_, _):
 				return lowerExportedFunctionValue(value, type);
@@ -7461,6 +7486,9 @@ class GoCompiler {
 	}
 
 	function normalizeImportedExternMethodValueResult(value:GoExpr, type:Type):GoExpr {
+		if (isGoNativeErrorType(type)) {
+			return importNativeError(value);
+		}
 		var callback = lowerImportedFunctionValue(value, type);
 		if (callback != null)
 			return callback;
@@ -10160,7 +10188,13 @@ class GoCompiler {
 		How: Apply the same `hxrt.StdString` boundary used for imported call results.
 	**/
 	function normalizeImportedExternFieldRead(classType:ClassType, fieldType:Type, fieldExpr:GoExpr):GoExpr {
-		if (!isImportedGoExternClass(classType) || isHxrtExternClass(classType) || !isStringType(fieldType)) {
+		if (!isImportedGoExternClass(classType) || isHxrtExternClass(classType)) {
+			return fieldExpr;
+		}
+		if (isGoNativeErrorType(fieldType)) {
+			return importNativeError(fieldExpr);
+		}
+		if (!isStringType(fieldType)) {
 			return fieldExpr;
 		}
 		var nullableInner = nullableInnerType(fieldType);
@@ -10183,7 +10217,11 @@ class GoCompiler {
 			case TField(_, FInstance(classRef, _, fieldRef)):
 				var classType = classRef.get();
 				var fieldType = fieldRef.get().type;
-				if (!isImportedGoExternClass(classType) || isHxrtExternClass(classType) || !isStringType(fieldType)) {
+				if (!isImportedGoExternClass(classType) || isHxrtExternClass(classType)) {
+					valueExpr;
+				} else if (isGoNativeErrorType(fieldType)) {
+					exportNativeError(valueExpr);
+				} else if (!isStringType(fieldType)) {
 					valueExpr;
 				} else {
 					var nullableInner = nullableInnerType(fieldType);
@@ -10245,6 +10283,9 @@ class GoCompiler {
 		}
 		if (paramType == null || !isGoImportExternCall(callee) || isHxrtImportExternCall(callee)) {
 			return argExpr;
+		}
+		if (isGoNativeErrorType(paramType)) {
+			return exportNativeError(argExpr);
 		}
 		if (isNativeGoValueExternType(paramType) && externCallMetadataContainsIndex(callee, GoMetadataName.GoValueArgs, paramIndex)) {
 			return GoExpr.GoUnary(GoUnaryOperator.Dereference, argExpr);
@@ -10329,14 +10370,25 @@ class GoCompiler {
 		if (!isExternTupleReturnCall(callee, returnType)) {
 			return null;
 		}
+		return lowerTupleReturnValue(externCallField(callee), returnType, callExpr, isGoImportExternCall(callee) && !isHxrtImportExternCall(callee),
+			callee.pos);
+	}
+
+	/**
+		What: Imports native multiple results into one typed Haxe tuple carrier.
+		Why: Direct calls and stored extern functions must apply identical slot
+		conversions, including callbacks and native errors, without repeating a call.
+		How: Capture each Go result once and construct the applied source carrier.
+	**/
+	function lowerTupleReturnValue(field:Null<ClassField>, returnType:Type, callExpr:GoExpr, nativeBoundary:Bool, pos:Position):GoExpr {
 		var carrier = tupleReturnCarrierClass(returnType);
 		if (carrier == null) {
-			Context.fatalError("@:go.tupleReturn extern calls must return a concrete Haxe carrier class", callee.pos);
+			Context.fatalError("@:go.tupleReturn extern calls must return a concrete Haxe carrier class", pos);
 			return null;
 		}
-		var constructorArgs = tupleReturnCarrierConstructorArgTypes(carrier, returnType, callee.pos);
+		var constructorArgs = tupleReturnCarrierConstructorArgTypes(carrier, returnType, pos);
 		if (constructorArgs == null || constructorArgs.length == 0) {
-			Context.fatalError("@:go.tupleReturn carrier must have a constructor with one parameter per Go result value", callee.pos);
+			Context.fatalError("@:go.tupleReturn carrier must have a constructor with one parameter per Go result value", pos);
 			return null;
 		}
 
@@ -10346,7 +10398,7 @@ class GoCompiler {
 
 		var loweredArgs = new Array<GoExpr>();
 		for (index in 0...constructorArgs.length) {
-			loweredArgs.push(coerceExternTupleReturnValue(callee, index, GoExpr.GoIdent(tempNames[index]), constructorArgs[index]));
+			loweredArgs.push(coerceExternTupleReturnValue(field, nativeBoundary, index, GoExpr.GoIdent(tempNames[index]), constructorArgs[index]));
 		}
 		body.push(GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent(constructorSymbol(carrier)), loweredArgs)));
 		return GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(returnType)], body), []);
@@ -10366,7 +10418,13 @@ class GoCompiler {
 			return [];
 		}
 		var ctor = carrier.constructor.get();
-		return switch (Context.follow(ctor.type)) {
+		// Tuple adapters need the applied slot types, including Null<T>, before
+		// deciding which native values must be imported into Haxe carriers.
+		var constructorType = switch (Context.follow(returnType)) {
+			case TInst(_, arguments): haxe.macro.TypeTools.applyTypeParameters(ctor.type, carrier.params, arguments);
+			case _: ctor.type;
+		};
+		return switch (Context.follow(constructorType)) {
 			case TFun(args, _):
 				[for (arg in args) arg.t];
 			case _:
@@ -10375,9 +10433,12 @@ class GoCompiler {
 		};
 	}
 
-	function coerceExternTupleReturnValue(callee:TypedExpr, resultIndex:Int, value:GoExpr, targetType:Type):GoExpr {
+	function coerceExternTupleReturnValue(field:Null<ClassField>, nativeBoundary:Bool, resultIndex:Int, value:GoExpr, targetType:Type):GoExpr {
+		if (isGoNativeErrorType(targetType) && nativeBoundary) {
+			return importNativeError(value);
+		}
 		if (isNativeGoValueExternType(targetType)
-			&& externCallMetadataContainsIndex(callee, GoMetadataName.GoTupleValueResults, resultIndex)) {
+			&& externFieldMetadataContainsIndex(field, GoMetadataName.GoTupleValueResults, resultIndex)) {
 			return GoExpr.GoUnary(GoUnaryOperator.AddressOf, value);
 		}
 		if (isStringType(targetType)) {
@@ -10386,7 +10447,7 @@ class GoCompiler {
 		if (isGoErrorType(targetType)) {
 			return coerceNativeGoError(value);
 		}
-		if (isGoImportExternCall(callee) && !isHxrtImportExternCall(callee)) {
+		if (nativeBoundary) {
 			// Tuple elements cross the same typed callback import boundary as a
 			// standalone return, before entering the Haxe result carrier.
 			var callback = lowerImportedFunctionValue(value, targetType);
@@ -10398,16 +10459,29 @@ class GoCompiler {
 	}
 
 	/**
-		What: Converts one native Go `error` result to Haxe's nullable `go.Error` carrier.
+		What: Converts one native Go `error` result to its declared Haxe error carrier.
 		Why: Imported externs return the Go interface value, while ordinary Haxe code
-		expects the generated carrier that provides `message` and `toString()`.
-		How: Preserve nil and copy a non-nil error's stable `Error()` text exactly once.
+		expects either the legacy message snapshot or the explicit lossless carrier.
+		How: Preserve nil; retain the root for NativeError and copy text for go.Error.
 	**/
 	function normalizeExternErrorCallResult(callee:TypedExpr, returnType:Type, callExpr:GoExpr):GoExpr {
-		if (!isGoErrorType(returnType) || !isGoImportExternCall(callee) || isHxrtImportExternCall(callee)) {
+		if (!isGoImportExternCall(callee) || isHxrtImportExternCall(callee)) {
 			return callExpr;
 		}
-		return coerceNativeGoError(callExpr);
+		if (isGoNativeErrorType(returnType)) {
+			return importNativeError(callExpr);
+		}
+		return isGoErrorType(returnType) ? coerceNativeGoError(callExpr) : callExpr;
+	}
+
+	/** Retains native identity without formatting or introducing an error wrapper. */
+	function importNativeError(value:GoExpr):GoExpr {
+		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.ImportNativeError"), [value]);
+	}
+
+	/** Exports the saved native root, evaluating the Haxe carrier exactly once. */
+	function exportNativeError(value:GoExpr):GoExpr {
+		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExportNativeError"), [value]);
 	}
 
 	/**
@@ -10458,7 +10532,11 @@ class GoCompiler {
 		adapts only marked native value externs at the named boundary positions.
 	**/
 	function externCallMetadataContainsIndex(callee:TypedExpr, name:GoMetadataName, expected:Int):Bool {
-		final field = externCallField(callee);
+		return externFieldMetadataContainsIndex(externCallField(callee), name, expected);
+	}
+
+	/** Shares native ABI index validation between direct calls and stored methods. */
+	function externFieldMetadataContainsIndex(field:Null<ClassField>, name:GoMetadataName, expected:Int):Bool {
 		if (field == null)
 			return false;
 		final source = readMetadataString(field.meta, [name]);
@@ -11676,6 +11754,14 @@ class GoCompiler {
 			case TInst(classRef, _): var classType = classRef.get(); classType.pack.length == 1 && classType.pack[0] == "go" && classType.name == "Error";
 			case _:
 				false;
+		};
+	}
+
+	/** Recognizes only the SDK's lossless native error boundary, including Null. */
+	function isGoNativeErrorType(type:Type):Bool {
+		return switch (Context.follow(type)) {
+			case TInst(classRef, _): final type = classRef.get(); type.pack.length == 1 && type.pack[0] == "go" && type.name == "NativeError";
+			case _: false;
 		};
 	}
 

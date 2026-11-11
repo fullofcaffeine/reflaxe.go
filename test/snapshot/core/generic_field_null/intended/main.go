@@ -66,16 +66,29 @@ func main() {
 	var absent *Leaf = nil
 	empty := New_Box(absent)
 	present := New_Box(New_Leaf())
-	var v any = any(hxrt.AnyEqualsNull(empty.value))
+	var v any = any(hxrt.AnyEqualsNull(hx_recover_class_0(empty.value)))
 	hxrt.Println(v)
-	var v_1 any = any(hxrt.AnyEqualsNull(empty.value))
+	var v_1 any = any(hxrt.AnyEqualsNull(hx_recover_class_0(empty.value)))
 	hxrt.Println(v_1)
-	var v_2 any = any(!hxrt.AnyEqualsNull(empty.value))
+	var v_2 any = any(!hxrt.AnyEqualsNull(hx_recover_class_0(empty.value)))
 	hxrt.Println(v_2)
-	var v_3 any = any(!hxrt.AnyEqualsNull(empty.value))
+	var v_3 any = any(!hxrt.AnyEqualsNull(hx_recover_class_0(empty.value)))
 	hxrt.Println(v_3)
-	var v_4 any = any(hxrt.AnyEqualsNull(present.value))
+	var v_4 any = any(hxrt.AnyEqualsNull(hx_recover_class_0(present.value)))
 	hxrt.Println(v_4)
-	var v_5 any = any(!hxrt.AnyEqualsNull(present.value))
+	var v_5 any = any(!hxrt.AnyEqualsNull(hx_recover_class_0(present.value)))
 	hxrt.Println(v_5)
+}
+
+func hx_recover_class_0(value any) *Leaf {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *Leaf:
+		return source
+	default:
+		return value.(*Leaf)
+	}
 }

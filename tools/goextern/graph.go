@@ -113,9 +113,10 @@ func buildGraphEmission(cfg Config, root *packages.Package) (*Emission, error) {
 		OutputDir: cfg.OutputRoot,
 		RootKey:   rootKey(cfg),
 		Root: ownershipRoot{
-			GoImportPath:      cfg.GoImportPath,
-			HaxePackagePrefix: cfg.HaxePackagePrefix,
-			PackageClassName:  cfg.PackageClassName,
+			GoImportPath:        cfg.GoImportPath,
+			HaxePackagePrefix:   cfg.HaxePackagePrefix,
+			PackageClassName:    cfg.PackageClassName,
+			ErrorRepresentation: cfg.ErrorRepresentation,
 		},
 		PackageCount:     len(graph.packages),
 		Files:            files,
@@ -245,8 +246,9 @@ func (graph *declarationGraph) buildType(id declarationID, typeName *types.TypeN
 
 func (graph *declarationGraph) mappingContext(pkg *types.Package) mappingContext {
 	return mappingContext{
-		currentPackagePath: pkg.Path(),
-		haxePackagePrefix:  graph.config.HaxePackagePrefix,
+		currentPackagePath:  pkg.Path(),
+		haxePackagePrefix:   graph.config.HaxePackagePrefix,
+		errorRepresentation: graph.config.ErrorRepresentation,
 		schedule: func(typeName *types.TypeName) {
 			if typeName == nil || typeName.Pkg() == nil || !typeName.Exported() {
 				return

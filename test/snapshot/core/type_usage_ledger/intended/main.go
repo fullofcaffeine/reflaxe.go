@@ -30,16 +30,22 @@ func main() {
 	}()
 	hx_obj_3["count"] = sibling.delta
 	details := hxrt.AnonymousFromMap(hx_obj_3)
-	fmt.Println(box.value)
+	fmt.Println(func(hx_value_6 any) int {
+		if hx_value_6 == nil {
+			var hx_zero_7 int
+			return hx_zero_7
+		}
+		return hx_value_6.(int)
+	}(box.value))
 	fmt.Println(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(38) + hxrt.Int32Wrap(consumeDetails(details))))) + hxrt.Int32Wrap(nestedDepth(nested))))) + hxrt.Int32Wrap(hxrt.StringLengthStringPtr(hxrt.StringFromLiteral("x"))))))
 }
 
 func nestedDepth(value *UsedBox) int {
-	var hx_if_6 int
+	var hx_if_8 int
 	if value == nil {
-		hx_if_6 = 0
+		hx_if_8 = 0
 	} else {
-		hx_if_6 = 1
+		hx_if_8 = 1
 	}
-	return hx_if_6
+	return hx_if_8
 }
