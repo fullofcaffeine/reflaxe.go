@@ -4153,13 +4153,13 @@ class GoCompiler {
 				var facts = conditionNonNullFacts(condition);
 				var thenBody = lowerWithNonNullPrimitiveFacts(facts.thenFacts, function() return lowerToStatements(thenBranch));
 				var elseBody = elseBranch == null ? null : lowerWithNonNullPrimitiveFacts(facts.elseFacts, function() return lowerToStatements(elseBranch));
-					[GoStmt.GoIf(lowerExpr(condition).expr, thenBody, elseBody)];
+					[GoStmt.GoIf(lowerConditionExpr(condition), thenBody, elseBody)];
 			case TWhile(condition, body, normalWhile):
 				if (normalWhile) {
-					[lowerLoopStmt(lowerExpr(condition).expr, body)];
+					[lowerLoopStmt(lowerConditionExpr(condition), body)];
 				} else {
 					var firstPassVar = freshTempName("hx_do_first");
-					var loweredCondition = lowerExpr(condition).expr;
+					var loweredCondition = lowerConditionExpr(condition);
 					var loopCondition = GoExpr.GoBinary("||", GoExpr.GoIdent(firstPassVar), loweredCondition);
 					var target:LoopBreakTarget = {label: null};
 					loopBreakTargetScopes.push(target);
@@ -4677,13 +4677,25 @@ class GoCompiler {
 		return target.label;
 	}
 
+	/**
+		What: Recovers a boolean at a control-flow condition boundary.
+		Why: Optional boolean fields retain nil-capable storage, but Go conditions
+		require bool and Haxe treats an absent boolean as false in this context.
+		How: Reuse typed primitive recovery and keep expression prefixes inside the
+		condition so loops preserve their evaluation order and frequency.
+	**/
+	function lowerConditionExpr(condition:TypedExpr):GoExpr {
+		var boolType = Context.getType("Bool");
+		return materializeExprWithPrefix(lowerReturnedExprWithExpectedType(condition, boolType), boolType).expr;
+	}
+
 	function lowerIfExpr(condition:TypedExpr, thenBranch:TypedExpr, elseBranch:Null<TypedExpr>, resultType:Type):LoweredExprWithPrefix {
 		var elseExpr = elseBranch;
 		if (elseExpr == null) {
 			Context.fatalError("If-expression requires an else branch", condition.pos);
 		}
 
-		var loweredCondition = lowerExprWithPrefix(condition);
+		var loweredCondition = lowerReturnedExprWithExpectedType(condition, Context.getType("Bool"));
 		var facts = conditionNonNullFacts(condition);
 		var loweredThen = lowerWithNonNullPrimitiveFacts(facts.thenFacts,
 			function() return lowerCallableBranch(thenBranch, resultType, function() return lowerExprWithExpectedUpcast(thenBranch, resultType)));
@@ -6403,6 +6415,10 @@ class GoCompiler {
 					localExpr = GoExpr.GoTypeAssert(localExpr, optionalPrimitiveGoType);
 				} else if (variableGoType == "any" && exprGoType != "any") {
 					localExpr = GoExpr.GoTypeAssert(localExpr, exprGoType);
+				} else if (variableGoType != exprGoType) {
+					// Local polymorphic functions retain their declaration's erased ABI.
+					// Adapt that carrier before a concrete use-site signature consumes it.
+					localExpr = adaptErasedFunctionCallArg(localExpr, variable.t, expr.t);
 				}
 				{
 					expr: localExpr,
