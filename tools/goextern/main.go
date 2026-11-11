@@ -20,12 +20,22 @@ import (
 )
 
 type Config struct {
-	GoImportPath      string
-	WorkingDirectory  string
-	OutputRoot        string
-	HaxePackagePrefix string
-	PackageClassName  string
+	GoImportPath        string
+	WorkingDirectory    string
+	OutputRoot          string
+	HaxePackagePrefix   string
+	PackageClassName    string
+	ErrorRepresentation errorRepresentation
 }
+
+// Error representation is an explicit binding contract. The empty legacy value
+// keeps older ownership records and default regeneration byte-compatible.
+type errorRepresentation string
+
+const (
+	legacyErrorRepresentation errorRepresentation = ""
+	nativeErrorRepresentation errorRepresentation = "native"
+)
 
 type Emission struct {
 	OutputDir        string
@@ -37,9 +47,10 @@ type Emission struct {
 }
 
 type ownershipRoot struct {
-	GoImportPath      string `json:"goImportPath"`
-	HaxePackagePrefix string `json:"haxePackagePrefix"`
-	PackageClassName  string `json:"packageClassName"`
+	GoImportPath        string              `json:"goImportPath"`
+	HaxePackagePrefix   string              `json:"haxePackagePrefix"`
+	PackageClassName    string              `json:"packageClassName"`
+	ErrorRepresentation errorRepresentation `json:"errorRepresentation,omitempty"`
 }
 
 type EmittedFile struct {
@@ -103,9 +114,10 @@ type dynamicFallbackReport struct {
 }
 
 type mappingContext struct {
-	currentPackagePath string
-	haxePackagePrefix  string
-	schedule           func(*types.TypeName)
+	currentPackagePath  string
+	haxePackagePrefix   string
+	errorRepresentation errorRepresentation
+	schedule            func(*types.TypeName)
 }
 
 type mappedType struct {
@@ -180,6 +192,7 @@ func run(args []string, stdout io.Writer, stderr io.Writer) error {
 	outRoot := fs.String("out", "gen/goextern", "Output root directory")
 	haxePackagePrefix := fs.String("haxe-package", "goextern", "Root Haxe package prefix")
 	packageClassName := fs.String("package-class", "", "Override package static extern class name")
+	errorMode := fs.String("error-representation", "legacy", "Go error boundary: legacy message snapshot or native identity")
 	stdoutOnly := fs.Bool("stdout", false, "Print generated files to stdout instead of writing to disk")
 	dynamicReportPath := fs.String("dynamic-report", "", "Write JSON report of generated Dynamic fallback boundaries")
 
@@ -188,11 +201,12 @@ func run(args []string, stdout io.Writer, stderr io.Writer) error {
 	}
 
 	cfg := Config{
-		GoImportPath:      strings.TrimSpace(*goImportPath),
-		WorkingDirectory:  strings.TrimSpace(*workingDirectory),
-		OutputRoot:        strings.TrimSpace(*outRoot),
-		HaxePackagePrefix: strings.TrimSpace(*haxePackagePrefix),
-		PackageClassName:  strings.TrimSpace(*packageClassName),
+		GoImportPath:        strings.TrimSpace(*goImportPath),
+		WorkingDirectory:    strings.TrimSpace(*workingDirectory),
+		OutputRoot:          strings.TrimSpace(*outRoot),
+		HaxePackagePrefix:   strings.TrimSpace(*haxePackagePrefix),
+		PackageClassName:    strings.TrimSpace(*packageClassName),
+		ErrorRepresentation: errorRepresentation(strings.TrimSpace(*errorMode)),
 	}
 
 	if cfg.GoImportPath == "" {
@@ -240,6 +254,13 @@ func run(args []string, stdout io.Writer, stderr io.Writer) error {
 }
 
 func BuildEmission(cfg Config) (*Emission, error) {
+	switch cfg.ErrorRepresentation {
+	case "", "legacy":
+		cfg.ErrorRepresentation = legacyErrorRepresentation
+	case nativeErrorRepresentation:
+	default:
+		return nil, fmt.Errorf("unsupported error representation %q; use legacy or native", cfg.ErrorRepresentation)
+	}
 	cfg.GoImportPath = strings.TrimSpace(cfg.GoImportPath)
 	if cfg.GoImportPath == "" {
 		return nil, errors.New("Go import path is required")
@@ -399,6 +420,9 @@ func mapStructFieldTypeWithReason(t types.Type, ctx mappingContext) (string, str
 	if t == nil {
 		return "Dynamic", "nil_type"
 	}
+	if ctx.errorRepresentation == nativeErrorRepresentation && isBuiltinErrorType(t) {
+		return "go.NativeError", ""
+	}
 
 	switch fieldType := types.Unalias(t).(type) {
 	case *types.Basic:
@@ -445,6 +469,9 @@ func mapStructFieldTypeWithReason(t types.Type, ctx mappingContext) (string, str
 }
 
 func mapNativeSliceFieldElementWithReason(t types.Type, ctx mappingContext) (string, string) {
+	if ctx.errorRepresentation == nativeErrorRepresentation && isBuiltinErrorType(t) {
+		return "Dynamic", "native_error_collection_abi"
+	}
 	switch elementType := types.Unalias(t).(type) {
 	case *types.Basic:
 		switch elementType.Kind() {
@@ -598,7 +625,9 @@ func signatureToMethod(goName string, sig *types.Signature, static bool, ctx map
 		paramType, reason := mapTypeWithReason(param.Type(), ctx)
 		if sig.Variadic() && i == sig.Params().Len()-1 {
 			sliceType, ok := types.Unalias(param.Type()).(*types.Slice)
-			if ok {
+			if ok && ctx.errorRepresentation == nativeErrorRepresentation && containsNativeErrorStorage(sliceType.Elem()) {
+				paramType, reason = "haxe.Rest<Dynamic>", "native_error_collection_abi"
+			} else if ok {
 				elemType, elemReason := mapTypeWithReason(sliceType.Elem(), ctx)
 				paramType = "haxe.Rest<" + elemType + ">"
 				reason = elemReason
@@ -745,6 +774,9 @@ func tupleResultType(t types.Type, ctx mappingContext) (string, string, bool) {
 
 func tupleResultTypeResult(t types.Type, ctx mappingContext) mappedType {
 	if isBuiltinErrorType(t) {
+		if ctx.errorRepresentation == nativeErrorRepresentation {
+			return mappedType{Haxe: "Null<go.NativeError>"}
+		}
 		return mappedType{Haxe: "Null<go.Error>"}
 	}
 	return mapTypeResult(t, ctx)
@@ -859,6 +891,28 @@ func mapTypeResult(t types.Type, ctx mappingContext) mappedType {
 	if t == nil {
 		return mappedType{Haxe: "Dynamic", Reason: "nil_type"}
 	}
+	if ctx.errorRepresentation == nativeErrorRepresentation {
+		if isBuiltinErrorType(t) {
+			return mappedType{Haxe: "go.NativeError"}
+		}
+		// Collections and pointers cannot use carrier storage for native error
+		// elements without copying or aliasing rules. Report that boundary instead
+		// of claiming a precise but physically incompatible generated signature.
+		switch value := types.Unalias(t).(type) {
+		case *types.Slice:
+			if containsNativeErrorStorage(value.Elem()) {
+				return mappedType{Haxe: "Dynamic", Reason: "native_error_collection_abi"}
+			}
+		case *types.Map:
+			if containsNativeErrorStorage(value.Key()) || containsNativeErrorStorage(value.Elem()) {
+				return mappedType{Haxe: "Dynamic", Reason: "native_error_collection_abi"}
+			}
+		case *types.Pointer:
+			if isBuiltinErrorType(value.Elem()) {
+				return mappedType{Haxe: "Dynamic", Reason: "native_error_pointer_abi"}
+			}
+		}
+	}
 
 	switch alias := t.(type) {
 	case *types.Alias:
@@ -936,6 +990,25 @@ func mapTypeResult(t types.Type, ctx mappingContext) mappedType {
 		return mappedType{Haxe: "Dynamic", Reason: "union"}
 	default:
 		return mappedType{Haxe: "Dynamic", Reason: "unknown_type"}
+	}
+}
+
+// Detect only storage containers that would recursively substitute a carrier
+// for a native error slot. Named structs keep their native layout and field
+// access owns conversion; callback declarations already report their own gap.
+func containsNativeErrorStorage(t types.Type) bool {
+	if isBuiltinErrorType(t) {
+		return true
+	}
+	switch value := types.Unalias(t).(type) {
+	case *types.Slice:
+		return containsNativeErrorStorage(value.Elem())
+	case *types.Map:
+		return containsNativeErrorStorage(value.Key()) || containsNativeErrorStorage(value.Elem())
+	case *types.Pointer:
+		return isBuiltinErrorType(value.Elem())
+	default:
+		return false
 	}
 }
 

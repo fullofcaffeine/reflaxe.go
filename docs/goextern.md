@@ -44,6 +44,40 @@ Write a report that explains every `Dynamic` fallback:
 npm run dev:goextern -- --package fmt --dynamic-report test/.test-cache/goextern-fmt-dynamic.json
 ```
 
+## Native error identity
+
+The default `--error-representation legacy` maps Go errors to `go.Error`.
+This type captures the error message when the native call returns.
+Its constructor, `message` field, and `toString()` method keep their existing behavior.
+
+For bindings that need native error types or wrapped causes, select the native representation:
+
+```bash
+npm run dev:goextern -- --package context --error-representation native --out gen/native-context
+```
+
+This option maps Go errors to `go.NativeError`, including error results inside tuples.
+The compiler retains the original native error and returns that same value to native calls.
+Transport does not call `Error()`, `Unwrap()`, `Is()`, or `As()`.
+The `text()` method calls the original `Error()` method explicitly.
+
+A nil Go error interface becomes Haxe `null`.
+A non-nil interface that contains a nil pointer remains a non-null `NativeError`.
+This distinction survives storage in Haxe generic fields.
+Two Haxe carriers can contain the same native error, so carrier equality does not establish native identity.
+Use precise externs for native matching operations, such as `errors.Is`.
+
+The ownership manifest records the selected representation.
+Older manifests retain the legacy representation.
+Regeneration rejects a representation change for an existing output tree.
+For a different representation, select a fresh output directory and migrate the consuming declarations explicitly.
+
+The generator reports unsupported error collections and pointers as explicit fallback boundaries.
+For example, a native `[]error` cannot use the same storage as `NativeSlice<NativeError>`.
+Callback declaration generation retains its existing fallback report.
+Precise authored callback externs can use `NativeError` at their argument and result boundaries.
+Native error transport retains the Go 1.22 minimum; `errors.AsType` requires Go 1.26.
+
 ## Output Layout
 
 By default, the Haxe package `goextern` is written under:

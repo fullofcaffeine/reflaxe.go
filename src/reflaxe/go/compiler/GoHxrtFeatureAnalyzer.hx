@@ -19,6 +19,7 @@ package reflaxe.go.compiler;
 enum abstract GoHxrtFeatureId(String) to String {
 	var HxrtCore = "core";
 	var HxrtFunction = "function";
+	var HxrtNativeError = "native_error";
 	var HxrtAnonymous = "anonymous";
 	var HxrtArray = "array";
 	var HxrtArraySort = "array_sort";
@@ -77,6 +78,7 @@ class GoHxrtFeatureAnalyzer {
 	public static inline final FEATURE_CORE:GoHxrtFeatureId = GoHxrtFeatureId.HxrtCore;
 	public static inline final FEATURE_ANONYMOUS:GoHxrtFeatureId = GoHxrtFeatureId.HxrtAnonymous;
 	public static inline final FEATURE_FUNCTION:GoHxrtFeatureId = GoHxrtFeatureId.HxrtFunction;
+	public static inline final FEATURE_NATIVE_ERROR:GoHxrtFeatureId = GoHxrtFeatureId.HxrtNativeError;
 	public static inline final FEATURE_ARRAY:GoHxrtFeatureId = GoHxrtFeatureId.HxrtArray;
 	public static inline final FEATURE_ARRAY_SORT:GoHxrtFeatureId = GoHxrtFeatureId.HxrtArraySort;
 	public static inline final FEATURE_STRING:GoHxrtFeatureId = GoHxrtFeatureId.HxrtString;
@@ -115,6 +117,7 @@ class GoHxrtFeatureAnalyzer {
 	static final FEATURE_ORDER:Array<String> = [
 		FEATURE_CORE,
 		FEATURE_FUNCTION,
+		FEATURE_NATIVE_ERROR,
 		FEATURE_ANONYMOUS,
 		FEATURE_ARRAY,
 		FEATURE_ARRAY_SORT,
@@ -184,6 +187,9 @@ class GoHxrtFeatureAnalyzer {
 		add(FEATURE_EXCEPTION, "baseline", "compiler_baseline");
 
 		for (path in classPaths) {
+			if (path == "go.NativeError") {
+				add(FEATURE_NATIVE_ERROR, "class_usage", path);
+			}
 			var isProcessSurface = path == "sys.io.Process" || StringTools.startsWith(path, "sys.io._Process.");
 			var isHttpSurface = path == "sys.Http" || StringTools.startsWith(path, "hxrt.http.");
 			var isSocketSurface = path == "sys.net.Host"
@@ -427,6 +433,8 @@ class GoHxrtFeatureAnalyzer {
 				[FEATURE_STRING];
 			case FEATURE_FUNCTION:
 				[FEATURE_STRING, FEATURE_EXCEPTION];
+			case FEATURE_NATIVE_ERROR:
+				[FEATURE_STRING];
 			case FEATURE_ARRAY:
 				[FEATURE_CORE];
 			case FEATURE_ARRAY_SORT:
@@ -502,6 +510,8 @@ class GoHxrtFeatureAnalyzer {
 				["anonymous.go"];
 			case FEATURE_FUNCTION:
 				["function.go"];
+			case FEATURE_NATIVE_ERROR:
+				["native_error.go"];
 			case FEATURE_ARRAY:
 				["array.go"];
 			case FEATURE_ARRAY_SORT:
