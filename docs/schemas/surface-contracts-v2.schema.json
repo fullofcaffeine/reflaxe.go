@@ -127,6 +127,7 @@
       "enum": [
         "core",
         "function",
+        "native_error",
         "anonymous",
         "array",
         "array_sort",

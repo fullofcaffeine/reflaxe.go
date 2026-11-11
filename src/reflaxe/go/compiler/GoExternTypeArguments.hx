@@ -30,10 +30,18 @@ function resolve(field:ClassField, appliedType:Type, pos:Position):Array<Type> {
 		case _:
 			Context.fatalError("Native generic declaration must be a function: " + field.name, pos);
 	}
-	if (Lambda.foreach(arguments, argument -> switch (argument) {
-		case TMono(reference): reference.get() != null;
-		case _: true;
-	})) {
+	var inputsResolveAll = true;
+	for (argument in arguments) {
+		switch (argument) {
+			case TMono(reference) if (reference.get() == null):
+				inputsResolveAll = false;
+			case _:
+		}
+		if (!inputsResolveAll) {
+			break;
+		}
+	}
+	if (inputsResolveAll) {
 		return [];
 	}
 	if (!Context.unify(signature, appliedType)) {
