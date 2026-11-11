@@ -92,7 +92,8 @@ def run_builder(output_dir: Path, *extra: str) -> subprocess.CompletedProcess[st
         cwd=ROOT,
         capture_output=True,
         text=True,
-        timeout=180,
+        # Two clean builds each export, stage metadata and package (180s per stage).
+        timeout=2 * 3 * 180 + 60,
     )
 
 

@@ -134,7 +134,8 @@ class HaxelibReleaseInstallContractTest(unittest.TestCase):
                 cwd=ROOT,
                 capture_output=True,
                 text=True,
-                timeout=300,
+                # Match the two clean builds and their bounded subprocess stages.
+                timeout=2 * 3 * 180 + 60,
             )
             self.assertEqual(0, build.returncode, build.stdout + build.stderr)
             archive = output_dir / f"reflaxe.go-{VERSION}.zip"

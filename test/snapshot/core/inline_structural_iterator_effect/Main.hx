@@ -1,8 +1,8 @@
 /**
 	What: Pins generated Go for an effectful inline structural iterator coercion.
-	Why: The effect prefix and typed live-array cursor must coexist without retaining
-	an erased ArrayIterator constructor.
-	How: Count one inline effect, mutate the captured array, and consume the iterator.
+	Why: Structural views must retain the iterator's source identity and live array
+	while evaluating each inline effect once.
+	How: Count the effects, mutate the captured array, and consume the iterator.
 **/
 class Main {
 	static var effectCount = 0;
