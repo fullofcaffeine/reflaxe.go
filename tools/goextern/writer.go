@@ -55,6 +55,9 @@ func writeEmission(emission *Emission) error {
 		return err
 	}
 	current := manifests[emission.RootKey]
+	if current != nil && current.Root.ErrorRepresentation != emission.Root.ErrorRepresentation {
+		return graphError("error_representation_conflict", "existing bindings use a different error representation; select a fresh output directory for the new binding contract")
+	}
 	if current == nil {
 		current = &ownershipManifest{SchemaVersion: 1, RootKey: emission.RootKey, Root: emission.Root}
 	}
