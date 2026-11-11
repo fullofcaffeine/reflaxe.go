@@ -5,6 +5,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 GO_COMPILER = ROOT / "src" / "reflaxe" / "go" / "GoCompiler.hx"
 LOWERING_MODULE = ROOT / "src" / "reflaxe" / "go" / "compiler" / "GoLambdaIterableLowering.hx"
+STRUCTURAL_OWNER = ROOT / "src" / "reflaxe" / "go" / "compiler" / "GoStructuralObjectLowering.hx"
 SOURCE_PLANNER = ROOT / "src" / "reflaxe" / "go" / "compiler" / "GoSourceOwnedStdlibPlanner.hx"
 LAMBDA_OVERRIDE = ROOT / "std" / "go" / "_std" / "Lambda.hx"
 STRUCTURAL_ITERATOR_SNAPSHOT = ROOT / "test" / "snapshot" / "core" / "structural_iterator_assignment" / "intended"
@@ -61,9 +62,9 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
             "findIndex",
             "concat",
         ]:
-            self.assertIn(
-                f"public static function {method}",
+            self.assertRegex(
                 source,
+                rf"public static (?:inline )?function {method}\b",
                 f"Lambda.{method} should lower from staged Haxe source",
             )
 
@@ -171,13 +172,14 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
         )
 
         adapter = function_block(lowering_source, "structuralIteratorCoerce", "trySourcePlan")
+        self.assertIn("return structuralObjectCoerce(expr, fromType, toType)", adapter)
+        structural_source = STRUCTURAL_OWNER.read_text(encoding="utf-8")
         for required in [
-            'GoStringLiteral("hasNext")',
-            'GoStringLiteral("next")',
-            'GoSelector(GoExpr.GoIdent(sourceName), "__hx_this")',
-            "lowerNullableAwareTypeAssertExpr",
+            "config.readMember",
+            "config.writeMember",
+            '"hxrt.NewAnonymousView"',
         ]:
-            self.assertIn(required, adapter)
+            self.assertIn(required, structural_source)
         for forbidden in [
             "reflect",
             "unsafe",
@@ -197,7 +199,8 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
             "structuralIteratorCoerce",
         )
         self.assertIn("nativeArrayCursorMap", native_array_adapter)
-        for forbidden in ["lowerTypedArrayToAnyCoerce", "[]any", "reflect", "unsafe"]:
+        self.assertIn("if (sourcePlan.sharedArray)", native_array_adapter)
+        for forbidden in ["lowerTypedArrayToAnyCoerce", "[]any", "reflect.", "unsafe."]:
             self.assertNotIn(
                 forbidden,
                 native_array_adapter,
@@ -213,20 +216,19 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
     def test_structural_iterator_generated_shape_stays_private_and_carrier_aware(self):
         main_go = (STRUCTURAL_ITERATOR_SNAPSHOT / "main.go").read_text(encoding="utf-8")
         for required in [
-            'map[string]any {',
-            '["hasNext"] = func() bool',
-            '["next"] = func()',
+            'hxrt.NewAnonymousView(',
+            'hxrt.BoundFunction(',
+            'case "hasNext":',
+            'case "next":',
             ".__hx_this.hasNext()",
             ".__hx_this.next()",
             ".(*string)",
-            ".Len()",
-            ".Get(",
             ".Set(",
         ]:
             self.assertIn(required, main_go)
 
-        self.assertNotIn("New_haxe__iterators__ArrayIterator", main_go)
-        capture_index = main_go.index(" := arrayValues")
+        self.assertIn("New_haxe__iterators__ArrayIterator", main_go)
+        capture_index = main_go.index("New_haxe__iterators__ArrayIterator(arrayValues)")
         mutation_index = main_go.index(".Set(hx_array_index_", capture_index)
         consume_index = main_go.index('hxrt.StringFromLiteral("array=")')
         self.assertLess(capture_index, mutation_index)
@@ -266,16 +268,18 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
         effect = "effectCount = int(int32((effectCount + 1)))"
         self.assertEqual(main_go.count(effect), 1)
         effect_index = main_go.index(effect)
-        capture_index = main_go.index(" := values", effect_index)
+        capture_index = main_go.index("New_haxe__iterators__ArrayIterator(values)", effect_index)
         mutation_index = main_go.index(".Set(hx_array_index_", capture_index)
         self.assertLess(effect_index, capture_index)
         self.assertLess(capture_index, mutation_index)
         argument_effect = "argumentEffectCount = int(int32((argumentEffectCount + 1)))"
         self.assertEqual(main_go.count(argument_effect), 1)
-        for forbidden in ["ArrayIterator", "reflect.", "unsafe.", "[]any(hx_structural_array"]:
+        for forbidden in ["reflect.", "unsafe.", "[]any(hx_structural_array"]:
             self.assertNotIn(forbidden, main_go)
-        self.assertIn(".Len()", main_go)
-        self.assertIn(".Get(", main_go)
+        self.assertIn("hxrt.NewAnonymousView(", main_go)
+        iterator_go = (INLINE_EFFECT_SNAPSHOT / "module_haxe_iterators_arrayiterator.go").read_text(encoding="utf-8")
+        self.assertIn(".Len()", iterator_go)
+        self.assertIn(".Get(", iterator_go)
 
         self.assertIn("public inline function iterator():Iterator<Xml>", xml_source)
         self.assertGreaterEqual(
@@ -345,7 +349,8 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
         self.assertLess(virtual_effect, virtual_constructor)
         self.assertEqual(main_body.count('StringFromLiteral("generic:effect")'), 1)
         self.assertEqual(main_body.count('StringFromLiteral("virtual:effect")'), 1)
-        self.assertIn("any(hx_structural_iterator_", main_body)
+        self.assertIn("hxrt.NewAnonymousView(", main_body)
+        self.assertIn("hxrt.BoundFunction(", main_body)
         self.assertIn(".__hx_this.next()", main_body)
         for forbidden in ["ArrayIterator", "reflect.", "unsafe.", ") HasNext(", ") Next("]:
             self.assertNotIn(forbidden, main_body)
@@ -363,7 +368,9 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
         )
 
         constructor_arg = function_block(compiler_source, "lowerConstructorArg", "lowerFunctionResults")
-        self.assertIn("lowerExprWithExpectedUpcast", constructor_arg)
+        self.assertIn("lowerStoredExprWithExpectedType", constructor_arg)
+        stored_arg = function_block(compiler_source, "lowerStoredExprWithExpectedType", "lowerFunctionLiteralForExpectedType")
+        self.assertIn("lowerExprWithExpectedUpcast(source, targetType)", stored_arg)
         self.assertIn("materializeExprWithPrefix", constructor_arg)
         self.assertGreaterEqual(compiler_source.count("lowerConstructorArg(classType"), 3)
 
@@ -373,16 +380,17 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
         before_index = constructor_call.index('StringFromLiteral("before")')
         effect_index = constructor_call.index('StringFromLiteral("iterator")')
         after_index = constructor_call.index('StringFromLiteral("after")')
-        capture_index = constructor_call.index(" := arrayValues")
+        capture_index = constructor_call.index("New_haxe__iterators__ArrayIterator(arrayValues)")
         self.assertLess(before_index, effect_index)
         self.assertLess(effect_index, capture_index)
         self.assertLess(capture_index, after_index)
 
-        self.assertIn("New_SnapshotGenericConsumer(func(hx_structural_iterator_", main_go)
-        self.assertIn('["next"] = func() any', main_go)
-        self.assertIn("any(hx_structural_iterator_", main_go)
+        self.assertIn("New_SnapshotGenericConsumer(func(hx_structural_source_", main_go)
+        self.assertIn('case "next":', main_go)
+        self.assertIn("hxrt.NewAnonymousView(", main_go)
+        self.assertIn("hxrt.BoundFunction(", main_go)
         self.assertIn(".__hx_this.next()", main_go)
-        for forbidden in ["ArrayIterator", "reflect.", "unsafe.", ") HasNext(", ") Next("]:
+        for forbidden in ["reflect.", "unsafe.", ") HasNext(", ") Next("]:
             self.assertNotIn(forbidden, main_go)
 
 

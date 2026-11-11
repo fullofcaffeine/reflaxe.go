@@ -72,6 +72,8 @@ class Thread {
 		try {
 			var exception = @:privateAccess haxe.Exception.caught(value);
 			NativeThread.writeStderr("Uncaught exception " + exception.message + "\n");
+			// Dynamic catch is intentional: a message getter can throw any Haxe value.
+			// This final reporting boundary must not recursively format that failure.
 		} catch (_:Dynamic) {
 			// Do not format the secondary failure: its getter may also throw.
 			NativeThread.writeStderr("Uncaught exception (message unavailable)\n");
