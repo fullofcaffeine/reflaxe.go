@@ -1350,8 +1350,15 @@ class GoCompiler {
 				false;
 			case GoSelector(target, field): selectorTargetUsesImportAlias(target,
 					alias) || selectorMatchesQualifiedSymbol(target, field, alias) || exprUsesImportAlias(target, alias);
-			case GoInstantiate(target, arguments): exprUsesImportAlias(target,
-					alias) || Lambda.exists(arguments, argument -> typeNameUsesImportAlias(argument, alias));
+			case GoInstantiate(target, arguments):
+				var used = exprUsesImportAlias(target, alias);
+				for (argument in arguments) {
+					if (used) {
+						break;
+					}
+					used = typeNameUsesImportAlias(argument, alias);
+				}
+				used;
 			case GoIndex(target, index): exprUsesImportAlias(target, alias) || exprUsesImportAlias(index, alias);
 			case GoSlice(target, start, end): exprUsesImportAlias(target,
 					alias) || (start != null && exprUsesImportAlias(start, alias)) || (end != null && exprUsesImportAlias(end, alias));
@@ -11760,7 +11767,7 @@ class GoCompiler {
 	/** Recognizes only the SDK's lossless native error boundary, including Null. */
 	function isGoNativeErrorType(type:Type):Bool {
 		return switch (Context.follow(type)) {
-			case TInst(classRef, _): final type = classRef.get(); type.pack.length == 1 && type.pack[0] == "go" && type.name == "NativeError";
+			case TInst(classRef, _): final classType = classRef.get(); classType.pack.length == 1 && classType.pack[0] == "go" && classType.name == "NativeError";
 			case _: false;
 		};
 	}
