@@ -38,7 +38,7 @@ does not establish production or security support.
 | --- | --- | --- | --- | --- |
 | Haxe compiler | `4.3.7` | `4.3.7` | `4.3.7` | Exact current stable Haxe compiler used by the target and semantic baselines. |
 | Generated Go language floor | `1.22` | n/a | n/a | Language and module semantics permitted in generated `go.mod`; not a patched build-toolchain claim. |
-| Go build and test toolchain | `1.26.10` and `1.27.3` | `1.27.3` | `1.26.10`, `1.27.3` | Exact approved patches from the two current upstream-supported Go release lines. |
+| Go build and test toolchain | `1.26.11` and `1.27.4` | `1.27.4` | `1.26.11`, `1.27.4` | Exact approved patches from the two current upstream-supported Go release lines. |
 | Node repository tooling | latest patch of `24` | latest patch of `24` | `24` | Maintenance LTS line for npm and release tooling. |
 | npm lock and CI executor | exact `packageManager` value | exact `packageManager` value | `npm@11.16.0` | One reviewed npm version generates and consumes the lock; `package.json` owns the exact value. |
 
@@ -77,6 +77,12 @@ standard-library vulnerabilities on the previous pins, including
 [GO-2026-6809](https://pkg.go.dev/vuln/GO-2026-6809), which is fixed in both
 new pins. This changes build and security evidence; generated modules keep
 the Go 1.22 language floor. Node 24 remains supported in Maintenance LTS.
+
+The 2026-11-11 refresh moves CI to Go 1.26.11 and 1.27.4. Both patches fix
+[GO-2026-6859](https://pkg.go.dev/vuln/GO-2026-6859), an HTTP/1 server crash
+caused by a header race. The dependency audit detected this reachable
+standard-library issue on both prior pins. The generated language floor stays
+at Go 1.22.
 
 Setting `check-latest: true` on a wildcard was considered and rejected for
 release evidence. It would avoid preferring an older matching cache entry, but

@@ -7,7 +7,7 @@
     "compatibility_source": "docs/compatibility-support-source.json",
     "compatibility_source_sha256": "350bb0ce49a3f9a347399a5a7843e3bcd0f9d7031e6e4122e112ec256bc31a50",
     "toolchain_policy": "docs/toolchain-policy.json",
-    "toolchain_policy_sha256": "60e201ce415d45af0514db5022f3f210fd30a855c4e478bdaa2852a0f338f772",
+    "toolchain_policy_sha256": "f17f048f2cce333b97a12a0b6e3824532d4514c14ed8e35dbadbdd3081f1d4a8",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
     "portable_stdlib_inventory_sha256": "cc41a979e3a0caee1020c19f0e9c28536f752a388699b5d3479c0afa42c824ac"
   },
@@ -49,7 +49,7 @@
   },
   "toolchains": {
     "schema_version": 2,
-    "effective_date": "2026-11-03",
+    "effective_date": "2026-11-11",
     "haxe": {
       "supported_versions": [
         "4.3.7"
@@ -66,10 +66,10 @@
         "1.27"
       ],
       "recommended_build_line": "1.27",
-      "recommended_build_version": "1.27.3",
+      "recommended_build_version": "1.27.4",
       "ci_versions": [
-        "1.26.10",
-        "1.27.3"
+        "1.26.11",
+        "1.27.4"
       ],
       "patch_policy": "exact latest available patch pins, refreshed deliberately from the official Go release history",
       "source": "https://go.dev/doc/devel/release"

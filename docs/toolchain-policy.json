@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "effective_date": "2026-11-03",
+  "effective_date": "2026-11-11",
   "haxe": {
     "supported_versions": [
       "4.3.7"
@@ -17,10 +17,10 @@
       "1.27"
     ],
     "recommended_build_line": "1.27",
-    "recommended_build_version": "1.27.3",
+    "recommended_build_version": "1.27.4",
     "ci_versions": [
-      "1.26.10",
-      "1.27.3"
+      "1.26.11",
+      "1.27.4"
     ],
     "patch_policy": "exact latest available patch pins, refreshed deliberately from the official Go release history",
     "source": "https://go.dev/doc/devel/release"

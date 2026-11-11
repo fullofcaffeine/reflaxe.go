@@ -53,8 +53,8 @@
     },
     "go": {
       "resolved": [
-        "1.26.10",
-        "1.27.3"
+        "1.26.11",
+        "1.27.4"
       ]
     },
     "node": {
@@ -67,12 +67,12 @@
     "reachableVulnerabilities": [],
     "gates": [
       {
-        "id": "dependency-audit:go1.26.10",
+        "id": "dependency-audit:go1.26.11",
         "result": "pass",
         "testedSha": "1111111111111111111111111111111111111111"
       },
       {
-        "id": "dependency-audit:go1.27.3",
+        "id": "dependency-audit:go1.27.4",
         "result": "pass",
         "testedSha": "1111111111111111111111111111111111111111"
       },
@@ -82,12 +82,12 @@
         "testedSha": "1111111111111111111111111111111111111111"
       },
       {
-        "id": "go-tooling:go1.26.10",
+        "id": "go-tooling:go1.26.11",
         "result": "pass",
         "testedSha": "1111111111111111111111111111111111111111"
       },
       {
-        "id": "go-tooling:go1.27.3",
+        "id": "go-tooling:go1.27.4",
         "result": "pass",
         "testedSha": "1111111111111111111111111111111111111111"
       }

@@ -524,7 +524,7 @@ class HaxelibReleaseArtifactContractTest(unittest.TestCase):
                     for entry in embedded["entries"]
                     if entry["packagePath"].endswith(".cross.hx")
                 ]
-                self.assertEqual(107, len(cross_entries))
+                self.assertEqual(CANONICAL_PACKAGE_INVENTORY["canonicalOverrideSources"], len(cross_entries))
                 self.assertTrue(
                     all(
                         entry["kind"] == "stdlib-override"
