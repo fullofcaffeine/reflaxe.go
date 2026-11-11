@@ -84,9 +84,9 @@ class GithubGovernancePolicyContract(unittest.TestCase):
         self.assertEqual(
             {
                 "Quality Gate",
-                "test:ci (ubuntu-latest, go 1.26.10)",
-                "test:ci (ubuntu-latest, go 1.27.3)",
-                "test:ci (macos-latest, go 1.27.3)",
+                "test:ci (ubuntu-latest, go 1.26.11)",
+                "test:ci (ubuntu-latest, go 1.27.4)",
+                "test:ci (macos-latest, go 1.27.4)",
                 "CodeQL (go)",
                 "CodeQL (python)",
                 "gitleaks",
