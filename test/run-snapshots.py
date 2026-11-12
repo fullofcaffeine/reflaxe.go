@@ -19,6 +19,7 @@ import time
 from typing import Iterable
 
 from git_changes import GitChangeDiscoveryError, collect_changed_paths
+from snapshot_process import run_command
 
 try:
     import fcntl  # type: ignore[attr-defined]
@@ -224,13 +225,6 @@ def read_last_failed() -> list[str]:
     if not LAST_FAILED.exists():
         return []
     return [line.strip() for line in LAST_FAILED.read_text(encoding="utf-8").splitlines() if line.strip()]
-
-
-def run_command(cmd: list[str], cwd: Path, timeout_s: int, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
-    merged_env = os.environ.copy()
-    if env:
-        merged_env.update(env)
-    return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=timeout_s, env=merged_env)
 
 
 def command_output(proc: subprocess.CompletedProcess[str]) -> str:
