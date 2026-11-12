@@ -1,0 +1,1 @@
+go.NativePointer supports only Int, String, and Bool

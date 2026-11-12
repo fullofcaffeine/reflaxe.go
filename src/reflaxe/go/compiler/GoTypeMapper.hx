@@ -25,6 +25,13 @@ class GoTypeMapper {
 		if (isBytesDataType(type)) {
 			return "[]int";
 		}
+		var nativePointerElement = nativePointerElementType(type);
+		if (nativePointerElement != null) {
+			var nativeElement = nativeScalarPointerElementGoType(nativePointerElement);
+			if (nativeElement == null)
+				Context.fatalError("go.NativePointer supports only Int, String, and Bool", Context.currentPos());
+			return "*" + nativeElement;
+		}
 		if (isNativeStringSliceType(type)) {
 			return "[]string";
 		}
@@ -371,6 +378,13 @@ class GoTypeMapper {
 		if (isBytesDataType(type)) {
 			return "[]int";
 		}
+		var nativePointerElement = nativePointerElementType(type);
+		if (nativePointerElement != null) {
+			var nativeElement = nativeScalarPointerElementGoType(nativePointerElement);
+			if (nativeElement == null)
+				Context.fatalError("go.NativePointer supports only Int, String, and Bool", Context.currentPos());
+			return "*" + nativeElement;
+		}
 		if (isNativeStringSliceType(type)) {
 			return "[]string";
 		}
@@ -555,6 +569,44 @@ class GoTypeMapper {
 				} else {
 					null;
 				}
+			case _:
+				null;
+		};
+	}
+
+	/**
+		What: Resolves the element of an explicit native scalar pointer carrier.
+		Why: The Go ABI must use the declared element type at every type position,
+			not infer a destination from the expression passed to a variadic call.
+		How: Admit only go.NativePointer with one type parameter; other types do
+			not participate in this pointer mapping.
+	**/
+	public static function nativePointerElementType(type:Type):Null<Type> {
+		return switch (Context.follow(type)) {
+			case TInst(classRef, params): var classType = classRef.get(); classType.pack.join(".") == "go" && classType.name == "NativePointer" && params.length == 1 ? params[0] : null;
+			case _:
+				null;
+		};
+	}
+
+	/**
+		What: Maps the admitted Haxe scalar elements to native Go element types.
+		Why: A broader mapping could silently produce the wrong pointer destination
+			for a Go API that mutates through its exact scalar ABI.
+		How: Reject nullable and non-scalar elements before Go type emission.
+	**/
+	public static function nativeScalarPointerElementGoType(type:Type):Null<String> {
+		if (isNullablePrimitiveType(type))
+			return null;
+		return switch (Context.follow(type)) {
+			case TAbstract(abstractRef, _):
+				var abstractType = abstractRef.get();
+				if (abstractType.pack.length != 0) null else switch (abstractType.name) {
+					case "Int": "int";
+					case "Bool": "bool";
+					case _: null;
+				};
+			case TInst(classRef, _): var classType = classRef.get(); classType.pack.length == 0 && classType.name == "String" ? "string" : null;
 			case _:
 				null;
 		};

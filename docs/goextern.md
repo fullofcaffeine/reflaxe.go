@@ -216,6 +216,19 @@ First-class `(T,error)` interop pattern:
 - Compiler lowering wraps the Go multi-return call into `go.Result<T>` automatically.
 - See `examples/interop_smoke` and `test/semantic_diff/go_value_error_result_contract`.
 
+Native scalar pointer destinations:
+
+- Use `go.NativePointer<Int>`, `go.NativePointer<String>`, or
+  `go.NativePointer<Bool>` when a Go API writes through `*int`, `*string`, or
+  `*bool`. For example, `fmt.Sscan` accepts destinations through `...any`.
+- `NativePointer.of(value)` copies a scalar into its own addressable Go storage;
+  `pointer.get()` reads the value after the native call. It does not change the
+  Haxe local that supplied the initial value. A String read is a detached snapshot.
+- Call `of` and `get` directly. Their method values, other element types, and
+  nullable scalar elements are not supported. The `...any` extern parameter
+  remains `haxe.Rest<Dynamic>` because that is the Go signature; this carrier
+  does not make the generator's broader typed-any boundaries complete.
+
 Generated files are not an edit surface. Put stronger user-owned externs or
 typed adapters in a separate Haxe path. The ownership manifest rejects any
 unowned file at a generated path, even when its bytes already match. This rule
