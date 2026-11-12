@@ -239,7 +239,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
 					return hx_zero_2
 				}
 				return hx_value_1.(bool)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	default:
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
@@ -268,7 +268,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func() int] {
 					return hx_zero_4
 				}
 				return hx_value_3.(int)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() any]:
 		return hxrt.ProjectFunction(source, func() int {
@@ -278,7 +278,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func() int] {
 					return hx_zero_6
 				}
 				return hx_value_5.(int)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	default:
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))

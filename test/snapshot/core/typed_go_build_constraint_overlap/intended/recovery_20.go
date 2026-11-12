@@ -28,7 +28,7 @@ func hx_recover_callable_0__probe_2(value any) (*hxrt.Function[func(any) int], b
 					return hx_zero_34
 				}
 				return hx_value_33.(int)
-			}(any(hxrt.FunctionCall(source)(hx_recover_callable_2(arg_0))))
+			}(hxrt.FunctionCall(source)(hx_recover_callable_2(arg_0)))
 		}), true
 	default:
 		var zero *hxrt.Function[func(any) int]

@@ -44,6 +44,18 @@ class GeneratedLintContractTests(unittest.TestCase):
         self.assertNotIn("any(names.Get(", array_output)
         self.assertIn("hxrt.Println(names.Get(0))", array_output)
 
+    def test_stored_value_recovery_uses_the_any_parameter_boundary(self) -> None:
+        generated = (
+            ROOT
+            / "test/snapshot/core/stored_value_any_arguments/intended/main.go"
+        ).read_text(encoding="utf-8")
+
+        # Bound defaulted primitive methods and an erased array recover through
+        # func(any) boundaries. Go already boxes their call arguments there.
+        self.assertNotIn("}(any(value))", generated)
+        self.assertNotIn("}(any(func(hx_value_", generated)
+        self.assertIn("}(value)", generated)
+
     def test_dynamic_type_helpers_rely_on_their_any_parameter_boundary(self) -> None:
         std_output = (
             ROOT

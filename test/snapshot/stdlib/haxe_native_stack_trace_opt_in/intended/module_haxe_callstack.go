@@ -242,7 +242,7 @@ func haxe___CallStack__CallStack_Impl__exceptionToString(exception *haxe__Except
 					return hx_zero_38
 				}
 				return hx_value_37.(*hxrt.Array)
-			}(any(e.__hx_this.get_stack())), prev.__hx_this.get_stack())
+			}(e.__hx_this.get_stack()), prev.__hx_this.get_stack())
 			result = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Exception: "), e.__hx_this.get_message()), func() *string {
 				var hx_if_39 *string
 				if hxrt.AnyEqualsNull(prevStack) {
@@ -431,13 +431,13 @@ func haxe___CallStack__CallStack_Impl__toString(stack any) *string {
 			return hx_zero_68
 		}
 		return hx_value_67.(*hxrt.Array)
-	}(any(func(hx_value_65 any) *hxrt.Array {
+	}(func(hx_value_65 any) *hxrt.Array {
 		if hx_value_65 == nil {
 			var hx_zero_66 *hxrt.Array
 			return hx_zero_66
 		}
 		return hx_value_65.(*hxrt.Array)
-	}(stack)))
+	}(stack))
 	for _g < _g1.Len() {
 		item := func(hx_value_69 any) *haxe__StackItem {
 			if hx_value_69 == nil {

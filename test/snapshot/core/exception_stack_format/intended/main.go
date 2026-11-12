@@ -61,7 +61,7 @@ func main() {
 			return hx_zero_2
 		}
 		return hx_value_1.(*hxrt.Array)
-	}(any(first)), second))))
+	}(first), second))))
 	hxrt.Println(v)
 	cause := New_FixedException(hxrt.StringFromLiteral("cause"), first, nil)
 	outer := New_FixedException(hxrt.StringFromLiteral("outer"), second, func(hx_value *FixedException) *haxe__Exception {
@@ -81,13 +81,13 @@ func main() {
 				return hx_zero_6
 			}
 			return hx_value_5.(*hxrt.Array)
-		}(any(haxe___CallStack__CallStack_Impl__subtract(func(hx_value_3 any) *hxrt.Array {
+		}(haxe___CallStack__CallStack_Impl__subtract(func(hx_value_3 any) *hxrt.Array {
 			if hx_value_3 == nil {
 				var hx_zero_4 *hxrt.Array
 				return hx_zero_4
 			}
 			return hx_value_3.(*hxrt.Array)
-		}(any(identical)), equal)))
+		}(identical), equal))
 		return this1.Len()
 	}()))
 	hxrt.Println(v_2)
@@ -99,13 +99,13 @@ func main() {
 				return hx_zero_10
 			}
 			return hx_value_9.(*hxrt.Array)
-		}(any(haxe___CallStack__CallStack_Impl__subtract(func(hx_value_7 any) *hxrt.Array {
+		}(haxe___CallStack__CallStack_Impl__subtract(func(hx_value_7 any) *hxrt.Array {
 			if hx_value_7 == nil {
 				var hx_zero_8 *hxrt.Array
 				return hx_zero_8
 			}
 			return hx_value_7.(*hxrt.Array)
-		}(any(first)), different)))
+		}(first), different))
 		return this1_1.Len()
 	}()))
 	hxrt.Println(v_3)

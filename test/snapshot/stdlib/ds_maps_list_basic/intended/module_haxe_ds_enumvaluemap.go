@@ -402,25 +402,25 @@ func (self *haxe__ds__EnumValueMap) compareArg(left any, right any) int {
 				return hx_zero_42
 			}
 			return hx_value_41.(*hxrt.Array)
-		}(any(func(hx_value_39 any) *hxrt.Array {
+		}(func(hx_value_39 any) *hxrt.Array {
 			if hx_value_39 == nil {
 				var hx_zero_40 *hxrt.Array
 				return hx_zero_40
 			}
 			return hx_value_39.(*hxrt.Array)
-		}(left))), func(hx_value_45 any) *hxrt.Array {
+		}(left)), func(hx_value_45 any) *hxrt.Array {
 			if hx_value_45 == nil {
 				var hx_zero_46 *hxrt.Array
 				return hx_zero_46
 			}
 			return hx_value_45.(*hxrt.Array)
-		}(any(func(hx_value_43 any) *hxrt.Array {
+		}(func(hx_value_43 any) *hxrt.Array {
 			if hx_value_43 == nil {
 				var hx_zero_44 *hxrt.Array
 				return hx_zero_44
 			}
 			return hx_value_43.(*hxrt.Array)
-		}(right)))))
+		}(right))))
 	}
 	return Reflect_compare(left, right)
 }

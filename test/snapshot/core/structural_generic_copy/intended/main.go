@@ -841,7 +841,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() int] {
 					return hx_zero_76
 				}
 				return hx_value_75.(int)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() *string]:
 		return hxrt.ProjectFunction(source, func() int {
@@ -851,7 +851,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() int] {
 					return hx_zero_78
 				}
 				return hx_value_77.(int)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() any]:
 		return hxrt.ProjectFunction(source, func() int {
@@ -861,7 +861,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() int] {
 					return hx_zero_80
 				}
 				return hx_value_79.(int)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() *haxe__Exception]:
 		return hxrt.ProjectFunction(source, func() int {
@@ -871,7 +871,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() int] {
 					return hx_zero_82
 				}
 				return hx_value_81.(int)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	default:
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))

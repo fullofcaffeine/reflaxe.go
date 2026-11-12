@@ -61,7 +61,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func(any) int] {
 					return hx_zero_36
 				}
 				return hx_value_35.(int)
-			}(any(hxrt.FunctionCall(source)(arg_0)))
+			}(hxrt.FunctionCall(source)(arg_0))
 		})
 	}
 	hx_recovered, hx_matched := hx_recover_callable_0__probe_0(origin)
