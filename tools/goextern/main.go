@@ -73,9 +73,10 @@ type declaration struct {
 }
 
 type fieldDecl struct {
-	GoName   string
-	HaxeName string
-	Type     string
+	GoName     string
+	HaxeName   string
+	Type       string
+	ValueField bool
 }
 
 type methodDecl struct {
@@ -404,9 +405,10 @@ func collectStructFields(ownerName string, structType *types.Struct, ctx mapping
 		}
 
 		fields = append(fields, fieldDecl{
-			GoName:   field.Name(),
-			HaxeName: sanitizeParamName(lowerCamel(field.Name()), index, usedNames),
-			Type:     fieldType,
+			GoName:     field.Name(),
+			HaxeName:   sanitizeParamName(lowerCamel(field.Name()), index, usedNames),
+			Type:       fieldType,
+			ValueField: isPointerBackedValueType(field.Type()),
 		})
 	}
 
@@ -457,7 +459,8 @@ func mapStructFieldTypeWithReason(t types.Type, ctx mappingContext) (string, str
 		if mapped.Reason != "" {
 			return "Dynamic", mapped.Reason
 		}
-		if _, isInterface := fieldType.Underlying().(*types.Interface); isInterface {
+		switch fieldType.Underlying().(type) {
+		case *types.Interface, *types.Basic:
 			commitMappedType(ctx, mapped)
 			return mapped.Haxe, ""
 		}
@@ -1153,6 +1156,9 @@ func renderDeclaration(haxePackage string, goImportPath string, goPackageName st
 		b.WriteString("\t@:go.name(\"")
 		b.WriteString(field.GoName)
 		b.WriteString("\")\n")
+		if field.ValueField {
+			b.WriteString("\t@:go.valueField\n")
+		}
 		b.WriteString("\tpublic var ")
 		b.WriteString(field.HaxeName)
 		b.WriteString(":")

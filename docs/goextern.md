@@ -109,6 +109,7 @@ path when you use the default output and package prefix.
   - `@:go.name("<symbol>")`
   - `@:go.struct` (on concrete Go structs with zero-value construction)
   - `@:go.valueType` (on named Go scalar types represented by extern classes)
+  - `@:go.valueField` (a native named value stored in a struct field)
   - `@:go.valueArgs("0,2")` (zero-based parameters passed as named Go values)
   - `@:go.valueReturn` (one named Go value returned through a pointer-backed Haxe extern)
   - `@:go.tupleValueResults("0")` (tuple results returned as named Go values)
@@ -118,7 +119,14 @@ Haxe keeps extern classes pointer-backed. This lets code mutate concrete Go
 struct fields and gives named Go scalar types one precise carrier. The value-ABI
 metadata entries are generated implementation details: the compiler dereferences
 only the named value parameters and takes the address of only the named single
-or tuple results. Do not add them to pointer parameters or pointer results.
+or tuple results. A marked field write copies the named value from its non-null
+Haxe carrier. A marked field read evaluates its receiver once and returns an
+independent copy, so later field writes do not change the earlier result.
+Unmarked pointer fields retain their aliases. Do not add value metadata to
+pointer fields, pointer parameters or pointer results. A nullable or unrelated
+field type cannot use `@:go.valueField`; the compiler rejects that declaration.
+As with named value arguments, callers must supply a non-null carrier for a
+native value field. A null carrier is not a native zero value.
 
 ## Determinism Contract
 
