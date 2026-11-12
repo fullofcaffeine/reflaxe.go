@@ -23,13 +23,13 @@ func haxe__NativeStackTrace_toHaxe(nativeStackTrace any, skip int) *hxrt.Array {
 			return hx_zero_4
 		}
 		return hx_value_3.([]*hxrt.StackFrame)
-	}(any(func(hx_value_1 any) []*hxrt.StackFrame {
+	}(func(hx_value_1 any) []*hxrt.StackFrame {
 		if hx_value_1 == nil {
 			var hx_zero_2 []*hxrt.StackFrame
 			return hx_zero_2
 		}
 		return hx_value_1.([]*hxrt.StackFrame)
-	}(nativeStackTrace)))
+	}(nativeStackTrace))
 	out := hxrt.NewArray()
 	var hx_if_5 int
 	if skip < 0 {

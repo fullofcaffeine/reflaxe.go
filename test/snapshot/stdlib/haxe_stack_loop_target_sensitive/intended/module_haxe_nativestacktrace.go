@@ -32,13 +32,13 @@ func haxe__NativeStackTrace_toHaxe(nativeStackTrace any, skip int) *hxrt.Array {
 			return hx_zero_4
 		}
 		return hx_value_3.(*hxrt.Array)
-	}(any(func(hx_value_1 any) *hxrt.Array {
+	}(func(hx_value_1 any) *hxrt.Array {
 		if hx_value_1 == nil {
 			var hx_zero_2 *hxrt.Array
 			return hx_zero_2
 		}
 		return hx_value_1.(*hxrt.Array)
-	}(nativeStackTrace)))
+	}(nativeStackTrace))
 	if skip <= 0 {
 		return stack.Copy()
 	}

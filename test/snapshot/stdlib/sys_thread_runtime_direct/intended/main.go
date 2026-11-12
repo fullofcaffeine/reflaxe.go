@@ -2850,7 +2850,7 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_164
 			}
 			return hx_value_163.(*string)
-		}(any(argument_0)))
+		}(argument_0))
 	case *hxrt.Function[func() *haxe__ds___List__GoListKeyValueIterator]:
 		return hxrt.FunctionCall(source)()
 	case *hxrt.Function[func(*hxrt.Function[func(any) any]) *haxe__ds__List]:
@@ -2878,7 +2878,7 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_166
 			}
 			return hx_value_165.(bool)
-		}(any(argument_0)))
+		}(argument_0))
 	case *hxrt.Function[func() int]:
 		return hxrt.FunctionCall(source)()
 	case *hxrt.Function[func(*sys__thread__ElasticThreadPoolWorker)]:
@@ -2910,7 +2910,7 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_168
 			}
 			return hx_value_167.(bool)
-		}(any(argument_1)))
+		}(argument_1))
 	case *hxrt.Function[func() *sys__thread__NextEventTime]:
 		return hxrt.FunctionCall(source)()
 	case *hxrt.Function[func(*hxrt.Function[func()], int) any]:
@@ -2928,7 +2928,7 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_170
 			}
 			return hx_value_169.(int)
-		}(any(argument_1)))
+		}(argument_1))
 	case *hxrt.Function[func() *sys__thread__EventLoop]:
 		return hxrt.FunctionCall(source)()
 	default:
@@ -2961,7 +2961,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func(*string, *string) int]
 					return hx_zero_172
 				}
 				return hx_value_171.(int)
-			}(any(hxrt.FunctionCall(source)(arg_0, arg_1)))
+			}(hxrt.FunctionCall(source)(arg_0, arg_1))
 		})
 	case *hxrt.Function[func(*sys__thread__ElasticThreadPoolWorker, bool) bool]:
 		return hxrt.ProjectFunction(source, func(arg_0 *string, arg_1 *string) int {
@@ -2971,13 +2971,13 @@ func hx_recover_callable_0(value any) *hxrt.Function[func(*string, *string) int]
 					return hx_zero_176
 				}
 				return hx_value_175.(int)
-			}(any(hxrt.FunctionCall(source)(hx_recover_class_4(arg_0), func(hx_value_173 any) bool {
+			}(hxrt.FunctionCall(source)(hx_recover_class_4(arg_0), func(hx_value_173 any) bool {
 				if hx_value_173 == nil {
 					var hx_zero_174 bool
 					return hx_zero_174
 				}
 				return hx_value_173.(bool)
-			}(any(arg_1)))))
+			}(arg_1)))
 		})
 	case *hxrt.Function[func(*hxrt.Function[func()], int) any]:
 		return hxrt.ProjectFunction(source, func(arg_0 *string, arg_1 *string) int {
@@ -2987,13 +2987,13 @@ func hx_recover_callable_0(value any) *hxrt.Function[func(*string, *string) int]
 					return hx_zero_180
 				}
 				return hx_value_179.(int)
-			}(any(hxrt.FunctionCall(source)(hx_recover_callable_1(arg_0), func(hx_value_177 any) int {
+			}(hxrt.FunctionCall(source)(hx_recover_callable_1(arg_0), func(hx_value_177 any) int {
 				if hx_value_177 == nil {
 					var hx_zero_178 int
 					return hx_zero_178
 				}
 				return hx_value_177.(int)
-			}(any(arg_1)))))
+			}(arg_1)))
 		})
 	default:
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
@@ -3088,7 +3088,7 @@ func hx_recover_callable_2(value any) *hxrt.Function[func(any) bool] {
 					return hx_zero_182
 				}
 				return hx_value_181.(bool)
-			}(any(nil))
+			}(nil)
 		})
 	case *hxrt.Function[func(...any) any]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) bool {
@@ -3098,7 +3098,7 @@ func hx_recover_callable_2(value any) *hxrt.Function[func(any) bool] {
 					return hx_zero_184
 				}
 				return hx_value_183.(bool)
-			}(any(hxrt.FunctionCall(source)(arg_0)))
+			}(hxrt.FunctionCall(source)(arg_0))
 		})
 	case *hxrt.Function[func(*hxrt.Function[func(any) bool]) *haxe__ds__List]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) bool {
@@ -3108,7 +3108,7 @@ func hx_recover_callable_2(value any) *hxrt.Function[func(any) bool] {
 					return hx_zero_186
 				}
 				return hx_value_185.(bool)
-			}(any(hxrt.FunctionCall(source)(hx_recover_callable_2(arg_0))))
+			}(hxrt.FunctionCall(source)(hx_recover_callable_2(arg_0)))
 		})
 	case *hxrt.Function[func(*string) *string]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) bool {
@@ -3118,13 +3118,13 @@ func hx_recover_callable_2(value any) *hxrt.Function[func(any) bool] {
 					return hx_zero_190
 				}
 				return hx_value_189.(bool)
-			}(any(hxrt.FunctionCall(source)(func(hx_value_187 any) *string {
+			}(hxrt.FunctionCall(source)(func(hx_value_187 any) *string {
 				if hx_value_187 == nil {
 					var hx_zero_188 *string
 					return hx_zero_188
 				}
 				return hx_value_187.(*string)
-			}(any(arg_0)))))
+			}(arg_0)))
 		})
 	case *hxrt.Function[func(*hxrt.Function[func(any) any]) *haxe__ds__List]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) bool {
@@ -3134,7 +3134,7 @@ func hx_recover_callable_2(value any) *hxrt.Function[func(any) bool] {
 					return hx_zero_192
 				}
 				return hx_value_191.(bool)
-			}(any(hxrt.FunctionCall(source)(hx_recover_callable_3(arg_0))))
+			}(hxrt.FunctionCall(source)(hx_recover_callable_3(arg_0)))
 		})
 	case *hxrt.Function[func(any) bool]:
 		return source
@@ -3146,13 +3146,13 @@ func hx_recover_callable_2(value any) *hxrt.Function[func(any) bool] {
 					return hx_zero_196
 				}
 				return hx_value_195.(bool)
-			}(any(hxrt.FunctionCall(source)(func(hx_value_193 any) bool {
+			}(hxrt.FunctionCall(source)(func(hx_value_193 any) bool {
 				if hx_value_193 == nil {
 					var hx_zero_194 bool
 					return hx_zero_194
 				}
 				return hx_value_193.(bool)
-			}(any(arg_0)))))
+			}(arg_0)))
 		})
 	case *hxrt.Function[func(*sys__thread__ElasticThreadPoolWorker)]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) bool {
@@ -3163,7 +3163,7 @@ func hx_recover_callable_2(value any) *hxrt.Function[func(any) bool] {
 					return hx_zero_198
 				}
 				return hx_value_197.(bool)
-			}(any(nil))
+			}(nil)
 		})
 	case *hxrt.Function[func(*hxrt.Function[func()])]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) bool {
@@ -3174,7 +3174,7 @@ func hx_recover_callable_2(value any) *hxrt.Function[func(any) bool] {
 					return hx_zero_200
 				}
 				return hx_value_199.(bool)
-			}(any(nil))
+			}(nil)
 		})
 	default:
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
@@ -3216,7 +3216,7 @@ func hx_recover_callable_3(value any) *hxrt.Function[func(any) any] {
 					return hx_zero_202
 				}
 				return hx_value_201.(*string)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(*hxrt.Function[func(any) any]) *haxe__ds__List]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) any {
@@ -3234,7 +3234,7 @@ func hx_recover_callable_3(value any) *hxrt.Function[func(any) any] {
 					return hx_zero_204
 				}
 				return hx_value_203.(bool)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(*sys__thread__ElasticThreadPoolWorker)]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) any {

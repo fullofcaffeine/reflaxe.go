@@ -1525,7 +1525,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
 					return hx_zero_14
 				}
 				return hx_value_13.(bool)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() *string]:
 		return hxrt.ProjectFunction(source, func() bool {
@@ -1535,7 +1535,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
 					return hx_zero_16
 				}
 				return hx_value_15.(bool)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() hxrt.Anonymous]:
 		return hxrt.ProjectFunction(source, func() bool {
@@ -1545,7 +1545,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
 					return hx_zero_18
 				}
 				return hx_value_17.(bool)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	default:
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
@@ -1574,7 +1574,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func() *string] {
 					return hx_zero_20
 				}
 				return hx_value_19.(*string)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() any]:
 		return hxrt.ProjectFunction(source, func() *string {
@@ -1584,7 +1584,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func() *string] {
 					return hx_zero_22
 				}
 				return hx_value_21.(*string)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() *string]:
 		return source
@@ -1596,7 +1596,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func() *string] {
 					return hx_zero_24
 				}
 				return hx_value_23.(*string)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	default:
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))

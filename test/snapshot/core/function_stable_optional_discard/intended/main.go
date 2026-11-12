@@ -48,7 +48,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func(any)] {
 					return hx_zero_2
 				}
 				return hx_value_1.(int)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	default:
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))

@@ -20,7 +20,7 @@ func reflaxe__go___internal__CompilerReflect_callMethod__probe_1(value any, argu
 				return hx_zero_30
 			}
 			return hx_value_29.(*image.Point)
-		}(any(argument_0))), true
+		}(argument_0)), true
 	default:
 		var zero any
 		return zero, false
@@ -37,7 +37,7 @@ func hx_recover_callable_0__probe_1(value any) (*hxrt.Function[func(any) int], b
 					return hx_zero_32
 				}
 				return hx_value_31.(*image.Point)
-			}(any(arg_0)))
+			}(arg_0))
 		}), true
 	default:
 		var zero *hxrt.Function[func(any) int]
@@ -55,13 +55,13 @@ func hx_recover_callable_1__probe_1(value any) (*hxrt.Function[func(*hxrt.Functi
 					return hx_zero_44
 				}
 				return hx_value_43.(*string)
-			}(any(hxrt.FunctionCall(source)(func(hx_value_41 any) *image.Point {
+			}(hxrt.FunctionCall(source)(func(hx_value_41 any) *image.Point {
 				if hx_value_41 == nil {
 					var hx_zero_42 *image.Point
 					return hx_zero_42
 				}
 				return hx_value_41.(*image.Point)
-			}(any(arg_0)))))
+			}(arg_0)))
 		}), true
 	default:
 		var zero *hxrt.Function[func(*hxrt.Function[func(any) *string]) *string]

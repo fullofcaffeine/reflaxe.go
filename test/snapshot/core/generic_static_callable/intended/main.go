@@ -847,7 +847,7 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_78
 			}
 			return hx_value_77.(int)
-		}(any(argument_0)))
+		}(argument_0))
 	case *hxrt.Function[func(any) any]:
 		var argument_0 any = nil
 		if 0 < len(arguments) {
@@ -896,7 +896,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func(int) int] {
 					return hx_zero_80
 				}
 				return hx_value_79.(int)
-			}(any(hxrt.FunctionCall(source)(arg_0)))
+			}(hxrt.FunctionCall(source)(arg_0))
 		})
 	case *hxrt.Function[func(...any) any]:
 		return hxrt.ProjectFunction(source, func(arg_0 int) int {
@@ -906,7 +906,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func(int) int] {
 					return hx_zero_82
 				}
 				return hx_value_81.(int)
-			}(any(hxrt.FunctionCall(source)(arg_0)))
+			}(hxrt.FunctionCall(source)(arg_0))
 		})
 	default:
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
@@ -939,7 +939,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func(*string, *string) int]
 					return hx_zero_84
 				}
 				return hx_value_83.(int)
-			}(any(hxrt.FunctionCall(source)(arg_0, arg_1)))
+			}(hxrt.FunctionCall(source)(arg_0, arg_1))
 		})
 	default:
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
@@ -968,7 +968,7 @@ func hx_recover_callable_2(value any) *hxrt.Function[func(any) any] {
 					return hx_zero_86
 				}
 				return hx_value_85.(int)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(any) any]:
 		return source
