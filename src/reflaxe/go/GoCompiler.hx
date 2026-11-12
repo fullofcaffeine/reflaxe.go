@@ -6197,6 +6197,32 @@ class GoCompiler {
 		};
 	}
 
+	/**
+		What: Stabilizes a marked native field receiver in an assignment expression.
+		Why: The write and returned value both use its selector. Repeating a receiver
+		call would duplicate effects, while capturing it after the right side would
+		change Haxe evaluation order.
+		How: Capture only marked field receivers before right-side prefixes; leave
+		ordinary assignment targets on their existing lowering path.
+	**/
+	function lowerNativeValueFieldAssignmentTarget(expr:TypedExpr):LoweredExprWithPrefix {
+		return switch (expr.expr) {
+			case TField(target, FInstance(classRef, _, fieldRef))
+				if (isImportedGoExternClass(classRef.get()) && !isHxrtExternClass(classRef.get()) && isNativeGoValueField(fieldRef.get())):
+				var lowered = lowerExprWithPrefix(target);
+				var targetName = freshTempName("hx_native_target");
+				{
+					prefix: lowered.prefix.concat([GoStmt.GoVarDecl(targetName, null, lowered.expr, true)]),
+					expr: GoExpr.GoSelector(GoExpr.GoIdent(targetName), externFieldName(fieldRef.get())),
+					isStringLike: false
+				};
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
+				lowerNativeValueFieldAssignmentTarget(inner);
+			case _:
+				{prefix: [], expr: lowerLValue(expr), isStringLike: isStringType(expr.t)};
+		};
+	}
+
 	/** Resolves a local's representation-only array type for assignments. */
 	function assignmentStorageType(expr:TypedExpr):Type {
 		return switch (expr.expr) {
@@ -6492,13 +6518,15 @@ class GoCompiler {
 						if (indexedArrayAssign != null) {
 							indexedArrayAssign;
 						} else {
-							var targetExpr = lowerLValue(left);
+							var loweredTarget = lowerNativeValueFieldAssignmentTarget(left);
+							var targetExpr = loweredTarget.expr;
 							var loweredRight = lowerStoredExprWithExpectedType(right, assignmentStorageType(left));
 							var rightExpr = normalizeNativeStorageAssignment(left, loweredRight.expr);
 							var resultExpr = normalizeNativeStorageAssignmentResult(left, targetExpr);
 							{
 								expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(left.t)],
-									loweredRight.prefix.concat([GoStmt.GoAssign(targetExpr, rightExpr), GoStmt.GoReturn(resultExpr)])),
+									loweredTarget.prefix.concat(loweredRight.prefix)
+										.concat([GoStmt.GoAssign(targetExpr, rightExpr), GoStmt.GoReturn(resultExpr)])),
 									[]),
 								isStringLike: isStringType(left.t)
 							};
@@ -7239,7 +7267,7 @@ class GoCompiler {
 						noteExternImportPath(classType, externPackage);
 					}
 					{
-						expr: normalizeImportedExternFieldRead(classType, resolved.type, GoExpr.GoSelector(loweredTarget, externFieldName(resolved))),
+						expr: normalizeImportedExternFieldRead(classType, resolved, GoExpr.GoSelector(loweredTarget, externFieldName(resolved))),
 						isStringLike: isStringType(resolved.type)
 					};
 				} else if (shouldUseVirtualDispatch(classType, resolved, target.t)) {
@@ -10206,13 +10234,23 @@ class GoCompiler {
 	}
 
 	/**
-		What: Converts an imported Go string field read to Haxe's string carrier.
-		Why: Go stores `string` by value, while haxe.go represents `String` as `*string`.
-		How: Apply the same `hxrt.StdString` boundary used for imported call results.
+		What: Imports native field values into their declared Haxe carriers.
+		Why: Strings and marked named values are stored by value in Go. Named-value
+		reads must copy the field so a later write cannot mutate the earlier result.
+		How: Read a marked selector once into a local and return its address. Keep
+		unmarked native pointers unchanged and preserve string/error conversions.
 	**/
-	function normalizeImportedExternFieldRead(classType:ClassType, fieldType:Type, fieldExpr:GoExpr):GoExpr {
+	function normalizeImportedExternFieldRead(classType:ClassType, field:ClassField, fieldExpr:GoExpr):GoExpr {
 		if (!isImportedGoExternClass(classType) || isHxrtExternClass(classType)) {
 			return fieldExpr;
+		}
+		var fieldType = field.type;
+		if (isNativeGoValueField(field)) {
+			var valueName = freshTempName("hx_native_field");
+			return GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(fieldType)], [
+				GoStmt.GoVarDecl(valueName, null, fieldExpr, true),
+				GoStmt.GoReturn(GoExpr.GoUnary(GoUnaryOperator.AddressOf, GoExpr.GoIdent(valueName)))
+			]), []);
 		}
 		if (isGoNativeErrorType(fieldType)) {
 			return importNativeError(fieldExpr);
@@ -10228,10 +10266,25 @@ class GoCompiler {
 	}
 
 	/**
-		What: Converts a Haxe string before assignment to typed native Go storage.
-		Why: Imported string fields and native string-slice slots expect Go `string`
-		values, not Haxe's `*string` carrier.
-		How: Dereference the normalized runtime string only at those proven boundaries.
+		What: Validates an explicit native field-value ABI declaration.
+		Why: One Haxe extern type represents both Go T and *T; its type alone cannot
+		distinguish those fields. Value fields require a non-null carrier, just like
+		@:go.valueArgs. Null must not be silently converted to a native zero value.
+		How: Accept the marker only on a non-null named value extern field.
+	**/
+	function isNativeGoValueField(field:ClassField):Bool {
+		if (!hasMetadata(field.meta, [GoMetadataName.GoValueField]))
+			return false;
+		if (nullableInnerType(field.type) != null || !isNativeGoValueExternType(field.type))
+			Context.fatalError("@:go.valueField requires a non-null native named value extern field", field.pos);
+		return true;
+	}
+
+	/**
+		What: Converts Haxe carriers before assignment to typed native Go storage.
+		Why: Imported strings and marked named-value fields store Go values, while
+		Haxe carries pointers. Unmarked pointer fields must retain pointer identity.
+		How: Dereference only marked named values and proven native string storage.
 	**/
 	function normalizeNativeStorageAssignment(target:TypedExpr, valueExpr:GoExpr):GoExpr {
 		return switch (target.expr) {
@@ -10239,9 +10292,12 @@ class GoCompiler {
 				GoExpr.GoUnary("*", GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [valueExpr]));
 			case TField(_, FInstance(classRef, _, fieldRef)):
 				var classType = classRef.get();
-				var fieldType = fieldRef.get().type;
+				var field = fieldRef.get();
+				var fieldType = field.type;
 				if (!isImportedGoExternClass(classType) || isHxrtExternClass(classType)) {
 					valueExpr;
+				} else if (isNativeGoValueField(field)) {
+					GoExpr.GoUnary(GoUnaryOperator.Dereference, valueExpr);
 				} else if (isGoNativeErrorType(fieldType)) {
 					exportNativeError(valueExpr);
 				} else if (!isStringType(fieldType)) {
@@ -10269,7 +10325,7 @@ class GoCompiler {
 			case TArray(slice, _) if (isNativeStringSliceType(slice.t)):
 				GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [fieldExpr]);
 			case TField(_, FInstance(classRef, _, fieldRef)):
-				normalizeImportedExternFieldRead(classRef.get(), fieldRef.get().type, fieldExpr);
+				normalizeImportedExternFieldRead(classRef.get(), fieldRef.get(), fieldExpr);
 			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
 				normalizeNativeStorageAssignmentResult(inner, fieldExpr);
 			case _:

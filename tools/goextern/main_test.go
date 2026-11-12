@@ -578,6 +578,41 @@ type Record struct {
 	}
 }
 
+func TestBuildEmissionNamedScalarValueAndPointerFields(t *testing.T) {
+	moduleDir := t.TempDir()
+	writeTestFile(t, filepath.Join(moduleDir, "go.mod"), "module example.com/scalarfieldfixture\n\ngo 1.22\n")
+	writeTestFile(t, filepath.Join(moduleDir, "model", "record.go"), `package model
+
+type Counter int64
+
+type Record struct {
+	Value Counter
+	Pointer *Counter
+}
+`)
+	emission, err := BuildEmission(Config{
+		GoImportPath:      "example.com/scalarfieldfixture/model",
+		WorkingDirectory:  moduleDir,
+		OutputRoot:        t.TempDir(),
+		HaxePackagePrefix: "goextern",
+	})
+	if err != nil {
+		t.Fatalf("BuildEmission failed: %v", err)
+	}
+	record := fileContentsByName(t, emission, "Record.hx")
+	for _, expected := range []string{
+		"@:go.name(\"Value\")\n\t@:go.valueField\n\tpublic var value:Counter;",
+		"@:go.name(\"Pointer\")\n\tpublic var pointer:Counter;",
+	} {
+		if !strings.Contains(record, expected) {
+			t.Fatalf("Record.hx must distinguish native value and pointer fields: missing %q\n%s", expected, record)
+		}
+	}
+	if strings.Count(record, "@:go.valueField") != 1 || len(emission.DynamicFallbacks) != 0 {
+		t.Fatalf("only the named scalar value field needs metadata, without fallbacks: %s\n%+v", record, emission.DynamicFallbacks)
+	}
+}
+
 func TestBuildEmissionFmtMultiReturnBoundary(t *testing.T) {
 	cfg := Config{
 		GoImportPath:      "fmt",

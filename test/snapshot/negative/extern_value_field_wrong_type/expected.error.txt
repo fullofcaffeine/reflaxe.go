@@ -1,0 +1,1 @@
+@:go.valueField requires a non-null native named value extern field
