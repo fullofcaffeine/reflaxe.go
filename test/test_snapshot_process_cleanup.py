@@ -77,7 +77,10 @@ class SnapshotProcessCleanupTest(unittest.TestCase):
             result = RUNNER.run_command(cmd, root, 10, {"SNAPSHOT_CONTRACT": "owned"})
             self.assertEqual(cmd, result.args)
             self.assertEqual(7, result.returncode)
-            self.assertEqual([str(root.resolve()), "owned"], result.stdout.splitlines())
+            directory, value = result.stdout.splitlines()
+            # Windows may preserve an equivalent 8.3 spelling in os.getcwd().
+            self.assertTrue(root.samefile(directory))
+            self.assertEqual("owned", value)
             self.assertEqual("diagnostic\n", result.stderr)
             success = RUNNER.run_command([sys.executable, "-c", "print('ok')"], root, 10)
             self.assertEqual(0, success.returncode)
