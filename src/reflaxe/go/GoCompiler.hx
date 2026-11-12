@@ -10325,20 +10325,29 @@ class GoCompiler {
 
 	/**
 		What: Preserves Go's variadic ABI for imported externs declared with `Rest<T>`.
-		Why: Haxe types a variadic call as one packed slice. Passing that slice as one
-		`any` argument changes both arity and the representation of Haxe strings.
-		How: Rebuild the typer-owned rest pack with native boundary values; the call
-		node then expands this final slice with Go's `...` syntax.
+		Why: Haxe types a variadic call as one packed slice. An erased `[]any` pack
+		cannot satisfy an imported Go method that requires `...T` for concrete `T`.
+		How: Rebuild the typer-owned pack using the declared `Rest<T>` element and
+		native boundary values; the call node expands that slice with Go's `...`.
 	**/
 	function normalizeExternVariadicRestArg(callee:TypedExpr, source:TypedExpr, lowered:GoExpr, paramIndex:Int):GoExpr {
-		if (!isImportedExternVariadicCall(callee) || paramIndex != externCallParameterCount(callee) - 1) {
+		if (!isImportedExternVariadicCall(callee)) {
+			return lowered;
+		}
+		final parameters = externCallParameters(callee);
+		if (paramIndex != parameters.length - 1) {
 			return lowered;
 		}
 		final values = restPackValues(source);
 		if (values == null) {
 			return lowered;
 		}
-		return GoExpr.GoCompositeLiteral(GoType.slice(GoType.named("any")), [
+		final elementType = restElementType(parameters[paramIndex].t);
+		if (elementType == null) {
+			return lowered;
+		}
+		final elementGoType = isStringType(elementType) ? "string" : scalarGoType(elementType);
+		return GoExpr.GoCompositeLiteral(GoType.slice(GoType.parse(elementGoType)), [
 			for (value in values)
 				GoCompositeElement.GoCompositeValue(normalizeExternVariadicValue(value))
 		]);
@@ -10358,10 +10367,6 @@ class GoCompiler {
 		}
 		final parameters = externCallParameters(callee);
 		return parameters.length > 0 && restElementType(parameters[parameters.length - 1].t) != null;
-	}
-
-	function externCallParameterCount(callee:TypedExpr):Int {
-		return externCallParameters(callee).length;
 	}
 
 	function externCallParameters(callee:TypedExpr):Array<{name:String, opt:Bool, t:Type}> {
