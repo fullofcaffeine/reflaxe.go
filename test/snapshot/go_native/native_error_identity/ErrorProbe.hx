@@ -59,7 +59,8 @@ class CancelPair {
 }
 
 @:go.import("fmt") extern class NativeFormat {
-	@:go.name("Errorf") public static function errorf(format:String, values:haxe.Rest<PathError>):NativeError;
+	/** Go's fmt.Errorf accepts ...any; the returned error is narrowed to NativeError. */
+	@:go.name("Errorf") public static function errorf(format:String, values:haxe.Rest<Dynamic>):NativeError;
 }
 
 /** The matching API is Go 1.26; transport itself retains the Go 1.22 floor. */
