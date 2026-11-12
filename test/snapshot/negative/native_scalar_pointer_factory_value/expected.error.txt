@@ -1,0 +1,1 @@
+go.NativePointer.of must be called directly

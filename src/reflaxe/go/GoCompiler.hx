@@ -7142,6 +7142,8 @@ class GoCompiler {
 			case FStatic(classRef, field):
 				var resolved = field.get();
 				var classType = classRef.get();
+				if (asValue && classType.pack.join(".") == "go" && classType.name == "NativePointer" && resolved.name == "of")
+					Context.fatalError("go.NativePointer.of must be called directly; method values are unsupported", resolved.pos);
 				noteStaticStdlibFieldUsage(classType, resolved.name, resolved.pos);
 				if (classType.isExtern) {
 					var externPackage = externClassPackageName(classType);
@@ -7165,6 +7167,8 @@ class GoCompiler {
 			case FInstance(classRef, _, field):
 				var resolved = field.get();
 				var classType = classRef.get();
+				if (asValue && classType.pack.join(".") == "go" && classType.name == "NativePointer" && resolved.name == "get")
+					Context.fatalError("go.NativePointer.get must be called directly; method values are unsupported", resolved.pos);
 				noteSourceOwnedStdlibUsage(classType);
 				var loweredTarget = lowerExpr(target).expr;
 				if (isSharedArrayElementExpr(target)) {
@@ -7309,6 +7313,11 @@ class GoCompiler {
 				};
 			case FClosure(classRef, field):
 				var resolved = field.get();
+				if (classRef != null) {
+					var owner = classRef.c.get();
+					if (owner.pack.join(".") == "go" && owner.name == "NativePointer" && resolved.name == "get")
+						Context.fatalError("go.NativePointer.get must be called directly; method values are unsupported", resolved.pos);
+				}
 				if (classRef == null && isAnonymousObjectType(target.t)) {
 					return {expr: lowerAnonymousFieldRead(lowerExpr(target).expr, resolved.name, resolved.type), isStringLike: false};
 				}
@@ -7611,6 +7620,11 @@ class GoCompiler {
 		var injectedCall = lowerTargetCodeInjectionCall(callee, args, returnType);
 		if (injectedCall != null) {
 			return injectedCall;
+		}
+
+		var nativePointerCall = lowerNativePointerCall(callee, args, returnType);
+		if (nativePointerCall != null) {
+			return nativePointerCall;
 		}
 
 		var nativeSliceBoundaryCall = lowerNativeSliceBoundaryCall(callee, args, returnType);
@@ -8074,6 +8088,55 @@ class GoCompiler {
 			]),
 			GoStmt.GoReturn(GoExpr.GoIdent(outName))
 		]), [typedSliceExpr]);
+	}
+
+	/**
+		What: Creates and reads the three admitted native scalar pointer carriers.
+		Why: Variadic Go APIs mutate destinations by pointer; ordinary Haxe scalars
+		are boxed by value and cannot receive those writes.
+		How: Copy the initial native value into an addressable Go parameter and
+		return its escaping pointer. Reads dereference it; String reads copy into
+		a new Haxe string carrier so later native writes do not mutate snapshots.
+	**/
+	function lowerNativePointerCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+		if (isStaticCall(callee, "NativePointer", ["go"], "of")) {
+			if (args.length != 1)
+				Context.fatalError("go.NativePointer.of expects one scalar value", callee.pos);
+			final elementType = GoTypeMapper.nativePointerElementType(returnType);
+			final nativeType = elementType == null ? null : GoTypeMapper.nativeScalarPointerElementGoType(elementType);
+			if (nativeType == null)
+				Context.fatalError("go.NativePointer supports only Int, String, and Bool", callee.pos);
+			final lowered = lowerExprWithPrefix(args[0]);
+			final input = nativeType == "string" ? GoExpr.GoUnary(GoUnaryOperator.Dereference,
+				GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [lowered.expr])) : lowered.expr;
+			final valueName = freshTempName("hx_native_pointer_value");
+			final allocated = GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: valueName, typeName: nativeType}], ["*" + nativeType], [
+				GoStmt.GoReturn(GoExpr.GoUnary(GoUnaryOperator.AddressOf, GoExpr.GoIdent(valueName)))
+			]), [input]);
+			return materializeExprWithPrefix({prefix: lowered.prefix, expr: allocated, isStringLike: false}, returnType);
+		}
+		return switch (callee.expr) {
+			case TField(target, FInstance(classRef, _, field)):
+				final classType = classRef.get();
+				if (classType.pack.join(".") != "go" || classType.name != "NativePointer" || field.get().name != "get") {
+					null;
+				} else {
+					if (args.length != 0)
+						Context.fatalError("go.NativePointer.get expects no arguments", callee.pos);
+					final elementType = GoTypeMapper.nativePointerElementType(target.t);
+					final nativeType = elementType == null ? null : GoTypeMapper.nativeScalarPointerElementGoType(elementType);
+					if (nativeType == null)
+						Context.fatalError("go.NativePointer supports only Int, String, and Bool", callee.pos);
+					final lowered = lowerExprWithPrefix(target);
+					final nativeValue = GoExpr.GoUnary(GoUnaryOperator.Dereference, lowered.expr);
+					final result = nativeType == "string" ? GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [nativeValue]) : nativeValue;
+					materializeExprWithPrefix({prefix: lowered.prefix, expr: result, isStringLike: nativeType == "string"}, returnType);
+				}
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
+				lowerNativePointerCall(inner, args, returnType);
+			case _:
+				null;
+		};
 	}
 
 	/**

@@ -1,0 +1,6 @@
+mutation=true
+independent=true
+identity=true
+typed-parameter=true
+string-snapshot=true
+evaluation=true
