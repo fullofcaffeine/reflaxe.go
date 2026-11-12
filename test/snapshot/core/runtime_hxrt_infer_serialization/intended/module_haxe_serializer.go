@@ -274,13 +274,13 @@ func (self *haxe__Serializer) serializeClass(value any, declaration any) {
 				return hx_zero_16
 			}
 			return hx_value_15.(*hxrt.Array)
-		}(any(func(hx_value_13 any) *hxrt.Array {
+		}(func(hx_value_13 any) *hxrt.Array {
 			if hx_value_13 == nil {
 				var hx_zero_14 *hxrt.Array
 				return hx_zero_14
 			}
 			return hx_value_13.(*hxrt.Array)
-		}(value))))
+		}(value)))
 	case *hxrt.StdString(hxrt.StringFromLiteral("Date")):
 		date := hx_recover_class_5(hx_recover_class_5(value))
 		_this := self.buf

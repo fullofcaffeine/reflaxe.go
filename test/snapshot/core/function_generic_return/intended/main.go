@@ -131,7 +131,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() int] {
 					return hx_zero_2
 				}
 				return hx_value_1.(int)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	default:
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
@@ -160,7 +160,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func(int) int] {
 					return hx_zero_4
 				}
 				return hx_value_3.(int)
-			}(any(hxrt.FunctionCall(source)(arg_0)))
+			}(hxrt.FunctionCall(source)(arg_0))
 		})
 	default:
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
@@ -189,7 +189,7 @@ func hx_recover_callable_2(value any) *hxrt.Function[func() *string] {
 					return hx_zero_6
 				}
 				return hx_value_5.(*string)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	default:
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))

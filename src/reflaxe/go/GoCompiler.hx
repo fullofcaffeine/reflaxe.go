@@ -7577,7 +7577,9 @@ class GoCompiler {
 			if (source.isInterface && !source.isExtern && target.sameRepresentation(GoType.named(classTypeName(source))))
 				return lowerNilSafeTypeAssertExpr(GoExpr.GoCall(GoExpr.GoIdent("hxrt.ObjectSource"), [value]), target.render());
 		}
-		return lowerNilSafeTypeAssertExpr(GoExpr.GoCall(GoExpr.GoIdent("any"), [value]), target.render());
+		// The helper parameter is already any: Go boxes concrete arguments there.
+		// Keep the assertion inside that interface boundary without reboxing its input.
+		return lowerNilSafeTypeAssertExpr(value, target.render());
 	}
 
 	function lowerNullableAwareTypeAssertExpr(expr:GoExpr, returnType:Type):GoExpr {

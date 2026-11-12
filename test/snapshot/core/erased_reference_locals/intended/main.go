@@ -113,7 +113,7 @@ func main() {
 			return hx_zero_6
 		}
 		return hx_value_5.(*Choice)
-	}(any(choiceValue))
+	}(choiceValue)
 	hxrt.Println(any((choice == Choice_One)))
 	var arrayValue any = hxrt.NewArray(4, 5)
 	values := func(hx_value_7 any) *hxrt.Array {
@@ -122,7 +122,7 @@ func main() {
 			return hx_zero_8
 		}
 		return hx_value_7.(*hxrt.Array)
-	}(any(arrayValue))
+	}(arrayValue)
 	hxrt.Println(values.Get(0))
 }
 
