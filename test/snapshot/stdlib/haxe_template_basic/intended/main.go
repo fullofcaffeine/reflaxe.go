@@ -591,7 +591,7 @@ func hx_structural_recover(value any) hxrt.Anonymous {
 									return hx_zero_378
 								}
 								return hx_value_377.(int)
-							}(any(len)))
+							}(len))
 						}, func() any {
 							return hx_receiver_376.__hx_this
 						}, "matchSub")
@@ -1164,7 +1164,7 @@ func hxrt__generated_method_field__EReg(value *EReg, key string) any {
 						return hx_zero_431
 					}
 					return hx_value_430.(int)
-				}(any(len)))
+				}(len))
 			}, func() any {
 				return hx_receiver_429.__hx_this
 			}, "matchSub")
@@ -2895,7 +2895,7 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_488
 			}
 			return hx_value_487.(*string)
-		}(any(argument_0)))
+		}(argument_0))
 	case *hxrt.Function[func(...any) any]:
 		var argument_0 []any = nil
 		for index, argument := range arguments {
@@ -2925,7 +2925,7 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_490
 			}
 			return hx_value_489.(*string)
-		}(any(argument_0)))
+		}(argument_0))
 	case *hxrt.Function[func(*haxe___Template__TokenCursor) *haxe___Template__TemplateExpr]:
 		var argument_0 any = nil
 		if 0 < len(arguments) {
@@ -2943,7 +2943,7 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_492
 			}
 			return hx_value_491.(*string)
-		}(any(argument_0)))
+		}(argument_0))
 	case *hxrt.Function[func(*hxrt.Function[func() any], *haxe___Template__ExprCursor) *hxrt.Function[func() any]]:
 		var argument_0 any = nil
 		if 0 < len(arguments) {
@@ -2978,7 +2978,7 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_494
 			}
 			return hx_value_493.(*haxe___Template__TemplateExpr)
-		}(any(argument_0)))
+		}(argument_0))
 		return nil
 	case *hxrt.Function[func() bool]:
 		return hxrt.FunctionCall(source)()
@@ -3001,7 +3001,7 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_496
 			}
 			return hx_value_495.(*string)
-		}(any(argument_0)))
+		}(argument_0))
 	case *hxrt.Function[func(int) *string]:
 		var argument_0 any = nil
 		if 0 < len(arguments) {
@@ -3013,7 +3013,7 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_498
 			}
 			return hx_value_497.(int)
-		}(any(argument_0)))
+		}(argument_0))
 	case *hxrt.Function[func(*string, int, any) bool]:
 		var argument_0 any = nil
 		if 0 < len(arguments) {
@@ -3033,13 +3033,13 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_500
 			}
 			return hx_value_499.(*string)
-		}(any(argument_0)), func(hx_value_501 any) int {
+		}(argument_0), func(hx_value_501 any) int {
 			if hx_value_501 == nil {
 				var hx_zero_502 int
 				return hx_zero_502
 			}
 			return hx_value_501.(int)
-		}(any(argument_1)), argument_2)
+		}(argument_1), argument_2)
 	case *hxrt.Function[func(*string, *string) *string]:
 		var argument_0 any = nil
 		if 0 < len(arguments) {
@@ -3055,13 +3055,13 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_504
 			}
 			return hx_value_503.(*string)
-		}(any(argument_0)), func(hx_value_505 any) *string {
+		}(argument_0), func(hx_value_505 any) *string {
 			if hx_value_505 == nil {
 				var hx_zero_506 *string
 				return hx_zero_506
 			}
 			return hx_value_505.(*string)
-		}(any(argument_1)))
+		}(argument_1))
 	case *hxrt.Function[func(*string, *hxrt.Function[func(*EReg) *string]) *string]:
 		var argument_0 any = nil
 		if 0 < len(arguments) {
@@ -3077,7 +3077,7 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_508
 			}
 			return hx_value_507.(*string)
-		}(any(argument_0)), hx_recover_callable_1(argument_1))
+		}(argument_0), hx_recover_callable_1(argument_1))
 	case *hxrt.Function[func(*string, *hxrt.RegexMatch)]:
 		var argument_0 any = nil
 		if 0 < len(arguments) {
@@ -3093,13 +3093,13 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_510
 			}
 			return hx_value_509.(*string)
-		}(any(argument_0)), func(hx_value_511 any) *hxrt.RegexMatch {
+		}(argument_0), func(hx_value_511 any) *hxrt.RegexMatch {
 			if hx_value_511 == nil {
 				var hx_zero_512 *hxrt.RegexMatch
 				return hx_zero_512
 			}
 			return hx_value_511.(*hxrt.RegexMatch)
-		}(any(argument_1)))
+		}(argument_1))
 		return nil
 	case *hxrt.Function[func() *hxrt.RegexMatch]:
 		return hxrt.FunctionCall(source)()
@@ -3122,19 +3122,19 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_514
 			}
 			return hx_value_513.(*string)
-		}(any(argument_0)), func(hx_value_515 any) *string {
+		}(argument_0), func(hx_value_515 any) *string {
 			if hx_value_515 == nil {
 				var hx_zero_516 *string
 				return hx_zero_516
 			}
 			return hx_value_515.(*string)
-		}(any(argument_1)), func(hx_value_517 any) *hxrt.RegexMatch {
+		}(argument_1), func(hx_value_517 any) *hxrt.RegexMatch {
 			if hx_value_517 == nil {
 				var hx_zero_518 *hxrt.RegexMatch
 				return hx_zero_518
 			}
 			return hx_value_517.(*hxrt.RegexMatch)
-		}(any(argument_2)))
+		}(argument_2))
 	case *hxrt.Function[func(int) int]:
 		var argument_0 any = nil
 		if 0 < len(arguments) {
@@ -3146,7 +3146,7 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_520
 			}
 			return hx_value_519.(int)
-		}(any(argument_0)))
+		}(argument_0))
 	case *hxrt.Function[func(int, int)]:
 		var argument_0 any = nil
 		if 0 < len(arguments) {
@@ -3162,13 +3162,13 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_522
 			}
 			return hx_value_521.(int)
-		}(any(argument_0)), func(hx_value_523 any) int {
+		}(argument_0), func(hx_value_523 any) int {
 			if hx_value_523 == nil {
 				var hx_zero_524 int
 				return hx_zero_524
 			}
 			return hx_value_523.(int)
-		}(any(argument_1)))
+		}(argument_1))
 		return nil
 	case *hxrt.Function[func(int, *haxe__io__Bytes, int, int)]:
 		var argument_0 any = nil
@@ -3193,19 +3193,19 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_526
 			}
 			return hx_value_525.(int)
-		}(any(argument_0)), hx_recover_class_4(argument_1), func(hx_value_527 any) int {
+		}(argument_0), hx_recover_class_4(argument_1), func(hx_value_527 any) int {
 			if hx_value_527 == nil {
 				var hx_zero_528 int
 				return hx_zero_528
 			}
 			return hx_value_527.(int)
-		}(any(argument_2)), func(hx_value_529 any) int {
+		}(argument_2), func(hx_value_529 any) int {
 			if hx_value_529 == nil {
 				var hx_zero_530 int
 				return hx_zero_530
 			}
 			return hx_value_529.(int)
-		}(any(argument_3)))
+		}(argument_3))
 		return nil
 	case *hxrt.Function[func(int, int, int)]:
 		var argument_0 any = nil
@@ -3226,19 +3226,19 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_532
 			}
 			return hx_value_531.(int)
-		}(any(argument_0)), func(hx_value_533 any) int {
+		}(argument_0), func(hx_value_533 any) int {
 			if hx_value_533 == nil {
 				var hx_zero_534 int
 				return hx_zero_534
 			}
 			return hx_value_533.(int)
-		}(any(argument_1)), func(hx_value_535 any) int {
+		}(argument_1), func(hx_value_535 any) int {
 			if hx_value_535 == nil {
 				var hx_zero_536 int
 				return hx_zero_536
 			}
 			return hx_value_535.(int)
-		}(any(argument_2)))
+		}(argument_2))
 		return nil
 	case *hxrt.Function[func(int, int) *haxe__io__Bytes]:
 		var argument_0 any = nil
@@ -3255,13 +3255,13 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_538
 			}
 			return hx_value_537.(int)
-		}(any(argument_0)), func(hx_value_539 any) int {
+		}(argument_0), func(hx_value_539 any) int {
 			if hx_value_539 == nil {
 				var hx_zero_540 int
 				return hx_zero_540
 			}
 			return hx_value_539.(int)
-		}(any(argument_1)))
+		}(argument_1))
 	case *hxrt.Function[func(*haxe__io__Bytes) int]:
 		var argument_0 any = nil
 		if 0 < len(arguments) {
@@ -3279,7 +3279,7 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_542
 			}
 			return hx_value_541.(int)
-		}(any(argument_0)))
+		}(argument_0))
 	case *hxrt.Function[func(int, float64)]:
 		var argument_0 any = nil
 		if 0 < len(arguments) {
@@ -3295,13 +3295,13 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_544
 			}
 			return hx_value_543.(int)
-		}(any(argument_0)), func(hx_value_545 any) float64 {
+		}(argument_0), func(hx_value_545 any) float64 {
 			if hx_value_545 == nil {
 				var hx_zero_546 float64
 				return hx_zero_546
 			}
 			return hx_value_545.(float64)
-		}(any(argument_1)))
+		}(argument_1))
 		return nil
 	case *hxrt.Function[func(int) *haxe___Int64_____Int64]:
 		var argument_0 any = nil
@@ -3314,7 +3314,7 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_548
 			}
 			return hx_value_547.(int)
-		}(any(argument_0)))
+		}(argument_0))
 	case *hxrt.Function[func(int, *haxe___Int64_____Int64)]:
 		var argument_0 any = nil
 		if 0 < len(arguments) {
@@ -3330,7 +3330,7 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_550
 			}
 			return hx_value_549.(int)
-		}(any(argument_0)), hx_recover_class_5(argument_1))
+		}(argument_0), hx_recover_class_5(argument_1))
 		return nil
 	case *hxrt.Function[func(int, int, *haxe__io__Encoding) *string]:
 		var argument_0 any = nil
@@ -3351,19 +3351,19 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_552
 			}
 			return hx_value_551.(int)
-		}(any(argument_0)), func(hx_value_553 any) int {
+		}(argument_0), func(hx_value_553 any) int {
 			if hx_value_553 == nil {
 				var hx_zero_554 int
 				return hx_zero_554
 			}
 			return hx_value_553.(int)
-		}(any(argument_1)), func(hx_value_555 any) *haxe__io__Encoding {
+		}(argument_1), func(hx_value_555 any) *haxe__io__Encoding {
 			if hx_value_555 == nil {
 				var hx_zero_556 *haxe__io__Encoding
 				return hx_zero_556
 			}
 			return hx_value_555.(*haxe__io__Encoding)
-		}(any(argument_2)))
+		}(argument_2))
 	case *hxrt.Function[func(int, int) *string]:
 		var argument_0 any = nil
 		if 0 < len(arguments) {
@@ -3379,13 +3379,13 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_558
 			}
 			return hx_value_557.(int)
-		}(any(argument_0)), func(hx_value_559 any) int {
+		}(argument_0), func(hx_value_559 any) int {
 			if hx_value_559 == nil {
 				var hx_zero_560 int
 				return hx_zero_560
 			}
 			return hx_value_559.(int)
-		}(any(argument_1)))
+		}(argument_1))
 	case *hxrt.Function[func() []int]:
 		return hxrt.FunctionCall(source)()
 	case *hxrt.Function[func() *hxrt.ByteView]:
@@ -3473,13 +3473,13 @@ func hx_recover_callable_1(value any) *hxrt.Function[func(*EReg) *string] {
 					return hx_zero_564
 				}
 				return hx_value_563.(*string)
-			}(any(hxrt.FunctionCall(source)(func(hx_value_561 any) *string {
+			}(hxrt.FunctionCall(source)(func(hx_value_561 any) *string {
 				if hx_value_561 == nil {
 					var hx_zero_562 *string
 					return hx_zero_562
 				}
 				return hx_value_561.(*string)
-			}(any(arg_0)))))
+			}(arg_0)))
 		})
 	case *hxrt.Function[func(...any) any]:
 		return hxrt.ProjectFunction(source, func(arg_0 *EReg) *string {
@@ -3489,7 +3489,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func(*EReg) *string] {
 					return hx_zero_566
 				}
 				return hx_value_565.(*string)
-			}(any(hxrt.FunctionCall(source)(arg_0)))
+			}(hxrt.FunctionCall(source)(arg_0))
 		})
 	case *hxrt.Function[func(*string) *hxrt.Array]:
 		return hxrt.ProjectFunction(source, func(arg_0 *EReg) *string {
@@ -3499,13 +3499,13 @@ func hx_recover_callable_1(value any) *hxrt.Function[func(*EReg) *string] {
 					return hx_zero_570
 				}
 				return hx_value_569.(*string)
-			}(any(hxrt.FunctionCall(source)(func(hx_value_567 any) *string {
+			}(hxrt.FunctionCall(source)(func(hx_value_567 any) *string {
 				if hx_value_567 == nil {
 					var hx_zero_568 *string
 					return hx_zero_568
 				}
 				return hx_value_567.(*string)
-			}(any(arg_0)))))
+			}(arg_0)))
 		})
 	case *hxrt.Function[func(*haxe___Template__TokenCursor) *haxe___Template__TemplateExpr]:
 		return hxrt.ProjectFunction(source, func(arg_0 *EReg) *string {
@@ -3515,7 +3515,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func(*EReg) *string] {
 					return hx_zero_572
 				}
 				return hx_value_571.(*string)
-			}(any(hxrt.FunctionCall(source)(hx_recover_class_2(arg_0))))
+			}(hxrt.FunctionCall(source)(hx_recover_class_2(arg_0)))
 		})
 	case *hxrt.Function[func(*string) *hxrt.Function[func() any]]:
 		return hxrt.ProjectFunction(source, func(arg_0 *EReg) *string {
@@ -3525,13 +3525,13 @@ func hx_recover_callable_1(value any) *hxrt.Function[func(*EReg) *string] {
 					return hx_zero_576
 				}
 				return hx_value_575.(*string)
-			}(any(hxrt.FunctionCall(source)(func(hx_value_573 any) *string {
+			}(hxrt.FunctionCall(source)(func(hx_value_573 any) *string {
 				if hx_value_573 == nil {
 					var hx_zero_574 *string
 					return hx_zero_574
 				}
 				return hx_value_573.(*string)
-			}(any(arg_0)))))
+			}(arg_0)))
 		})
 	case *hxrt.Function[func(*haxe___Template__ExprCursor) *hxrt.Function[func() any]]:
 		return hxrt.ProjectFunction(source, func(arg_0 *EReg) *string {
@@ -3541,7 +3541,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func(*EReg) *string] {
 					return hx_zero_578
 				}
 				return hx_value_577.(*string)
-			}(any(hxrt.FunctionCall(source)(hx_recover_class_3(arg_0))))
+			}(hxrt.FunctionCall(source)(hx_recover_class_3(arg_0)))
 		})
 	case *hxrt.Function[func(*haxe___Template__ExprCursor)]:
 		return hxrt.ProjectFunction(source, func(arg_0 *EReg) *string {
@@ -3552,7 +3552,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func(*EReg) *string] {
 					return hx_zero_580
 				}
 				return hx_value_579.(*string)
-			}(any(nil))
+			}(nil)
 		})
 	case *hxrt.Function[func(*haxe___Template__TemplateExpr)]:
 		return hxrt.ProjectFunction(source, func(arg_0 *EReg) *string {
@@ -3562,14 +3562,14 @@ func hx_recover_callable_1(value any) *hxrt.Function[func(*EReg) *string] {
 					return hx_zero_582
 				}
 				return hx_value_581.(*haxe___Template__TemplateExpr)
-			}(any(arg_0)))
+			}(arg_0))
 			return func(hx_value_583 any) *string {
 				if hx_value_583 == nil {
 					var hx_zero_584 *string
 					return hx_zero_584
 				}
 				return hx_value_583.(*string)
-			}(any(nil))
+			}(nil)
 		})
 	case *hxrt.Function[func(*string) bool]:
 		return hxrt.ProjectFunction(source, func(arg_0 *EReg) *string {
@@ -3579,13 +3579,13 @@ func hx_recover_callable_1(value any) *hxrt.Function[func(*EReg) *string] {
 					return hx_zero_588
 				}
 				return hx_value_587.(*string)
-			}(any(hxrt.FunctionCall(source)(func(hx_value_585 any) *string {
+			}(hxrt.FunctionCall(source)(func(hx_value_585 any) *string {
 				if hx_value_585 == nil {
 					var hx_zero_586 *string
 					return hx_zero_586
 				}
 				return hx_value_585.(*string)
-			}(any(arg_0)))))
+			}(arg_0)))
 		})
 	case *hxrt.Function[func(int) *string]:
 		return hxrt.ProjectFunction(source, func(arg_0 *EReg) *string {
@@ -3595,7 +3595,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func(*EReg) *string] {
 					return hx_zero_590
 				}
 				return hx_value_589.(int)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(int) int]:
 		return hxrt.ProjectFunction(source, func(arg_0 *EReg) *string {
@@ -3605,13 +3605,13 @@ func hx_recover_callable_1(value any) *hxrt.Function[func(*EReg) *string] {
 					return hx_zero_594
 				}
 				return hx_value_593.(*string)
-			}(any(hxrt.FunctionCall(source)(func(hx_value_591 any) int {
+			}(hxrt.FunctionCall(source)(func(hx_value_591 any) int {
 				if hx_value_591 == nil {
 					var hx_zero_592 int
 					return hx_zero_592
 				}
 				return hx_value_591.(int)
-			}(any(arg_0)))))
+			}(arg_0)))
 		})
 	case *hxrt.Function[func(*haxe__io__Bytes) int]:
 		return hxrt.ProjectFunction(source, func(arg_0 *EReg) *string {
@@ -3621,7 +3621,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func(*EReg) *string] {
 					return hx_zero_596
 				}
 				return hx_value_595.(*string)
-			}(any(hxrt.FunctionCall(source)(hx_recover_class_4(arg_0))))
+			}(hxrt.FunctionCall(source)(hx_recover_class_4(arg_0)))
 		})
 	case *hxrt.Function[func(int) float64]:
 		return hxrt.ProjectFunction(source, func(arg_0 *EReg) *string {
@@ -3631,13 +3631,13 @@ func hx_recover_callable_1(value any) *hxrt.Function[func(*EReg) *string] {
 					return hx_zero_600
 				}
 				return hx_value_599.(*string)
-			}(any(hxrt.FunctionCall(source)(func(hx_value_597 any) int {
+			}(hxrt.FunctionCall(source)(func(hx_value_597 any) int {
 				if hx_value_597 == nil {
 					var hx_zero_598 int
 					return hx_zero_598
 				}
 				return hx_value_597.(int)
-			}(any(arg_0)))))
+			}(arg_0)))
 		})
 	case *hxrt.Function[func(int) *haxe___Int64_____Int64]:
 		return hxrt.ProjectFunction(source, func(arg_0 *EReg) *string {
@@ -3647,13 +3647,13 @@ func hx_recover_callable_1(value any) *hxrt.Function[func(*EReg) *string] {
 					return hx_zero_604
 				}
 				return hx_value_603.(*string)
-			}(any(hxrt.FunctionCall(source)(func(hx_value_601 any) int {
+			}(hxrt.FunctionCall(source)(func(hx_value_601 any) int {
 				if hx_value_601 == nil {
 					var hx_zero_602 int
 					return hx_zero_602
 				}
 				return hx_value_601.(int)
-			}(any(arg_0)))))
+			}(arg_0)))
 		})
 	default:
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))

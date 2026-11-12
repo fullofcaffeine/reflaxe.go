@@ -3129,7 +3129,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
 					return hx_zero_780
 				}
 				return hx_value_779.(bool)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() any]:
 		return hxrt.ProjectFunction(source, func() bool {
@@ -3139,7 +3139,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
 					return hx_zero_782
 				}
 				return hx_value_781.(bool)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() hxrt.Anonymous]:
 		return hxrt.ProjectFunction(source, func() bool {
@@ -3149,7 +3149,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
 					return hx_zero_784
 				}
 				return hx_value_783.(bool)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func()]:
 		return hxrt.ProjectFunction(source, func() bool {
@@ -3160,7 +3160,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
 					return hx_zero_786
 				}
 				return hx_value_785.(bool)
-			}(any(nil))
+			}(nil)
 		})
 	case *hxrt.Function[func() int]:
 		return hxrt.ProjectFunction(source, func() bool {
@@ -3170,7 +3170,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
 					return hx_zero_788
 				}
 				return hx_value_787.(bool)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() *haxe__io__Bytes]:
 		return hxrt.ProjectFunction(source, func() bool {
@@ -3180,7 +3180,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
 					return hx_zero_790
 				}
 				return hx_value_789.(bool)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() float64]:
 		return hxrt.ProjectFunction(source, func() bool {
@@ -3190,7 +3190,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
 					return hx_zero_792
 				}
 				return hx_value_791.(bool)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() *sys__net__Socket]:
 		return hxrt.ProjectFunction(source, func() bool {
@@ -3200,7 +3200,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
 					return hx_zero_794
 				}
 				return hx_value_793.(bool)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() []int]:
 		return hxrt.ProjectFunction(source, func() bool {
@@ -3210,7 +3210,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
 					return hx_zero_796
 				}
 				return hx_value_795.(bool)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() *hxrt.ByteView]:
 		return hxrt.ProjectFunction(source, func() bool {
@@ -3220,7 +3220,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
 					return hx_zero_798
 				}
 				return hx_value_797.(bool)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() *haxe__Exception]:
 		return hxrt.ProjectFunction(source, func() bool {
@@ -3230,7 +3230,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
 					return hx_zero_800
 				}
 				return hx_value_799.(bool)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() haxe__IMap]:
 		return hxrt.ProjectFunction(source, func() bool {
@@ -3240,7 +3240,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
 					return hx_zero_802
 				}
 				return hx_value_801.(bool)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() *haxe__ds__StringMap]:
 		return hxrt.ProjectFunction(source, func() bool {
@@ -3250,7 +3250,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
 					return hx_zero_804
 				}
 				return hx_value_803.(bool)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	default:
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
@@ -3279,7 +3279,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func() *string] {
 					return hx_zero_806
 				}
 				return hx_value_805.(*string)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() *string]:
 		return source
@@ -3291,7 +3291,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func() *string] {
 					return hx_zero_808
 				}
 				return hx_value_807.(*string)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() hxrt.Anonymous]:
 		return hxrt.ProjectFunction(source, func() *string {
@@ -3301,7 +3301,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func() *string] {
 					return hx_zero_810
 				}
 				return hx_value_809.(*string)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func()]:
 		return hxrt.ProjectFunction(source, func() *string {
@@ -3312,7 +3312,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func() *string] {
 					return hx_zero_812
 				}
 				return hx_value_811.(*string)
-			}(any(nil))
+			}(nil)
 		})
 	case *hxrt.Function[func() int]:
 		return hxrt.ProjectFunction(source, func() *string {
@@ -3322,7 +3322,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func() *string] {
 					return hx_zero_814
 				}
 				return hx_value_813.(*string)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() *haxe__io__Bytes]:
 		return hxrt.ProjectFunction(source, func() *string {
@@ -3332,7 +3332,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func() *string] {
 					return hx_zero_816
 				}
 				return hx_value_815.(*string)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() float64]:
 		return hxrt.ProjectFunction(source, func() *string {
@@ -3342,7 +3342,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func() *string] {
 					return hx_zero_818
 				}
 				return hx_value_817.(*string)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() *sys__net__Socket]:
 		return hxrt.ProjectFunction(source, func() *string {
@@ -3352,7 +3352,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func() *string] {
 					return hx_zero_820
 				}
 				return hx_value_819.(*string)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() []int]:
 		return hxrt.ProjectFunction(source, func() *string {
@@ -3362,7 +3362,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func() *string] {
 					return hx_zero_822
 				}
 				return hx_value_821.(*string)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() *hxrt.ByteView]:
 		return hxrt.ProjectFunction(source, func() *string {
@@ -3372,7 +3372,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func() *string] {
 					return hx_zero_824
 				}
 				return hx_value_823.(*string)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() *haxe__Exception]:
 		return hxrt.ProjectFunction(source, func() *string {
@@ -3382,7 +3382,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func() *string] {
 					return hx_zero_826
 				}
 				return hx_value_825.(*string)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() haxe__IMap]:
 		return hxrt.ProjectFunction(source, func() *string {
@@ -3392,7 +3392,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func() *string] {
 					return hx_zero_828
 				}
 				return hx_value_827.(*string)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() *haxe__ds__StringMap]:
 		return hxrt.ProjectFunction(source, func() *string {
@@ -3402,7 +3402,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func() *string] {
 					return hx_zero_830
 				}
 				return hx_value_829.(*string)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	default:
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
@@ -3505,7 +3505,7 @@ func hx_recover_callable_3(value any) *hxrt.Function[func(*string)] {
 					return hx_zero_832
 				}
 				return hx_value_831.(int)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(*string)]:
 		return source
@@ -3521,7 +3521,7 @@ func hx_recover_callable_3(value any) *hxrt.Function[func(*string)] {
 					return hx_zero_834
 				}
 				return hx_value_833.(bool)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(float64)]:
 		return hxrt.ProjectFunction(source, func(arg_0 *string) {
@@ -3531,7 +3531,7 @@ func hx_recover_callable_3(value any) *hxrt.Function[func(*string)] {
 					return hx_zero_836
 				}
 				return hx_value_835.(float64)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(any) *haxe__io__Bytes]:
 		return hxrt.ProjectFunction(source, func(arg_0 *string) {
@@ -3545,7 +3545,7 @@ func hx_recover_callable_3(value any) *hxrt.Function[func(*string)] {
 					return hx_zero_838
 				}
 				return hx_value_837.(int)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(int) *string]:
 		return hxrt.ProjectFunction(source, func(arg_0 *string) {
@@ -3555,7 +3555,7 @@ func hx_recover_callable_3(value any) *hxrt.Function[func(*string)] {
 					return hx_zero_840
 				}
 				return hx_value_839.(int)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(bool)]:
 		return hxrt.ProjectFunction(source, func(arg_0 *string) {
@@ -3565,7 +3565,7 @@ func hx_recover_callable_3(value any) *hxrt.Function[func(*string)] {
 					return hx_zero_842
 				}
 				return hx_value_841.(bool)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(*hxrt.SocketHandle)]:
 		return hxrt.ProjectFunction(source, func(arg_0 *string) {
@@ -3575,7 +3575,7 @@ func hx_recover_callable_3(value any) *hxrt.Function[func(*string)] {
 					return hx_zero_844
 				}
 				return hx_value_843.(*hxrt.SocketHandle)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(any)]:
 		return hxrt.ProjectFunction(source, func(arg_0 *string) {
@@ -3593,7 +3593,7 @@ func hx_recover_callable_3(value any) *hxrt.Function[func(*string)] {
 					return hx_zero_846
 				}
 				return hx_value_845.(*hxrt.HttpExchange)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(*haxe___Int64_____Int64)]:
 		return hxrt.ProjectFunction(source, func(arg_0 *string) {
@@ -3607,7 +3607,7 @@ func hx_recover_callable_3(value any) *hxrt.Function[func(*string)] {
 					return hx_zero_848
 				}
 				return hx_value_847.(int)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(*haxe__io__Bytes) int]:
 		return hxrt.ProjectFunction(source, func(arg_0 *string) {
@@ -3621,7 +3621,7 @@ func hx_recover_callable_3(value any) *hxrt.Function[func(*string)] {
 					return hx_zero_850
 				}
 				return hx_value_849.(int)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(int) *haxe___Int64_____Int64]:
 		return hxrt.ProjectFunction(source, func(arg_0 *string) {
@@ -3631,7 +3631,7 @@ func hx_recover_callable_3(value any) *hxrt.Function[func(*string)] {
 					return hx_zero_852
 				}
 				return hx_value_851.(int)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(*string) any]:
 		return hxrt.ProjectFunction(source, func(arg_0 *string) {
@@ -3676,7 +3676,7 @@ func hx_recover_callable_4(value any) *hxrt.Function[func(*haxe__io__Bytes)] {
 					return hx_zero_854
 				}
 				return hx_value_853.(int)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(*string)]:
 		return hxrt.ProjectFunction(source, func(arg_0 *haxe__io__Bytes) {
@@ -3686,7 +3686,7 @@ func hx_recover_callable_4(value any) *hxrt.Function[func(*haxe__io__Bytes)] {
 					return hx_zero_856
 				}
 				return hx_value_855.(*string)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(*haxe__io__Bytes)]:
 		return source
@@ -3698,7 +3698,7 @@ func hx_recover_callable_4(value any) *hxrt.Function[func(*haxe__io__Bytes)] {
 					return hx_zero_858
 				}
 				return hx_value_857.(bool)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(float64)]:
 		return hxrt.ProjectFunction(source, func(arg_0 *haxe__io__Bytes) {
@@ -3708,7 +3708,7 @@ func hx_recover_callable_4(value any) *hxrt.Function[func(*haxe__io__Bytes)] {
 					return hx_zero_860
 				}
 				return hx_value_859.(float64)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(any) *haxe__io__Bytes]:
 		return hxrt.ProjectFunction(source, func(arg_0 *haxe__io__Bytes) {
@@ -3722,7 +3722,7 @@ func hx_recover_callable_4(value any) *hxrt.Function[func(*haxe__io__Bytes)] {
 					return hx_zero_862
 				}
 				return hx_value_861.(int)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(int) *string]:
 		return hxrt.ProjectFunction(source, func(arg_0 *haxe__io__Bytes) {
@@ -3732,7 +3732,7 @@ func hx_recover_callable_4(value any) *hxrt.Function[func(*haxe__io__Bytes)] {
 					return hx_zero_864
 				}
 				return hx_value_863.(int)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(bool)]:
 		return hxrt.ProjectFunction(source, func(arg_0 *haxe__io__Bytes) {
@@ -3742,7 +3742,7 @@ func hx_recover_callable_4(value any) *hxrt.Function[func(*haxe__io__Bytes)] {
 					return hx_zero_866
 				}
 				return hx_value_865.(bool)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(*hxrt.SocketHandle)]:
 		return hxrt.ProjectFunction(source, func(arg_0 *haxe__io__Bytes) {
@@ -3752,7 +3752,7 @@ func hx_recover_callable_4(value any) *hxrt.Function[func(*haxe__io__Bytes)] {
 					return hx_zero_868
 				}
 				return hx_value_867.(*hxrt.SocketHandle)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(any)]:
 		return hxrt.ProjectFunction(source, func(arg_0 *haxe__io__Bytes) {
@@ -3766,7 +3766,7 @@ func hx_recover_callable_4(value any) *hxrt.Function[func(*haxe__io__Bytes)] {
 					return hx_zero_870
 				}
 				return hx_value_869.(*string)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(*hxrt.HttpExchange)]:
 		return hxrt.ProjectFunction(source, func(arg_0 *haxe__io__Bytes) {
@@ -3776,7 +3776,7 @@ func hx_recover_callable_4(value any) *hxrt.Function[func(*haxe__io__Bytes)] {
 					return hx_zero_872
 				}
 				return hx_value_871.(*hxrt.HttpExchange)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(*haxe___Int64_____Int64)]:
 		return hxrt.ProjectFunction(source, func(arg_0 *haxe__io__Bytes) {
@@ -3790,7 +3790,7 @@ func hx_recover_callable_4(value any) *hxrt.Function[func(*haxe__io__Bytes)] {
 					return hx_zero_874
 				}
 				return hx_value_873.(int)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(*haxe__io__Bytes) int]:
 		return hxrt.ProjectFunction(source, func(arg_0 *haxe__io__Bytes) {
@@ -3804,7 +3804,7 @@ func hx_recover_callable_4(value any) *hxrt.Function[func(*haxe__io__Bytes)] {
 					return hx_zero_876
 				}
 				return hx_value_875.(int)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(int) *haxe___Int64_____Int64]:
 		return hxrt.ProjectFunction(source, func(arg_0 *haxe__io__Bytes) {
@@ -3814,7 +3814,7 @@ func hx_recover_callable_4(value any) *hxrt.Function[func(*haxe__io__Bytes)] {
 					return hx_zero_878
 				}
 				return hx_value_877.(int)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(*string) any]:
 		return hxrt.ProjectFunction(source, func(arg_0 *haxe__io__Bytes) {
@@ -3824,7 +3824,7 @@ func hx_recover_callable_4(value any) *hxrt.Function[func(*haxe__io__Bytes)] {
 					return hx_zero_880
 				}
 				return hx_value_879.(*string)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(*string) bool]:
 		return hxrt.ProjectFunction(source, func(arg_0 *haxe__io__Bytes) {
@@ -3834,7 +3834,7 @@ func hx_recover_callable_4(value any) *hxrt.Function[func(*haxe__io__Bytes)] {
 					return hx_zero_882
 				}
 				return hx_value_881.(*string)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(any) any]:
 		return hxrt.ProjectFunction(source, func(arg_0 *haxe__io__Bytes) {
@@ -3873,7 +3873,7 @@ func hx_recover_callable_5(value any) *hxrt.Function[func(int)] {
 					return hx_zero_884
 				}
 				return hx_value_883.(*string)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(*haxe__io__Bytes)]:
 		return hxrt.ProjectFunction(source, func(arg_0 int) {
@@ -3887,7 +3887,7 @@ func hx_recover_callable_5(value any) *hxrt.Function[func(int)] {
 					return hx_zero_886
 				}
 				return hx_value_885.(bool)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(float64)]:
 		return hxrt.ProjectFunction(source, func(arg_0 int) {
@@ -3913,7 +3913,7 @@ func hx_recover_callable_5(value any) *hxrt.Function[func(int)] {
 					return hx_zero_888
 				}
 				return hx_value_887.(bool)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(*hxrt.SocketHandle)]:
 		return hxrt.ProjectFunction(source, func(arg_0 int) {
@@ -3923,7 +3923,7 @@ func hx_recover_callable_5(value any) *hxrt.Function[func(int)] {
 					return hx_zero_890
 				}
 				return hx_value_889.(*hxrt.SocketHandle)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(any)]:
 		return hxrt.ProjectFunction(source, func(arg_0 int) {
@@ -3937,7 +3937,7 @@ func hx_recover_callable_5(value any) *hxrt.Function[func(int)] {
 					return hx_zero_892
 				}
 				return hx_value_891.(*string)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(*hxrt.HttpExchange)]:
 		return hxrt.ProjectFunction(source, func(arg_0 int) {
@@ -3947,7 +3947,7 @@ func hx_recover_callable_5(value any) *hxrt.Function[func(int)] {
 					return hx_zero_894
 				}
 				return hx_value_893.(*hxrt.HttpExchange)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(*haxe___Int64_____Int64)]:
 		return hxrt.ProjectFunction(source, func(arg_0 int) {
@@ -3977,7 +3977,7 @@ func hx_recover_callable_5(value any) *hxrt.Function[func(int)] {
 					return hx_zero_896
 				}
 				return hx_value_895.(*string)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(*string) bool]:
 		return hxrt.ProjectFunction(source, func(arg_0 int) {
@@ -3987,7 +3987,7 @@ func hx_recover_callable_5(value any) *hxrt.Function[func(int)] {
 					return hx_zero_898
 				}
 				return hx_value_897.(*string)
-			}(any(arg_0)))
+			}(arg_0))
 		})
 	case *hxrt.Function[func(any) any]:
 		return hxrt.ProjectFunction(source, func(arg_0 int) {

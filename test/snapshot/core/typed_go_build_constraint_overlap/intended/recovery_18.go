@@ -17,13 +17,13 @@ func hx_recover_callable_2__probe_1(value any) (*hxrt.Function[func(*AlphaFeatur
 					return hx_zero_48
 				}
 				return hx_value_47.(*string)
-			}(any(hxrt.FunctionCall(source)(func(hx_value_45 any) *image.Point {
+			}(hxrt.FunctionCall(source)(func(hx_value_45 any) *image.Point {
 				if hx_value_45 == nil {
 					var hx_zero_46 *image.Point
 					return hx_zero_46
 				}
 				return hx_value_45.(*image.Point)
-			}(any(arg_0)))))
+			}(arg_0)))
 		}), true
 	default:
 		var zero *hxrt.Function[func(*AlphaFeature) *string]

@@ -614,7 +614,7 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 				return hx_zero_22
 			}
 			return hx_value_21.(int)
-		}(any(argument_0)))
+		}(argument_0))
 	case *hxrt.Function[func(...any) any]:
 		var argument_0 []any = nil
 		for index, argument := range arguments {
@@ -657,7 +657,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func(int) int] {
 					return hx_zero_24
 				}
 				return hx_value_23.(int)
-			}(any(hxrt.FunctionCall(source)(arg_0)))
+			}(hxrt.FunctionCall(source)(arg_0))
 		})
 	default:
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))

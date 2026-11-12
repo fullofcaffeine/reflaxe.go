@@ -94,7 +94,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() int] {
 					return hx_zero_2
 				}
 				return hx_value_1.(int)
-			}(any(hxrt.FunctionCall(source)()))
+			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() int]:
 		return source
