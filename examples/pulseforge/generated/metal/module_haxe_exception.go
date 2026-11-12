@@ -96,7 +96,7 @@ func haxe__Exception_catchValue(value any) any {
 				return hx_zero_3
 			}
 			return hx_value_2.(*haxe__ValueException)
-		}(any(hx_recover_class_5(value)))
+		}(hx_recover_class_5(value))
 		return wrapped.value
 	}
 	return value
