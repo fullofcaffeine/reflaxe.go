@@ -429,7 +429,7 @@ func mapStructFieldTypeWithReason(t types.Type, ctx mappingContext) (string, str
 	switch fieldType := types.Unalias(t).(type) {
 	case *types.Basic:
 		switch fieldType.Kind() {
-		case types.Bool, types.Int, types.String, types.Float64:
+		case types.Bool, types.Int, types.Int64, types.String, types.Float64:
 			return mapBasicTypeWithReason(fieldType)
 		default:
 			return "Dynamic", "scalar_field_abi"
@@ -939,6 +939,11 @@ func mapTypeResult(t types.Type, ctx mappingContext) mappedType {
 		haxe, reason := mapBasicTypeWithReason(tt)
 		return mappedType{Haxe: haxe, Reason: reason}
 	case *types.Pointer:
+		if basic, ok := types.Unalias(tt.Elem()).(*types.Basic); ok && basic.Kind() == types.Int64 {
+			// A native int64 value cannot stand in for a Go *int64. Leave the
+			// pointer boundary explicit until the typed scalar pointer API owns it.
+			return mappedType{Haxe: "Dynamic", Reason: "native_int64_pointer_abi"}
+		}
 		return mapTypeResult(tt.Elem(), ctx)
 	case *types.Slice:
 		if basic, ok := types.Unalias(tt.Elem()).(*types.Basic); ok && basic.Kind() == types.String {
@@ -1065,6 +1070,9 @@ func mapBasicTypeWithReason(basic *types.Basic) (string, string) {
 	}
 	if basic.Info()&types.IsBoolean != 0 {
 		return "Bool", ""
+	}
+	if basic.Kind() == types.Int64 {
+		return "go.NativeInt64", ""
 	}
 	if basic.Info()&types.IsInteger != 0 {
 		return "Int", ""

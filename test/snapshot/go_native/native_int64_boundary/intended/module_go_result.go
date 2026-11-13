@@ -1,0 +1,70 @@
+package main
+
+import "snapshot/hxrt"
+
+type I_go___Result interface {
+	isOk() bool
+	isErr() bool
+	unwrap() any
+	error() *string
+}
+
+type go___Result struct {
+	__hx_this  I_go___Result
+	value      any
+	errorValue *go___Error
+}
+
+func (self *go___Result) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
+func New_go___Result(value any, errorValue *go___Error) *go___Result {
+	return hx_init_go___Result(hx_alloc_go___Result(nil), value, errorValue)
+}
+
+func hx_alloc_go___Result(owner any) *go___Result {
+	self := &go___Result{}
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_go___Result)
+	}
+	return self
+}
+
+func hx_init_go___Result(self *go___Result, value any, errorValue *go___Error) *go___Result {
+	self.value = value
+	self.errorValue = errorValue
+	return self
+}
+
+func (self *go___Result) isOk() bool {
+	return (self.errorValue == nil)
+}
+
+func (self *go___Result) isErr() bool {
+	return (self.errorValue != nil)
+}
+
+func (self *go___Result) unwrap() any {
+	if self.errorValue != nil {
+		hxrt.Throw(haxe__Exception_thrown(self.errorValue.toString()))
+	}
+	return self.value
+}
+
+func (self *go___Result) error() *string {
+	if self.errorValue == nil {
+		return nil
+	}
+	return self.errorValue.toString()
+}
+
+func go___Result_failure(message *string) *go___Result {
+	return New_go___Result(nil, New_go___Error(message))
+}
+
+func go___Result_ok(value any) *go___Result {
+	return New_go___Result(value, nil)
+}

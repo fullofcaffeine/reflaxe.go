@@ -22,6 +22,7 @@ class GoTypeMapper {
 	}
 
 	public static function typeToGoType(type:Type, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):String {
+		rejectNullableNativeInt64(type);
 		if (isBytesDataType(type)) {
 			return "[]int";
 		}
@@ -58,7 +59,9 @@ class GoTypeMapper {
 				"*hxrt.Function[" + goFunctionType(args, returnType, classTypeName, enumTypeName) + "]";
 			case TInst(classRef, params):
 				var classType = classRef.get();
-				if (isTypeParameterClass(classType)) {
+				if (classType.pack.join(".") == "go" && classType.name == "NativeInt64") {
+					"int64";
+				} else if (isTypeParameterClass(classType)) {
 					typeParameterGoType(classType, classTypeName, enumTypeName);
 				} else if (classType.isInterface) {
 					classTypeName(classType);
@@ -198,6 +201,30 @@ class GoTypeMapper {
 			case _:
 				false;
 		};
+	}
+
+	/** Native Go int64 has no nil value; Null<NativeInt64> needs a separate carrier. */
+	public static function isNullableNativeInt64Type(type:Type):Bool {
+		return switch (type) {
+			case TAbstract(ref, params): var abstractType = ref.get(); abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1 && isNativeInt64Type(params[0]);
+			case TMono(ref): var resolved = ref.get(); resolved != null && isNullableNativeInt64Type(resolved);
+			case TType(_, _): isNullableNativeInt64Type(TypeTools.follow(type, true));
+			case TLazy(f): isNullableNativeInt64Type(f());
+			case _: false;
+		};
+	}
+
+	public static function isNativeInt64Type(type:Type):Bool {
+		return switch (Context.follow(type)) {
+			case TInst(ref, _): var classType = ref.get(); classType.pack.join(".") == "go" && classType.name == "NativeInt64";
+			case _: false;
+		};
+	}
+
+	static function rejectNullableNativeInt64(type:Type):Void {
+		if (isNullableNativeInt64Type(type)) {
+			Context.fatalError("Null<go.NativeInt64> has no native Go int64 representation; use a typed optional boundary", Context.currentPos());
+		}
 	}
 
 	public static function isHaxeInt32Type(type:Type):Bool {
@@ -375,6 +402,7 @@ class GoTypeMapper {
 	}
 
 	public static function scalarGoType(type:Type, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):String {
+		rejectNullableNativeInt64(type);
 		if (isBytesDataType(type)) {
 			return "[]int";
 		}
@@ -411,7 +439,9 @@ class GoTypeMapper {
 				"*hxrt.Function[" + goFunctionType(args, returnType, classTypeName, enumTypeName) + "]";
 			case TInst(classRef, params):
 				var classType = classRef.get();
-				if (isTypeParameterClass(classType)) {
+				if (classType.pack.join(".") == "go" && classType.name == "NativeInt64") {
+					"int64";
+				} else if (isTypeParameterClass(classType)) {
 					typeParameterGoType(classType, classTypeName, enumTypeName);
 				} else if (classType.isInterface) {
 					classTypeName(classType);

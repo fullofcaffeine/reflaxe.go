@@ -1,0 +1,1 @@
+go.NativeInt64 is a non-nullable native Go int64 value
