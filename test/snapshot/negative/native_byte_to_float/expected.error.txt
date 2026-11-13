@@ -1,0 +1,1 @@
+go.NativeByte should be Float

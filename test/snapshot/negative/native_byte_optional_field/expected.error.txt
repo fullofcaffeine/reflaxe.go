@@ -1,0 +1,1 @@
+Null<go.NativeByte> has no native Go byte representation
