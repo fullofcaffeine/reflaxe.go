@@ -237,6 +237,74 @@ func AddDuration(left Duration, right *Duration) Duration { return left + *right
 	}
 }
 
+func TestBuildEmissionPreservesNativeInt64ValueABI(t *testing.T) {
+	moduleDir := t.TempDir()
+	writeTestFile(t, filepath.Join(moduleDir, "go.mod"), "module example.com/int64abi\n\ngo 1.22\n")
+	writeTestFile(t, filepath.Join(moduleDir, "api", "api.go"), `package api
+
+type Record struct { Number int64 }
+type Counter int64
+type Alias = int64
+
+func Echo(value int64) int64 { return value }
+func Pair(value int64) (int64, error) { return value, nil }
+func TakePointer(value *int64) {}
+func EchoCounter(value Counter) Counter { return value }
+func EchoAlias(value Alias) Alias { return value }
+func TakeAliasPointer(value *Alias) {}
+`)
+
+	emission, err := BuildEmission(Config{
+		GoImportPath:      "example.com/int64abi/api",
+		WorkingDirectory:  moduleDir,
+		OutputRoot:        t.TempDir(),
+		HaxePackagePrefix: "goextern",
+	})
+	if err != nil {
+		t.Fatalf("BuildEmission failed for native int64 fixture: %v", err)
+	}
+
+	apiFile := fileContentsByName(t, emission, "ApiPkg.hx")
+	for _, snippet := range []string{
+		"public static function echo(value:go.NativeInt64):go.NativeInt64;",
+		"public static function takePointer(value:Dynamic):Void;",
+		"public static function echoCounter(value:Counter):Counter;",
+		"public static function echoAlias(value:go.NativeInt64):go.NativeInt64;",
+		"public static function takeAliasPointer(value:Dynamic):Void;",
+	} {
+		if !strings.Contains(apiFile, snippet) {
+			t.Fatalf("ApiPkg.hx missing native int64 contract %q:\n%s", snippet, apiFile)
+		}
+	}
+	if !strings.Contains(fileContentsByName(t, emission, "Record.hx"), "public var number:go.NativeInt64;") {
+		t.Fatalf("Record.hx does not retain exact int64 field width")
+	}
+	if !strings.Contains(fileContentsByName(t, emission, "Counter.hx"), "@:go.valueType") {
+		t.Fatalf("named int64 identity must remain a separate Go value type")
+	}
+	for _, file := range emission.Files {
+		if file.Name == "Alias.hx" {
+			t.Fatalf("a true Go alias must retain its underlying int64 identity, not emit a distinct value type")
+		}
+	}
+	if !strings.Contains(apiFile, "public static function pair(value:go.NativeInt64):") {
+		t.Fatalf("tuple return must retain the native int64 parameter:\n%s", apiFile)
+	}
+	pairFile := fileContentsByName(t, emission, "PairResult.hx")
+	if !strings.Contains(pairFile, "go.NativeInt64") {
+		t.Fatalf("tuple return must retain the native int64 result:\n%s", pairFile)
+	}
+	pointerFallbacks := map[string]bool{}
+	for _, fallback := range emission.DynamicFallbacks {
+		if (fallback.Symbol == "TakePointer" || fallback.Symbol == "TakeAliasPointer") && fallback.Reason == "native_int64_pointer_abi" {
+			pointerFallbacks[fallback.Symbol] = true
+		}
+	}
+	if !pointerFallbacks["TakePointer"] || !pointerFallbacks["TakeAliasPointer"] {
+		t.Fatalf("missing explicit *int64/*alias pointer fallback: %+v", emission.DynamicFallbacks)
+	}
+}
+
 func TestBuildEmissionRejectsPackagePatternIdentity(t *testing.T) {
 	moduleDir := t.TempDir()
 	outputDir := t.TempDir()

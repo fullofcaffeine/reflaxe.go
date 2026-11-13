@@ -6316,6 +6316,9 @@ class GoCompiler {
 	}
 
 	function lowerExpr(expr:TypedExpr):LoweredExpr {
+		if (isNullLiteralExpr(expr) && GoTypeMapper.isNativeInt64Type(expr.t)) {
+			Context.fatalError("go.NativeInt64 is a non-nullable native Go int64 value", expr.pos);
+		}
 		var anonymousMutation = lowerAnonymousMutation(expr);
 		if (anonymousMutation != null)
 			return anonymousMutation;
