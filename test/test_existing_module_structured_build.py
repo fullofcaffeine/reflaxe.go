@@ -129,6 +129,46 @@ def structured_build(**overrides: object) -> dict[str, object]:
 
 @unittest.skipUnless(shutil.which("haxe") and shutil.which("go"), "requires Haxe and Go")
 class ExistingModuleStructuredBuildTest(unittest.TestCase):
+    def test_package_qualifiers_survive_local_suffixes_and_custom_runtime(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="haxe-go-local-qualifiers-") as raw:
+            module_root = Path(raw)
+            write_project(module_root, {"kind": "none"})
+            for name, value in [("bytes_local", 11), ("bytes_local_1", 13)]:
+                package = module_root / name
+                package.mkdir()
+                (package / "value.go").write_text(
+                    f"package {name}\nfunc Value() int {{ return {value} }}\n",
+                    encoding="utf-8",
+                )
+            (module_root / "Main.hx").write_text(
+                '''@:go.import("example.com/caller/project/bytes_local") extern class First {
+    @:go.name("Value") static function value():Int;
+}
+@:go.import("example.com/caller/project/bytes_local_1") extern class Second {
+    @:go.name("Value") static function value():Int;
+}
+class Main {
+    static function main() {
+        final bytes_local = 3;
+        final bytes_local_local = 5;
+        final hxrt = "abc";
+        if (First.value() != 11 || Second.value() != 13) throw "package values";
+        if (bytes_local * 10 + bytes_local_local != 35) throw "local values";
+        if (hxrt.length != 3) throw "runtime qualifier";
+        Sys.println("qualifier control: PASS");
+    }
+}
+''', encoding="utf-8",
+            )
+            generated = run_compiler(module_root)
+            self.assertEqual(0, generated.returncode, generated.stdout + generated.stderr)
+            completed = subprocess.run(
+                [shutil.which("go") or "go", "run", "./cmd/tool"],
+                cwd=module_root, capture_output=True, text=True, timeout=120,
+            )
+            self.assertEqual(0, completed.returncode, completed.stdout + completed.stderr)
+            self.assertEqual("unset\nqualifier control: PASS\n", completed.stdout)
+
     def test_build_request_records_exact_arguments_and_runs_without_shell_expansion(self) -> None:
         with tempfile.TemporaryDirectory(prefix="haxe-go-structured-build-") as raw:
             module_root = Path(raw)
