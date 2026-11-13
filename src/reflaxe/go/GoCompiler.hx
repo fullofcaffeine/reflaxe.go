@@ -291,6 +291,7 @@ class GoCompiler {
 	var requiresStringValueErrorResultNormalization:Bool;
 	final externImportPaths:Map<String, Bool>;
 	final externImportPackages:Map<String, String>;
+	final reservedLocalPackageNames:Map<String, Bool> = [];
 	final usedExternClassPaths:Map<String, Bool>;
 	final sourceModuleRegistry:GoSourceModuleRegistry;
 	final sourceOwnedStdlibPlanner:GoSourceOwnedStdlibPlanner;
@@ -481,6 +482,7 @@ class GoCompiler {
 	}
 
 	function compileResolvedTypes(classes:Array<ClassType>, enums:Array<EnumType>):Array<GoGeneratedFile> {
+		reserveTypedPackageNames();
 		projectClasses = classes.copy();
 		projectEnums = enums.copy();
 		sourceOwnedStdlibPlanner.cacheAvailableClasses(classes);
@@ -786,16 +788,16 @@ class GoCompiler {
 		return token;
 	}
 
-	function buildSupportImports():Array<String> {
+	function buildSupportImports(includePotential:Bool = false):Array<String> {
 		var imports = [compilationContext.runtimeImportPath];
-		if (requiredStdlibShimGroups.exists("type_metadata")) {
+		if (includePotential || requiredStdlibShimGroups.exists("type_metadata")) {
 			imports.push("reflect");
 			imports.push("strings");
 		}
-		if (requiredStdlibShimGroups.exists("go_result")) {
+		if (includePotential || requiredStdlibShimGroups.exists("go_result")) {
 			imports.push("errors");
 		}
-		if (requiredStdlibShimGroups.exists("go_concurrency")) {
+		if (includePotential || requiredStdlibShimGroups.exists("go_concurrency")) {
 			imports.push("reflect");
 		}
 		return imports;
@@ -5526,6 +5528,40 @@ class GoCompiler {
 		return functionVarNameCountScopes[functionVarNameCountScopes.length - 1];
 	}
 
+	/**
+		Reserve typed package qualifiers before allocating any local names.
+
+		Extern imports are discovered lazily during lowering, so the used-import
+		map is incomplete here. The completed Haxe module inventory supplies their
+		declared aliases without adding imports. Compiler support imports can also
+		be requested by later recovery; use their existing finite inventory.
+	**/
+	function reserveTypedPackageNames():Void {
+		reservedLocalPackageNames.clear();
+		reservedLocalPackageNames.set("hxrt", true);
+		for (path in buildSupportImports(true))
+			reservedLocalPackageNames.set(importAliasForPath(path), true);
+		for (requirement in compilationContext.surfacePlan.requiredImports)
+			reservedLocalPackageNames.set(importAliasForPath(requirement.path), true);
+		for (moduleType in Context.getAllModuleTypes()) {
+			switch (moduleType) {
+				case TClassDecl(ref) if (ref.get().isExtern):
+					var alias = externClassPackageName(ref.get());
+					if (alias != null)
+						reservedLocalPackageNames.set(alias, true);
+				case _:
+			}
+		}
+	}
+
+	function activeScopesContainLocalName(candidate:String):Bool {
+		for (scope in functionVarNameScopes)
+			for (name in scope)
+				if (name == candidate)
+					return true;
+		return false;
+	}
+
 	function localVarName(variable:TVar):String {
 		var index = functionVarNameScopes.length - 1;
 		while (index >= 0) {
@@ -5537,6 +5573,8 @@ class GoCompiler {
 		}
 
 		var base = normalizeIdent(variable.name);
+		while (reservedLocalPackageNames.exists(base))
+			base += "_local";
 		var currentScope = currentFunctionVarNameScope();
 		var countScope = currentFunctionVarNameCountScope();
 		if (currentScope == null || countScope == null) {
@@ -5544,8 +5582,12 @@ class GoCompiler {
 		}
 
 		var next = countScope.exists(base) ? countScope.get(base) : 0;
-		countScope.set(base, next + 1);
 		var assigned = next == 0 ? base : base + "_" + next;
+		while (reservedLocalPackageNames.exists(assigned) || activeScopesContainLocalName(assigned)) {
+			next++;
+			assigned = base + "_" + next;
+		}
+		countScope.set(base, next + 1);
 		currentScope.set(variable.id, assigned);
 		return assigned;
 	}
