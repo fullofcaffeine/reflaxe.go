@@ -773,12 +773,97 @@ func TestBuildEmissionTimeTupleReturnCarrierUsesNamedFields(t *testing.T) {
 	marshalBinaryResult := fileContentsByName(t, emission, "TimeMarshalBinaryResult.hx")
 	for _, snippet := range []string{
 		"class TimeMarshalBinaryResult",
-		"public var value1(default, null):go.NativeSlice<Int>;",
+		"public var value1(default, null):go.NativeSlice<go.NativeByte>;",
 		"public var value2(default, null):Null<go.Error>;",
-		"public function new(value1:go.NativeSlice<Int>, value2:Null<go.Error>)",
+		"public function new(value1:go.NativeSlice<go.NativeByte>, value2:Null<go.Error>)",
 	} {
 		if !strings.Contains(marshalBinaryResult, snippet) {
 			t.Fatalf("TimeMarshalBinaryResult.hx missing generated carrier snippet %q\n%s", snippet, marshalBinaryResult)
+		}
+	}
+}
+
+func TestBuildEmissionPreservesByteValueAndSliceABI(t *testing.T) {
+	moduleDir := t.TempDir()
+	writeTestFile(t, filepath.Join(moduleDir, "go.mod"), "module example.com/bytefixture\n\ngo 1.22\n")
+	writeTestFile(t, filepath.Join(moduleDir, "packet", "packet.go"), `package packet
+
+type Alias = byte
+
+type Packet struct {
+	Code byte
+	AliasCode Alias
+	Payload []byte
+	AliasPayload []Alias
+}
+
+func RoundTrip(value byte, payload []byte) (byte, []byte) { return value, payload }
+func AliasRoundTrip(value Alias, payload []Alias) (Alias, []Alias) { return value, payload }
+func NeedsPointer(value *byte) {}
+func NeedsAliasPointer(value *Alias) {}
+`)
+	emission, err := BuildEmission(Config{
+		GoImportPath:      "example.com/bytefixture/packet",
+		WorkingDirectory:  moduleDir,
+		OutputRoot:        t.TempDir(),
+		HaxePackagePrefix: "goextern",
+	})
+	if err != nil {
+		t.Fatalf("BuildEmission failed: %v", err)
+	}
+	packet := fileContentsByName(t, emission, "Packet.hx")
+	for _, want := range []string{
+		"public var code:go.NativeByte;",
+		"public var aliasCode:go.NativeByte;",
+		"public var payload:go.NativeSlice<go.NativeByte>;",
+		"public var aliasPayload:go.NativeSlice<go.NativeByte>;",
+	} {
+		if !strings.Contains(packet, want) {
+			t.Fatalf("Packet.hx missing exact byte field %q:\n%s", want, packet)
+		}
+	}
+	alias := fileContentsByName(t, emission, "Alias.hx")
+	if !strings.Contains(alias, "typedef Alias = go.NativeByte;") {
+		t.Fatalf("true byte alias lost its underlying ABI:\n%s", alias)
+	}
+	pkg := fileContentsByName(t, emission, "PacketPkg.hx")
+	for _, want := range []string{
+		"roundTrip(value:go.NativeByte, payload:go.NativeSlice<go.NativeByte>):RoundTripResult;",
+		"aliasRoundTrip(value:go.NativeByte, payload:go.NativeSlice<go.NativeByte>):AliasRoundTripResult;",
+		"needsPointer(value:Dynamic):Void;",
+		"needsAliasPointer(value:Dynamic):Void;",
+	} {
+		if !strings.Contains(pkg, want) {
+			t.Fatalf("PacketPkg.hx missing exact byte signature or pointer fallback %q:\n%s", want, pkg)
+		}
+	}
+	result := fileContentsByName(t, emission, "RoundTripResult.hx")
+	for _, want := range []string{
+		"value1(default, null):go.NativeByte;",
+		"value2(default, null):go.NativeSlice<go.NativeByte>;",
+	} {
+		if !strings.Contains(result, want) {
+			t.Fatalf("RoundTripResult.hx missing exact tuple slot %q:\n%s", want, result)
+		}
+	}
+	aliasResult := fileContentsByName(t, emission, "AliasRoundTripResult.hx")
+	for _, want := range []string{
+		"value1(default, null):go.NativeByte;",
+		"value2(default, null):go.NativeSlice<go.NativeByte>;",
+	} {
+		if !strings.Contains(aliasResult, want) {
+			t.Fatalf("AliasRoundTripResult.hx missing exact alias tuple slot %q:\n%s", want, aliasResult)
+		}
+	}
+	for _, name := range []string{"NeedsPointer", "NeedsAliasPointer"} {
+		found := false
+		for _, fallback := range emission.DynamicFallbacks {
+			if fallback.Symbol == name && fallback.Position == "param:value" && fallback.Reason == "native_byte_pointer_abi" {
+				found = true
+			}
+		}
+		if !found {
+			t.Fatalf("missing explicit byte pointer fallback for %s: %+v", name, emission.DynamicFallbacks)
 		}
 	}
 }

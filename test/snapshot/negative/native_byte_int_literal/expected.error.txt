@@ -1,0 +1,1 @@
+Int should be go.NativeByte

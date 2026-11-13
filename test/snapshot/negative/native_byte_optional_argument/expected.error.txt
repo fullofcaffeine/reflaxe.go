@@ -1,0 +1,1 @@
+go.NativeByte is a non-nullable native Go byte value
