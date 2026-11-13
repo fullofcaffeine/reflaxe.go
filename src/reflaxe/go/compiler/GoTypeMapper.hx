@@ -537,7 +537,50 @@ class GoTypeMapper {
 				|| abstractType.name == "Float64Array")) {
 			return "*haxe__io__ArrayBufferViewImpl";
 		}
-		return null;
+		if ((abstractType.impl != null && abstractType.impl.get().isExtern) || abstractType.meta.has(":coreType")) {
+			return null;
+		}
+		var backingType = TypeTools.applyTypeParameters(abstractType.type, abstractType.params, params);
+		return hasOrdinaryStringBacking(backingType, new Map<String, Bool>()) ? "*string" : null;
+	}
+
+	/**
+		What: Proves that an ordinary abstract stores a Haxe string.
+		Why: String's pointer carrier retains null without boxing, while native/core
+		abstracts may have a different carrier even when their backing type is String.
+		How: Substitute applied parameters along ordinary abstract chains, stopping at
+		native boundaries and repeated applied types. Haxe records an extern abstract
+		on its implementation class, not AbstractType.isExtern. Other storage is unchanged.
+	**/
+	static function hasOrdinaryStringBacking(type:Type, seen:Map<String, Bool>):Bool {
+		return switch (type) {
+			case TInst(classRef, _): var classType = classRef.get(); classType.pack.length == 0 && classType.name == "String";
+			case TType(typeRef, params):
+				var typedefType = typeRef.get();
+				hasOrdinaryStringBacking(TypeTools.applyTypeParameters(typedefType.type, typedefType.params, params), seen);
+			case TMono(ref): var resolved = ref.get(); resolved != null && hasOrdinaryStringBacking(resolved, seen);
+			case TLazy(resolve):
+				hasOrdinaryStringBacking(resolve(), seen);
+			case TAbstract(abstractRef, params):
+				var abstractType = abstractRef.get();
+				var identity = TypeTools.toString(type);
+				if (abstractType.pack.length == 0 && abstractType.name == "String") {
+					true;
+				} else if (seen.exists(identity)) {
+					false;
+				} else if (abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1) {
+					seen.set(identity, true);
+					hasOrdinaryStringBacking(params[0], seen);
+				} else if ((abstractType.impl != null && abstractType.impl.get().isExtern) || abstractType.meta.has(":coreType")) {
+					false;
+				} else {
+					seen.set(identity, true);
+					var backingType = TypeTools.applyTypeParameters(abstractType.type, abstractType.params, params);
+					hasOrdinaryStringBacking(backingType, seen);
+				}
+			case _:
+				false;
+		};
 	}
 
 	/**
