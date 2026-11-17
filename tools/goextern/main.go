@@ -925,6 +925,13 @@ func mapTypeResult(t types.Type, ctx mappingContext) mappedType {
 		if obj != nil && obj.Pkg() == nil {
 			return mapTypeResult(types.Unalias(alias), ctx)
 		}
+		// An alias of a basic type is that basic type. Go 1.27 always reports
+		// such aliases as *types.Alias, while older toolchains under this
+		// module's go version resolve them away. Map the basic target so every
+		// supported toolchain emits the same carrier, such as go.NativeInt64.
+		if _, ok := types.Unalias(alias).(*types.Basic); ok {
+			return mapTypeResult(types.Unalias(alias), ctx)
+		}
 		if obj == nil || obj.Pkg() == nil || !obj.Exported() {
 			return mappedType{Haxe: "Dynamic", Reason: "unexported_named_type"}
 		}
