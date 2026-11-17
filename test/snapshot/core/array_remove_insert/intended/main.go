@@ -46,20 +46,20 @@ func main() {
 		return false
 	}())), hxrt.StringFromLiteral(":")), hxrt.StringJoinAny(duplicate.Values(), hxrt.StringFromLiteral(","))))
 	hxrt.Println(v_1)
-	strings := hxrt.NewArray(makeSame(), hxrt.StringFromLiteral("tail"))
+	strings_local := hxrt.NewArray(makeSame(), hxrt.StringFromLiteral("tail"))
 	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("remove.string="), hxrt.StdString(func() bool {
 		var hx_remove_value_13 any = makeSame()
 		hx_remove_index_14 := 0
-		for hx_remove_index_14 < strings.Len() {
-			hx_remove_element_15 := strings.Get(hx_remove_index_14)
+		for hx_remove_index_14 < strings_local.Len() {
+			hx_remove_element_15 := strings_local.Get(hx_remove_index_14)
 			if hxrt.HaxeEqual(hx_remove_element_15, hx_remove_value_13) {
-				strings.RemoveAt(hx_remove_index_14)
+				strings_local.RemoveAt(hx_remove_index_14)
 				return true
 			}
 			hx_remove_index_14 = (hx_remove_index_14 + 1)
 		}
 		return false
-	}())), hxrt.StringFromLiteral(":")), hxrt.StringJoinAny(strings.Values(), hxrt.StringFromLiteral(","))))
+	}())), hxrt.StringFromLiteral(":")), hxrt.StringJoinAny(strings_local.Values(), hxrt.StringFromLiteral(","))))
 	hxrt.Println(v_2)
 	nullableInts := hxrt.NewArray(nil, 1, nil)
 	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("remove.null="), hxrt.StdString(func() bool {

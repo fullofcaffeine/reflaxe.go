@@ -1205,8 +1205,8 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 		callArgs := hxrt.NewArray()
 		callArgs.Push(func() *hxrt.Function[func(*string) any] {
 			hx_receiver_203 := self
-			return hxrt.BoundFunction(func(v *string) any {
-				return hx_receiver_203.__hx_this.resolve(v)
+			return hxrt.BoundFunction(func(v_1 *string) any {
+				return hx_receiver_203.__hx_this.resolve(v_1)
 			}, func() any {
 				return hx_receiver_203.__hx_this
 			}, "resolve")

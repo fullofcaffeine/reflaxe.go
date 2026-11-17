@@ -16,10 +16,10 @@ func main() {
 			return New_go___Error(hxrt.StringFromLiteral(err.Error()))
 		}(hx_tuple_2))
 	}()
-	url := result.request.URL
+	url_local := result.request.URL
 	fmt.Println(func() int {
 		var hx_if_3 int
-		if (result.error == nil) && (url != nil) {
+		if (result.error == nil) && (url_local != nil) {
 			hx_if_3 = 42
 		} else {
 			hx_if_3 = -1

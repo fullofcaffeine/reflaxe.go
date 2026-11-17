@@ -16,8 +16,8 @@ func main() {
 	var v_1 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("length="), haxe__io__Bytes_ofString(value, nil).length))
 	hxrt.Println(v_1)
 	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("sub="), func() *string {
-		var unicode any = value
-		return _UnicodeString__UnicodeString_Impl__substr(hxrt.StdString(unicode), 1, 2)
+		unicode := value
+		return _UnicodeString__UnicodeString_Impl__substr(unicode, 1, 2)
 	}()))
 	hxrt.Println(v_2)
 	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("encode="), haxe__Utf8_encode(hxrt.StringFromLiteral("é"))))

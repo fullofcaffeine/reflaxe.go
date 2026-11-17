@@ -53,9 +53,9 @@ func main() {
 	}()...) {
 		os.Exit(2)
 	}
-	template := template.New(*hxrt.StdString(hxrt.StringFromLiteral("t")))
+	template_local := template.New(*hxrt.StdString(hxrt.StringFromLiteral("t")))
 	option := hxrt.StringFromLiteral("missingkey=zero")
-	template.Option([]string{*hxrt.StdString(option), *hxrt.StdString(hxrt.StringFromLiteral("missingkey=default"))}...)
+	template_local.Option([]string{*hxrt.StdString(option), *hxrt.StdString(hxrt.StringFromLiteral("missingkey=default"))}...)
 	if !hxrt.StringEqualStringPtr(hxrt.StdString(fmt.Sprint([]any{*hxrt.StdString(hxrt.StringFromLiteral("left")), 7, *hxrt.StdString(hxrt.StringFromLiteral("right"))}...)), hxrt.StringFromLiteral("left7right")) {
 		os.Exit(3)
 	}

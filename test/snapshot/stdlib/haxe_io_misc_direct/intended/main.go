@@ -98,8 +98,8 @@ func main() {
 			hxrt.Throw(hx_caught_6)
 		}
 	})
-	var mime any = any(hxrt.StringFromLiteral("application/json"))
-	var scheme any = any(hxrt.StringFromLiteral("https"))
+	mime := hxrt.StringFromLiteral("application/json")
+	scheme := hxrt.StringFromLiteral("https")
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("mime="), mime)))
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("scheme="), scheme)))
 	var v_5 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("fp.i32ToFloat="), haxe__io__FPHelper_i32ToFloat(1065353216)))

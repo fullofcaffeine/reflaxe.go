@@ -14,7 +14,7 @@ type hxrt__TypeEnumValue struct {
 }
 
 func main() {
-	var method any = any(hxrt.StringFromLiteral("POST"))
+	method := hxrt.StringFromLiteral("POST")
 	var status any = any(200)
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("method="), method)))
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("status="), status)))

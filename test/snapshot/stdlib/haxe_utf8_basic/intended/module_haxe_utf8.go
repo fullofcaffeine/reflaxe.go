@@ -163,23 +163,17 @@ func haxe__Utf8_encode(s *string) *string {
 }
 
 func haxe__Utf8_iter(s *string, chars *hxrt.Function[func(int)]) {
-	var unicode any = s
+	unicode := s
 	_g := 0
-	_g1 := hxrt.StringLengthStringPtr(hxrt.StdString(func(hx_value_11 any) *string {
-		if hx_value_11 == nil {
-			var hx_zero_12 *string
-			return hx_zero_12
-		}
-		return hx_value_11.(*string)
-	}(unicode)))
+	_g1 := hxrt.StringLengthStringPtr(unicode)
 	for _g < _g1 {
-		hx_post_13 := _g
+		hx_post_11 := _g
 		_g = int(int32((_g + 1)))
-		index := hx_post_13
+		index := hx_post_11
 		func() {
-			var hx_callable_14 *hxrt.Function[func(int)] = chars
-			var hx_argument_15 int = hxrt.StringCharCodeAtStringPtr(s, index)
-			hxrt.FunctionCall(hx_callable_14)(hx_argument_15)
+			var hx_callable_12 *hxrt.Function[func(int)] = chars
+			var hx_argument_13 int = hxrt.StringCharCodeAtStringPtr(s, index)
+			hxrt.FunctionCall(hx_callable_12)(hx_argument_13)
 		}()
 	}
 }
@@ -189,8 +183,8 @@ func haxe__Utf8_length(s *string) int {
 }
 
 func haxe__Utf8_sub(s *string, pos int, len int) *string {
-	var unicode any = s
-	return _UnicodeString__UnicodeString_Impl__substr(hxrt.StdString(unicode), pos, len)
+	unicode := s
+	return _UnicodeString__UnicodeString_Impl__substr(unicode, pos, len)
 }
 
 func haxe__Utf8_validate(s *string) bool {

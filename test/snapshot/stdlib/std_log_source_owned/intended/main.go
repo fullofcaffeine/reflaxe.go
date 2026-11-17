@@ -16,8 +16,8 @@ func main() {
 	}()
 	original := haxe__Log_trace
 	haxe__Log_trace = hxrt.NewFunction(func(value any, infos hxrt.Anonymous) {
-		var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("custom.value="), hxrt.StdString(value)))
-		hxrt.Println(v)
+		var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("custom.value="), hxrt.StdString(value)))
+		hxrt.Println(v_2)
 		var hx_if_8 int
 		if (infos == nil) || (func(hx_value_4 any) *hxrt.Array {
 			if hx_value_4 == nil {
@@ -37,7 +37,7 @@ func main() {
 			}(hxrt.AnonymousGet(infos, "customParams")).Len()
 		}
 		count := hx_if_8
-		var v_1 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("custom.info="), hxrt.StdString((infos != nil))), hxrt.StringFromLiteral(":")), func(hx_value_9 any) *string {
+		var v_3 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("custom.info="), hxrt.StdString((infos != nil))), hxrt.StringFromLiteral(":")), func(hx_value_9 any) *string {
 			if hx_value_9 == nil {
 				var hx_zero_10 *string
 				return hx_zero_10
@@ -56,7 +56,7 @@ func main() {
 			}
 			return hx_value_13.(*string)
 		}(hxrt.AnonymousGet(infos, "fileName")), hxrt.StringFromLiteral("Main.hx")))), hxrt.StringFromLiteral(":")), count))
-		hxrt.Println(v_1)
+		hxrt.Println(v_3)
 	})
 	func() {
 		var hx_callable_16 *hxrt.Function[func(any, hxrt.Anonymous)] = haxe__Log_trace
