@@ -11019,8 +11019,14 @@ class GoCompiler {
 		var rightExprForOperator = rightStoredArrayElement
 			&& coerceNullableOperands ? coerceStoredArrayElementExpr(rightLowered.expr,
 				right.t) : (coerceNullableOperands ? coerceNullablePrimitiveOperandForUse(rightLowered.expr, right) : rightLowered.expr);
-		var useStringEquality = stringMode && (!nullComparison || isStringType(left.t) || isStringType(right.t));
+		// Abstracts over String use String's pointer carrier without being String,
+		// so equality must still compare contents when both sides use that carrier.
+		var stringCarrierEquality = isEqualityBinop(op) && !nullComparison && !leftStoredArrayElement && !rightStoredArrayElement
+			&& isStringCarrierType(left.t) && isStringCarrierType(right.t);
+		var useStringEquality = stringCarrierEquality
+			|| (stringMode && (!nullComparison || isStringType(left.t) || isStringType(right.t)));
 		var typedStringOps = isStringType(left.t) && isStringType(right.t) && !leftStoredArrayElement && !rightStoredArrayElement;
+		var typedStringEquality = typedStringOps || stringCarrierEquality;
 		var equalityOp = isEqualityBinop(op);
 		var storedArrayEquality = equalityOp && (leftStoredArrayElement || rightStoredArrayElement);
 		var leftClass = classFromType(left.t);
@@ -11063,14 +11069,14 @@ class GoCompiler {
 				};
 			case OpEq if (useStringEquality):
 				{
-					expr: GoExpr.GoCall(GoExpr.GoIdent(typedStringOps ? "hxrt.StringEqualStringPtr" : "hxrt.StringEqualAny"),
+					expr: GoExpr.GoCall(GoExpr.GoIdent(typedStringEquality ? "hxrt.StringEqualStringPtr" : "hxrt.StringEqualAny"),
 						[leftLowered.expr, rightLowered.expr]),
 					isStringLike: false
 				};
 			case OpNotEq if (useStringEquality):
 				{
 					expr: GoExpr.GoUnary("!",
-						GoExpr.GoCall(GoExpr.GoIdent(typedStringOps ? "hxrt.StringEqualStringPtr" : "hxrt.StringEqualAny"),
+						GoExpr.GoCall(GoExpr.GoIdent(typedStringEquality ? "hxrt.StringEqualStringPtr" : "hxrt.StringEqualAny"),
 							[leftLowered.expr, rightLowered.expr])),
 					isStringLike: false
 				};
@@ -11942,6 +11948,23 @@ class GoCompiler {
 		return GoTypeMapper.isStringType(type);
 	}
 
+	/**
+		What: Reports whether a value is stored in the Haxe string pointer carrier.
+		Why: String and ordinary abstracts over String share the `*string` carrier.
+		Go `==` on that carrier compares pointers, but Haxe `==` compares contents.
+		How: Accept String directly. For an abstract, ask the type mapper which
+		carrier it selected, so this check cannot drift from the storage rule.
+	**/
+	function isStringCarrierType(type:Type):Bool {
+		if (isStringType(type)) {
+			return true;
+		}
+		return switch (Context.follow(type)) {
+			case TAbstract(_, _): typeToGoType(type) == "*string";
+			case _: false;
+		};
+	}
+
 	function isGoErrorType(type:Type):Bool {
 		var inner = nullableInnerType(type);
 		if (inner != null) {
@@ -12800,7 +12823,8 @@ class GoCompiler {
 		helper.
 	**/
 	function lowerArrayElementEqualityExpr(left:GoExpr, right:GoExpr, elementType:Type, elementGoType:String):GoExpr {
-		if (isStringType(elementType)) {
+		// Abstracts over String store `*string` elements too; compare their contents.
+		if (isStringType(elementType) || elementGoType == "*string") {
 			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringEqualStringPtr"), [left, right]);
 		}
 		if (elementGoType == "any"
