@@ -8,5 +8,5 @@ package goextern.io;
 extern interface Reader {
 	@:go.tupleReturn
 	@:go.name("Read")
-	public function read(p:go.NativeSlice<Int>):ReaderReadResult;
+	public function read(p:go.NativeSlice<go.NativeByte>):ReaderReadResult;
 }

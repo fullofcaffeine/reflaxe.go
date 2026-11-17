@@ -9,7 +9,7 @@
 	"files": [
 		{
 			"path": "fmt/FmtPkg.hx",
-			"sha256": "81c8dcbe987fda71b3e0da6d49d03ac1f2245737ebb909f949cf6fdc9154613d"
+			"sha256": "6e683bd824d3bab90a1c9efaa8a795c31cb722ab035dc360f16da91805a06eeb"
 		},
 		{
 			"path": "fmt/Formatter.hx",
@@ -61,7 +61,7 @@
 		},
 		{
 			"path": "fmt/ScanState.hx",
-			"sha256": "cc9b29fd3b87d55d8256378263496ed90a23f1b62d1499321fe809bb5fe3c9ee"
+			"sha256": "ef1cf0e095df240ccf70152f68072da6c0f646df4544bbec88cc3c8be8a64e1c"
 		},
 		{
 			"path": "fmt/ScanStateReadResult.hx",
@@ -73,7 +73,7 @@
 		},
 		{
 			"path": "fmt/ScanStateTokenResult.hx",
-			"sha256": "ccf89fb201c5ec7ca4c32088172dd896a36a5c2b8d32c220f0773f69bc49fcfb"
+			"sha256": "6bf1ec959fd718853dcae45a775c5d7511a10bba2c2e43c00e785b23d33b6240"
 		},
 		{
 			"path": "fmt/ScanStateWidthResult.hx",
@@ -105,7 +105,7 @@
 		},
 		{
 			"path": "fmt/State.hx",
-			"sha256": "a44103a1337a0f93a9482e936f6fc17a8a6200d792638c7b58b7d0bf686bc390"
+			"sha256": "063bdaac3b4c78e0f06036926e4c0daffc25a529a16718bdcdd02d366b76cf55"
 		},
 		{
 			"path": "fmt/StatePrecisionResult.hx",
@@ -125,7 +125,7 @@
 		},
 		{
 			"path": "io/Reader.hx",
-			"sha256": "c9ce07b9b712551213d003c4120f9e0fe54ff6c57ad596eef02f884835e8b550"
+			"sha256": "957ce257998764e1bcbaabdef0aa50f18dbd3a370efca24b58ba48e2483cd1b5"
 		},
 		{
 			"path": "io/ReaderReadResult.hx",
@@ -133,7 +133,7 @@
 		},
 		{
 			"path": "io/Writer.hx",
-			"sha256": "e40fb67cac403e453bdfcb6aa3f4e6f629151befb4517c9497ce49adae95bbca"
+			"sha256": "d5c06f53cae6175f3080a2ba7be4a76d6a368dd85daea1b9ecfdaf5655cb20f3"
 		},
 		{
 			"path": "io/WriterWriteResult.hx",

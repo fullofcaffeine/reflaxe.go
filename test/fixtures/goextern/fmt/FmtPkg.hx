@@ -6,13 +6,13 @@ package goextern.fmt;
 @:go.package("fmt")
 extern class FmtPkg {
 	@:go.name("Append")
-	public static function append(b:go.NativeSlice<Int>, a:haxe.Rest<Dynamic>):go.NativeSlice<Int>;
+	public static function append(b:go.NativeSlice<go.NativeByte>, a:haxe.Rest<Dynamic>):go.NativeSlice<go.NativeByte>;
 
 	@:go.name("Appendf")
-	public static function appendf(b:go.NativeSlice<Int>, format:String, a:haxe.Rest<Dynamic>):go.NativeSlice<Int>;
+	public static function appendf(b:go.NativeSlice<go.NativeByte>, format:String, a:haxe.Rest<Dynamic>):go.NativeSlice<go.NativeByte>;
 
 	@:go.name("Appendln")
-	public static function appendln(b:go.NativeSlice<Int>, a:haxe.Rest<Dynamic>):go.NativeSlice<Int>;
+	public static function appendln(b:go.NativeSlice<go.NativeByte>, a:haxe.Rest<Dynamic>):go.NativeSlice<go.NativeByte>;
 
 	@:go.name("Errorf")
 	public static function errorf(format:String, a:haxe.Rest<Dynamic>):go.Error;

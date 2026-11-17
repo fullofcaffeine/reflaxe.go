@@ -53,7 +53,7 @@
 		},
 		{
 			"path": "time/Duration.hx",
-			"sha256": "eda23fbfccdf8f155d91a1207f012d72360441c0cd9e190adfa4f4290521148f"
+			"sha256": "92fe2be449a59dc3d71c681bbd4ccd8bc59ae32bb66d3692cad5b16570a4b46e"
 		},
 		{
 			"path": "time/Location.hx",
@@ -65,7 +65,7 @@
 		},
 		{
 			"path": "time/Time.hx",
-			"sha256": "8244ccae67a0235f83065b3310a858038a4d4a5e3b0c66bac47acf932c28fe5e"
+			"sha256": "fd079f9ee4478c161dcac57edfd982a70b7b4cd045e51e9bed520c6bd4ee932c"
 		},
 		{
 			"path": "time/TimeClockResult.hx",
@@ -77,7 +77,7 @@
 		},
 		{
 			"path": "time/TimeGobEncodeResult.hx",
-			"sha256": "5ca77efd74a0576f1616583752ae86b829c38e00445d41849df569fa6fc31a25"
+			"sha256": "74499fc867382a6ffe7e634d2dc521fd2605fde0014f4d904b1c1142b761e328"
 		},
 		{
 			"path": "time/TimeISOWeekResult.hx",
@@ -85,15 +85,15 @@
 		},
 		{
 			"path": "time/TimeMarshalBinaryResult.hx",
-			"sha256": "0608b73ddf6d69ea05a56aff7ecf7838077178f887fdd77eebc238c1b14f8dfd"
+			"sha256": "5fdc770ce6471496257f2bed4148935dfdc87d5db5f7e9515146a659f4785b3f"
 		},
 		{
 			"path": "time/TimeMarshalJSONResult.hx",
-			"sha256": "bbfde16d2a13d1448db1a05e0a7f386d9ef58bbb439fcea69f4e6822e1dbf2cf"
+			"sha256": "772237c2f3a078d172add7e2da31c14eea9909e08b440ae3073ea4547e1505a9"
 		},
 		{
 			"path": "time/TimeMarshalTextResult.hx",
-			"sha256": "cba768fafb4171a2115d0f489bd06984c6e41350d1ac26006b6e708ddfe62a1a"
+			"sha256": "c77ced658c3d5975b3db9236f1f8caaac682e36ac5164a06fa3df3128424e3f7"
 		},
 		{
 			"path": "time/TimeZoneBoundsResult.hx",

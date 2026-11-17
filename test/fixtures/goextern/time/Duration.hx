@@ -15,16 +15,16 @@ extern class Duration {
 	public function hours():Float;
 
 	@:go.name("Microseconds")
-	public function microseconds():Int;
+	public function microseconds():go.NativeInt64;
 
 	@:go.name("Milliseconds")
-	public function milliseconds():Int;
+	public function milliseconds():go.NativeInt64;
 
 	@:go.name("Minutes")
 	public function minutes():Float;
 
 	@:go.name("Nanoseconds")
-	public function nanoseconds():Int;
+	public function nanoseconds():go.NativeInt64;
 
 	@:go.valueArgs("0")
 	@:go.valueReturn
