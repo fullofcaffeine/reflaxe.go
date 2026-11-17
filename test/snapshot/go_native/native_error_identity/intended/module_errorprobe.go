@@ -25,8 +25,8 @@ func (self *CancelPair) HxFunctionReceiver() any {
 	return self.__hx_this
 }
 
-func New_CancelPair(context context.Context, cancel *hxrt.Function[func(*hxrt.NativeErrorValue)]) *CancelPair {
-	return hx_init_CancelPair(hx_alloc_CancelPair(nil), context, cancel)
+func New_CancelPair(context_local context.Context, cancel *hxrt.Function[func(*hxrt.NativeErrorValue)]) *CancelPair {
+	return hx_init_CancelPair(hx_alloc_CancelPair(nil), context_local, cancel)
 }
 
 func hx_alloc_CancelPair(owner any) *CancelPair {
@@ -39,8 +39,8 @@ func hx_alloc_CancelPair(owner any) *CancelPair {
 	return self
 }
 
-func hx_init_CancelPair(self *CancelPair, context context.Context, cancel *hxrt.Function[func(*hxrt.NativeErrorValue)]) *CancelPair {
-	self.context = context
+func hx_init_CancelPair(self *CancelPair, context_local context.Context, cancel *hxrt.Function[func(*hxrt.NativeErrorValue)]) *CancelPair {
+	self.context = context_local
 	self.cancel = cancel
 	return self
 }
