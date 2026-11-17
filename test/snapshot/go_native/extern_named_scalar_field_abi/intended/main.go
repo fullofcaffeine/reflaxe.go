@@ -89,11 +89,11 @@ func main() {
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("native value read or assignment result aliased field storage")))
 	}
 	request := &http.Request{}
-	url := &url.URL{}
-	url.Path = *hxrt.StdString(hxrt.StringFromLiteral("before"))
-	request.URL = url
+	url_local := &url.URL{}
+	url_local.Path = *hxrt.StdString(hxrt.StringFromLiteral("before"))
+	request.URL = url_local
 	pointerRead := request.URL
-	url.Path = *hxrt.StdString(hxrt.StringFromLiteral("after"))
+	url_local.Path = *hxrt.StdString(hxrt.StringFromLiteral("after"))
 	if !hxrt.StringEqualStringPtr(hxrt.StdString(pointerRead.Path), hxrt.StringFromLiteral("after")) || !hxrt.StringEqualStringPtr(hxrt.StdString(request.URL.Path), hxrt.StringFromLiteral("after")) {
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("unmarked pointer field lost native alias")))
 	}

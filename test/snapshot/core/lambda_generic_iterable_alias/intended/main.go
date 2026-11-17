@@ -190,8 +190,8 @@ func main() {
 				return hx_value_17.(int)
 			}(hx_lambda_arg_16))
 		})
-	}(hxrt.NewFunction(func(v int) bool {
-		return (int((hxrt.Int32Wrap(v) % hxrt.Int32Wrap(2))) == 1)
+	}(hxrt.NewFunction(func(v_3 int) bool {
+		return (int((hxrt.Int32Wrap(v_3) % hxrt.Int32Wrap(2))) == 1)
 	})))))
 	hxrt.Println(v_2)
 	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("empty.values="), hxrt.StdString(Lambda_empty(func() hxrt.Anonymous {
@@ -256,8 +256,8 @@ func main() {
 				return hx_value_36.(int)
 			}(hx_lambda_arg_35))
 		})
-	}(hxrt.NewFunction(func(v int) bool {
-		return (v > 2)
+	}(hxrt.NewFunction(func(v_6 int) bool {
+		return (v_6 > 2)
 	}))))))
 	hxrt.Println(v_5)
 	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("exists.values.gt10="), hxrt.StdString(Lambda_exists(func() hxrt.Anonymous {
@@ -286,8 +286,8 @@ func main() {
 				return hx_value_45.(int)
 			}(hx_lambda_arg_44))
 		})
-	}(hxrt.NewFunction(func(v int) bool {
-		return (v > 10)
+	}(hxrt.NewFunction(func(v_7 int) bool {
+		return (v_7 > 10)
 	}))))))
 	hxrt.Println(v_6)
 	var v_7 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("has.values.2="), hxrt.StdString(Lambda_has(func() hxrt.Anonymous {
@@ -352,8 +352,8 @@ func main() {
 				return hx_value_64.(int)
 			}(hx_lambda_arg_63))
 		})
-	}(hxrt.NewFunction(func(v int) bool {
-		return (int((hxrt.Int32Wrap(v) % hxrt.Int32Wrap(2))) == 1)
+	}(hxrt.NewFunction(func(v_9 int) bool {
+		return (int((hxrt.Int32Wrap(v_9) % hxrt.Int32Wrap(2))) == 1)
 	})))
 	mapFn := hx_recover_callable_4(hxrt.NamedFunction(Lambda_map_, "Lambda.map"))
 	mapped := func() *hxrt.Array {
@@ -375,8 +375,8 @@ func main() {
 			})
 			return hxrt.AnonymousFromMap(hx_lambda_wrapped_73)
 		}()
-		var hx_argument_79 *hxrt.Function[func(int) int] = hxrt.NewFunction(func(v int) int {
-			return int((hxrt.Int32Wrap(v) * hxrt.Int32Wrap(10)))
+		var hx_argument_79 *hxrt.Function[func(int) int] = hxrt.NewFunction(func(v_9 int) int {
+			return int((hxrt.Int32Wrap(v_9) * hxrt.Int32Wrap(10)))
 		})
 		return hxrt.FunctionCall(hx_callable_77)(hx_argument_78, hx_argument_79)
 	}()
@@ -400,8 +400,8 @@ func main() {
 			})
 			return hxrt.AnonymousFromMap(hx_lambda_wrapped_81)
 		}()
-		var hx_argument_87 *hxrt.Function[func(int) int] = hxrt.NewFunction(func(v int) int {
-			return int((hxrt.Int32Wrap(v) + hxrt.Int32Wrap(1)))
+		var hx_argument_87 *hxrt.Function[func(int) int] = hxrt.NewFunction(func(v_9 int) int {
+			return int((hxrt.Int32Wrap(v_9) + hxrt.Int32Wrap(1)))
 		})
 		return hxrt.FunctionCall(hx_callable_85)(hx_argument_86, hx_argument_87)
 	}()
@@ -443,8 +443,8 @@ func main() {
 				return hx_value_92.(int)
 			}(hx_lambda_acc_89))
 		})
-	}(hxrt.NewFunction(func(v int, acc int) int {
-		return int((hxrt.Int32Wrap(acc) + hxrt.Int32Wrap(v)))
+	}(hxrt.NewFunction(func(v_9 int, acc int) int {
+		return int((hxrt.Int32Wrap(acc) + hxrt.Int32Wrap(v_9)))
 	})), 0))
 	foldFn := hx_recover_callable_5(hxrt.NamedFunction(Lambda_fold, "Lambda.fold"))
 	foldedByFunction := func() int {
@@ -466,8 +466,8 @@ func main() {
 			})
 			return hxrt.AnonymousFromMap(hx_lambda_wrapped_103)
 		}()
-		var hx_argument_109 *hxrt.Function[func(int, int) int] = hxrt.NewFunction(func(v int, acc int) int {
-			return int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(acc) * hxrt.Int32Wrap(10)))) + hxrt.Int32Wrap(v)))
+		var hx_argument_109 *hxrt.Function[func(int, int) int] = hxrt.NewFunction(func(v_9 int, acc int) int {
+			return int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(acc) * hxrt.Int32Wrap(10)))) + hxrt.Int32Wrap(v_9)))
 		})
 		var hx_argument_110 int = 0
 		return hxrt.FunctionCall(hx_callable_107)(hx_argument_108, hx_argument_109, hx_argument_110)

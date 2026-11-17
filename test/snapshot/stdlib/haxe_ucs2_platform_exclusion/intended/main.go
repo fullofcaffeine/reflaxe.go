@@ -8,7 +8,7 @@ func main() {
 		var this1_1 *string
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Ucs2 String not supported on this platform")))
 		this1_1 = str
-		this1 := hxrt.StdString(any(this1_1))
+		this1 := this1_1
 		return this1
 	}))
 }
