@@ -23,7 +23,7 @@ extern class Time {
 	public function after(u:Time):Bool;
 
 	@:go.name("AppendFormat")
-	public function appendFormat(b:go.NativeSlice<Int>, layout:String):go.NativeSlice<Int>;
+	public function appendFormat(b:go.NativeSlice<go.NativeByte>, layout:String):go.NativeSlice<go.NativeByte>;
 
 	@:go.valueArgs("0")
 	@:go.name("Before")
@@ -56,7 +56,7 @@ extern class Time {
 	public function goString():String;
 
 	@:go.name("GobDecode")
-	public function gobDecode(data:go.NativeSlice<Int>):go.Error;
+	public function gobDecode(data:go.NativeSlice<go.NativeByte>):go.Error;
 
 	@:go.tupleReturn
 	@:go.name("GobEncode")
@@ -134,25 +134,25 @@ extern class Time {
 	public function utc():Time;
 
 	@:go.name("Unix")
-	public function unix():Int;
+	public function unix():go.NativeInt64;
 
 	@:go.name("UnixMicro")
-	public function unixMicro():Int;
+	public function unixMicro():go.NativeInt64;
 
 	@:go.name("UnixMilli")
-	public function unixMilli():Int;
+	public function unixMilli():go.NativeInt64;
 
 	@:go.name("UnixNano")
-	public function unixNano():Int;
+	public function unixNano():go.NativeInt64;
 
 	@:go.name("UnmarshalBinary")
-	public function unmarshalBinary(data:go.NativeSlice<Int>):go.Error;
+	public function unmarshalBinary(data:go.NativeSlice<go.NativeByte>):go.Error;
 
 	@:go.name("UnmarshalJSON")
-	public function unmarshalJSON(data:go.NativeSlice<Int>):go.Error;
+	public function unmarshalJSON(data:go.NativeSlice<go.NativeByte>):go.Error;
 
 	@:go.name("UnmarshalText")
-	public function unmarshalText(data:go.NativeSlice<Int>):go.Error;
+	public function unmarshalText(data:go.NativeSlice<go.NativeByte>):go.Error;
 
 	@:go.valueReturn
 	@:go.name("Weekday")

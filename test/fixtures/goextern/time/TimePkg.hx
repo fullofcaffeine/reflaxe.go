@@ -27,7 +27,7 @@ extern class TimePkg {
 
 	@:go.tupleReturn
 	@:go.name("LoadLocationFromTZData")
-	public static function loadLocationFromTZData(name:String, data:go.NativeSlice<Int>):LoadLocationFromTZDataResult;
+	public static function loadLocationFromTZData(name:String, data:go.NativeSlice<go.NativeByte>):LoadLocationFromTZDataResult;
 
 	@:go.valueArgs("0")
 	@:go.name("NewTicker")
@@ -71,15 +71,15 @@ extern class TimePkg {
 
 	@:go.valueReturn
 	@:go.name("Unix")
-	public static function unix(sec:Int, nsec:Int):Time;
+	public static function unix(sec:go.NativeInt64, nsec:go.NativeInt64):Time;
 
 	@:go.valueReturn
 	@:go.name("UnixMicro")
-	public static function unixMicro(usec:Int):Time;
+	public static function unixMicro(usec:go.NativeInt64):Time;
 
 	@:go.valueReturn
 	@:go.name("UnixMilli")
-	public static function unixMilli(msec:Int):Time;
+	public static function unixMilli(msec:go.NativeInt64):Time;
 
 	@:go.valueArgs("0")
 	@:go.valueReturn

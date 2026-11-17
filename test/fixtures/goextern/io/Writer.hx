@@ -8,5 +8,5 @@ package goextern.io;
 extern interface Writer {
 	@:go.tupleReturn
 	@:go.name("Write")
-	public function write(p:go.NativeSlice<Int>):WriterWriteResult;
+	public function write(p:go.NativeSlice<go.NativeByte>):WriterWriteResult;
 }

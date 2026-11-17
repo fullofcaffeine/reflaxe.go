@@ -19,5 +19,5 @@ extern interface State {
 
 	@:go.tupleReturn
 	@:go.name("Write")
-	public function write(b:go.NativeSlice<Int>):StateWriteResult;
+	public function write(b:go.NativeSlice<go.NativeByte>):StateWriteResult;
 }
