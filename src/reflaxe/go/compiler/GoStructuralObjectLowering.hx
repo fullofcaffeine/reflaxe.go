@@ -106,17 +106,17 @@ class GoStructuralObjectLowering {
 
 	/** Admit generated class sources; anonymous width projections need no new view. */
 	public function coerce(value:GoExpr, fromType:Type, toType:Type):Null<GoExpr> {
-		var target = GoTypeMapper.anonymousFields(toType);
-		var anonymousSource = GoTypeMapper.anonymousFields(fromType);
-		if (target != null && anonymousSource != null)
+		var target = GoTypeMapper.isAnonymousObjectType(toType);
+		var anonymousSource = GoTypeMapper.isAnonymousObjectType(fromType);
+		if (target && anonymousSource)
 			return value;
-		if (target != null && config.sourceGoType(fromType) == "any")
+		if (target && config.sourceGoType(fromType) == "any")
 			return recoverRaw(value);
 		var source = switch (Context.follow(fromType)) {
 			case TInst(ref, _): ref.get();
 			case _: null;
 		};
-		if (target == null || source == null || source.isExtern)
+		if (!target || source == null || source.isExtern)
 			return null;
 		return classView(value, fromType, source);
 	}

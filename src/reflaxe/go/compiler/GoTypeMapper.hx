@@ -11,6 +11,56 @@ typedef GoEnumTypeNamer = EnumType->String;
 
 class GoTypeMapper {
 	/**
+		What: Reads the dotted path of a referenced class, abstract, typedef, or
+		enum (`pack.Name`, or `Name` in the root package) without decoding it.
+
+		Why: Most type queries only ask "is this `Null`, `Int`, `haxe.ds.Vector`,
+		...?", and the compiler asks them hundreds of thousands of times in a large
+		program. `Ref.get()` rebuilds the whole declaration as fresh macro values on
+		every call: every field, operator, and metadata entry. For `haxe.Int32` or
+		`haxe.Int64` one call costs a fraction of a millisecond, and those calls
+		dominated declaration lowering time.
+
+		How: The macro `Ref.toString()` prints exactly this path and nothing else,
+		so comparing it gives the same answer as comparing `pack` and `name`. That
+		includes type parameter classes, whose path is built the same way.
+		`GoTypeMapperContract` pins this. Use `Ref.get()` only for checks that need
+		more than the path.
+	**/
+	static inline function declarationPath<T>(ref:Ref<T>):String {
+		return ref.toString();
+	}
+
+	/**
+		What: Remembers each abstract declaration this compilation has decoded,
+		keyed by its path.
+
+		Why: Choosing the Go carrier of an abstract reads its declaration (backing
+		type, implementation class, metadata), and `Ref.get()` rebuilds all of it on
+		every call. Lowering asks about `haxe.Int32`, `haxe.Int64`, and `Map`
+		thousands of times, and their declarations carry many operator fields.
+
+		How: A path names exactly one abstract in a compilation: Haxe rejects two
+		types with the same path, private types get a module-qualified path, and
+		type parameters are classes, never abstracts. The type mapper runs after
+		typing, when declarations no longer change. Haxe resets macro statics for
+		every compilation (this map is not `@:persistent`), so a compilation server
+		never sees an old entry. Callers only read the returned declaration.
+	**/
+	static final abstractDeclarations = new Map<String, AbstractType>();
+
+	static function abstractDeclaration(ref:Ref<AbstractType>):AbstractType {
+		final path = declarationPath(ref);
+		final cached = abstractDeclarations.get(path);
+		if (cached != null) {
+			return cached;
+		}
+		final declaration = ref.get();
+		abstractDeclarations.set(path, declaration);
+		return declaration;
+	}
+
+	/**
 		What: Maps one array-like element to its actual Go storage type.
 		Why: `Null<Int>`, `Null<Float>`, and `Null<Bool>` must retain Go `nil`
 		inside arrays instead of being unwrapped to non-nullable scalar storage.
@@ -80,7 +130,7 @@ class GoTypeMapper {
 			case TAnonymous(_):
 				"hxrt.Anonymous";
 			case TAbstract(abstractRef, params):
-				var abstractType = abstractRef.get();
+				var abstractType = abstractDeclaration(abstractRef);
 				var mapped = abstractGoType(abstractType, params, classTypeName, enumTypeName);
 				mapped == null ? "any" : mapped;
 			case _:
@@ -91,8 +141,8 @@ class GoTypeMapper {
 	public static function isStringType(type:Type):Bool {
 		var followed = Context.follow(type);
 		return switch (followed) {
-			case TInst(classRef, _): var classType = classRef.get(); classType.pack.length == 0 && classType.name == "String";
-			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "String";
+			case TInst(classRef, _): declarationPath(classRef) == "String";
+			case TAbstract(abstractRef, _): declarationPath(abstractRef) == "String";
 			case _:
 				false;
 		};
@@ -115,7 +165,7 @@ class GoTypeMapper {
 		}
 		return switch (Context.follow(type)) {
 			case TAbstract(abstractRef, params):
-				var abstractType = abstractRef.get();
+				var abstractType = abstractDeclaration(abstractRef);
 				var identity = abstractType.pack.concat([abstractType.name]).join(".");
 				if (seen.exists(identity)) {
 					false;
@@ -142,7 +192,7 @@ class GoTypeMapper {
 	public static function isBoolType(type:Type):Bool {
 		var followed = Context.follow(type);
 		return switch (followed) {
-			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Bool";
+			case TAbstract(abstractRef, _): declarationPath(abstractRef) == "Bool";
 			case _:
 				false;
 		};
@@ -151,8 +201,7 @@ class GoTypeMapper {
 	public static function isIntType(type:Type):Bool {
 		var followed = Context.follow(type);
 		return switch (followed) {
-			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && (abstractType.name == "Int"
-					|| abstractType.name == "UInt");
+			case TAbstract(abstractRef, _): var path = declarationPath(abstractRef); path == "Int" || path == "UInt";
 			case _:
 				false;
 		};
@@ -160,7 +209,7 @@ class GoTypeMapper {
 
 	public static function isNullableIntType(type:Type):Bool {
 		return switch (type) {
-			case TAbstract(abstractRef, params): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1 && isIntType(params[0]);
+			case TAbstract(abstractRef, params): declarationPath(abstractRef) == "Null" && params.length == 1 && isIntType(params[0]);
 			case TMono(ref): var resolved = ref.get(); resolved != null && isNullableIntType(resolved);
 			case TType(_, _): isNullableIntType(TypeTools.follow(type, true));
 			case TLazy(f):
@@ -172,7 +221,7 @@ class GoTypeMapper {
 
 	public static function isNullableFloatType(type:Type):Bool {
 		return switch (type) {
-			case TAbstract(abstractRef, params): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1 && isFloatType(params[0]);
+			case TAbstract(abstractRef, params): declarationPath(abstractRef) == "Null" && params.length == 1 && isFloatType(params[0]);
 			case TMono(ref): var resolved = ref.get(); resolved != null && isNullableFloatType(resolved);
 			case TType(_, _): isNullableFloatType(TypeTools.follow(type, true));
 			case TLazy(f):
@@ -184,7 +233,7 @@ class GoTypeMapper {
 
 	public static function isNullableBoolType(type:Type):Bool {
 		return switch (type) {
-			case TAbstract(abstractRef, params): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1 && isBoolType(params[0]);
+			case TAbstract(abstractRef, params): declarationPath(abstractRef) == "Null" && params.length == 1 && isBoolType(params[0]);
 			case TMono(ref): var resolved = ref.get(); resolved != null && isNullableBoolType(resolved);
 			case TType(_, _): isNullableBoolType(TypeTools.follow(type, true));
 			case TLazy(f):
@@ -196,7 +245,7 @@ class GoTypeMapper {
 
 	public static function isNullablePrimitiveType(type:Type):Bool {
 		return switch (type) {
-			case TAbstract(abstractRef, params): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1 && isPrimitiveValueType(params[0]);
+			case TAbstract(abstractRef, params): declarationPath(abstractRef) == "Null" && params.length == 1 && isPrimitiveValueType(params[0]);
 			case TMono(ref): var resolved = ref.get(); resolved != null && isNullablePrimitiveType(resolved);
 			case TType(_, _): isNullablePrimitiveType(TypeTools.follow(type, true));
 			case TLazy(f):
@@ -209,7 +258,7 @@ class GoTypeMapper {
 	/** Native Go int64 has no nil value; Null<NativeInt64> needs a separate carrier. */
 	public static function isNullableNativeInt64Type(type:Type):Bool {
 		return switch (type) {
-			case TAbstract(ref, params): var abstractType = ref.get(); abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1 && isNativeInt64Type(params[0]);
+			case TAbstract(ref, params): declarationPath(ref) == "Null" && params.length == 1 && isNativeInt64Type(params[0]);
 			case TMono(ref): var resolved = ref.get(); resolved != null && isNullableNativeInt64Type(resolved);
 			case TType(_, _): isNullableNativeInt64Type(TypeTools.follow(type, true));
 			case TLazy(f): isNullableNativeInt64Type(f());
@@ -220,7 +269,7 @@ class GoTypeMapper {
 	/** Native Go byte is a value; Null<NativeByte> needs a separate carrier. */
 	public static function isNullableNativeByteType(type:Type):Bool {
 		return switch (type) {
-			case TAbstract(ref, params): var abstractType = ref.get(); abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1 && isNativeByteType(params[0]);
+			case TAbstract(ref, params): declarationPath(ref) == "Null" && params.length == 1 && isNativeByteType(params[0]);
 			case TMono(ref): var resolved = ref.get(); resolved != null && isNullableNativeByteType(resolved);
 			case TType(_, _): isNullableNativeByteType(TypeTools.follow(type, true));
 			case TLazy(f): isNullableNativeByteType(f());
@@ -230,14 +279,14 @@ class GoTypeMapper {
 
 	public static function isNativeInt64Type(type:Type):Bool {
 		return switch (Context.follow(type)) {
-			case TInst(ref, _): var classType = ref.get(); classType.pack.join(".") == "go" && classType.name == "NativeInt64";
+			case TInst(ref, _): declarationPath(ref) == "go.NativeInt64";
 			case _: false;
 		};
 	}
 
 	public static function isNativeByteType(type:Type):Bool {
 		return switch (Context.follow(type)) {
-			case TInst(ref, _): var classType = ref.get(); classType.pack.join(".") == "go" && classType.name == "NativeByte";
+			case TInst(ref, _): declarationPath(ref) == "go.NativeByte";
 			case _: false;
 		};
 	}
@@ -256,7 +305,7 @@ class GoTypeMapper {
 
 	public static function isHaxeInt32Type(type:Type):Bool {
 		return switch (type) {
-			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.join(".") == "haxe" && abstractType.name == "Int32";
+			case TAbstract(abstractRef, _): declarationPath(abstractRef) == "haxe.Int32";
 			case TMono(ref): var resolved = ref.get(); resolved != null && isHaxeInt32Type(resolved);
 			case TType(_, _):
 				isHaxeInt32Type(Context.follow(type));
@@ -272,7 +321,7 @@ class GoTypeMapper {
 	public static function isFloatType(type:Type):Bool {
 		var followed = Context.follow(type);
 		return switch (followed) {
-			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Float";
+			case TAbstract(abstractRef, _): declarationPath(abstractRef) == "Float";
 			case _:
 				false;
 		};
@@ -281,7 +330,7 @@ class GoTypeMapper {
 	public static function isStdClassMetaType(type:Type):Bool {
 		var followed = Context.follow(type);
 		return switch (followed) {
-			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Class";
+			case TAbstract(abstractRef, _): declarationPath(abstractRef) == "Class";
 			case _:
 				false;
 		};
@@ -290,7 +339,7 @@ class GoTypeMapper {
 	public static function isStdEnumMetaType(type:Type):Bool {
 		var followed = Context.follow(type);
 		return switch (followed) {
-			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Enum";
+			case TAbstract(abstractRef, _): declarationPath(abstractRef) == "Enum";
 			case _:
 				false;
 		};
@@ -305,18 +354,6 @@ class GoTypeMapper {
 
 	static function isPrimitiveValueType(type:Type):Bool {
 		return isBoolType(type) || isIntType(type) || isHaxeInt32Type(type) || isFloatType(type);
-	}
-
-	/** Structural constraints and concrete anonymous values share one storage contract. */
-	public static function anonymousFields(type:Type):Null<Array<ClassField>> {
-		return switch (Context.follow(type)) {
-			case TAnonymous(ref): ref.get().fields;
-			case TInst(ref, _): switch (ref.get().kind) {
-					case KTypeParameter(constraints): anonymousConstraintFields(constraints);
-					case _: null;
-				}
-			case _: null;
-		};
 	}
 
 	/** Merge only fully structural constraint sets; nominal constraints keep their owner. */
@@ -342,8 +379,24 @@ class GoTypeMapper {
 		return fields.length == 0 ? null : fields;
 	}
 
+	/**
+		What: Reports whether a type uses the structural (anonymous object) storage
+		contract. Concrete structures and structural type constraints share it.
+		Why: Callers ask this for many values and only need yes or no. Reading a
+		structure's fields would rebuild every field declaration on each call.
+		How: Every structure qualifies, whatever its fields. A type parameter
+		qualifies only when all its constraints are structural and together promise
+		at least one field.
+	**/
 	public static function isAnonymousObjectType(type:Type):Bool {
-		return anonymousFields(type) != null;
+		return switch (Context.follow(type)) {
+			case TAnonymous(_): true;
+			case TInst(ref, _): switch (ref.get().kind) {
+					case KTypeParameter(constraints): anonymousConstraintFields(constraints) != null;
+					case _: false;
+				}
+			case _: false;
+		};
 	}
 
 	public static function isArrayType(type:Type):Bool {
@@ -387,7 +440,7 @@ class GoTypeMapper {
 		}
 		var followed = Context.follow(type);
 		return switch (followed) {
-			case TInst(classRef, _): var classType = classRef.get(); classType.pack.length == 0 && classType.name == "Array";
+			case TInst(classRef, _): declarationPath(classRef) == "Array";
 			case _:
 				false;
 		};
@@ -487,7 +540,7 @@ class GoTypeMapper {
 			case TAnonymous(_):
 				"hxrt.Anonymous";
 			case TAbstract(abstractRef, params):
-				var abstractType = abstractRef.get();
+				var abstractType = abstractDeclaration(abstractRef);
 				var mapped = abstractGoType(abstractType, params, classTypeName, enumTypeName);
 				mapped == null ? "any" : mapped;
 			case _:
@@ -554,7 +607,7 @@ class GoTypeMapper {
 	**/
 	static function hasOrdinaryStringBacking(type:Type, seen:Map<String, Bool>):Bool {
 		return switch (type) {
-			case TInst(classRef, _): var classType = classRef.get(); classType.pack.length == 0 && classType.name == "String";
+			case TInst(classRef, _): declarationPath(classRef) == "String";
 			case TType(typeRef, params):
 				var typedefType = typeRef.get();
 				hasOrdinaryStringBacking(TypeTools.applyTypeParameters(typedefType.type, typedefType.params, params), seen);
@@ -562,7 +615,7 @@ class GoTypeMapper {
 			case TLazy(resolve):
 				hasOrdinaryStringBacking(resolve(), seen);
 			case TAbstract(abstractRef, params):
-				var abstractType = abstractRef.get();
+				var abstractType = abstractDeclaration(abstractRef);
 				var identity = TypeTools.toString(type);
 				if (abstractType.pack.length == 0 && abstractType.name == "String") {
 					true;
@@ -607,7 +660,7 @@ class GoTypeMapper {
 		return switch (Context.follow(abstractType.type)) {
 			case TInst(classRef, _): var classType = classRef.get(); classType.isExtern && hasGoImportMetadata(classType) ? "*" + classTypeName(classType) : null;
 			case TAbstract(innerRef, _):
-				externBackedAbstractGoType(innerRef.get(), classTypeName, seen);
+				externBackedAbstractGoType(abstractDeclaration(innerRef), classTypeName, seen);
 			case _:
 				null;
 		};
@@ -666,8 +719,7 @@ class GoTypeMapper {
 		var followed = Context.follow(type);
 		return switch (followed) {
 			case TInst(classRef, params):
-				var classType = classRef.get();
-				if (classType.pack.join(".") == "go" && classType.name == "NativeSlice" && params.length == 1) {
+				if (declarationPath(classRef) == "go.NativeSlice" && params.length == 1) {
 					params[0];
 				} else {
 					null;
@@ -686,7 +738,7 @@ class GoTypeMapper {
 	**/
 	public static function nativePointerElementType(type:Type):Null<Type> {
 		return switch (Context.follow(type)) {
-			case TInst(classRef, params): var classType = classRef.get(); classType.pack.join(".") == "go" && classType.name == "NativePointer" && params.length == 1 ? params[0] : null;
+			case TInst(classRef, params): declarationPath(classRef) == "go.NativePointer" && params.length == 1 ? params[0] : null;
 			case _:
 				null;
 		};
@@ -703,13 +755,12 @@ class GoTypeMapper {
 			return null;
 		return switch (Context.follow(type)) {
 			case TAbstract(abstractRef, _):
-				var abstractType = abstractRef.get();
-				if (abstractType.pack.length != 0) null else switch (abstractType.name) {
+				switch (declarationPath(abstractRef)) {
 					case "Int": "int";
 					case "Bool": "bool";
 					case _: null;
 				};
-			case TInst(classRef, _): var classType = classRef.get(); classType.pack.length == 0 && classType.name == "String" ? "string" : null;
+			case TInst(classRef, _): declarationPath(classRef) == "String" ? "string" : null;
 			case _:
 				null;
 		};
@@ -718,7 +769,7 @@ class GoTypeMapper {
 	/** True only for the explicit native Go `[]string` boundary. */
 	public static function isNativeStringSliceType(type:Type):Bool {
 		return switch (Context.follow(type)) {
-			case TInst(classRef, _): final classType = classRef.get(); classType.pack.join(".") == "go" && classType.name == "NativeStringSlice";
+			case TInst(classRef, _): declarationPath(classRef) == "go.NativeStringSlice";
 			case _:
 				false;
 		};
@@ -735,7 +786,7 @@ class GoTypeMapper {
 	**/
 	public static function isBytesDataType(type:Type):Bool {
 		return switch (type) {
-			case TType(typeRef, _): var typeDef = typeRef.get(); typeDef.pack.join(".") == "haxe.io" && typeDef.name == "BytesData";
+			case TType(typeRef, _): declarationPath(typeRef) == "haxe.io.BytesData";
 			case TMono(ref): var resolved = ref.get(); resolved != null && isBytesDataType(resolved);
 			case TLazy(resolve):
 				isBytesDataType(resolve());
@@ -748,15 +799,13 @@ class GoTypeMapper {
 		var followed = Context.follow(type);
 		return switch (followed) {
 			case TAbstract(abstractRef, params):
-				var abstractType = abstractRef.get();
-				if (abstractType.pack.join(".") == "haxe" && abstractType.name == "Rest" && params.length == 1) {
+				if (declarationPath(abstractRef) == "haxe.Rest" && params.length == 1) {
 					params[0];
 				} else {
 					null;
 				}
 			case TType(typeRef, params):
-				var typeDef = typeRef.get();
-				if (typeDef.pack.join(".") == "haxe._Rest" && typeDef.name == "NativeRest" && params.length == 1) {
+				if (declarationPath(typeRef) == "haxe._Rest.NativeRest" && params.length == 1) {
 					params[0];
 				} else {
 					null;
@@ -770,8 +819,7 @@ class GoTypeMapper {
 		var followed = Context.follow(type);
 		return switch (followed) {
 			case TAbstract(abstractRef, params):
-				var abstractType = abstractRef.get();
-				if (abstractType.pack.join(".") == "haxe.ds" && abstractType.name == "Vector" && params.length == 1) {
+				if (declarationPath(abstractRef) == "haxe.ds.Vector" && params.length == 1) {
 					params[0];
 				} else {
 					null;
@@ -785,8 +833,7 @@ class GoTypeMapper {
 		var followed = Context.follow(type);
 		return switch (followed) {
 			case TAbstract(abstractRef, params):
-				var abstractType = abstractRef.get();
-				if (abstractType.pack.join(".") == "haxe.ds" && abstractType.name == "ReadOnlyArray" && params.length == 1) {
+				if (declarationPath(abstractRef) == "haxe.ds.ReadOnlyArray" && params.length == 1) {
 					params[0];
 				} else {
 					null;
@@ -799,7 +846,7 @@ class GoTypeMapper {
 	public static function isVoidType(type:Type):Bool {
 		var followed = Context.follow(type);
 		return switch (followed) {
-			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Void";
+			case TAbstract(abstractRef, _): declarationPath(abstractRef) == "Void";
 			case _:
 				false;
 		};
@@ -834,7 +881,7 @@ class GoTypeMapper {
 		return switch (followed) {
 			case TDynamic(_):
 				true;
-			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Dynamic";
+			case TAbstract(abstractRef, _): declarationPath(abstractRef) == "Dynamic";
 			case _:
 				false;
 		};
