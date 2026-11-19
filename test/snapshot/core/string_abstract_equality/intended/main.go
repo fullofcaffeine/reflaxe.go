@@ -52,43 +52,35 @@ func main() {
 	tokens := hxrt.NewArray(a, other)
 	var v any = any(func() int {
 		hx_indexof_target_1 := tokens
-		hx_indexof_value_2 := b
-		var hx_indexof_start_input_3 any = 0
-		hx_indexof_start_4 := hxrt.IntFromNullableAny(hx_indexof_start_input_3)
-		hx_indexof_length_5 := hx_indexof_target_1.Len()
-		if hx_indexof_start_4 < 0 {
-			hx_indexof_start_4 = (hx_indexof_length_5 + hx_indexof_start_4)
-		}
-		if hx_indexof_start_4 < 0 {
-			hx_indexof_start_4 = 0
-		}
-		hx_indexof_index_6 := hx_indexof_start_4
-		for hx_indexof_index_6 < hx_indexof_length_5 {
-			hx_indexof_element_7 := func(hx_value_8 any) *string {
-				if hx_value_8 == nil {
-					var hx_zero_9 *string
-					return hx_zero_9
+		var hx_indexof_value_2 *string = b
+		hx_indexof_length_3 := hx_indexof_target_1.Len()
+		hx_indexof_index_4 := 0
+		for hx_indexof_index_4 < hx_indexof_length_3 {
+			hx_indexof_element_5 := func(hx_value_6 any) *string {
+				if hx_value_6 == nil {
+					var hx_zero_7 *string
+					return hx_zero_7
 				}
-				return hx_value_8.(*string)
-			}(hx_indexof_target_1.Get(hx_indexof_index_6))
-			if hxrt.StringEqualStringPtr(hx_indexof_element_7, hx_indexof_value_2) {
-				return hx_indexof_index_6
+				return hx_value_6.(*string)
+			}(hx_indexof_target_1.Get(hx_indexof_index_4))
+			if hxrt.StringEqualStringPtr(hx_indexof_element_5, hx_indexof_value_2) {
+				return hx_indexof_index_4
 			}
-			hx_indexof_index_6 = (hx_indexof_index_6 + 1)
+			hx_indexof_index_4 = (hx_indexof_index_4 + 1)
 		}
 		return -1
 	}())
 	hxrt.Println(v)
 	var v_1 any = any(func() bool {
-		var hx_remove_value_11 any = b
-		hx_remove_index_12 := 0
-		for hx_remove_index_12 < tokens.Len() {
-			hx_remove_element_13 := tokens.Get(hx_remove_index_12)
-			if hxrt.HaxeEqual(hx_remove_element_13, hx_remove_value_11) {
-				tokens.RemoveAt(hx_remove_index_12)
+		var hx_remove_value_9 any = b
+		hx_remove_index_10 := 0
+		for hx_remove_index_10 < tokens.Len() {
+			hx_remove_element_11 := tokens.Get(hx_remove_index_10)
+			if hxrt.HaxeEqual(hx_remove_element_11, hx_remove_value_9) {
+				tokens.RemoveAt(hx_remove_index_10)
 				return true
 			}
-			hx_remove_index_12 = (hx_remove_index_12 + 1)
+			hx_remove_index_10 = (hx_remove_index_10 + 1)
 		}
 		return false
 	}())
@@ -97,12 +89,12 @@ func main() {
 	hxrt.Println(v_2)
 	var v_3 any = any(same(a, b))
 	hxrt.Println(v_3)
-	var v_4 any = any(hxrt.StringEqualStringPtr(func(hx_value_14 any) *string {
-		if hx_value_14 == nil {
-			var hx_zero_15 *string
-			return hx_zero_15
+	var v_4 any = any(hxrt.StringEqualStringPtr(func(hx_value_12 any) *string {
+		if hx_value_12 == nil {
+			var hx_zero_13 *string
+			return hx_zero_13
 		}
-		return hx_value_14.(*string)
+		return hx_value_12.(*string)
 	}(New_Box(a).value), b))
 	hxrt.Println(v_4)
 	maybe := b
@@ -118,8 +110,8 @@ func main() {
 		return a
 	})
 	var v_6 any = any(hxrt.StringEqualStringPtr(func() *string {
-		var hx_callable_16 *hxrt.Function[func() *string] = read
-		return hxrt.FunctionCall(hx_callable_16)()
+		var hx_callable_14 *hxrt.Function[func() *string] = read
+		return hxrt.FunctionCall(hx_callable_14)()
 	}(), b))
 	hxrt.Println(v_6)
 	var dynamicToken any = a

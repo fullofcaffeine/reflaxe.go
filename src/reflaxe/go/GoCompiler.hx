@@ -115,6 +115,20 @@ private typedef ArrayMethodCall = {
 	final methodName:String;
 }
 
+/**
+	What: The three Haxe Array searches that share one typed equality scan:
+	`indexOf`, `lastIndexOf`, and `contains`.
+	Why: They differ only in scan direction, start rule, and result value. One
+	lowering keeps their Haxe equality and evaluation order identical.
+	How: `lowerArraySearchExpr` switches on this value to choose the direction,
+	the default start, the start normalization, and the found/not-found results.
+**/
+private enum ArraySearchKind {
+	FirstIndex;
+	LastIndex;
+	Membership;
+}
+
 private typedef GoChanMethodCall = {
 	final target:TypedExpr;
 	final methodName:String;
@@ -12917,30 +12931,46 @@ class GoCompiler {
 	}
 
 	/**
-		What: Lowers `Array.insert(position, value)` through the shared carrier.
+		What: Lowers `Array.insert(position, value)` and `Array.unshift(value)` through
+		the shared carrier.
 		Why: Portable Haxe clamps oversized positions and resolves negative positions
 		from the end, behavior owned by the carrier rather than a copied slice header.
+		`unshift(value)` is exactly an insertion at position 0, so it reuses this path
+		instead of adding a second carrier operation.
 		How: Evaluate receiver and arguments once in order, then pass the typed position
-		and erased value to the carrier's in-place insertion operation.
+		(literal 0 when `position` is null, for `unshift`) and erased value to the
+		carrier's in-place insertion operation.
 	**/
-	function lowerArrayInsertExpr(target:TypedExpr, args:Array<TypedExpr>):LoweredExpr {
-		if (args.length != 2) {
-			Context.fatalError("Array.insert expects a position and value", target.pos);
-		}
+	function lowerArrayInsertExpr(target:TypedExpr, position:Null<TypedExpr>, value:TypedExpr):LoweredExpr {
 		var site = lowerArrayMutationSite(target);
-		var loweredPosition = lowerExprWithPrefix(args[0]);
-		var loweredValue = lowerExprWithPrefix(args[1]);
-		var positionName = freshTempName("hx_insert_position");
+		var positionPrefix = new Array<GoStmt>();
+		var positionValue:Null<GoExpr> = null;
+		if (position != null) {
+			var loweredPosition = lowerExprWithPrefix(position);
+			positionPrefix = loweredPosition.prefix;
+			positionValue = recoverErasedArrayPosition(position, loweredPosition.expr);
+		}
+		var loweredValue = lowerExprWithPrefix(value);
+		var prefix = site.prefix.copy();
+		var positionExpr:GoExpr = GoExpr.GoIntLiteral(0);
+		if (positionValue != null) {
+			var positionName = freshTempName("hx_insert_position");
+			prefix = prefix.concat(positionPrefix).concat([GoStmt.GoVarDecl(positionName, "int", positionValue, true)]);
+			positionExpr = GoExpr.GoIdent(positionName);
+		}
+		if (prefix.length == 0 && loweredValue.prefix.length == 0) {
+			// `local.unshift(value)` has nothing to evaluate before the call: Go passes
+			// the value to the carrier's `any` parameter directly.
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoSelector(site.tempExpr, "Insert"), [positionExpr, loweredValue.expr]),
+				isStringLike: false
+			};
+		}
 		var valueName = freshTempName("hx_insert_value");
-		var body = site.prefix.concat(loweredPosition.prefix)
-			.concat([
-				GoStmt.GoVarDecl(positionName, "int", recoverErasedArrayPosition(args[0], loweredPosition.expr), true)
-			])
-			.concat(loweredValue.prefix)
-			.concat([
-				GoStmt.GoVarDecl(valueName, "any", loweredValue.expr, false),
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(site.tempExpr, "Insert"), [GoExpr.GoIdent(positionName), GoExpr.GoIdent(valueName)]))
-			]);
+		var body = prefix.concat(loweredValue.prefix).concat([
+			GoStmt.GoVarDecl(valueName, "any", loweredValue.expr, false),
+			GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoSelector(site.tempExpr, "Insert"), [positionExpr, GoExpr.GoIdent(valueName)]))
+		]);
 		return {
 			expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [], body), []),
 			isStringLike: false
@@ -13058,17 +13088,30 @@ class GoCompiler {
 	}
 
 	/**
-		What: Lowers portable `Array.indexOf(value, fromIndex)` with Haxe equality.
+		What: Lowers the portable Array searches `indexOf(value, ?fromIndex)`,
+		`lastIndexOf(value, ?fromIndex)`, and `contains(value)` with Haxe equality.
 		Why: The shared carrier exposes representation primitives only; Go has no
-		matching method, and native equality is incorrect for Haxe strings and erased
-		values.
-		How: Evaluate receiver and arguments once, normalize negative starts relative
-		to the current length, then scan typed elements with the common Array equality
-		lowering.
+		matching method, and Go's `==` is wrong for Haxe strings and erased values.
+		The value is stored with the element's Go type, so a `null` argument (for
+		example `names.contains(null)`) becomes a typed nil instead of an untyped one.
+		How: Evaluate the receiver, the value, and the start once, in source order, and
+		only then read the length. An omitted or null start searches from the first
+		(forward) or last (backward) element. A forward start counts a negative value
+		from the end and clamps it to 0. A backward start counts a negative value from
+		the end and clamps a start at or past the end to the last element, so a start
+		that stays below 0 finds nothing, as the Haxe API documents (the `--interp`
+		evaluator instead clamps it to 0; JS, C++, and Python follow the documentation).
+		Then scan the typed elements with the common Array equality lowering.
 	**/
-	function lowerArrayIndexOfExpr(target:TypedExpr, args:Array<TypedExpr>):Null<LoweredExpr> {
-		if (args.length < 1 || args.length > 2) {
-			Context.fatalError("Array.indexOf expects a value and optional start index", target.pos);
+	function lowerArraySearchExpr(target:TypedExpr, args:Array<TypedExpr>, kind:ArraySearchKind):Null<LoweredExpr> {
+		var methodName = switch (kind) {
+			case FirstIndex: "indexOf";
+			case LastIndex: "lastIndexOf";
+			case Membership: "contains";
+		};
+		var acceptsStart = kind != Membership;
+		if (args.length < 1 || args.length > (acceptsStart ? 2 : 1)) {
+			Context.fatalError("Array." + methodName + " expects a value" + (acceptsStart ? " and optional start index" : ""), target.pos);
 		}
 		if (!usesSharedArrayCarrier(target)) {
 			return null;
@@ -13078,52 +13121,99 @@ class GoCompiler {
 			return null;
 		}
 
+		var backward = kind == LastIndex;
+		var tempPrefix = "hx_" + methodName.toLowerCase();
 		var loweredTarget = lowerExprWithPrefix(target);
-		var loweredValue = lowerExprWithPrefix(args[0]);
-		var targetName = freshTempName("hx_indexof_target");
-		var valueName = freshTempName("hx_indexof_value");
-		var startInputName = freshTempName("hx_indexof_start_input");
-		var startName = freshTempName("hx_indexof_start");
-		var lengthName = freshTempName("hx_indexof_length");
-		var indexName = freshTempName("hx_indexof_index");
-		var elementName = freshTempName("hx_indexof_element");
+		var loweredValue = lowerReturnedExprWithExpectedType(args[0], elementType);
+		var startArg = args.length == 2 && !isNullLiteralExpr(args[1]) ? args[1] : null;
+		var loweredStart = startArg == null ? null : lowerExprWithPrefix(startArg);
+		var targetName = freshTempName(tempPrefix + "_target");
+		var valueName = freshTempName(tempPrefix + "_value");
+		var lengthName = freshTempName(tempPrefix + "_length");
+		var indexName = freshTempName(tempPrefix + "_index");
+		var elementName = freshTempName(tempPrefix + "_element");
 		var elementGoType = valueStorageGoType(elementType);
-		var startExpr:GoExpr = GoExpr.GoIntLiteral(0);
-		var startPrefix = new Array<GoStmt>();
-		if (args.length == 2) {
-			var loweredStart = lowerExprWithPrefix(args[1]);
-			startPrefix = loweredStart.prefix;
-			startExpr = loweredStart.expr;
-		}
+		var targetExpr = GoExpr.GoIdent(targetName);
+		var lengthExpr = GoExpr.GoIdent(lengthName);
 		var indexExpr = GoExpr.GoIdent(indexName);
-		var storedElement = coerceStoredArrayElementExpr(GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent(targetName), "Get"), [indexExpr]), elementType);
-		var equal = lowerArrayElementEqualityExpr(GoExpr.GoIdent(elementName), GoExpr.GoIdent(valueName), elementType, elementGoType);
+		var defaultStart = backward ? GoExpr.GoBinary("-", lengthExpr, GoExpr.GoIntLiteral(1)) : GoExpr.GoIntLiteral(0);
+
 		var body = loweredTarget.prefix.concat([
 			GoStmt.GoVarDecl(targetName, "*hxrt.Array", recoverSharedArrayReceiver(target, loweredTarget.expr), true)
-		])
-			.concat(loweredValue.prefix)
-			.concat([GoStmt.GoVarDecl(valueName, elementGoType, loweredValue.expr, true)])
-			.concat(startPrefix)
-			.concat([
-				GoStmt.GoVarDecl(startInputName, "any", startExpr, false),
-				GoStmt.GoVarDecl(startName, "int", GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [GoExpr.GoIdent(startInputName)]), true),
-				GoStmt.GoVarDecl(lengthName, "int", GoExpr.GoCall(GoExpr.GoSelector(GoExpr.GoIdent(targetName), "Len"), []), true),
-				GoStmt.GoIf(GoExpr.GoBinary("<", GoExpr.GoIdent(startName), GoExpr.GoIntLiteral(0)), [
-					GoStmt.GoAssign(GoExpr.GoIdent(startName), GoExpr.GoBinary("+", GoExpr.GoIdent(lengthName), GoExpr.GoIdent(startName)))
-				],
-					null),
-				GoStmt.GoIf(GoExpr.GoBinary("<", GoExpr.GoIdent(startName), GoExpr.GoIntLiteral(0)),
-					[GoStmt.GoAssign(GoExpr.GoIdent(startName), GoExpr.GoIntLiteral(0))], null),
-				GoStmt.GoVarDecl(indexName, "int", GoExpr.GoIdent(startName), true),
-				GoStmt.GoWhile(GoExpr.GoBinary("<", indexExpr, GoExpr.GoIdent(lengthName)), [
-					GoStmt.GoVarDecl(elementName, elementGoType, storedElement, true),
-					GoStmt.GoIf(equal, [GoStmt.GoReturn(indexExpr)], null),
-					GoStmt.GoAssign(indexExpr, GoExpr.GoBinary("+", indexExpr, GoExpr.GoIntLiteral(1)))
-				]),
-				GoStmt.GoReturn(GoExpr.GoIntLiteral(-1))
-			]);
+		]).concat(loweredValue.prefix).concat([GoStmt.GoVarDecl(valueName, elementGoType, loweredValue.expr, false)]);
+		var lengthDecl = GoStmt.GoVarDecl(lengthName, "int", GoExpr.GoCall(GoExpr.GoSelector(targetExpr, "Len"), []), true);
+		if (startArg == null || loweredStart == null) {
+			body = body.concat([lengthDecl, GoStmt.GoVarDecl(indexName, "int", defaultStart, true)]);
+		} else {
+			var normalizeStart = backward ? [
+				GoStmt.GoIf(GoExpr.GoBinary("<", indexExpr, GoExpr.GoIntLiteral(0)),
+					[GoStmt.GoAssign(indexExpr, GoExpr.GoBinary("+", lengthExpr, indexExpr))], null),
+				GoStmt.GoIf(GoExpr.GoBinary(">=", indexExpr, lengthExpr), [GoStmt.GoAssign(indexExpr, defaultStart)], null)
+			] : [
+				GoStmt.GoIf(GoExpr.GoBinary("<", indexExpr, GoExpr.GoIntLiteral(0)),
+					[GoStmt.GoAssign(indexExpr, GoExpr.GoBinary("+", lengthExpr, indexExpr))], null),
+				GoStmt.GoIf(GoExpr.GoBinary("<", indexExpr, GoExpr.GoIntLiteral(0)), [GoStmt.GoAssign(indexExpr, GoExpr.GoIntLiteral(0))], null)
+				];
+			body = body.concat(loweredStart.prefix);
+			if (isNullablePrimitiveType(startArg.t) || exprBackedByAny(startArg)) {
+				// A `Null<Int>` start that holds null at run time means "omitted".
+				var startInputName = freshTempName(tempPrefix + "_start");
+				var startInput = GoExpr.GoIdent(startInputName);
+				body = body.concat([
+					GoStmt.GoVarDecl(startInputName, "any", loweredStart.expr, false),
+					lengthDecl,
+					GoStmt.GoVarDecl(indexName, "int", defaultStart, true),
+					GoStmt.GoIf(GoExpr.GoBinary("!=", startInput, GoExpr.GoNil), [
+						GoStmt.GoAssign(indexExpr, GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [startInput]))
+					].concat(normalizeStart), null)
+				]);
+			} else {
+				body = body.concat([
+					GoStmt.GoVarDecl(indexName, "int", recoverErasedArrayPosition(startArg, loweredStart.expr), true),
+					lengthDecl
+				]).concat(normalizeStart);
+			}
+		}
+
+		var storedElement = coerceStoredArrayElementExpr(GoExpr.GoCall(GoExpr.GoSelector(targetExpr, "Get"), [indexExpr]), elementType);
+		var equal = lowerArrayElementEqualityExpr(GoExpr.GoIdent(elementName), GoExpr.GoIdent(valueName), elementType, elementGoType);
+		var found:GoExpr = kind == Membership ? GoExpr.GoBoolLiteral(true) : indexExpr;
+		var missing:GoExpr = kind == Membership ? GoExpr.GoBoolLiteral(false) : GoExpr.GoIntLiteral(-1);
+		body = body.concat([
+			GoStmt.GoWhile(backward ? GoExpr.GoBinary(">=", indexExpr, GoExpr.GoIntLiteral(0)) : GoExpr.GoBinary("<", indexExpr, lengthExpr), [
+				GoStmt.GoVarDecl(elementName, elementGoType, storedElement, true),
+				GoStmt.GoIf(equal, [GoStmt.GoReturn(found)], null),
+				GoStmt.GoAssign(indexExpr, GoExpr.GoBinary(backward ? "-" : "+", indexExpr, GoExpr.GoIntLiteral(1)))
+			]),
+			GoStmt.GoReturn(missing)
+		]);
 		return {
-			expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["int"], body), []),
+			expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [kind == Membership ? "bool" : "int"], body), []),
+			isStringLike: false
+		};
+	}
+
+	/**
+		What: Lowers portable `Array.splice(pos, len)` through the shared carrier.
+		Why: The carrier owns Haxe's splice rules (negative and clamped positions, a
+		negative length that removes nothing) and must shorten the one Array identity
+		that every alias shares, then return the removed values as a new Array.
+		How: Recover a receiver read from another shared Array and erased Int
+		positions, then call the carrier's `Splice`. Native slice storage keeps the
+		generic path; no Haxe API exposes `splice` on it.
+	**/
+	function lowerArraySpliceExpr(target:TypedExpr, args:Array<TypedExpr>):Null<LoweredExpr> {
+		if (args.length != 2) {
+			Context.fatalError("Array.splice expects a position and a length", target.pos);
+		}
+		if (!usesSharedArrayCarrier(target)) {
+			return null;
+		}
+		return {
+			expr: GoExpr.GoCall(GoExpr.GoSelector(recoverSharedArrayReceiver(target, lowerExpr(target).expr), "Splice"), [
+				recoverErasedArrayPosition(args[0], lowerExpr(args[0]).expr),
+				recoverErasedArrayPosition(args[1], lowerExpr(args[1]).expr)
+			]),
 			isStringLike: false
 		};
 	}
@@ -13138,11 +13228,41 @@ class GoCompiler {
 			case "concat":
 				lowerArrayConcatExpr(methodCall.target, args);
 			case "indexOf":
-				lowerArrayIndexOfExpr(methodCall.target, args);
+				lowerArraySearchExpr(methodCall.target, args, FirstIndex);
+			case "lastIndexOf":
+				lowerArraySearchExpr(methodCall.target, args, LastIndex);
+			case "contains":
+				lowerArraySearchExpr(methodCall.target, args, Membership);
 			case "remove":
 				lowerArrayRemoveExpr(methodCall.target, args);
 			case "insert":
-				lowerArrayInsertExpr(methodCall.target, args);
+				if (args.length != 2) {
+					Context.fatalError("Array.insert expects a position and value", methodCall.target.pos);
+				}
+				lowerArrayInsertExpr(methodCall.target, args[0], args[1]);
+			case "unshift" if (args.length == 1 && usesSharedArrayCarrier(methodCall.target)):
+				lowerArrayInsertExpr(methodCall.target, null, args[0]);
+			case "splice":
+				lowerArraySpliceExpr(methodCall.target, args);
+			// The carrier owns these representation operations directly: in-place
+			// reversal, null-extending or truncating resize, and Haxe text through the
+			// carrier's fmt.Stringer, which `hxrt.StdString` already uses.
+			case "reverse" if (args.length == 0 && usesSharedArrayCarrier(methodCall.target)):
+				{
+					expr: GoExpr.GoCall(GoExpr.GoSelector(recoverSharedArrayReceiver(methodCall.target, lowerExpr(methodCall.target).expr), "Reverse"), []),
+					isStringLike: false
+				};
+			case "resize" if (args.length == 1 && usesSharedArrayCarrier(methodCall.target)):
+				{
+					expr: GoExpr.GoCall(GoExpr.GoSelector(recoverSharedArrayReceiver(methodCall.target, lowerExpr(methodCall.target).expr), "SetLength"),
+						[recoverErasedArrayPosition(args[0], lowerExpr(args[0]).expr)]),
+					isStringLike: false
+				};
+			case "toString" if (args.length == 0 && usesSharedArrayCarrier(methodCall.target)):
+				{
+					expr: GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [recoverSharedArrayReceiver(methodCall.target, lowerExpr(methodCall.target).expr)]),
+					isStringLike: true
+				};
 			case "copy" if (args.length == 0):
 				var shared = usesSharedArrayCarrier(methodCall.target);
 				var receiver = recoverSharedArrayReceiver(methodCall.target, lowerExpr(methodCall.target).expr);

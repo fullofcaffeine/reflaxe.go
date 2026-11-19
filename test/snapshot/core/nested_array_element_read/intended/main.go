@@ -373,145 +373,137 @@ func main() {
 	}(grid.Get(1)).Copy().Len()))
 	hxrt.Println(v_5)
 	var v_6 any = any(hxrt.StringConcatAny(hxrt.StringConcatAny(func() int {
-		hx_indexof_target_146 := func(hx_value_153 any) *hxrt.Array {
-			if hx_value_153 == nil {
-				var hx_zero_154 *hxrt.Array
-				return hx_zero_154
+		hx_indexof_target_146 := func(hx_value_151 any) *hxrt.Array {
+			if hx_value_151 == nil {
+				var hx_zero_152 *hxrt.Array
+				return hx_zero_152
 			}
-			return hx_value_153.(*hxrt.Array)
+			return hx_value_151.(*hxrt.Array)
 		}(grid.Get(1))
-		hx_indexof_value_147 := 40
-		var hx_indexof_start_input_148 any = 0
-		hx_indexof_start_149 := hxrt.IntFromNullableAny(hx_indexof_start_input_148)
-		hx_indexof_length_150 := hx_indexof_target_146.Len()
-		if hx_indexof_start_149 < 0 {
-			hx_indexof_start_149 = (hx_indexof_length_150 + hx_indexof_start_149)
-		}
-		if hx_indexof_start_149 < 0 {
-			hx_indexof_start_149 = 0
-		}
-		hx_indexof_index_151 := hx_indexof_start_149
-		for hx_indexof_index_151 < hx_indexof_length_150 {
-			hx_indexof_element_152 := hxrt.IntFromNullableAny(hx_indexof_target_146.Get(hx_indexof_index_151))
-			if hx_indexof_element_152 == hx_indexof_value_147 {
-				return hx_indexof_index_151
+		var hx_indexof_value_147 int = 40
+		hx_indexof_length_148 := hx_indexof_target_146.Len()
+		hx_indexof_index_149 := 0
+		for hx_indexof_index_149 < hx_indexof_length_148 {
+			hx_indexof_element_150 := hxrt.IntFromNullableAny(hx_indexof_target_146.Get(hx_indexof_index_149))
+			if hx_indexof_element_150 == hx_indexof_value_147 {
+				return hx_indexof_index_149
 			}
-			hx_indexof_index_151 = (hx_indexof_index_151 + 1)
+			hx_indexof_index_149 = (hx_indexof_index_149 + 1)
 		}
 		return -1
 	}(), hxrt.StringFromLiteral(":")), func() *hxrt.Array {
-		hx_concat_target_155 := func(hx_value_159 any) *hxrt.Array {
+		hx_concat_target_153 := func(hx_value_157 any) *hxrt.Array {
+			if hx_value_157 == nil {
+				var hx_zero_158 *hxrt.Array
+				return hx_zero_158
+			}
+			return hx_value_157.(*hxrt.Array)
+		}(grid.Get(0))
+		hx_concat_other_154 := func(hx_value_159 any) *hxrt.Array {
 			if hx_value_159 == nil {
 				var hx_zero_160 *hxrt.Array
 				return hx_zero_160
 			}
 			return hx_value_159.(*hxrt.Array)
-		}(grid.Get(0))
-		hx_concat_other_156 := func(hx_value_161 any) *hxrt.Array {
-			if hx_value_161 == nil {
-				var hx_zero_162 *hxrt.Array
-				return hx_zero_162
-			}
-			return hx_value_161.(*hxrt.Array)
 		}(grid.Get(1))
-		hx_concat_result_157 := hx_concat_target_155.Copy()
-		for _, hx_concat_item_158 := range hx_concat_other_156.Values() {
-			hx_concat_result_157.Push(hx_concat_item_158)
+		hx_concat_result_155 := hx_concat_target_153.Copy()
+		for _, hx_concat_item_156 := range hx_concat_other_154.Values() {
+			hx_concat_result_155.Push(hx_concat_item_156)
 		}
-		return hx_concat_result_157
+		return hx_concat_result_155
 	}().Len()))
 	hxrt.Println(v_6)
 	func() {
-		hx_arr_163 := func(hx_value_164 any) *hxrt.Array {
-			if hx_value_164 == nil {
-				var hx_zero_165 *hxrt.Array
-				return hx_zero_165
+		hx_arr_161 := func(hx_value_162 any) *hxrt.Array {
+			if hx_value_162 == nil {
+				var hx_zero_163 *hxrt.Array
+				return hx_zero_163
 			}
-			return hx_value_164.(*hxrt.Array)
+			return hx_value_162.(*hxrt.Array)
 		}(grid.Get(2))
-		hx_insert_position_166 := hxrt.IntFromNullableAny(order.Get(0))
-		var hx_insert_value_167 any = -1
-		hx_arr_163.Insert(hx_insert_position_166, hx_insert_value_167)
+		hx_insert_position_164 := hxrt.IntFromNullableAny(order.Get(0))
+		var hx_insert_value_165 any = -1
+		hx_arr_161.Insert(hx_insert_position_164, hx_insert_value_165)
 	}()
 	var v_7 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StdString(func() bool {
-		hx_arr_168 := func(hx_value_169 any) *hxrt.Array {
-			if hx_value_169 == nil {
-				var hx_zero_170 *hxrt.Array
-				return hx_zero_170
+		hx_arr_166 := func(hx_value_167 any) *hxrt.Array {
+			if hx_value_167 == nil {
+				var hx_zero_168 *hxrt.Array
+				return hx_zero_168
 			}
-			return hx_value_169.(*hxrt.Array)
+			return hx_value_167.(*hxrt.Array)
 		}(grid.Get(2))
-		var hx_remove_value_171 any = -1
-		hx_remove_index_172 := 0
-		for hx_remove_index_172 < hx_arr_168.Len() {
-			hx_remove_element_173 := hx_arr_168.Get(hx_remove_index_172)
-			if hxrt.HaxeEqual(hx_remove_element_173, hx_remove_value_171) {
-				hx_arr_168.RemoveAt(hx_remove_index_172)
+		var hx_remove_value_169 any = -1
+		hx_remove_index_170 := 0
+		for hx_remove_index_170 < hx_arr_166.Len() {
+			hx_remove_element_171 := hx_arr_166.Get(hx_remove_index_170)
+			if hxrt.HaxeEqual(hx_remove_element_171, hx_remove_value_169) {
+				hx_arr_166.RemoveAt(hx_remove_index_170)
 				return true
 			}
-			hx_remove_index_172 = (hx_remove_index_172 + 1)
+			hx_remove_index_170 = (hx_remove_index_170 + 1)
 		}
 		return false
 	}()), hxrt.StringFromLiteral(":")), func() any {
-		hx_arr_174 := func(hx_value_175 any) *hxrt.Array {
-			if hx_value_175 == nil {
-				var hx_zero_176 *hxrt.Array
-				return hx_zero_176
+		hx_arr_172 := func(hx_value_173 any) *hxrt.Array {
+			if hx_value_173 == nil {
+				var hx_zero_174 *hxrt.Array
+				return hx_zero_174
 			}
-			return hx_value_175.(*hxrt.Array)
+			return hx_value_173.(*hxrt.Array)
 		}(grid.Get(2))
-		hx_value_177 := hx_arr_174.Get(0)
-		hx_arr_174.RemoveAt(0)
-		return hx_value_177
+		hx_value_175 := hx_arr_172.Get(0)
+		hx_arr_172.RemoveAt(0)
+		return hx_value_175
 	}()))
 	hxrt.Println(v_7)
-	var v_8 any = any(func(hx_value_178 any) *hxrt.Array {
+	var v_8 any = any(func(hx_value_176 any) *hxrt.Array {
+		if hx_value_176 == nil {
+			var hx_zero_177 *hxrt.Array
+			return hx_zero_177
+		}
+		return hx_value_176.(*hxrt.Array)
+	}(grid.Get(2)).SliceFrom(hxrt.IntFromNullableAny(order.Get(0))).Len())
+	hxrt.Println(v_8)
+	hxrt.ArraySort(func(hx_value_178 any) *hxrt.Array {
 		if hx_value_178 == nil {
 			var hx_zero_179 *hxrt.Array
 			return hx_zero_179
 		}
 		return hx_value_178.(*hxrt.Array)
-	}(grid.Get(2)).SliceFrom(hxrt.IntFromNullableAny(order.Get(0))).Len())
-	hxrt.Println(v_8)
-	hxrt.ArraySort(func(hx_value_180 any) *hxrt.Array {
-		if hx_value_180 == nil {
-			var hx_zero_181 *hxrt.Array
-			return hx_zero_181
-		}
-		return hx_value_180.(*hxrt.Array)
-	}(grid.Get(2)), func(hx_comparator_184 *hxrt.Function[func(int, int) int]) *hxrt.Function[func(any, any) int] {
-		return hxrt.AdaptFunction(hx_comparator_184, func(hx_cmp_left_182 any, hx_cmp_right_183 any) int {
-			return hxrt.FunctionCall(hx_comparator_184)(func(hx_value_185 any) int {
+	}(grid.Get(2)), func(hx_comparator_182 *hxrt.Function[func(int, int) int]) *hxrt.Function[func(any, any) int] {
+		return hxrt.AdaptFunction(hx_comparator_182, func(hx_cmp_left_180 any, hx_cmp_right_181 any) int {
+			return hxrt.FunctionCall(hx_comparator_182)(func(hx_value_183 any) int {
+				if hx_value_183 == nil {
+					var hx_zero_184 int
+					return hx_zero_184
+				}
+				return hx_value_183.(int)
+			}(hx_cmp_left_180), func(hx_value_185 any) int {
 				if hx_value_185 == nil {
 					var hx_zero_186 int
 					return hx_zero_186
 				}
 				return hx_value_185.(int)
-			}(hx_cmp_left_182), func(hx_value_187 any) int {
-				if hx_value_187 == nil {
-					var hx_zero_188 int
-					return hx_zero_188
-				}
-				return hx_value_187.(int)
-			}(hx_cmp_right_183))
+			}(hx_cmp_right_181))
 		})
 	}(hxrt.NewFunction(func(left int, right int) int {
 		return int((hxrt.Int32Wrap(right) - hxrt.Int32Wrap(left)))
 	})))
-	hxrt.Println(func(hx_value_189 any) *hxrt.Array {
+	hxrt.Println(func(hx_value_187 any) *hxrt.Array {
+		if hx_value_187 == nil {
+			var hx_zero_188 *hxrt.Array
+			return hx_zero_188
+		}
+		return hx_value_187.(*hxrt.Array)
+	}(grid.Get(2)).Get(0))
+	_g_9 := 0
+	_g1 := func(hx_value_189 any) *hxrt.Array {
 		if hx_value_189 == nil {
 			var hx_zero_190 *hxrt.Array
 			return hx_zero_190
 		}
 		return hx_value_189.(*hxrt.Array)
-	}(grid.Get(2)).Get(0))
-	_g_9 := 0
-	_g1 := func(hx_value_191 any) *hxrt.Array {
-		if hx_value_191 == nil {
-			var hx_zero_192 *hxrt.Array
-			return hx_zero_192
-		}
-		return hx_value_191.(*hxrt.Array)
 	}(grid.Get(1))
 	for _g_9 < _g1.Len() {
 		value := hxrt.IntFromNullableAny(_g1.Get(_g_9))
@@ -522,21 +514,21 @@ func main() {
 	_g_10.Push(New_haxe__ds__StringMap())
 	_g_10.Push(New_haxe__ds__StringMap())
 	seen := _g_10
-	if !func(hx_value_195 any) bool {
+	if !func(hx_value_193 any) bool {
+		if hx_value_193 == nil {
+			var hx_zero_194 bool
+			return hx_zero_194
+		}
+		return hx_value_193.(bool)
+	}(hx_recover_class_0(seen.Get(1)).__hx_this.exists(hxrt.StringFromLiteral("k"))) {
+		hx_recover_class_0(seen.Get(1)).__hx_this.set(hxrt.StringFromLiteral("k"), true)
+	}
+	var v_9 any = any(func(hx_value_195 any) bool {
 		if hx_value_195 == nil {
 			var hx_zero_196 bool
 			return hx_zero_196
 		}
 		return hx_value_195.(bool)
-	}(hx_recover_class_0(seen.Get(1)).__hx_this.exists(hxrt.StringFromLiteral("k"))) {
-		hx_recover_class_0(seen.Get(1)).__hx_this.set(hxrt.StringFromLiteral("k"), true)
-	}
-	var v_9 any = any(func(hx_value_197 any) bool {
-		if hx_value_197 == nil {
-			var hx_zero_198 bool
-			return hx_zero_198
-		}
-		return hx_value_197.(bool)
 	}(hx_recover_class_0(seen.Get(1)).__hx_this.exists(hxrt.StringFromLiteral("k"))))
 	hxrt.Println(v_9)
 	_g_11 := hxrt.NewArray()
@@ -552,59 +544,59 @@ func main() {
 	_g_11.Push(_g_13)
 	canvas := _g_11
 	draw := hxrt.NewFunction(func(y int, x int, incoming *string) {
-		hx_array_target_210 := func(hx_value_212 any) *hxrt.Array {
-			if hx_value_212 == nil {
-				var hx_zero_213 *hxrt.Array
-				return hx_zero_213
+		hx_array_target_208 := func(hx_value_210 any) *hxrt.Array {
+			if hx_value_210 == nil {
+				var hx_zero_211 *hxrt.Array
+				return hx_zero_211
 			}
-			return hx_value_212.(*hxrt.Array)
+			return hx_value_210.(*hxrt.Array)
 		}(canvas.Get(y))
-		hx_array_index_211 := x
-		var hx_if_209 *string
-		if hxrt.StringEqualAny(func(hx_value_207 any) *hxrt.Array {
-			if hx_value_207 == nil {
-				var hx_zero_208 *hxrt.Array
-				return hx_zero_208
+		hx_array_index_209 := x
+		var hx_if_207 *string
+		if hxrt.StringEqualAny(func(hx_value_205 any) *hxrt.Array {
+			if hx_value_205 == nil {
+				var hx_zero_206 *hxrt.Array
+				return hx_zero_206
 			}
-			return hx_value_207.(*hxrt.Array)
+			return hx_value_205.(*hxrt.Array)
 		}(canvas.Get(y)).Get(x), hxrt.StringFromLiteral(" ")) {
-			hx_if_209 = incoming
+			hx_if_207 = incoming
 		} else {
-			hx_if_209 = hxrt.StringFromLiteral("+")
+			hx_if_207 = hxrt.StringFromLiteral("+")
 		}
-		hx_array_target_210.Set(hx_array_index_211, hx_if_209)
+		hx_array_target_208.Set(hx_array_index_209, hx_if_207)
 	})
 	func() {
-		var hx_callable_214 *hxrt.Function[func(int, int, *string)] = draw
-		var hx_argument_215 int = 1
-		var hx_argument_216 int = 2
-		var hx_argument_217 *string = hxrt.StringFromLiteral("-")
-		hxrt.FunctionCall(hx_callable_214)(hx_argument_215, hx_argument_216, hx_argument_217)
+		var hx_callable_212 *hxrt.Function[func(int, int, *string)] = draw
+		var hx_argument_213 int = 1
+		var hx_argument_214 int = 2
+		var hx_argument_215 *string = hxrt.StringFromLiteral("-")
+		hxrt.FunctionCall(hx_callable_212)(hx_argument_213, hx_argument_214, hx_argument_215)
 	}()
 	func() {
-		var hx_callable_218 *hxrt.Function[func(int, int, *string)] = draw
-		var hx_argument_219 int = 1
-		var hx_argument_220 int = 2
-		var hx_argument_221 *string = hxrt.StringFromLiteral("|")
-		hxrt.FunctionCall(hx_callable_218)(hx_argument_219, hx_argument_220, hx_argument_221)
+		var hx_callable_216 *hxrt.Function[func(int, int, *string)] = draw
+		var hx_argument_217 int = 1
+		var hx_argument_218 int = 2
+		var hx_argument_219 *string = hxrt.StringFromLiteral("|")
+		hxrt.FunctionCall(hx_callable_216)(hx_argument_217, hx_argument_218, hx_argument_219)
 	}()
 	func() {
-		var hx_callable_222 *hxrt.Function[func(int, int, *string)] = draw
-		var hx_argument_223 int = 0
-		var hx_argument_224 int = 0
-		var hx_argument_225 *string = hxrt.StringFromLiteral("*")
-		hxrt.FunctionCall(hx_callable_222)(hx_argument_223, hx_argument_224, hx_argument_225)
+		var hx_callable_220 *hxrt.Function[func(int, int, *string)] = draw
+		var hx_argument_221 int = 0
+		var hx_argument_222 int = 0
+		var hx_argument_223 *string = hxrt.StringFromLiteral("*")
+		hxrt.FunctionCall(hx_callable_220)(hx_argument_221, hx_argument_222, hx_argument_223)
 	}()
 	var v_10 any = any(hxrt.StringJoinAny(func() *hxrt.Array {
 		_g_14 := hxrt.NewArray()
 		_g1_1 := 0
 		for _g1_1 < canvas.Len() {
-			line := func(hx_value_226 any) *hxrt.Array {
-				if hx_value_226 == nil {
-					var hx_zero_227 *hxrt.Array
-					return hx_zero_227
+			line := func(hx_value_224 any) *hxrt.Array {
+				if hx_value_224 == nil {
+					var hx_zero_225 *hxrt.Array
+					return hx_zero_225
 				}
-				return hx_value_226.(*hxrt.Array)
+				return hx_value_224.(*hxrt.Array)
 			}(canvas.Get(_g1_1))
 			_g1_1 = int(int32((_g1_1 + 1)))
 			_g_14.Push(hxrt.StringJoinAny(line.Values(), hxrt.StringFromLiteral("")))

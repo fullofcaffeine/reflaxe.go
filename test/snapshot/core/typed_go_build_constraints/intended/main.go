@@ -165,29 +165,21 @@ func main() {
 	var feature any = New_FeatureBase()
 	if hxrt.AnyEqualsNull(Reflect_field(feature, hxrt.StringFromLiteral("label"))) || (func() int {
 		hx_indexof_target_1 := Reflect_fields(feature)
-		hx_indexof_value_2 := hxrt.StringFromLiteral("name")
-		var hx_indexof_start_input_3 any = 0
-		hx_indexof_start_4 := hxrt.IntFromNullableAny(hx_indexof_start_input_3)
-		hx_indexof_length_5 := hx_indexof_target_1.Len()
-		if hx_indexof_start_4 < 0 {
-			hx_indexof_start_4 = (hx_indexof_length_5 + hx_indexof_start_4)
-		}
-		if hx_indexof_start_4 < 0 {
-			hx_indexof_start_4 = 0
-		}
-		hx_indexof_index_6 := hx_indexof_start_4
-		for hx_indexof_index_6 < hx_indexof_length_5 {
-			hx_indexof_element_7 := func(hx_value_8 any) *string {
-				if hx_value_8 == nil {
-					var hx_zero_9 *string
-					return hx_zero_9
+		var hx_indexof_value_2 *string = hxrt.StringFromLiteral("name")
+		hx_indexof_length_3 := hx_indexof_target_1.Len()
+		hx_indexof_index_4 := 0
+		for hx_indexof_index_4 < hx_indexof_length_3 {
+			hx_indexof_element_5 := func(hx_value_6 any) *string {
+				if hx_value_6 == nil {
+					var hx_zero_7 *string
+					return hx_zero_7
 				}
-				return hx_value_8.(*string)
-			}(hx_indexof_target_1.Get(hx_indexof_index_6))
-			if hxrt.StringEqualStringPtr(hx_indexof_element_7, hx_indexof_value_2) {
-				return hx_indexof_index_6
+				return hx_value_6.(*string)
+			}(hx_indexof_target_1.Get(hx_indexof_index_4))
+			if hxrt.StringEqualStringPtr(hx_indexof_element_5, hx_indexof_value_2) {
+				return hx_indexof_index_4
 			}
-			hx_indexof_index_6 = (hx_indexof_index_6 + 1)
+			hx_indexof_index_4 = (hx_indexof_index_4 + 1)
 		}
 		return -1
 	}() < 0) {

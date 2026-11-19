@@ -1,5 +1,7 @@
 package hxrt
 
+import "strings"
+
 // Array is the shared runtime identity for a portable Haxe Array<T>.
 //
 // What: Keep one mutable, nil-capable sequence behind a pointer that generated
@@ -110,6 +112,64 @@ func (array *Array) RemoveAt(index int) {
 	copy(array.values[index:], array.values[index+1:])
 	array.values[last] = nil
 	array.values = array.values[:last]
+}
+
+// Reverse reverses the shared sequence in place, so every alias sees the new order.
+func (array *Array) Reverse() {
+	for left, right := 0, len(array.values)-1; left < right; left, right = left+1, right-1 {
+		array.values[left], array.values[right] = array.values[right], array.values[left]
+	}
+}
+
+// Splice removes up to length values starting at pos and returns them as a new
+// Array. It applies Haxe's rules: a negative pos counts from the end (and is
+// clamped to 0), a length past the end stops at the end, and a negative length
+// or a pos at or past the end removes nothing.
+func (array *Array) Splice(pos, length int) *Array {
+	size := len(array.values)
+	if pos < 0 {
+		pos += size
+		if pos < 0 {
+			pos = 0
+		}
+	}
+	if length < 0 || pos >= size {
+		return NewArray()
+	}
+	if length > size-pos {
+		length = size - pos
+	}
+	removed := ArrayFromValues(array.values[pos : pos+length])
+	copy(array.values[pos:], array.values[pos+length:])
+	for index := size - length; index < size; index++ {
+		array.values[index] = nil
+	}
+	array.values = array.values[:size-length]
+	return removed
+}
+
+// String gives the Array Haxe's `Std.string` text: `[` + elements + `]`, with each
+// element converted by StdString and separated by commas (`[1,null,[a,b]]`).
+//
+// What: Implements fmt.Stringer for the portable Array carrier.
+// Why: StdString lives in the baseline string runtime, which cannot name this
+// optional carrier type, and falls back to fmt.Sprint for values it does not know.
+// Without this method an Array printed through Std.string, Sys.println, string
+// concatenation, or Array.toString showed Go's struct dump (`&{[1 2]}`).
+// How: fmt.Sprint calls String, and String formats each element through StdString,
+// so nested Arrays, null slots, strings, and class values with toString all use
+// their own Haxe text.
+func (array *Array) String() string {
+	var text strings.Builder
+	text.WriteByte('[')
+	for index, value := range array.values {
+		if index > 0 {
+			text.WriteByte(',')
+		}
+		text.WriteString(*StdString(value))
+	}
+	text.WriteByte(']')
+	return text.String()
 }
 
 // SetLength truncates or null-extends the same shared Array object.

@@ -82,6 +82,9 @@ Key implementation points:
 - Portable Array identity (`runtime/hxrt/array.go`):
   - one shared mutable carrier for root Haxe `Array<T>` values
   - null-safe indexed reads, sparse growth, length changes, and alias-preserving mutation
+    (including in-place `Reverse` and Haxe-bounded `Splice`)
+  - Haxe `Std.string` text (`[1,null,[a]]`) through `String()`, so `StdString`,
+    string concatenation, and `Array.toString` all print Arrays the Haxe way
   - localized `[]any` storage; typed values are recovered by compiler-generated operations
 - Atomic runtime cells:
   - `AtomicInt*` helpers

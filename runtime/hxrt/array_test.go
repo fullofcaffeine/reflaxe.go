@@ -142,6 +142,77 @@ func TestArraySliceUsesHaxeBoundsAndCopies(t *testing.T) {
 	}
 }
 
+func TestArrayReverseMutatesSharedIdentity(t *testing.T) {
+	array := NewArray(1, nil, "three")
+	alias := array
+	alias.Reverse()
+	if got, want := array.Values(), []any{"three", nil, 1}; !equalArrayValues(got, want) {
+		t.Fatalf("Reverse() through alias = %#v, want %#v", got, want)
+	}
+	empty := NewArray()
+	empty.Reverse()
+	if empty.Len() != 0 {
+		t.Fatalf("Reverse() on an empty Array = %#v, want []", empty.Values())
+	}
+}
+
+func TestArraySpliceUsesHaxeBounds(t *testing.T) {
+	tests := []struct {
+		name    string
+		pos     int
+		length  int
+		removed []any
+		kept    []any
+	}{
+		{name: "middle", pos: 1, length: 2, removed: []any{1, 2}, kept: []any{0, 3, 4}},
+		{name: "negative position", pos: -2, length: 1, removed: []any{3}, kept: []any{0, 1, 2, 4}},
+		{name: "position before start", pos: -10, length: 2, removed: []any{0, 1}, kept: []any{2, 3, 4}},
+		{name: "length past end", pos: 3, length: 100, removed: []any{3, 4}, kept: []any{0, 1, 2}},
+		{name: "position at end", pos: 5, length: 1, removed: []any{}, kept: []any{0, 1, 2, 3, 4}},
+		{name: "position past end", pos: 9, length: 1, removed: []any{}, kept: []any{0, 1, 2, 3, 4}},
+		{name: "zero length", pos: 2, length: 0, removed: []any{}, kept: []any{0, 1, 2, 3, 4}},
+		{name: "negative length", pos: 1, length: -3, removed: []any{}, kept: []any{0, 1, 2, 3, 4}},
+		{name: "largest length", pos: 0, length: 2147483647, removed: []any{0, 1, 2, 3, 4}, kept: []any{}},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			array := NewArray(0, 1, 2, 3, 4)
+			alias := array
+			removed := alias.Splice(test.pos, test.length)
+			if removed == array {
+				t.Fatalf("Splice() returned the source identity")
+			}
+			if !equalArrayValues(removed.Values(), test.removed) {
+				t.Fatalf("Splice(%d, %d) = %#v, want %#v", test.pos, test.length, removed.Values(), test.removed)
+			}
+			if !equalArrayValues(array.Values(), test.kept) {
+				t.Fatalf("Splice(%d, %d) left %#v, want %#v", test.pos, test.length, array.Values(), test.kept)
+			}
+		})
+	}
+
+	array := NewArray("a", "b", "c")
+	array.Splice(0, 2)
+	if tail := array.values[:cap(array.values)]; tail[1] != nil || tail[2] != nil {
+		t.Fatalf("Splice() kept references in released slots: %#v", tail)
+	}
+}
+
+func TestArrayStringUsesHaxeFormat(t *testing.T) {
+	name := "b"
+	nested := NewArray(NewArray(1, 2), NewArray(), nil, StringFromLiteral("a"), &name, true, 1.5)
+	if got, want := nested.String(), "[[1,2],[],null,a,b,true,1.5]"; got != want {
+		t.Fatalf("String() = %q, want %q", got, want)
+	}
+	if got, want := *StdString(nested), "[[1,2],[],null,a,b,true,1.5]"; got != want {
+		t.Fatalf("StdString(Array) = %q, want %q", got, want)
+	}
+	var missing *Array
+	if got := *StdString(missing); got != "null" {
+		t.Fatalf("StdString(nil Array) = %q, want null", got)
+	}
+}
+
 func equalArrayValues(left, right []any) bool {
 	if len(left) != len(right) {
 		return false

@@ -1,0 +1,30 @@
+[1,2,3,2,1]
+[a,b,null,b]
+[Item(a),Item(b),null]
+[1,2,3,2,1] [Item(b),Item(a)]
+[[0,1,2],[3,4,5],[6,7,8]]
+[3,4,5] [a,b,null,b] [Item(b),Item(a)]
+true false
+true true false
+true false true
+true true
+true true false
+3 1 1 -1
+3 2 1
+4 -1
+2 1 1
+0 2 true 2
+0 4
+-1
+[1,2,3,2,1] [b,null,b,a] [null,Item(b),Item(a)]
+[1,2,3,2,1] [5,4,3] [Item(a),Item(b)]
+[0,1,2,3,2,1] [null,b,null,b,a] [Item(b),null,Item(b),Item(a)]
+[first,a,b,null,b] [-1,6,7,8] [z,a,b,null,b] [Item(b),Item(a)]
+[1,2] [0,3,2,1]
+[b] [null,b,null,a]
+[Item(b)] [null,Item(b),Item(a)]
+[2,1] [1,2,3]
+[1] [[0,2],[5,4,3],[-1,6,7,8]]
+2 [null,b]
+[Item(b)] [[Item(b),Item(a)],[Item(a)]]
+[1,2] [-1,6,7,8,null,null] [first]
