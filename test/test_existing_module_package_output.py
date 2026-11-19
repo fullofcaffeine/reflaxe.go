@@ -626,6 +626,26 @@ class Main {
             assert_module_files_unchanged(self, module_root, go_mod, go_sum)
             self.assertNotIn(str(module_root), output)
 
+    def test_transaction_digest_memo_reuses_only_identical_bytes(self) -> None:
+        result = subprocess.run(
+            [
+                shutil.which("haxe") or "haxe",
+                "-cp",
+                "src",
+                "-cp",
+                "test/compiler",
+                "--run",
+                "GoContentDigestMemoContract",
+            ],
+            cwd=ROOT,
+            env=haxe_env(),
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertEqual("ok", result.stdout.strip())
+
     def test_rerun_rejects_a_caller_modified_generated_file(self) -> None:
         with tempfile.TemporaryDirectory(prefix="haxe-go-package-output-") as raw:
             module_root = Path(raw)

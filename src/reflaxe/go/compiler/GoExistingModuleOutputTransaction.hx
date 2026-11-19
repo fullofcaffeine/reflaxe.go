@@ -43,7 +43,9 @@ private typedef RawGoOutputTransactionJournal = {
 	An immutable journal and workspace make every live step recoverable. Before a
 	new commit, `recover` either rolls back a pre-commit interruption or verifies
 	a manifest-last commit and removes its control files. Unknown bytes, links, or
-	malformed control data stop without deleting evidence.
+	malformed control data stop without deleting evidence. Owned-file digest checks
+	share one `GoContentDigestMemo`, so each exact content is hashed at most once
+	per transaction while every check still reads the current bytes.
 **/
 class GoExistingModuleOutputTransaction {
 	static inline final JOURNAL_SCHEMA_VERSION = 1;
@@ -51,6 +53,7 @@ class GoExistingModuleOutputTransaction {
 
 	final project:ExistingGoModuleProject;
 	final boundary:GoGeneratedOutputBoundary;
+	final digests = new GoContentDigestMemo();
 
 	public function new(project:ExistingGoModuleProject, boundary:GoGeneratedOutputBoundary) {
 		this.project = project;
@@ -59,10 +62,14 @@ class GoExistingModuleOutputTransaction {
 
 	public function commit(plan:GoExistingModuleOutputPlan):Void {
 		recover();
+		final artifacts = plan.artifacts();
+		// The plan hashed each artifact's exact bytes; unchanged files on disk reuse it.
+		for (artifact in artifacts) {
+			digests.seed(artifact.path, artifact.bytes, artifact.sha256);
+		}
 		final oldOwnership = GoExistingModuleOwnership.load(project, boundary);
 		verifySnapshot(oldOwnership, "a previously owned generated file changed");
 		validateRuntimeDirectoryOwnership(oldOwnership);
-		final artifacts = plan.artifacts();
 		preflightDestinations(oldOwnership, artifacts);
 
 		final newManifestBytes = GoExistingModuleOwnership.render(project, plan.ownershipRecords());
@@ -168,7 +175,7 @@ class GoExistingModuleOutputTransaction {
 				if (current != null) {
 					throw conflict("a generated artifact destination is caller-owned");
 				}
-			} else if (current == null || GoExistingModuleOwnership.digest(current) != previous.sha256) {
+			} else if (current == null || digests.digest(artifact.path, current) != previous.sha256) {
 				throw conflict("a previously generated artifact changed before replacement");
 			}
 		}
@@ -189,7 +196,7 @@ class GoExistingModuleOutputTransaction {
 				final path = project.runtimePath(name);
 				final record = oldOwnership.record(path);
 				final current = boundary.readBytes(path);
-				if (record == null || current == null || GoExistingModuleOwnership.digest(current) != record.sha256) {
+				if (record == null || current == null || digests.digest(path, current) != record.sha256) {
 					throw conflict("the compiler runtime directory contains caller-owned content");
 				}
 			}
@@ -212,7 +219,7 @@ class GoExistingModuleOutputTransaction {
 		}
 		for (record in oldOwnership.files) {
 			final current = boundary.readBytes(record.path);
-			if (current == null || GoExistingModuleOwnership.digest(current) != record.sha256) {
+			if (current == null || digests.digest(record.path, current) != record.sha256) {
 				throw conflict("a previously owned generated file changed while staging");
 			}
 			boundary.saveBytes(workspaceFile("backup/" + record.path), current);
@@ -273,7 +280,7 @@ class GoExistingModuleOutputTransaction {
 			final oldRecord = oldOwnership.record(path);
 			final newRecord = newOwnership.record(path);
 			final current = boundary.readBytes(path);
-			final currentDigest = current == null ? null : GoExistingModuleOwnership.digest(current);
+			final currentDigest = current == null ? null : digests.digest(path, current);
 			if (oldRecord == null) {
 				if (currentDigest == null) {
 					continue;
@@ -291,7 +298,7 @@ class GoExistingModuleOutputTransaction {
 				throw transactionError("an owned file has unknown bytes during rollback");
 			}
 			final backup = requiredWorkspaceFile("backup/" + oldRecord.path);
-			if (GoExistingModuleOwnership.digest(backup) != oldRecord.sha256) {
+			if (digests.digest(oldRecord.path, backup) != oldRecord.sha256) {
 				throw transactionError("a transaction backup differs from prior ownership");
 			}
 			if (current != null) {
@@ -349,7 +356,7 @@ class GoExistingModuleOutputTransaction {
 	function verifySnapshot(snapshot:GoExistingModuleOwnershipSnapshot, explanation:String):Void {
 		for (record in snapshot.files) {
 			final bytes = boundary.readBytes(record.path);
-			if (bytes == null || GoExistingModuleOwnership.digest(bytes) != record.sha256) {
+			if (bytes == null || digests.digest(record.path, bytes) != record.sha256) {
 				throw conflict(explanation);
 			}
 		}
