@@ -84,3 +84,7 @@ func (self *app__runtime__CoreRuntime) stageScore(parsed *hxrt.Array, enriched *
 	score = int((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(parsed.Len())))
 	return score
 }
+
+func (self *app__runtime__CoreRuntime) HxClassName() string {
+	return "app.runtime.CoreRuntime"
+}

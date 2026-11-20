@@ -40,6 +40,10 @@ func (self *Concrete) f(x int) int {
 	return int((hxrt.Int32Wrap(x) + hxrt.Int32Wrap(1)))
 }
 
+func (self *Concrete) HxClassName() string {
+	return "Concrete"
+}
+
 func main() {
 	var nominal Child = nil
 	view := func(hx_structural_source_1 Child) hxrt.Anonymous {

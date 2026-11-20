@@ -248,6 +248,10 @@ func (self *haxe__xml__Printer) hasChildren(value *Xml) bool {
 	return false
 }
 
+func (self *haxe__xml__Printer) HxClassName() string {
+	return "haxe.xml.Printer"
+}
+
 func haxe__xml__Printer_print(xml *Xml, pretty bool) *string {
 	printer := New_haxe__xml__Printer(pretty)
 	printer.__hx_this.writeNode(xml, hxrt.StringFromLiteral(""))

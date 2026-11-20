@@ -31,6 +31,10 @@ func hx_init_UsedBox(self *UsedBox, value any) *UsedBox {
 	return self
 }
 
+func (self *UsedBox) HxClassName() string {
+	return "UsedBox"
+}
+
 type I_UsedSibling interface {
 }
 
@@ -60,4 +64,8 @@ func hx_alloc_UsedSibling(owner any) *UsedSibling {
 func hx_init_UsedSibling(self *UsedSibling, delta int) *UsedSibling {
 	self.delta = delta
 	return self
+}
+
+func (self *UsedSibling) HxClassName() string {
+	return "UsedSibling"
 }

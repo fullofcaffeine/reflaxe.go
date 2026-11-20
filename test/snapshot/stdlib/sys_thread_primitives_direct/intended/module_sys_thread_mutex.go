@@ -47,3 +47,7 @@ func (self *sys__thread__Mutex) tryAcquire() bool {
 func (self *sys__thread__Mutex) release() {
 	hxrt.ThreadMutexRelease(self.__h)
 }
+
+func (self *sys__thread__Mutex) HxClassName() string {
+	return "sys.thread.Mutex"
+}

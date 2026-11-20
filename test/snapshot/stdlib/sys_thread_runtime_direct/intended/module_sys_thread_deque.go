@@ -65,3 +65,7 @@ func (self *sys__thread__Deque) pop(block bool) any {
 	self.__mutex.__hx_this.release()
 	return value
 }
+
+func (self *sys__thread__Deque) HxClassName() string {
+	return "sys.thread.Deque"
+}

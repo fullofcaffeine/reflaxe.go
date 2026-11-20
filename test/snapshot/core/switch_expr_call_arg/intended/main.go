@@ -7,6 +7,10 @@ type Kind struct {
 	params []any
 }
 
+func (self *Kind) HxEnumValue() (string, []any) {
+	return [2]string{"A", "B"}[self.tag], self.params
+}
+
 var Kind_A *Kind = &Kind{tag: 0}
 
 func Kind_B(value int) *Kind {

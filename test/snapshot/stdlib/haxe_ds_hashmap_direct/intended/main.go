@@ -38,6 +38,10 @@ func (self *Key) hashCode() int {
 	return self.id
 }
 
+func (self *Key) HxClassName() string {
+	return "Key"
+}
+
 func main() {
 	var map_valuesByHash *haxe__ds__IntMap
 	var map_keysByHash *haxe__ds__IntMap

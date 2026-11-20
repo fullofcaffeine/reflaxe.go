@@ -99,6 +99,10 @@ func (self *sys__io___Process__ProcessOutput) close() {
 	self.handle = nil
 }
 
+func (self *sys__io___Process__ProcessOutput) HxClassName() string {
+	return "sys.io._Process.ProcessOutput"
+}
+
 type I_sys__io___Process__ProcessInput interface {
 	writeByte(value int)
 	writeBytes(bytes *haxe__io__Bytes, pos int, length int) int
@@ -203,6 +207,10 @@ func (self *sys__io___Process__ProcessInput) close() {
 	}
 	hxrt.ProcessInputClose(self.handle)
 	self.handle = nil
+}
+
+func (self *sys__io___Process__ProcessInput) HxClassName() string {
+	return "sys.io._Process.ProcessInput"
 }
 
 type I_sys__io__Process interface {
@@ -317,4 +325,8 @@ func (self *sys__io__Process) requireHandle() *hxrt.Process {
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Process is closed")))
 	}
 	return self.handle
+}
+
+func (self *sys__io__Process) HxClassName() string {
+	return "sys.io.Process"
 }

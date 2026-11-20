@@ -38,6 +38,10 @@ func (self *CounterIterable) iterator() *CounterIterator {
 	return New_CounterIterator(self.data)
 }
 
+func (self *CounterIterable) HxClassName() string {
+	return "CounterIterable"
+}
+
 type I_CounterIterator interface {
 	hasNext() bool
 	next() int
@@ -81,6 +85,10 @@ func (self *CounterIterator) next() int {
 	hx_post_1 := self.index
 	self.index = int(int32((self.index + 1)))
 	return hxrt.IntFromNullableAny(self.data.Get(hx_post_1))
+}
+
+func (self *CounterIterator) HxClassName() string {
+	return "CounterIterator"
 }
 
 func main() {

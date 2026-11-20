@@ -50,3 +50,7 @@ func (self *haxe__iterators__StringKeyValueIterator) next() hxrt.Anonymous {
 	hx_obj_1["value"] = code
 	return hxrt.AnonymousFromMap(hx_obj_1)
 }
+
+func (self *haxe__iterators__StringKeyValueIterator) HxClassName() string {
+	return "haxe.iterators.StringKeyValueIterator"
+}

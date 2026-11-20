@@ -125,3 +125,7 @@ func (self *app__core__PulseReport) render() *string {
 	}
 	return out
 }
+
+func (self *app__core__PulseReport) HxClassName() string {
+	return "app.core.PulseReport"
+}

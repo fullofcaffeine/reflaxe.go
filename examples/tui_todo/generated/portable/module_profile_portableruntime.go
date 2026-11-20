@@ -50,3 +50,7 @@ func (self *profile__PortableRuntime) normalizeTag(tag *string) *string {
 func (self *profile__PortableRuntime) diagnostics(metrics *profile__TodoRuntimeMetrics) *string {
 	return hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("p1="), metrics.p1), hxrt.StringFromLiteral(",completed=")), metrics.done)
 }
+
+func (self *profile__PortableRuntime) HxClassName() string {
+	return "profile.PortableRuntime"
+}

@@ -31,6 +31,10 @@ func hx_init_CollectionFeatureKey(self *CollectionFeatureKey) *CollectionFeature
 	return self
 }
 
+func (self *CollectionFeatureKey) HxClassName() string {
+	return "CollectionFeatureKey"
+}
+
 func main() {
 	key := New_CollectionFeatureKey()
 	values := New_haxe__ds__ObjectMap()

@@ -95,3 +95,7 @@ func (self *haxe__io__BufferInput) readBytes(bytes *haxe__io__Bytes, targetPos i
 	self.available = int((hxrt.Int32Wrap(self.available) - hxrt.Int32Wrap(size)))
 	return size
 }
+
+func (self *haxe__io__BufferInput) HxClassName() string {
+	return "haxe.io.BufferInput"
+}

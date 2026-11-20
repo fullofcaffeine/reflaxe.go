@@ -7,6 +7,10 @@ type Outcome struct {
 	params []any
 }
 
+func (self *Outcome) HxEnumValue() (string, []any) {
+	return [2]string{"Success", "Failure"}[self.tag], self.params
+}
+
 func Outcome_Success(value any) *Outcome {
 	enumValue := &Outcome{tag: 0}
 	enumValue.params = []any{value}
@@ -140,6 +144,10 @@ func hx_init_NamedItem(self *NamedItem) *NamedItem {
 
 func (self *NamedItem) name() *string {
 	return hxrt.StringFromLiteral("kept")
+}
+
+func (self *NamedItem) HxClassName() string {
+	return "NamedItem"
 }
 
 func hx_structural_recover(value any) hxrt.Anonymous {

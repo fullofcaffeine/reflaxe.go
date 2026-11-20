@@ -70,6 +70,10 @@ func (self *SerializationSnapshotBase) dispatch() *string {
 	return self.__hx_this.label()
 }
 
+func (self *SerializationSnapshotBase) HxClassName() string {
+	return "SerializationSnapshotBase"
+}
+
 type I_SerializationSnapshotChild interface {
 	readBase() int
 	label() *string
@@ -114,6 +118,10 @@ func (self *SerializationSnapshotChild) readChild() *string {
 
 func (self *SerializationSnapshotChild) label() *string {
 	return hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("child:"), self.childValue)
+}
+
+func (self *SerializationSnapshotChild) HxClassName() string {
+	return "SerializationSnapshotChild"
 }
 
 func hxrt__generated_method_field(obj any, key string) any {
@@ -1853,6 +1861,10 @@ func hxrt_typeCreateEmpty__haxe__iterators__StringKeyValueIterator() *haxe__iter
 type ValueType struct {
 	tag    int
 	params []any
+}
+
+func (self *ValueType) HxEnumValue() (string, []any) {
+	return [9]string{"TNull", "TInt", "TFloat", "TBool", "TObject", "TFunction", "TClass", "TEnum", "TUnknown"}[self.tag], self.params
 }
 
 var ValueType_TNull *ValueType = &ValueType{tag: 0, params: []any{}}

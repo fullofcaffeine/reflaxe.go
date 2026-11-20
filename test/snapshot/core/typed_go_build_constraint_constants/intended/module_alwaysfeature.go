@@ -28,3 +28,7 @@ func hx_alloc_AlwaysFeature(owner any) *AlwaysFeature {
 func hx_init_AlwaysFeature(self *AlwaysFeature) *AlwaysFeature {
 	return self
 }
+
+func (self *AlwaysFeature) HxClassName() string {
+	return "AlwaysFeature"
+}

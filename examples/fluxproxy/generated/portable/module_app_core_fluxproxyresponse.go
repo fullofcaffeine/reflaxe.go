@@ -42,3 +42,7 @@ func hx_init_app__core__FluxProxyResponse(self *app__core__FluxProxyResponse, re
 	self.success = success
 	return self
 }
+
+func (self *app__core__FluxProxyResponse) HxClassName() string {
+	return "app.core.FluxProxyResponse"
+}

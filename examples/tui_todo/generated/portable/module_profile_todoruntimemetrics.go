@@ -36,3 +36,7 @@ func hx_init_profile__TodoRuntimeMetrics(self *profile__TodoRuntimeMetrics, tota
 	self.p1 = p1
 	return self
 }
+
+func (self *profile__TodoRuntimeMetrics) HxClassName() string {
+	return "profile.TodoRuntimeMetrics"
+}

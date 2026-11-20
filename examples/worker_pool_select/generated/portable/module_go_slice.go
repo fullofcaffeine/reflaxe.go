@@ -61,3 +61,7 @@ func (self *go___Slice) set(index int, value any) {
 func (self *go___Slice) toArray() *hxrt.Array {
 	return hxrt.ArrayFromValues(self.data)
 }
+
+func (self *go___Slice) HxClassName() string {
+	return "go.Slice"
+}

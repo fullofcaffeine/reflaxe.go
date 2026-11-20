@@ -116,6 +116,10 @@ func (self *sys__ssl__Certificate) get_notAfter() *Date {
 	return Date_fromTime(hxrt.SslCertNotAfterMs(self.handle))
 }
 
+func (self *sys__ssl__Certificate) HxClassName() string {
+	return "sys.ssl.Certificate"
+}
+
 func sys__ssl__Certificate_fromString(value *string) *sys__ssl__Certificate {
 	return New_sys__ssl__Certificate(hxrt.SslCertFromString(value))
 }

@@ -84,3 +84,7 @@ func (self *sys__thread__ElasticThreadPoolWorker) loop() {
 		}
 	}
 }
+
+func (self *sys__thread__ElasticThreadPoolWorker) HxClassName() string {
+	return "sys.thread.ElasticThreadPoolWorker"
+}

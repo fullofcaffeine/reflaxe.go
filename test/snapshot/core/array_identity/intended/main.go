@@ -246,6 +246,10 @@ func hx_init_SnapshotArrayIdentityBox(self *SnapshotArrayIdentityBox, id int) *S
 	return self
 }
 
+func (self *SnapshotArrayIdentityBox) HxClassName() string {
+	return "SnapshotArrayIdentityBox"
+}
+
 type I_SnapshotArrayIdentityHolder interface {
 }
 
@@ -275,6 +279,10 @@ func hx_alloc_SnapshotArrayIdentityHolder(owner any) *SnapshotArrayIdentityHolde
 func hx_init_SnapshotArrayIdentityHolder(self *SnapshotArrayIdentityHolder, values *hxrt.Array) *SnapshotArrayIdentityHolder {
 	self.values = values
 	return self
+}
+
+func (self *SnapshotArrayIdentityHolder) HxClassName() string {
+	return "SnapshotArrayIdentityHolder"
 }
 
 func hx_structural_recover(value any) hxrt.Anonymous {

@@ -65,3 +65,7 @@ func (self *go___Chan) recvOr(defaultValue any) any {
 func (self *go___Chan) close() {
 	go__concurrency_close(self.__hx_native)
 }
+
+func (self *go___Chan) HxClassName() string {
+	return "go.Chan"
+}

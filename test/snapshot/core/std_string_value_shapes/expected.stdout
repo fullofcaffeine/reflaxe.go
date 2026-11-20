@@ -1,0 +1,6 @@
+Red
+RGB(1,2,3)
+Plain
+described
+{color: Red, plain: Plain}
+[Red,RGB(4,5,6)]

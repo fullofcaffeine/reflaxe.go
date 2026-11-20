@@ -110,3 +110,7 @@ func (self *sys__io__FileInput) eof() bool {
 func (self *sys__io__FileInput) close() {
 	hxrt.FileInputClose(self.handle)
 }
+
+func (self *sys__io__FileInput) HxClassName() string {
+	return "sys.io.FileInput"
+}

@@ -41,6 +41,10 @@ func (self *Leaf) pong() int {
 	return 7
 }
 
+func (self *Leaf) HxClassName() string {
+	return "Leaf"
+}
+
 func main() {
 	leaf := New_Leaf()
 	var v any = any(leaf.ping())

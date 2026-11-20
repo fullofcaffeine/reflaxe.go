@@ -36,3 +36,7 @@ func hx_init_app__core__PulseIngressFrame(self *app__core__PulseIngressFrame, se
 	self.region = region
 	return self
 }
+
+func (self *app__core__PulseIngressFrame) HxClassName() string {
+	return "app.core.PulseIngressFrame"
+}

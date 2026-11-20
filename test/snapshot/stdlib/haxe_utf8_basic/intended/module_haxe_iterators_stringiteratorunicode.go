@@ -59,6 +59,10 @@ func (self *haxe__iterators__StringIteratorUnicode) next() int {
 	return c
 }
 
+func (self *haxe__iterators__StringIteratorUnicode) HxClassName() string {
+	return "haxe.iterators.StringIteratorUnicode"
+}
+
 func haxe__iterators__StringIteratorUnicode_codeAt(value *string, index int) int {
 	return hxrt.StringCharCodeAtStringPtr(value, index)
 }

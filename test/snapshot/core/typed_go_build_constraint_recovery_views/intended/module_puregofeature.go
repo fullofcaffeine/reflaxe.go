@@ -36,6 +36,10 @@ func hx_init_PureGoFeature(self *PureGoFeature) *PureGoFeature {
 	return self
 }
 
+func (self *PureGoFeature) HxClassName() string {
+	return "PureGoFeature"
+}
+
 func PureGoFeature_check() *string {
 	var erased any = New_PureGoFeature()
 	restored := hx_recover_class_0(erased)

@@ -34,6 +34,10 @@ func hx_init_fixture__ClassWithToStringChild(self *fixture__ClassWithToStringChi
 	return self
 }
 
+func (self *fixture__ClassWithToStringChild) HxClassName() string {
+	return "fixture.ClassWithToStringChild"
+}
+
 type I_fixture__ClassWithToStringChild2 interface {
 }
 
@@ -64,6 +68,10 @@ func hx_alloc_fixture__ClassWithToStringChild2(owner any) *fixture__ClassWithToS
 func hx_init_fixture__ClassWithToStringChild2(self *fixture__ClassWithToStringChild2) *fixture__ClassWithToStringChild2 {
 	hx_init_fixture__Base(self.fixture__Base)
 	return self
+}
+
+func (self *fixture__ClassWithToStringChild2) HxClassName() string {
+	return "fixture.ClassWithToStringChild2"
 }
 
 type I_fixture__KeptAuxiliary interface {
@@ -98,6 +106,10 @@ func hx_init_fixture__KeptAuxiliary(self *fixture__KeptAuxiliary) *fixture__Kept
 
 func (self *fixture__KeptAuxiliary) value() *string {
 	return hxrt.StringFromLiteral("kept")
+}
+
+func (self *fixture__KeptAuxiliary) HxClassName() string {
+	return "fixture.KeptAuxiliary"
 }
 
 type fixture__TestSpecification struct {

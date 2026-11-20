@@ -160,6 +160,10 @@ func (self *haxe__ds__HashMap) clear() {
 	hxrt.IntMapClear(_this_1.h)
 }
 
+func (self *haxe__ds__HashMap) HxClassName() string {
+	return "haxe.ds.HashMap"
+}
+
 func haxe__ds__HashMap_hashOf(key hxrt.Anonymous) int {
 	return func() int {
 		var hx_callable_19 *hxrt.Function[func() int] = hx_recover_callable_0(hxrt.AnonymousGet(key, "hashCode"))

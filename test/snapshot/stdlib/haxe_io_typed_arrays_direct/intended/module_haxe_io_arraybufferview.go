@@ -127,3 +127,7 @@ func (self *haxe__io__ArrayBufferViewImpl) subarray(begin any, end any) *haxe__i
 	resolvedEnd := hx_if_4
 	return self.__hx_this.sub(resolvedBegin, int((hxrt.Int32Wrap(resolvedEnd) - hxrt.Int32Wrap(resolvedBegin))))
 }
+
+func (self *haxe__io__ArrayBufferViewImpl) HxClassName() string {
+	return "haxe.io.ArrayBufferViewImpl"
+}

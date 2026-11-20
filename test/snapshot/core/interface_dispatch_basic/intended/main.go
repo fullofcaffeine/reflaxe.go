@@ -50,3 +50,7 @@ func hx_init_Person(self *Person) *Person {
 func (self *Person) name() *string {
 	return hxrt.StringFromLiteral("person")
 }
+
+func (self *Person) HxClassName() string {
+	return "Person"
+}

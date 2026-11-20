@@ -7,6 +7,10 @@ type Choice struct {
 	params []any
 }
 
+func (self *Choice) HxEnumValue() (string, []any) {
+	return [1]string{"One"}[self.tag], self.params
+}
+
 var Choice_One *Choice = &Choice{tag: 0}
 
 type I_Base interface {
@@ -38,6 +42,10 @@ func hx_alloc_Base(owner any) *Base {
 func hx_init_Base(self *Base) *Base {
 	self.value = 3
 	return self
+}
+
+func (self *Base) HxClassName() string {
+	return "Base"
 }
 
 type I_Child interface {
@@ -75,6 +83,10 @@ func hx_init_Child(self *Child) *Child {
 
 func (self *Child) name() *string {
 	return hxrt.StringFromLiteral("child")
+}
+
+func (self *Child) HxClassName() string {
+	return "Child"
 }
 
 func main() {

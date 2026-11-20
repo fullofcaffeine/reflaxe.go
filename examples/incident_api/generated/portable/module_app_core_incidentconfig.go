@@ -39,6 +39,10 @@ func hx_init_app__core__IncidentConfig(self *app__core__IncidentConfig, serviceN
 	return self
 }
 
+func (self *app__core__IncidentConfig) HxClassName() string {
+	return "app.core.IncidentConfig"
+}
+
 func app__core__IncidentConfig_defaults() *app__core__IncidentConfig {
 	return New_app__core__IncidentConfig(hxrt.StringFromLiteral("incident-api"), hxrt.StringFromLiteral("127.0.0.1"), 0, hxrt.StringFromLiteral(".incident_api_state.json"))
 }

@@ -36,3 +36,7 @@ func hx_init_app__core__FluxRequest(self *app__core__FluxRequest, id int, route 
 	self.status = status
 	return self
 }
+
+func (self *app__core__FluxRequest) HxClassName() string {
+	return "app.core.FluxRequest"
+}

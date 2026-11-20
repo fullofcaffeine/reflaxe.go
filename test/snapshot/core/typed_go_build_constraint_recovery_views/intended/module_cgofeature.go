@@ -36,6 +36,10 @@ func hx_init_CgoFeature(self *CgoFeature) *CgoFeature {
 	return self
 }
 
+func (self *CgoFeature) HxClassName() string {
+	return "CgoFeature"
+}
+
 func CgoFeature_check() *string {
 	var erased any = New_CgoFeature()
 	restored := hx_recover_class_0(erased)

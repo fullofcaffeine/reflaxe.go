@@ -7,6 +7,10 @@ type ItemOutcome struct {
 	params []any
 }
 
+func (self *ItemOutcome) HxEnumValue() (string, []any) {
+	return [2]string{"ItemSuccess", "ItemFailure"}[self.tag], self.params
+}
+
 func ItemOutcome_ItemSuccess(items *hxrt.Array) *ItemOutcome {
 	enumValue := &ItemOutcome{tag: 0}
 	enumValue.params = []any{items}

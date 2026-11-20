@@ -993,6 +993,10 @@ type haxe__rtti__TypeTree struct {
 	params []any
 }
 
+func (self *haxe__rtti__TypeTree) HxEnumValue() (string, []any) {
+	return [5]string{"TPackage", "TClassdecl", "TEnumdecl", "TTypedecl", "TAbstractdecl"}[self.tag], self.params
+}
+
 func haxe__rtti__TypeTree_TPackage(name *string, full *string, subs *hxrt.Array) *haxe__rtti__TypeTree {
 	enumValue := &haxe__rtti__TypeTree{tag: 0}
 	enumValue.params = []any{name, full, subs}
@@ -1028,6 +1032,10 @@ type haxe__rtti__Rights struct {
 	params []any
 }
 
+func (self *haxe__rtti__Rights) HxEnumValue() (string, []any) {
+	return [6]string{"RNormal", "RNo", "RCall", "RMethod", "RDynamic", "RInline"}[self.tag], self.params
+}
+
 var haxe__rtti__Rights_RNormal *haxe__rtti__Rights = &haxe__rtti__Rights{tag: 0}
 
 var haxe__rtti__Rights_RNo *haxe__rtti__Rights = &haxe__rtti__Rights{tag: 1}
@@ -1047,6 +1055,10 @@ var haxe__rtti__Rights_RInline *haxe__rtti__Rights = &haxe__rtti__Rights{tag: 5}
 type haxe__rtti__CType struct {
 	tag    int
 	params []any
+}
+
+func (self *haxe__rtti__CType) HxEnumValue() (string, []any) {
+	return [8]string{"CUnknown", "CEnum", "CClass", "CTypedef", "CFunction", "CAnonymous", "CDynamic", "CAbstract"}[self.tag], self.params
 }
 
 var haxe__rtti__CType_CUnknown *haxe__rtti__CType = &haxe__rtti__CType{tag: 0}

@@ -41,6 +41,10 @@ func (self *Base) callWho() int {
 	return self.__hx_this.who()
 }
 
+func (self *Base) HxClassName() string {
+	return "Base"
+}
+
 type I_Child interface {
 	who() int
 	callWho() int
@@ -82,6 +86,10 @@ func (self *Child) who() int {
 
 func (self *Child) callSuperWho() int {
 	return self.Base.who()
+}
+
+func (self *Child) HxClassName() string {
+	return "Child"
 }
 
 func main() {

@@ -149,27 +149,33 @@ func (array *Array) Splice(pos, length int) *Array {
 }
 
 // String gives the Array Haxe's `Std.string` text: `[` + elements + `]`, with each
-// element converted by StdString and separated by commas (`[1,null,[a,b]]`).
+// element converted like StdString and separated by commas (`[1,null,[a,b]]`).
 //
 // What: Implements fmt.Stringer for the portable Array carrier.
 // Why: StdString lives in the baseline string runtime, which cannot name this
-// optional carrier type, and falls back to fmt.Sprint for values it does not know.
-// Without this method an Array printed through Std.string, Sys.println, string
-// concatenation, or Array.toString showed Go's struct dump (`&{[1 2]}`).
-// How: fmt.Sprint calls String, and String formats each element through StdString,
-// so nested Arrays, null slots, strings, and class values with toString all use
-// their own Haxe text.
+// optional carrier type. Without this method an Array printed through Go's fmt
+// showed Go's struct dump (`&{[1 2]}`).
+// How: String starts the same depth-limited writer that StdString uses (StdString
+// reaches it through writeHaxeString), so nested Arrays, null slots, strings,
+// enums, objects, and class values all use their own Haxe text, and elements
+// nested too deeply print as `<...>`.
 func (array *Array) String() string {
 	var text strings.Builder
+	array.writeHaxeString(&text, 0)
+	return text.String()
+}
+
+// writeHaxeString writes the Array at one Std.string nesting depth. Its elements
+// are one level deeper, as in the Haxe interpreter.
+func (array *Array) writeHaxeString(text *strings.Builder, depth int) {
 	text.WriteByte('[')
 	for index, value := range array.values {
 		if index > 0 {
 			text.WriteByte(',')
 		}
-		text.WriteString(*StdString(value))
+		writeHaxeString(text, value, depth+1)
 	}
 	text.WriteByte(']')
-	return text.String()
 }
 
 // SetLength truncates or null-extends the same shared Array object.

@@ -180,3 +180,7 @@ func (self *app__core__PulsePipeline) alertToken(alerts *hxrt.Array) *string {
 	}
 	return digest
 }
+
+func (self *app__core__PulsePipeline) HxClassName() string {
+	return "app.core.PulsePipeline"
+}

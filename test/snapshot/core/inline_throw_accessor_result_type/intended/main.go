@@ -241,6 +241,10 @@ func (self *SnapshotInlineThrowAccessors) get_item() any {
 	return hx_if_17
 }
 
+func (self *SnapshotInlineThrowAccessors) HxClassName() string {
+	return "SnapshotInlineThrowAccessors"
+}
+
 type I_SnapshotInlineThrowBox interface {
 }
 
@@ -270,6 +274,10 @@ func hx_alloc_SnapshotInlineThrowBox(owner any) *SnapshotInlineThrowBox {
 func hx_init_SnapshotInlineThrowBox(self *SnapshotInlineThrowBox, label *string) *SnapshotInlineThrowBox {
 	self.label = label
 	return self
+}
+
+func (self *SnapshotInlineThrowBox) HxClassName() string {
+	return "SnapshotInlineThrowBox"
 }
 
 func hx_recover_class_0(value any) *haxe__ValueException {

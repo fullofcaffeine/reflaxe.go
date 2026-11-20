@@ -46,3 +46,7 @@ func (self *haxe__iterators__ArrayIterator) next() any {
 	self.current = int(int32((self.current + 1)))
 	return self.array.Get(hx_post_1)
 }
+
+func (self *haxe__iterators__ArrayIterator) HxClassName() string {
+	return "haxe.iterators.ArrayIterator"
+}

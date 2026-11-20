@@ -41,6 +41,10 @@ func hx_init_Base(self *Base) *Base {
 	return self
 }
 
+func (self *Base) HxClassName() string {
+	return "Base"
+}
+
 type I_Child interface {
 	name() *string
 }
@@ -78,6 +82,10 @@ func (self *Child) name() *string {
 	return hxrt.StringFromLiteral("child")
 }
 
+func (self *Child) HxClassName() string {
+	return "Child"
+}
+
 type I_Grandchild interface {
 	name() *string
 }
@@ -109,6 +117,10 @@ func hx_alloc_Grandchild(owner any) *Grandchild {
 func hx_init_Grandchild(self *Grandchild) *Grandchild {
 	hx_init_Child(self.Child)
 	return self
+}
+
+func (self *Grandchild) HxClassName() string {
+	return "Grandchild"
 }
 
 func call(callback *hxrt.Function[func(any) int], value any) int {

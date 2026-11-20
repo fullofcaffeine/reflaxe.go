@@ -37,3 +37,7 @@ func hx_init_FeatureBase(self *FeatureBase) *FeatureBase {
 func (self *FeatureBase) label() *string {
 	return self.name
 }
+
+func (self *FeatureBase) HxClassName() string {
+	return "FeatureBase"
+}

@@ -43,6 +43,10 @@ func (self *Base) baseId() int {
 	return self.id
 }
 
+func (self *Base) HxClassName() string {
+	return "Base"
+}
+
 type I_Child interface {
 	asBase() *Base
 	baseId() int
@@ -85,6 +89,10 @@ func (self *Child) superId() int {
 
 func (self *Child) superAsBase() *Base {
 	return self.Base.asBase()
+}
+
+func (self *Child) HxClassName() string {
+	return "Child"
 }
 
 func main() {

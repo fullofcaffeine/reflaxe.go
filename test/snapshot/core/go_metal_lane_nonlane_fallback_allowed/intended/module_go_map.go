@@ -53,3 +53,7 @@ func (self *go___Map) exists(key any) bool {
 		return hx_value_1.(bool)
 	}(self.inner.__hx_this.exists(hxrt.StdString(key)))
 }
+
+func (self *go___Map) HxClassName() string {
+	return "go.Map"
+}

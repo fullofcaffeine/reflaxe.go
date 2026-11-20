@@ -32,3 +32,7 @@ func hx_init_FeatureBase(self *FeatureBase) *FeatureBase {
 	self.label = hxrt.StringFromLiteral("ok")
 	return self
 }
+
+func (self *FeatureBase) HxClassName() string {
+	return "FeatureBase"
+}

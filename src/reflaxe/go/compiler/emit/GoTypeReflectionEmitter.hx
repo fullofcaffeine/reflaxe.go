@@ -490,6 +490,11 @@ class GoTypeReflectionEmitter {
 		];
 		return emptyInstanceHelpers.concat([
 			GoDecl.GoStructDecl("ValueType", [{name: "tag", typeName: "int"}, {name: "params", typeName: "[]any"}]),
+			GoStdStringProtocolEmitter.enumValueDecl("ValueType",
+				[
+					for (entry in allEnumMetadata)
+						if (entry.goTypeName == "ValueType") for (constructor in entry.constructors) constructor.name
+				]),
 			GoDecl.GoGlobalVarDecl("ValueType_TNull", "*ValueType", valueTypeLiteral(0, [])),
 			GoDecl.GoGlobalVarDecl("ValueType_TInt", "*ValueType", valueTypeLiteral(1, [])),
 			GoDecl.GoGlobalVarDecl("ValueType_TFloat", "*ValueType", valueTypeLiteral(2, [])),

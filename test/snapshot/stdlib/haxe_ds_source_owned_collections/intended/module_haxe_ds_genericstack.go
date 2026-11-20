@@ -181,3 +181,7 @@ func hx_init_haxe__ds__GenericCell(self *haxe__ds__GenericCell, elt any, next *h
 	self.next = next
 	return self
 }
+
+func (self *haxe__ds__GenericCell) HxClassName() string {
+	return "haxe.ds.GenericCell"
+}

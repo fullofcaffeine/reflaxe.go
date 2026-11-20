@@ -33,6 +33,10 @@ func hx_init_Box(self *Box, value any) *Box {
 	return self
 }
 
+func (self *Box) HxClassName() string {
+	return "Box"
+}
+
 func main() {
 	parts := hxrt.NewArray(hxrt.StringFromLiteral("ab"), hxrt.StringFromLiteral("c"))
 	raw := hxrt.StringJoinAny(parts.Values(), hxrt.StringFromLiteral(""))

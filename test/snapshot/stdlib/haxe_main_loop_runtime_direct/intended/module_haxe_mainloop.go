@@ -191,3 +191,7 @@ func (self *haxe__MainEvent) dispatch() {
 		self.__hx_this.schedule()
 	}
 }
+
+func (self *haxe__MainEvent) HxClassName() string {
+	return "haxe.MainEvent"
+}

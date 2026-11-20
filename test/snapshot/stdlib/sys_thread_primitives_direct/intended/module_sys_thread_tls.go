@@ -44,3 +44,7 @@ func (self *sys__thread__Tls) set_value(v any) any {
 	hxrt.ThreadLocalSet(self.__handle, v)
 	return v
 }
+
+func (self *sys__thread__Tls) HxClassName() string {
+	return "sys.thread.Tls"
+}

@@ -58,6 +58,10 @@ func (self *Base) ping() int {
 	return 1
 }
 
+func (self *Base) HxClassName() string {
+	return "Base"
+}
+
 type I_Child interface {
 	ping() int
 }
@@ -89,6 +93,10 @@ func hx_alloc_Child(owner any) *Child {
 func hx_init_Child(self *Child) *Child {
 	hx_init_Base(self.Base)
 	return self
+}
+
+func (self *Child) HxClassName() string {
+	return "Child"
 }
 
 var keys *haxe__ds__ObjectMap = New_haxe__ds__ObjectMap()

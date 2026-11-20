@@ -51,6 +51,10 @@ func (self *haxe__ds___List__GoListKeyValueIterator) next() hxrt.Anonymous {
 	return hxrt.AnonymousFromMap(hx_obj_2)
 }
 
+func (self *haxe__ds___List__GoListKeyValueIterator) HxClassName() string {
+	return "haxe.ds._List.GoListKeyValueIterator"
+}
+
 type I_haxe__ds___List__GoListIterator interface {
 	hasNext() bool
 	next() any
@@ -94,6 +98,10 @@ func (self *haxe__ds___List__GoListIterator) next() any {
 	hx_post_3 := self.index
 	self.index = int(int32((self.index + 1)))
 	return self.items.Get(hx_post_3)
+}
+
+func (self *haxe__ds___List__GoListIterator) HxClassName() string {
+	return "haxe.ds._List.GoListIterator"
 }
 
 type I_haxe__ds__List interface {

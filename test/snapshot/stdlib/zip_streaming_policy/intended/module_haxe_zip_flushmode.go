@@ -5,6 +5,10 @@ type haxe__zip__FlushMode struct {
 	params []any
 }
 
+func (self *haxe__zip__FlushMode) HxEnumValue() (string, []any) {
+	return [5]string{"NO", "SYNC", "FULL", "FINISH", "BLOCK"}[self.tag], self.params
+}
+
 var haxe__zip__FlushMode_NO *haxe__zip__FlushMode = &haxe__zip__FlushMode{tag: 0}
 
 var haxe__zip__FlushMode_SYNC *haxe__zip__FlushMode = &haxe__zip__FlushMode{tag: 1}

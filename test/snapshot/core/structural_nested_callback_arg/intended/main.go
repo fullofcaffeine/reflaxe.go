@@ -40,6 +40,10 @@ func (self *Box) apply(f *hxrt.Function[func(any) any], value any) any {
 	}()
 }
 
+func (self *Box) HxClassName() string {
+	return "Box"
+}
+
 func main() {
 	view := func(hx_structural_source_3 *Box) hxrt.Anonymous {
 		return hxrt.NewAnonymousView(hx_structural_source_3, func(name string) hxrt.AnonymousField {

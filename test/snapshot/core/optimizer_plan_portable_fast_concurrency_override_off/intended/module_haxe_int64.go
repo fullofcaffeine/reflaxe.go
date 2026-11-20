@@ -32,3 +32,7 @@ func hx_init_haxe___Int64_____Int64(self *haxe___Int64_____Int64, high int, low 
 	self.low = low
 	return self
 }
+
+func (self *haxe___Int64_____Int64) HxClassName() string {
+	return "haxe._Int64.___Int64"
+}

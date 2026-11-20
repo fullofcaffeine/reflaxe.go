@@ -121,6 +121,10 @@ type ValueType struct {
 	params []any
 }
 
+func (self *ValueType) HxEnumValue() (string, []any) {
+	return [9]string{"TNull", "TInt", "TFloat", "TBool", "TObject", "TFunction", "TClass", "TEnum", "TUnknown"}[self.tag], self.params
+}
+
 var ValueType_TNull *ValueType = &ValueType{tag: 0, params: []any{}}
 
 var ValueType_TInt *ValueType = &ValueType{tag: 1, params: []any{}}

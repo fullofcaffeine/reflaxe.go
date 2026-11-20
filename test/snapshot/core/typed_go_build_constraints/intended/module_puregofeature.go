@@ -43,6 +43,10 @@ func (self *PureGoFeature) label() *string {
 	return self.mode
 }
 
+func (self *PureGoFeature) HxClassName() string {
+	return "PureGoFeature"
+}
+
 var PureGoFeature_installed bool = Registry_install(hxrt.StringFromLiteral("pure-go"))
 
 func PureGoFeature_selected() *string {

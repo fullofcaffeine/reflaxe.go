@@ -36,3 +36,7 @@ func hx_init_app__core__PulseIngestResult(self *app__core__PulseIngestResult, re
 	self.backpressureEvents = backpressureEvents
 	return self
 }
+
+func (self *app__core__PulseIngestResult) HxClassName() string {
+	return "app.core.PulseIngestResult"
+}

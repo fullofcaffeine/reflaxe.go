@@ -127,6 +127,10 @@ func hx_init_ParsedInt64(self *ParsedInt64, value int64, error *go___Error) *Par
 	return self
 }
 
+func (self *ParsedInt64) HxClassName() string {
+	return "ParsedInt64"
+}
+
 func go__result_fromValueError(value any, err error) *go___Result {
 	if err != nil {
 		return New_go___Result(nil, New_go___Error(hxrt.StringFromLiteral(err.Error())))

@@ -7,6 +7,10 @@ type Color struct {
 	params []any
 }
 
+func (self *Color) HxEnumValue() (string, []any) {
+	return [2]string{"Red", "RGB"}[self.tag], self.params
+}
+
 var Color_Red *Color = &Color{tag: 0}
 
 func Color_RGB(r int, g int, b int) *Color {

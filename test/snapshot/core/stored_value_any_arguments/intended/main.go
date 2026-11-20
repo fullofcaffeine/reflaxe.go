@@ -41,6 +41,10 @@ func (self *Defaults) enabled(value bool) bool {
 	return value
 }
 
+func (self *Defaults) HxClassName() string {
+	return "Defaults"
+}
+
 func main() {
 	defaults := New_Defaults()
 	hx_callable_4 := func() *hxrt.Function[func(any) int] {

@@ -5,6 +5,10 @@ type go___SelectRecv struct {
 	params []any
 }
 
+func (self *go___SelectRecv) HxEnumValue() (string, []any) {
+	return [2]string{"Received", "Defaulted"}[self.tag], self.params
+}
+
 func go___SelectRecv_Received(value any) *go___SelectRecv {
 	enumValue := &go___SelectRecv{tag: 0}
 	enumValue.params = []any{value}
@@ -16,6 +20,10 @@ var go___SelectRecv_Defaulted *go___SelectRecv = &go___SelectRecv{tag: 1}
 type go___SelectRecv2 struct {
 	tag    int
 	params []any
+}
+
+func (self *go___SelectRecv2) HxEnumValue() (string, []any) {
+	return [3]string{"First", "Second", "Defaulted"}[self.tag], self.params
 }
 
 func go___SelectRecv2_First(value any) *go___SelectRecv2 {
@@ -37,6 +45,10 @@ type go___SelectSend struct {
 	params []any
 }
 
+func (self *go___SelectSend) HxEnumValue() (string, []any) {
+	return [2]string{"Sent", "Defaulted"}[self.tag], self.params
+}
+
 var go___SelectSend_Sent *go___SelectSend = &go___SelectSend{tag: 0}
 
 var go___SelectSend_Defaulted *go___SelectSend = &go___SelectSend{tag: 1}
@@ -44,6 +56,10 @@ var go___SelectSend_Defaulted *go___SelectSend = &go___SelectSend{tag: 1}
 type go___SelectSend2 struct {
 	tag    int
 	params []any
+}
+
+func (self *go___SelectSend2) HxEnumValue() (string, []any) {
+	return [3]string{"FirstSent", "SecondSent", "Defaulted"}[self.tag], self.params
 }
 
 var go___SelectSend2_FirstSent *go___SelectSend2 = &go___SelectSend2{tag: 0}

@@ -45,6 +45,10 @@ func (self *SameShape) code() int {
 	return 7
 }
 
+func (self *SameShape) HxClassName() string {
+	return "SameShape"
+}
+
 func hx_recover_class_1(value any) *haxe__Exception {
 	value = hxrt.ObjectSource(value)
 	if value == nil {

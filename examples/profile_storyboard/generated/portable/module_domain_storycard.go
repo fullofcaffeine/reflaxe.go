@@ -42,3 +42,7 @@ func hx_init_domain__StoryCard(self *domain__StoryCard, id int, title *string, p
 	self.owner = owner
 	return self
 }
+
+func (self *domain__StoryCard) HxClassName() string {
+	return "domain.StoryCard"
+}

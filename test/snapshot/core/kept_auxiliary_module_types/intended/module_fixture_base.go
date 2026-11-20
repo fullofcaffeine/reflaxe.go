@@ -28,3 +28,7 @@ func hx_alloc_fixture__Base(owner any) *fixture__Base {
 func hx_init_fixture__Base(self *fixture__Base) *fixture__Base {
 	return self
 }
+
+func (self *fixture__Base) HxClassName() string {
+	return "fixture.Base"
+}

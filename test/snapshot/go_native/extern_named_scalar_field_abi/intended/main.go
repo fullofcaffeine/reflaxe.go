@@ -41,6 +41,10 @@ func hx_init_DurationResult(self *DurationResult, value1 *time.Duration, value2 
 	return self
 }
 
+func (self *DurationResult) HxClassName() string {
+	return "DurationResult"
+}
+
 func main() {
 	parsed := func() *DurationResult {
 		hx_tuple_1, hx_tuple_2 := time.ParseDuration(*hxrt.StdString(hxrt.StringFromLiteral("750ms")))

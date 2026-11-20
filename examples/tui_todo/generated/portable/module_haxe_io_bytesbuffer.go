@@ -91,3 +91,7 @@ func (self *haxe__io__BytesBuffer) addBytes(source *haxe__io__Bytes, pos int, le
 func (self *haxe__io__BytesBuffer) getBytes() *haxe__io__Bytes {
 	return haxe__io__Bytes_ofData(hxrt.BytesClone(self.b))
 }
+
+func (self *haxe__io__BytesBuffer) HxClassName() string {
+	return "haxe.io.BytesBuffer"
+}

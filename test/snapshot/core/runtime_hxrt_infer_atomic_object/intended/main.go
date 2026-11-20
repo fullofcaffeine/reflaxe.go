@@ -41,3 +41,7 @@ func hx_init__Main__AtomicBox(self *_Main__AtomicBox, value int) *_Main__AtomicB
 	self.value = value
 	return self
 }
+
+func (self *_Main__AtomicBox) HxClassName() string {
+	return "_Main.AtomicBox"
+}

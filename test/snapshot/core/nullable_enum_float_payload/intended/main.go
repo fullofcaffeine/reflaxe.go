@@ -7,6 +7,10 @@ type MaybeFloat struct {
 	params []any
 }
 
+func (self *MaybeFloat) HxEnumValue() (string, []any) {
+	return [1]string{"Some"}[self.tag], self.params
+}
+
 func MaybeFloat_Some(value any) *MaybeFloat {
 	enumValue := &MaybeFloat{tag: 0}
 	enumValue.params = []any{value}

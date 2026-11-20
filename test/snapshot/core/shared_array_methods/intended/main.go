@@ -814,6 +814,10 @@ func hx_init_SharedArrayHolder(self *SharedArrayHolder, ints *hxrt.Array, names 
 	return self
 }
 
+func (self *SharedArrayHolder) HxClassName() string {
+	return "SharedArrayHolder"
+}
+
 type I_SharedArrayItem interface {
 	toString() *string
 }

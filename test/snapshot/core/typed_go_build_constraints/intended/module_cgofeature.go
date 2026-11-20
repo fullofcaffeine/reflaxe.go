@@ -43,6 +43,10 @@ func (self *CgoFeature) label() *string {
 	return self.mode
 }
 
+func (self *CgoFeature) HxClassName() string {
+	return "CgoFeature"
+}
+
 var CgoFeature_installed bool = Registry_install(hxrt.StringFromLiteral("cgo"))
 
 func CgoFeature_selected() *string {

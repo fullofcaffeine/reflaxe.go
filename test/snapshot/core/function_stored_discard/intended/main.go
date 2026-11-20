@@ -95,6 +95,10 @@ func hx_init__Main__Holder(self *_Main__Holder, callback *hxrt.Function[func(int
 	return self
 }
 
+func (self *_Main__Holder) HxClassName() string {
+	return "_Main.Holder"
+}
+
 func hx_recover_callable_0(value any) *hxrt.Function[func(int)] {
 	if value == nil {
 		return nil

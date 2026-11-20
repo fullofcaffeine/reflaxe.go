@@ -35,6 +35,10 @@ func hx_init_haxe___Template__TokenCursor(self *haxe___Template__TokenCursor, to
 	return self
 }
 
+func (self *haxe___Template__TokenCursor) HxClassName() string {
+	return "haxe._Template.TokenCursor"
+}
+
 type I_haxe___Template__ExprCursor interface {
 }
 
@@ -66,6 +70,10 @@ func hx_init_haxe___Template__ExprCursor(self *haxe___Template__ExprCursor, toke
 	self.tokens = tokens
 	self.index = 0
 	return self
+}
+
+func (self *haxe___Template__ExprCursor) HxClassName() string {
+	return "haxe._Template.ExprCursor"
 }
 
 type I_haxe__Template interface {
@@ -1279,6 +1287,10 @@ func (self *haxe__Template) popStackValue() any {
 	return value
 }
 
+func (self *haxe__Template) HxClassName() string {
+	return "haxe.Template"
+}
+
 func haxe__Template_addValues(left any, right any) any {
 	if func(hx_value any) bool {
 		switch hx_value.(type) {
@@ -1761,6 +1773,10 @@ func haxe__Template_valueAsFloat(value any) float64 {
 type haxe___Template__TemplateExpr struct {
 	tag    int
 	params []any
+}
+
+func (self *haxe___Template__TemplateExpr) HxEnumValue() (string, []any) {
+	return [7]string{"OpVar", "OpExpr", "OpIf", "OpStr", "OpBlock", "OpForeach", "OpMacro"}[self.tag], self.params
 }
 
 func haxe___Template__TemplateExpr_OpVar(v *string) *haxe___Template__TemplateExpr {

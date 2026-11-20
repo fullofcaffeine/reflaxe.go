@@ -15,6 +15,10 @@ type _Main__DeliveryState struct {
 	params []any
 }
 
+func (self *_Main__DeliveryState) HxEnumValue() (string, []any) {
+	return [2]string{"Queued", "Delivered"}[self.tag], self.params
+}
+
 var _Main__DeliveryState_Queued *_Main__DeliveryState = &_Main__DeliveryState{tag: 0}
 
 var _Main__DeliveryState_Delivered *_Main__DeliveryState = &_Main__DeliveryState{tag: 1}
@@ -203,6 +207,10 @@ func hx_init__Main__Delivery(self *_Main__Delivery, name *string, state *_Main__
 	self.name = name
 	self.state = state
 	return self
+}
+
+func (self *_Main__Delivery) HxClassName() string {
+	return "_Main.Delivery"
 }
 
 func hxrt__generated_method_field(obj any, key string) any {

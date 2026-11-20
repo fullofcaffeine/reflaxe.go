@@ -36,6 +36,10 @@ func hx_init_CompoundFeature(self *CompoundFeature) *CompoundFeature {
 	return self
 }
 
+func (self *CompoundFeature) HxClassName() string {
+	return "CompoundFeature"
+}
+
 func CompoundFeature_check() bool {
 	point := &image.Point{}
 	point.X = 42

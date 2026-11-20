@@ -50,3 +50,7 @@ func (self *sys__thread__Semaphore) tryAcquire(timeout any) bool {
 func (self *sys__thread__Semaphore) release() {
 	hxrt.ThreadSemaphoreRelease(self.__h)
 }
+
+func (self *sys__thread__Semaphore) HxClassName() string {
+	return "sys.thread.Semaphore"
+}

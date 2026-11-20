@@ -75,8 +75,17 @@ func ReflectLookupMethod(object any, field *string) *ReflectFieldLookup {
 		return &ReflectFieldLookup{}
 	}
 	key, valid := reflectFieldName(field)
-	if key == "HxFunctionReceiver" {
+	switch key {
+	case "HxFunctionReceiver":
 		if _, generated := object.(interface{ HxFunctionReceiver() any }); generated {
+			return &ReflectFieldLookup{}
+		}
+	case "HxClassName":
+		if _, generated := object.(haxeClassName); generated {
+			return &ReflectFieldLookup{}
+		}
+	case "HxEnumValue":
+		if _, generated := object.(haxeEnumValue); generated {
 			return &ReflectFieldLookup{}
 		}
 	}

@@ -62,6 +62,10 @@ func (self *Holder) missing() *hxrt.Function[func() any] {
 	return nil
 }
 
+func (self *Holder) HxClassName() string {
+	return "Holder"
+}
+
 func main() {
 	read := hx_recover_callable_0(New_Holder(19).reader())
 	alias := read

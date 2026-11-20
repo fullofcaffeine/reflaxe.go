@@ -131,3 +131,7 @@ func (self *haxe__io__BytesInput) readBytes(bytes *haxe__io__Bytes, targetPos in
 	self.len = int((hxrt.Int32Wrap(self.len) - hxrt.Int32Wrap(requested)))
 	return requested
 }
+
+func (self *haxe__io__BytesInput) HxClassName() string {
+	return "haxe.io.BytesInput"
+}

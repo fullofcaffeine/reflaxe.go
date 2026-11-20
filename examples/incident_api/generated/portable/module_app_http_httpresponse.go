@@ -33,6 +33,10 @@ func hx_init_app__http__HttpResponse(self *app__http__HttpResponse, status int, 
 	return self
 }
 
+func (self *app__http__HttpResponse) HxClassName() string {
+	return "app.http.HttpResponse"
+}
+
 func app__http__HttpResponse_json(status int, body *string) *app__http__HttpResponse {
 	return New_app__http__HttpResponse(status, body)
 }

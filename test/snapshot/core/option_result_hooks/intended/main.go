@@ -7,6 +7,10 @@ type Maybe struct {
 	params []any
 }
 
+func (self *Maybe) HxEnumValue() (string, []any) {
+	return [2]string{"None", "Some"}[self.tag], self.params
+}
+
 var Maybe_None *Maybe = &Maybe{tag: 0}
 
 func Maybe_Some(value any) *Maybe {
@@ -18,6 +22,10 @@ func Maybe_Some(value any) *Maybe {
 type Res struct {
 	tag    int
 	params []any
+}
+
+func (self *Res) HxEnumValue() (string, []any) {
+	return [2]string{"Ok", "Err"}[self.tag], self.params
 }
 
 func Res_Ok(value any) *Res {

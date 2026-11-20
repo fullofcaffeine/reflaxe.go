@@ -52,6 +52,10 @@ func (self *haxe__Timer) stop() {
 	}
 }
 
+func (self *haxe__Timer) HxClassName() string {
+	return "haxe.Timer"
+}
+
 func haxe__Timer_delay(f *hxrt.Function[func()], time_ms int) *haxe__Timer {
 	timer := New_haxe__Timer(time_ms)
 	timer.run = hxrt.NewFunction(func() {

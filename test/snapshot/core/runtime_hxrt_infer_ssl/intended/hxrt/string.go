@@ -3,6 +3,7 @@ package hxrt
 import (
 	"fmt"
 	"math"
+	"math/bits"
 	"reflect"
 	"strconv"
 	"strings"
@@ -53,44 +54,270 @@ func ObjectSource(value any) any {
 	return value
 }
 
+// StdString implements Haxe's `Std.string` for an erased value.
+//
+// What: Strings, numbers, booleans, and null keep their direct conversion.
+// Arrays, enum values, anonymous objects, and class instances print the way
+// the Haxe interpreter prints them: `[a,b]`, `Some(1)`, `{a: 1, b: x}`, the
+// result of `toString()`, or the class path (`pack.Point`).
+// Why: Go's own formatting (`&{1 [1]}`, `map[a:1]`) leaks the runtime carriers.
+// How: Scalars return early. Other values go through one depth-limited writer;
+// generated enums and classes supply their Haxe names through small exported
+// methods (see haxeEnumValue and haxeClassName).
 func StdString(value any) *string {
 	value = ObjectSource(value)
 	if isAnyNil(value) {
 		return StringFromLiteral("null")
 	}
+	if text, ok := value.(*string); ok {
+		return text
+	}
+	if text, ok := scalarHaxeString(value); ok {
+		return StringFromLiteral(text)
+	}
+	var text strings.Builder
+	writeResolvedHaxeString(&text, value, 0)
+	return StringFromLiteral(text.String())
+}
 
+func scalarHaxeString(value any) (string, bool) {
+	switch v := value.(type) {
+	case string:
+		return v, true
+	case bool:
+		return strconv.FormatBool(v), true
+	case float32, float64:
+		return fmt.Sprint(v), true
+	case int:
+		return strconv.FormatInt(int64(v), 10), true
+	case int8:
+		return strconv.FormatInt(int64(v), 10), true
+	case int16:
+		return strconv.FormatInt(int64(v), 10), true
+	case int32:
+		return strconv.FormatInt(int64(v), 10), true
+	case int64:
+		return strconv.FormatInt(v, 10), true
+	case uint:
+		return strconv.FormatUint(uint64(v), 10), true
+	case uint8:
+		return strconv.FormatUint(uint64(v), 10), true
+	case uint16:
+		return strconv.FormatUint(uint64(v), 10), true
+	case uint32:
+		return strconv.FormatUint(uint64(v), 10), true
+	case uint64:
+		return strconv.FormatUint(v, 10), true
+	case uintptr:
+		return strconv.FormatUint(uint64(v), 10), true
+	default:
+		return "", false
+	}
+}
+
+// haxeStringMaxDepth is how deep Std.string looks into nested values.
+//
+// What: A value nested more than five levels inside Arrays, enum arguments, or
+// anonymous objects prints as `<...>`; so does a `toString()` result at depth 5.
+// Why: This is the Haxe interpreter's default print depth (`eval-print-depth`),
+// and the interpreter is this repository's semantic reference. The limit also
+// stops an Array or object that contains itself from overflowing the Go stack.
+// How: Every container passes depth+1 to its children, as the interpreter does.
+const haxeStringMaxDepth = 5
+
+// haxeEnumValue is implemented by every generated Haxe enum carrier. It returns
+// the constructor name and its arguments, which hold Haxe values.
+type haxeEnumValue interface {
+	HxEnumValue() (string, []any)
+}
+
+// haxeClassName is implemented by generated classes that have no `toString()`.
+// It returns the dotted Haxe class path. Classes with `toString()` implement
+// fmt.Stringer instead.
+type haxeClassName interface {
+	HxClassName() string
+}
+
+// haxeStringWriter is implemented by the optional Array carrier (array.go). It
+// writes its elements inside the same depth-limited pass, and string.go stays
+// independent of that file.
+type haxeStringWriter interface {
+	writeHaxeString(text *strings.Builder, depth int)
+}
+
+// haxeFunction matches the optional Function carrier (function.go) through a
+// method it already has. A new method would be copied into every Function[F]
+// instantiation and grow each program's binary; this needs none.
+type haxeFunction interface {
+	functionPayload() any
+}
+
+func writeHaxeString(text *strings.Builder, value any, depth int) {
+	if depth > haxeStringMaxDepth {
+		text.WriteString("<...>")
+		return
+	}
+	value = ObjectSource(value)
+	if isAnyNil(value) {
+		text.WriteString("null")
+		return
+	}
+	writeResolvedHaxeString(text, value, depth)
+}
+
+// writeResolvedHaxeString writes a value that ObjectSource already resolved and
+// that is not null. Type tests run in this order: runtime carriers, enums,
+// anonymous objects, toString() adapters, class names, then scalars and Go's
+// own formatting for native values.
+func writeResolvedHaxeString(text *strings.Builder, value any, depth int) {
 	switch v := value.(type) {
 	case *string:
-		return v
-	case string:
-		return StringFromLiteral(v)
-	case bool:
-		return StringFromLiteral(strconv.FormatBool(v))
-	case int:
-		return StringFromLiteral(strconv.FormatInt(int64(v), 10))
-	case int8:
-		return StringFromLiteral(strconv.FormatInt(int64(v), 10))
-	case int16:
-		return StringFromLiteral(strconv.FormatInt(int64(v), 10))
-	case int32:
-		return StringFromLiteral(strconv.FormatInt(int64(v), 10))
-	case int64:
-		return StringFromLiteral(strconv.FormatInt(v, 10))
-	case uint:
-		return StringFromLiteral(strconv.FormatUint(uint64(v), 10))
-	case uint8:
-		return StringFromLiteral(strconv.FormatUint(uint64(v), 10))
-	case uint16:
-		return StringFromLiteral(strconv.FormatUint(uint64(v), 10))
-	case uint32:
-		return StringFromLiteral(strconv.FormatUint(uint64(v), 10))
-	case uint64:
-		return StringFromLiteral(strconv.FormatUint(v, 10))
-	case uintptr:
-		return StringFromLiteral(strconv.FormatUint(uint64(v), 10))
+		text.WriteString(*v)
+	case haxeStringWriter:
+		v.writeHaxeString(text, depth)
+	case haxeFunction:
+		// Haxe prints a function as `#fun` at its own depth, unlike a toString()
+		// result, which is printed one level deeper.
+		text.WriteString("#fun")
+	case haxeEnumValue:
+		name, params := v.HxEnumValue()
+		text.WriteString(name)
+		if len(params) > 0 {
+			text.WriteByte('(')
+			for index, param := range params {
+				if index > 0 {
+					text.WriteByte(',')
+				}
+				writeHaxeString(text, param, depth+1)
+			}
+			text.WriteByte(')')
+		}
+	case map[string]any:
+		writeAnonymousHaxeString(text, v, depth+1)
+	case fmt.Stringer:
+		// A generated toString() adapter. Haxe calls toString first and then
+		// prints its result one level deeper.
+		result := v.String()
+		writeHaxeString(text, &result, depth+1)
+	case haxeClassName:
+		text.WriteString(v.HxClassName())
 	default:
-		return StringFromLiteral(fmt.Sprint(v))
+		if scalar, ok := scalarHaxeString(value); ok {
+			text.WriteString(scalar)
+		} else {
+			text.WriteString(fmt.Sprint(value))
+		}
 	}
+}
+
+// writeAnonymousHaxeString prints a Haxe anonymous object.
+//
+// What: An object with a callable `toString` field prints that call's result.
+// Otherwise it prints `{name: value, ...}`, or `{}` when it has no fields.
+// Why: Haxe does not define the field order. Go map order is random, so the
+// writer needs a fixed order, and it uses the interpreter's order so generated
+// programs print the same text as `haxe --interp`.
+// How: The interpreter keeps fields in a little-endian Patricia tree keyed by
+// OCaml's `Hashtbl.hash` of the name; reading that tree visits keys by their
+// bit-reversed value. haxeInterpFieldOrderKey computes the same key.
+func writeAnonymousHaxeString(text *strings.Builder, fields map[string]any, depth int) {
+	if method, found := fields["toString"].(haxeFunction); found {
+		// Only the `() -> String` and `() -> Dynamic` shapes are called; typed
+		// assertions keep reflection out of this path.
+		switch call := method.functionPayload().(type) {
+		case func() *string:
+			writeHaxeString(text, call(), depth)
+			return
+		case func() any:
+			writeHaxeString(text, call(), depth)
+			return
+		}
+	}
+	ordered := make([]anonymousFieldOrder, 0, len(fields))
+	for name := range fields {
+		ordered = append(ordered, anonymousFieldOrder{key: haxeInterpFieldOrderKey(name), name: name})
+	}
+	sortAnonymousFieldOrder(ordered)
+	text.WriteByte('{')
+	for index, field := range ordered {
+		if index > 0 {
+			text.WriteString(", ")
+		}
+		text.WriteString(field.name)
+		text.WriteString(": ")
+		writeHaxeString(text, fields[field.name], depth)
+	}
+	text.WriteByte('}')
+}
+
+type anonymousFieldOrder struct {
+	key  uint32
+	name string
+}
+
+// sortAnonymousFieldOrder sorts by key, then by name, with an in-place heap sort.
+// A small hand-written sort keeps package sort and its reflection helper out of
+// every generated program: sort.Slice added about 35 KB to an example binary.
+func sortAnonymousFieldOrder(fields []anonymousFieldOrder) {
+	less := func(left, right anonymousFieldOrder) bool {
+		return left.key < right.key || left.key == right.key && left.name < right.name
+	}
+	siftDown := func(root, end int) {
+		for {
+			child := 2*root + 1
+			if child >= end {
+				return
+			}
+			if child+1 < end && less(fields[child], fields[child+1]) {
+				child++
+			}
+			if !less(fields[root], fields[child]) {
+				return
+			}
+			fields[root], fields[child] = fields[child], fields[root]
+			root = child
+		}
+	}
+	for root := len(fields)/2 - 1; root >= 0; root-- {
+		siftDown(root, len(fields))
+	}
+	for end := len(fields) - 1; end > 0; end-- {
+		fields[0], fields[end] = fields[end], fields[0]
+		siftDown(0, end)
+	}
+}
+
+// haxeInterpFieldOrderKey returns the sort key of one anonymous-object field in
+// the Haxe interpreter: OCaml's `Hashtbl.hash` of the name (MurmurHash3 mixing
+// over little-endian 32-bit blocks, folded to 30 bits), bit-reversed.
+func haxeInterpFieldOrderKey(name string) uint32 {
+	mix := func(hash, data uint32) uint32 {
+		data *= 0xcc9e2d51
+		data = bits.RotateLeft32(data, 15)
+		data *= 0x1b873593
+		hash ^= data
+		hash = bits.RotateLeft32(hash, 13)
+		return hash*5 + 0xe6546b64
+	}
+	var hash uint32
+	index := 0
+	for ; index+4 <= len(name); index += 4 {
+		hash = mix(hash, uint32(name[index])|uint32(name[index+1])<<8|uint32(name[index+2])<<16|uint32(name[index+3])<<24)
+	}
+	if rest := len(name) - index; rest > 0 {
+		var data uint32
+		for offset := rest - 1; offset >= 0; offset-- {
+			data = data<<8 | uint32(name[index+offset])
+		}
+		hash = mix(hash, data)
+	}
+	hash ^= uint32(len(name))
+	hash ^= hash >> 16
+	hash *= 0x85ebca6b
+	hash ^= hash >> 13
+	hash *= 0xc2b2ae35
+	hash ^= hash >> 16
+	return bits.Reverse32(hash & 0x3fffffff)
 }
 
 // StringParseFloatExact converts one source-validated numeric token.

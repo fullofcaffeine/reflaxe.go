@@ -37,6 +37,10 @@ func hx_init_Main(self *Main) *Main {
 	return self
 }
 
+func (self *Main) HxClassName() string {
+	return "Main"
+}
+
 func main() {
 	source := New_Main()
 	view := func(hx_structural_source_1 *Main) hxrt.Anonymous {

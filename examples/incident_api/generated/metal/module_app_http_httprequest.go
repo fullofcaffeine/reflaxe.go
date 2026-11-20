@@ -34,3 +34,7 @@ func hx_init_app__http__HttpRequest(self *app__http__HttpRequest, method *string
 	self.body = body
 	return self
 }
+
+func (self *app__http__HttpRequest) HxClassName() string {
+	return "app.http.HttpRequest"
+}

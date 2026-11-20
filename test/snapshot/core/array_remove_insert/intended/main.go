@@ -492,3 +492,7 @@ func hx_init_SnapshotArrayMutationBox(self *SnapshotArrayMutationBox, id int) *S
 	self.id = id
 	return self
 }
+
+func (self *SnapshotArrayMutationBox) HxClassName() string {
+	return "SnapshotArrayMutationBox"
+}

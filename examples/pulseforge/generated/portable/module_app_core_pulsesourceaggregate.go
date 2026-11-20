@@ -60,3 +60,7 @@ func (self *app__core__PulseSourceAggregate) record(entry *app__core__PulseEnric
 func (self *app__core__PulseSourceAggregate) summaryToken() *string {
 	return hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(self.source, hxrt.StringFromLiteral(":")), self.count), hxrt.StringFromLiteral("/")), self.totalValue), hxrt.StringFromLiteral("/")), self.totalWeighted), hxrt.StringFromLiteral("/sev")), self.maxSeverity)
 }
+
+func (self *app__core__PulseSourceAggregate) HxClassName() string {
+	return "app.core.PulseSourceAggregate"
+}

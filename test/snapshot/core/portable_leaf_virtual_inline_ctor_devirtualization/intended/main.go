@@ -41,6 +41,10 @@ func (self *Leaf) pong() int {
 	return 13
 }
 
+func (self *Leaf) HxClassName() string {
+	return "Leaf"
+}
+
 func main() {
 	var v any = any(New_Leaf().ping())
 	hxrt.Println(v)

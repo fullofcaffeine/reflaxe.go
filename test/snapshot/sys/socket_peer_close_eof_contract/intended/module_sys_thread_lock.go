@@ -45,3 +45,7 @@ func (self *sys__thread__Lock) wait(timeout any) bool {
 func (self *sys__thread__Lock) release() {
 	hxrt.ThreadLockRelease(self.__h)
 }
+
+func (self *sys__thread__Lock) HxClassName() string {
+	return "sys.thread.Lock"
+}

@@ -70,3 +70,7 @@ func hx_init_ParseResult(self *ParseResult, value *time.Time, error *go___Error)
 	self.error = error
 	return self
 }
+
+func (self *ParseResult) HxClassName() string {
+	return "ParseResult"
+}

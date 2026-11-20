@@ -18,6 +18,10 @@ type EKey struct {
 	params []any
 }
 
+func (self *EKey) HxEnumValue() (string, []any) {
+	return [2]string{"A", "B"}[self.tag], self.params
+}
+
 var EKey_A *EKey = &EKey{tag: 0}
 
 func EKey_B(v int) *EKey {
@@ -55,6 +59,10 @@ func hx_alloc_Box(owner any) *Box {
 func hx_init_Box(self *Box, id int) *Box {
 	self.id = id
 	return self
+}
+
+func (self *Box) HxClassName() string {
+	return "Box"
 }
 
 func main() {
@@ -1129,6 +1137,10 @@ func hxrt_typeCreateEmpty__haxe__iterators__MapKeyValueIterator() *haxe__iterato
 type ValueType struct {
 	tag    int
 	params []any
+}
+
+func (self *ValueType) HxEnumValue() (string, []any) {
+	return [9]string{"TNull", "TInt", "TFloat", "TBool", "TObject", "TFunction", "TClass", "TEnum", "TUnknown"}[self.tag], self.params
 }
 
 var ValueType_TNull *ValueType = &ValueType{tag: 0, params: []any{}}

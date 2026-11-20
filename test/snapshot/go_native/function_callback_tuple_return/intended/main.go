@@ -38,6 +38,10 @@ func hx_init_CancelPair(self *CancelPair, context_local context.Context, cancel 
 	return self
 }
 
+func (self *CancelPair) HxClassName() string {
+	return "CancelPair"
+}
+
 func main() {
 	pair := func() *CancelPair {
 		hx_tuple_1, hx_tuple_2 := context.WithCancel(context.Background())

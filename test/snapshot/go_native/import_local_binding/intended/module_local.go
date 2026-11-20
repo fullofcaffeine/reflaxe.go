@@ -33,6 +33,10 @@ func hx_init_Local(self *Local) *Local {
 	return self
 }
 
+func (self *Local) HxClassName() string {
+	return "Local"
+}
+
 func Local_argument(bytes_local *Local) int {
 	return bytes_local.value
 }

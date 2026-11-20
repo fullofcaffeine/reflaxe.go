@@ -83,6 +83,10 @@ func (self *haxe__zip__Uncompress) ensureOpen() {
 	}
 }
 
+func (self *haxe__zip__Uncompress) HxClassName() string {
+	return "haxe.zip.Uncompress"
+}
+
 func haxe__zip__Uncompress_flushModeCode(mode *haxe__zip__FlushMode) int {
 	var hx_switch_3 int
 	switch mode.tag {

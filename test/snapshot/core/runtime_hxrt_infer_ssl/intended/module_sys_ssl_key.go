@@ -33,6 +33,10 @@ func hx_init_sys__ssl__Key(self *sys__ssl__Key, handle *hxrt.SslKey) *sys__ssl__
 	return self
 }
 
+func (self *sys__ssl__Key) HxClassName() string {
+	return "sys.ssl.Key"
+}
+
 func sys__ssl__Key_loadFile(file *string, isPublic any, pass *string) *sys__ssl__Key {
 	return New_sys__ssl__Key(hxrt.SslKeyLoadFile(file, (isPublic.(bool) == true), pass))
 }

@@ -41,6 +41,10 @@ func (self *Base) callWho() *string {
 	return self.__hx_this.who()
 }
 
+func (self *Base) HxClassName() string {
+	return "Base"
+}
+
 type I_Leaf interface {
 	who() *string
 	callWho() *string
@@ -79,6 +83,10 @@ func hx_init_Leaf(self *Leaf) *Leaf {
 
 func (self *Leaf) who() *string {
 	return hxrt.StringFromLiteral("leaf")
+}
+
+func (self *Leaf) HxClassName() string {
+	return "Leaf"
 }
 
 func main() {
@@ -156,4 +164,8 @@ func hx_init_Middle(self *Middle) *Middle {
 
 func (self *Middle) who() *string {
 	return hxrt.StringFromLiteral("middle")
+}
+
+func (self *Middle) HxClassName() string {
+	return "Middle"
 }

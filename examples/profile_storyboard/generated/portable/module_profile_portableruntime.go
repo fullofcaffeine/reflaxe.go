@@ -65,3 +65,7 @@ func (self *profile__PortableRuntime) velocityPerSprint() int {
 func (self *profile__PortableRuntime) riskThreshold() int {
 	return 5
 }
+
+func (self *profile__PortableRuntime) HxClassName() string {
+	return "profile.PortableRuntime"
+}

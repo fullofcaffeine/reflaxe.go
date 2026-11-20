@@ -649,6 +649,10 @@ func (self *sys__Http) encodedParameters() *string {
 	return hxrt.StringJoinAny(encoded.Values(), hxrt.StringFromLiteral("&"))
 }
 
+func (self *sys__Http) HxClassName() string {
+	return "sys.Http"
+}
+
 var sys__Http_PROXY hxrt.Anonymous = nil
 
 func sys__Http_explicitMethod(method *string) *string {

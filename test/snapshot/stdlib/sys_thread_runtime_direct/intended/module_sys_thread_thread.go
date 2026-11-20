@@ -47,6 +47,10 @@ func (self *sys__thread__Thread) sendMessage(msg any) {
 	hxrt.ThreadSendMessage(self.__id, msg)
 }
 
+func (self *sys__thread__Thread) HxClassName() string {
+	return "sys.thread.Thread"
+}
+
 func sys__thread__Thread_create(job *hxrt.Function[func()]) *sys__thread__Thread {
 	return New_sys__thread__Thread(hxrt.ThreadSpawn(hxrt.FunctionNative(job), hxrt.FunctionNative(hxrt.NamedFunction(sys__thread__Thread_reportUncaught, "sys.thread.Thread.reportUncaught"))))
 }

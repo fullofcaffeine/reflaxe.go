@@ -449,6 +449,10 @@ type haxe__StackItem struct {
 	params []any
 }
 
+func (self *haxe__StackItem) HxEnumValue() (string, []any) {
+	return [5]string{"CFunction", "Module", "FilePos", "Method", "LocalFunction"}[self.tag], self.params
+}
+
 var haxe__StackItem_CFunction *haxe__StackItem = &haxe__StackItem{tag: 0}
 
 func haxe__StackItem_Module(m *string) *haxe__StackItem {

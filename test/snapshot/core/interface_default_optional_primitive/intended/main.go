@@ -44,6 +44,10 @@ func (self *DefaultedValueBase) get(value any) int {
 	return value.(int)
 }
 
+func (self *DefaultedValueBase) HxClassName() string {
+	return "DefaultedValueBase"
+}
+
 type I_DefaultedValueImpl interface {
 	get(value any) int
 	label(value *string) *string
@@ -83,6 +87,10 @@ func (self *DefaultedValueImpl) label(value *string) *string {
 		value = hxrt.StringFromLiteral("implementation")
 	}
 	return value
+}
+
+func (self *DefaultedValueImpl) HxClassName() string {
+	return "DefaultedValueImpl"
 }
 
 func main() {

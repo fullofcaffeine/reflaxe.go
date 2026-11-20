@@ -302,3 +302,7 @@ func (self *haxe__io__Input) readString(len int, encoding *haxe__io__Encoding) *
 	self.__hx_this.readFullBytes(bytes, 0, len)
 	return bytes.__hx_this.getString(0, len, encoding)
 }
+
+func (self *haxe__io__Input) HxClassName() string {
+	return "haxe.io.Input"
+}

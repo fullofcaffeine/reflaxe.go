@@ -7,6 +7,10 @@ type Expr struct {
 	params []any
 }
 
+func (self *Expr) HxEnumValue() (string, []any) {
+	return [2]string{"Lit", "Pair"}[self.tag], self.params
+}
+
 func Expr_Lit(value int) *Expr {
 	enumValue := &Expr{tag: 0}
 	enumValue.params = []any{value}

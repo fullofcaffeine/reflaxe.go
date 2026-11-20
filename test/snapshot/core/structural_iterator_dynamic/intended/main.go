@@ -47,6 +47,10 @@ func hx_init_Cursor(self *Cursor) *Cursor {
 	return self
 }
 
+func (self *Cursor) HxClassName() string {
+	return "Cursor"
+}
+
 func main() {
 	source := New_Cursor()
 	view := func(hx_structural_source_2 *Cursor) hxrt.Anonymous {

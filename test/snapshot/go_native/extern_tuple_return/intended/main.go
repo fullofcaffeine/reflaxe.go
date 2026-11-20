@@ -39,6 +39,10 @@ func hx_init_AtoiResult(self *AtoiResult, n int, err *go___Error) *AtoiResult {
 	return self
 }
 
+func (self *AtoiResult) HxClassName() string {
+	return "AtoiResult"
+}
+
 func main() {
 	ok := func() *AtoiResult {
 		hx_tuple_1, hx_tuple_2 := strconv.Atoi(*hxrt.StdString(hxrt.StringFromLiteral("12")))
@@ -101,4 +105,8 @@ func hx_init_TimeZoneResult(self *TimeZoneResult, name *string, offset int) *Tim
 	self.name = name
 	self.offset = offset
 	return self
+}
+
+func (self *TimeZoneResult) HxClassName() string {
+	return "TimeZoneResult"
 }

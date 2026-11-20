@@ -51,6 +51,10 @@ func hx_init__Main__WeakMapKey(self *_Main__WeakMapKey) *_Main__WeakMapKey {
 	return self
 }
 
+func (self *_Main__WeakMapKey) HxClassName() string {
+	return "_Main.WeakMapKey"
+}
+
 func hx_recover_class_0(value any) *haxe__exceptions__NotImplementedException {
 	value = hxrt.ObjectSource(value)
 	if value == nil {

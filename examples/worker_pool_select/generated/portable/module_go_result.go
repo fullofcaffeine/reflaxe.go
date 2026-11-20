@@ -61,6 +61,10 @@ func (self *go___Result) error() *string {
 	return self.errorValue.toString()
 }
 
+func (self *go___Result) HxClassName() string {
+	return "go.Result"
+}
+
 func go___Result_failure(message *string) *go___Result {
 	return New_go___Result(nil, New_go___Error(message))
 }

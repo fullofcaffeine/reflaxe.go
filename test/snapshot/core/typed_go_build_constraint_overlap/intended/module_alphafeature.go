@@ -36,6 +36,10 @@ func hx_init_AlphaFeature(self *AlphaFeature) *AlphaFeature {
 	return self
 }
 
+func (self *AlphaFeature) HxClassName() string {
+	return "AlphaFeature"
+}
+
 func AlphaFeature_check() bool {
 	point := &image.Point{}
 	point.X = 42

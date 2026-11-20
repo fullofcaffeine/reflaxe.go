@@ -41,6 +41,10 @@ func hx_init_C(self *C) *C {
 	return self
 }
 
+func (self *C) HxClassName() string {
+	return "C"
+}
+
 func main() {
 	var erased any = New_C()
 	view := hx_structural_recover(hx_structural_recover(erased))
@@ -139,6 +143,10 @@ func hx_init_Present(self *Present) *Present {
 	hx_init_C(self.C)
 	self.label = nil
 	return self
+}
+
+func (self *Present) HxClassName() string {
+	return "Present"
 }
 
 func hx_structural_recover(value any) hxrt.Anonymous {

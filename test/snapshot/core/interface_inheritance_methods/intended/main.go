@@ -80,6 +80,10 @@ func (self *QueryService) local() *string {
 	return hxrt.StringFromLiteral("local")
 }
 
+func (self *QueryService) HxClassName() string {
+	return "QueryService"
+}
+
 type RightQuery interface {
 	root(value *string) *string
 	right() *string

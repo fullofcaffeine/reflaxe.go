@@ -122,6 +122,10 @@ func (self *app__core__IncidentApi) updateIncident(path *string, action *string)
 	return app__http__HttpResponse_json(200, hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("{\"incident\":"), incident.toJson()), hxrt.StringFromLiteral("}")))
 }
 
+func (self *app__core__IncidentApi) HxClassName() string {
+	return "app.core.IncidentApi"
+}
+
 func app__core__IncidentApi_fieldString(raw any, name *string, fallback *string) *string {
 	if hxrt.AnyEqualsNull(raw) || !Reflect_hasField(raw, name) {
 		return fallback

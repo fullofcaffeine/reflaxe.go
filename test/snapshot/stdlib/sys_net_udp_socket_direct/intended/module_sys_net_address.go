@@ -61,6 +61,10 @@ func (self *sys__net__Address) clone() *sys__net__Address {
 	return c
 }
 
+func (self *sys__net__Address) HxClassName() string {
+	return "sys.net.Address"
+}
+
 func sys__net__Address_octet(value int, shift int) *string {
 	return hxrt.StdString(int((hxrt.Int32Wrap(int(int32((uint32(hxrt.Int32Wrap(value)) >> uint(shift))))) & hxrt.Int32Wrap(255))))
 }

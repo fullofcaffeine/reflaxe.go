@@ -466,6 +466,10 @@ func (self *_Main__TrackingInput) readBytes(bytes *haxe__io__Bytes, targetPos in
 	}
 }
 
+func (self *_Main__TrackingInput) HxClassName() string {
+	return "_Main.TrackingInput"
+}
+
 func hx_structural_recover(value any) hxrt.Anonymous {
 	switch source := value.(type) {
 	case *_Main__TrackingInput:

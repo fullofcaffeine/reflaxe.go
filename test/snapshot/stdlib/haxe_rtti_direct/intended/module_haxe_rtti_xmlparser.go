@@ -2126,3 +2126,7 @@ func (self *haxe__rtti__XmlParser) parseIntString(value *string) int {
 	}
 	return hx_if_387
 }
+
+func (self *haxe__rtti__XmlParser) HxClassName() string {
+	return "haxe.rtti.XmlParser"
+}

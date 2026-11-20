@@ -39,6 +39,10 @@ func hx_init_ErrorMatch(self *ErrorMatch, value any, matched bool) *ErrorMatch {
 	return self
 }
 
+func (self *ErrorMatch) HxClassName() string {
+	return "ErrorMatch"
+}
+
 func main() {
 	NativeErrorProbe_check()
 	var scalar reflect.Type = reflect.TypeFor[int]()

@@ -316,6 +316,10 @@ func (self *SnapshotBaseIterator) next() *string {
 	}()))
 }
 
+func (self *SnapshotBaseIterator) HxClassName() string {
+	return "SnapshotBaseIterator"
+}
+
 type I_SnapshotGenericIterator interface {
 	hasNext() bool
 	next() any
@@ -371,6 +375,10 @@ func (self *SnapshotGenericIterator) next() any {
 	return hx_if_39
 }
 
+func (self *SnapshotGenericIterator) HxClassName() string {
+	return "SnapshotGenericIterator"
+}
+
 type I_SnapshotSpecializedIterator interface {
 	hasNext() bool
 	next() *string
@@ -411,6 +419,10 @@ func (self *SnapshotSpecializedIterator) next() *string {
 		self.index = int(int32((self.index + 1)))
 		return hx_post_43
 	}()))
+}
+
+func (self *SnapshotSpecializedIterator) HxClassName() string {
+	return "SnapshotSpecializedIterator"
 }
 
 func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {

@@ -38,6 +38,10 @@ func (self *Holder) read() hxrt.Anonymous {
 	return self.value
 }
 
+func (self *Holder) HxClassName() string {
+	return "Holder"
+}
+
 func main() {
 	hx_obj_1 := map[string]any{}
 	hx_obj_1["hasNext"] = hxrt.NewFunction(func() bool {

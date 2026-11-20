@@ -34,3 +34,7 @@ func hx_init_profile__StorySignalMetrics(self *profile__StorySignalMetrics, card
 	self.openHighValue = openHighValue
 	return self
 }
+
+func (self *profile__StorySignalMetrics) HxClassName() string {
+	return "profile.StorySignalMetrics"
+}

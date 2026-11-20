@@ -169,6 +169,10 @@ func (self *app__http__TinyHttpServer) writeResponse(peer *sys__net__Socket, res
 	peer.output.__hx_this.flush()
 }
 
+func (self *app__http__TinyHttpServer) HxClassName() string {
+	return "app.http.TinyHttpServer"
+}
+
 func app__http__TinyHttpServer_closePeer(peer *sys__net__Socket) {
 	if peer == nil {
 		return

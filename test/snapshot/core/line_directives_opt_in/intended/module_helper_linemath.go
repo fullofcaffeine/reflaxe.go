@@ -38,3 +38,7 @@ func (self *helper__LineMath) doubleIt(value int) int {
 	twice := int((hxrt.Int32Wrap(value) * hxrt.Int32Wrap(2)))
 	return twice
 }
+
+func (self *helper__LineMath) HxClassName() string {
+	return "helper.LineMath"
+}

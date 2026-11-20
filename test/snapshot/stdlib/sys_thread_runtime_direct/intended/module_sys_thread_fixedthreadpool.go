@@ -101,6 +101,10 @@ func (self *sys__thread__FixedThreadPool) shutdown() {
 	self.mutex.__hx_this.release()
 }
 
+func (self *sys__thread__FixedThreadPool) HxClassName() string {
+	return "sys.thread.FixedThreadPool"
+}
+
 func sys__thread__FixedThreadPool_shutdownTask() {
 	hxrt.Throw(haxe__Exception_thrown(New_sys__thread__FixedThreadPoolShutdownException(hxrt.StringFromLiteral(""), nil, nil)))
 }

@@ -58,3 +58,7 @@ func hx_init_ParseDurationResult(self *ParseDurationResult, value *time.Duration
 	self.error = error
 	return self
 }
+
+func (self *ParseDurationResult) HxClassName() string {
+	return "ParseDurationResult"
+}

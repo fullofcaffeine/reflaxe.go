@@ -36,6 +36,10 @@ func (self *Base) ping() int {
 	return 1
 }
 
+func (self *Base) HxClassName() string {
+	return "Base"
+}
+
 type I_Child interface {
 	ping() int
 }
@@ -71,6 +75,10 @@ func hx_init_Child(self *Child) *Child {
 
 func (self *Child) ping() int {
 	return 2
+}
+
+func (self *Child) HxClassName() string {
+	return "Child"
 }
 
 func main() {

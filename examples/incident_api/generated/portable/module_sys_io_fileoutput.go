@@ -113,3 +113,7 @@ func (self *sys__io__FileOutput) flush() {
 func (self *sys__io__FileOutput) close() {
 	hxrt.FileOutputClose(self.handle)
 }
+
+func (self *sys__io__FileOutput) HxClassName() string {
+	return "sys.io.FileOutput"
+}

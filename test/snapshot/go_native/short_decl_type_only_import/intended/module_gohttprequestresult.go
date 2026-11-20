@@ -34,3 +34,7 @@ func hx_init_GoHTTPRequestResult(self *GoHTTPRequestResult, request *http.Reques
 	self.error = error
 	return self
 }
+
+func (self *GoHTTPRequestResult) HxClassName() string {
+	return "GoHTTPRequestResult"
+}

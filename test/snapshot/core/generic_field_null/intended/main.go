@@ -33,6 +33,10 @@ func hx_init_Box(self *Box, value any) *Box {
 	return self
 }
 
+func (self *Box) HxClassName() string {
+	return "Box"
+}
+
 type I_Leaf interface {
 }
 
@@ -60,6 +64,10 @@ func hx_alloc_Leaf(owner any) *Leaf {
 
 func hx_init_Leaf(self *Leaf) *Leaf {
 	return self
+}
+
+func (self *Leaf) HxClassName() string {
+	return "Leaf"
 }
 
 func main() {

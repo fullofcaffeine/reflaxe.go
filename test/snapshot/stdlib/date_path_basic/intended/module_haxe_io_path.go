@@ -63,6 +63,10 @@ func hx_init_haxe__io__Path(self *haxe__io__Path, path *string) *haxe__io__Path 
 	return self
 }
 
+func (self *haxe__io__Path) HxClassName() string {
+	return "haxe.io.Path"
+}
+
 func haxe__io__Path_addTrailingSlash(path *string) *string {
 	if hxrt.StringLengthStringPtr(path) == 0 {
 		return hxrt.StringFromLiteral("/")

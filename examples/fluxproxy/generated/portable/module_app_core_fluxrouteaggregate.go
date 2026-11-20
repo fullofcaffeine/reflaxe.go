@@ -70,3 +70,7 @@ func (self *app__core__FluxRouteAggregate) averageLatencyMs() int {
 func (self *app__core__FluxRouteAggregate) summaryToken() *string {
 	return hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(self.route, hxrt.StringFromLiteral(":")), self.count), hxrt.StringFromLiteral("/")), self.successCount), hxrt.StringFromLiteral("/")), self.errorCount), hxrt.StringFromLiteral("/")), self.averageLatencyMs())
 }
+
+func (self *app__core__FluxRouteAggregate) HxClassName() string {
+	return "app.core.FluxRouteAggregate"
+}

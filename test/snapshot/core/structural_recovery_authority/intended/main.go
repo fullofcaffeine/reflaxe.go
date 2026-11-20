@@ -43,6 +43,10 @@ func hx_init_C(self *C) *C {
 	return self
 }
 
+func (self *C) HxClassName() string {
+	return "C"
+}
+
 func main() {
 	narrow := func(hx_structural_source_1 *C) hxrt.Anonymous {
 		return hxrt.NewAnonymousView(hx_structural_source_1, func(name string) hxrt.AnonymousField {

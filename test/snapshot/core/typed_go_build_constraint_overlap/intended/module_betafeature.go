@@ -36,6 +36,10 @@ func hx_init_BetaFeature(self *BetaFeature) *BetaFeature {
 	return self
 }
 
+func (self *BetaFeature) HxClassName() string {
+	return "BetaFeature"
+}
+
 func BetaFeature_check() bool {
 	point := &image.Point{}
 	point.X = 42

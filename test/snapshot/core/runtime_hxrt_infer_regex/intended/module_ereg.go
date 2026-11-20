@@ -324,6 +324,10 @@ func (self *EReg) expandReplacement(by *string, source *string, currentMatch *hx
 	return out_b
 }
 
+func (self *EReg) HxClassName() string {
+	return "EReg"
+}
+
 func EReg_escape(s *string) *string {
 	return hxrt.StdString(hxrt.RegexEscape(s))
 }

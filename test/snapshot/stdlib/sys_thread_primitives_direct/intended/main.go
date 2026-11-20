@@ -201,6 +201,10 @@ func (self *_Main__DummyPool) runCount() int {
 	return self.runs
 }
 
+func (self *_Main__DummyPool) HxClassName() string {
+	return "_Main.DummyPool"
+}
+
 func hx_recover_class_0(value any) *sys__thread__ThreadPoolException {
 	value = hxrt.ObjectSource(value)
 	if value == nil {

@@ -277,6 +277,10 @@ func (self *SnapshotInlineBaseStringIterator) next() *string {
 	}()))
 }
 
+func (self *SnapshotInlineBaseStringIterator) HxClassName() string {
+	return "SnapshotInlineBaseStringIterator"
+}
+
 type I_SnapshotInlineGenericIterator interface {
 	hasNext() bool
 	next() any
@@ -333,6 +337,10 @@ func (self *SnapshotInlineGenericIterator) next() any {
 	return hx_if_30
 }
 
+func (self *SnapshotInlineGenericIterator) HxClassName() string {
+	return "SnapshotInlineGenericIterator"
+}
+
 type I_SnapshotInlineSpecializedStringIterator interface {
 	hasNext() bool
 	next() *string
@@ -373,6 +381,10 @@ func (self *SnapshotInlineSpecializedStringIterator) next() *string {
 		self.index = int(int32((self.index + 1)))
 		return hx_post_34
 	}()))
+}
+
+func (self *SnapshotInlineSpecializedStringIterator) HxClassName() string {
+	return "SnapshotInlineSpecializedStringIterator"
 }
 
 func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {

@@ -43,6 +43,10 @@ func hx_init_app__core__PulseAlert(self *app__core__PulseAlert, eventId int, sou
 	return self
 }
 
+func (self *app__core__PulseAlert) HxClassName() string {
+	return "app.core.PulseAlert"
+}
+
 func app__core__PulseAlert_fromEnriched(entry *app__core__PulseEnrichedEvent) *app__core__PulseAlert {
 	var hx_if_1 *string
 	if entry.severity >= 3 {

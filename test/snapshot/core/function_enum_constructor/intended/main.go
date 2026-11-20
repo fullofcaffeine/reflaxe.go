@@ -7,6 +7,10 @@ type Parcel struct {
 	params []any
 }
 
+func (self *Parcel) HxEnumValue() (string, []any) {
+	return [1]string{"Item"}[self.tag], self.params
+}
+
 func Parcel_Item(value int) *Parcel {
 	enumValue := &Parcel{tag: 0}
 	enumValue.params = []any{value}

@@ -18,6 +18,10 @@ type Mode struct {
 	params []any
 }
 
+func (self *Mode) HxEnumValue() (string, []any) {
+	return [3]string{"Alpha", "Beta", "Gamma"}[self.tag], self.params
+}
+
 var Mode_Alpha *Mode = &Mode{tag: 0}
 
 func Mode_Beta(code int) *Mode {
@@ -87,6 +91,10 @@ func hxrt_typeCreateEmpty__haxe___Int64_____Int64() *haxe___Int64_____Int64 {
 type ValueType struct {
 	tag    int
 	params []any
+}
+
+func (self *ValueType) HxEnumValue() (string, []any) {
+	return [9]string{"TNull", "TInt", "TFloat", "TBool", "TObject", "TFunction", "TClass", "TEnum", "TUnknown"}[self.tag], self.params
 }
 
 var ValueType_TNull *ValueType = &ValueType{tag: 0, params: []any{}}

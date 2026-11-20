@@ -41,6 +41,10 @@ func (self *Base) read() int {
 	}()
 }
 
+func (self *Base) HxClassName() string {
+	return "Base"
+}
+
 type I_Child interface {
 	read() int
 }
@@ -102,6 +106,10 @@ func hx_init_Child(self *Child) *Child {
 	return self
 }
 
+func (self *Child) HxClassName() string {
+	return "Child"
+}
+
 type I_Cursor interface {
 	hasNext() bool
 	next() int
@@ -139,6 +147,10 @@ func (self *Cursor) hasNext() bool {
 
 func (self *Cursor) next() int {
 	return 3
+}
+
+func (self *Cursor) HxClassName() string {
+	return "Cursor"
 }
 
 func main() {

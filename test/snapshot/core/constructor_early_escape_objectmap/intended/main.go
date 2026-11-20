@@ -39,6 +39,10 @@ func (self *Base) ping() int {
 	return self.n
 }
 
+func (self *Base) HxClassName() string {
+	return "Base"
+}
+
 type I_Child interface {
 	ping() int
 }
@@ -74,6 +78,10 @@ func hx_init_Child(self *Child) *Child {
 
 func (self *Child) ping() int {
 	return int((hxrt.Int32Wrap(self.n) + hxrt.Int32Wrap(2)))
+}
+
+func (self *Child) HxClassName() string {
+	return "Child"
 }
 
 var keys *haxe__ds__ObjectMap = New_haxe__ds__ObjectMap()

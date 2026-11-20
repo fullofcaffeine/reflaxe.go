@@ -59,6 +59,10 @@ func (self *Counter) set_value(value int) int {
 	return value
 }
 
+func (self *Counter) HxClassName() string {
+	return "Counter"
+}
+
 func main() {
 	source := New_Counter()
 	var erased any = source

@@ -33,6 +33,10 @@ func hx_init_Cell(self *Cell, value any) *Cell {
 	return self
 }
 
+func (self *Cell) HxClassName() string {
+	return "Cell"
+}
+
 func main() {
 	source := New_Cell(nil)
 	view := func(hx_structural_source_1 *Cell) hxrt.Anonymous {

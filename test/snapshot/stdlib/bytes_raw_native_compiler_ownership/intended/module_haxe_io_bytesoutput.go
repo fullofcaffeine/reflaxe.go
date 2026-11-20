@@ -78,3 +78,7 @@ func (self *haxe__io__BytesOutput) writeBytes(bytes *haxe__io__Bytes, pos int, l
 func (self *haxe__io__BytesOutput) getBytes() *haxe__io__Bytes {
 	return self.b.__hx_this.getBytes()
 }
+
+func (self *haxe__io__BytesOutput) HxClassName() string {
+	return "haxe.io.BytesOutput"
+}

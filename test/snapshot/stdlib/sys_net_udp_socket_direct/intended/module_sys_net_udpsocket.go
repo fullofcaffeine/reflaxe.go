@@ -127,3 +127,7 @@ func (self *sys__net__UdpSocket) readFrom(bytes *haxe__io__Bytes, pos int, lengt
 	address.port = result.Port
 	return result.Count
 }
+
+func (self *sys__net__UdpSocket) HxClassName() string {
+	return "sys.net.UdpSocket"
+}

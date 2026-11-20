@@ -133,3 +133,7 @@ func (self *app__core__FluxReport) render() *string {
 	}
 	return out
 }
+
+func (self *app__core__FluxReport) HxClassName() string {
+	return "app.core.FluxReport"
+}

@@ -118,3 +118,7 @@ func (self *model__TodoStore) findById(id int) *model__TodoItem {
 	}
 	return nil
 }
+
+func (self *model__TodoStore) HxClassName() string {
+	return "model.TodoStore"
+}

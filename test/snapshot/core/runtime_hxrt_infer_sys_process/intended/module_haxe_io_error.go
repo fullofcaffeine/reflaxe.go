@@ -5,6 +5,10 @@ type haxe__io__Error struct {
 	params []any
 }
 
+func (self *haxe__io__Error) HxEnumValue() (string, []any) {
+	return [4]string{"Blocked", "Overflow", "OutsideBounds", "Custom"}[self.tag], self.params
+}
+
 var haxe__io__Error_Blocked *haxe__io__Error = &haxe__io__Error{tag: 0}
 
 var haxe__io__Error_Overflow *haxe__io__Error = &haxe__io__Error{tag: 1}

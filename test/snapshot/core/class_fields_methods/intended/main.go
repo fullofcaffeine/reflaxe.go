@@ -39,6 +39,10 @@ func (self *Counter) inc(step int) int {
 	return self.value
 }
 
+func (self *Counter) HxClassName() string {
+	return "Counter"
+}
+
 func main() {
 	counter := New_Counter(5)
 	var v any = any(counter.value)

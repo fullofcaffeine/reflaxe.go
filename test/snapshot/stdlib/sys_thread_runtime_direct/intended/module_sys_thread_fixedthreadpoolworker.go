@@ -79,3 +79,7 @@ func (self *sys__thread__FixedThreadPoolWorker) loop() {
 		return
 	}
 }
+
+func (self *sys__thread__FixedThreadPoolWorker) HxClassName() string {
+	return "sys.thread.FixedThreadPoolWorker"
+}

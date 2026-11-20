@@ -674,6 +674,10 @@ func hx_init_NestedArrayBoard(self *NestedArrayBoard, cells *hxrt.Array) *Nested
 	return self
 }
 
+func (self *NestedArrayBoard) HxClassName() string {
+	return "NestedArrayBoard"
+}
+
 func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
 	if value == nil {
 		return nil

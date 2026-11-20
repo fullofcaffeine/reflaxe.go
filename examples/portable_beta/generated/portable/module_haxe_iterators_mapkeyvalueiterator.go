@@ -54,3 +54,7 @@ func (self *haxe__iterators__MapKeyValueIterator) next() hxrt.Anonymous {
 	hx_obj_3["value"] = self.map_.getIMap(key)
 	return hxrt.AnonymousFromMap(hx_obj_3)
 }
+
+func (self *haxe__iterators__MapKeyValueIterator) HxClassName() string {
+	return "haxe.iterators.MapKeyValueIterator"
+}

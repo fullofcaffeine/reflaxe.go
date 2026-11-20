@@ -18,6 +18,10 @@ type CollectionFeatureKey struct {
 	params []any
 }
 
+func (self *CollectionFeatureKey) HxEnumValue() (string, []any) {
+	return [1]string{"Entry"}[self.tag], self.params
+}
+
 func CollectionFeatureKey_Entry(value int) *CollectionFeatureKey {
 	enumValue := &CollectionFeatureKey{tag: 0}
 	enumValue.params = []any{value}
@@ -453,6 +457,10 @@ func hxrt_typeCreateEmpty__haxe__ds___EnumValueMap__EnumValueTreeNode() *haxe__d
 type ValueType struct {
 	tag    int
 	params []any
+}
+
+func (self *ValueType) HxEnumValue() (string, []any) {
+	return [9]string{"TNull", "TInt", "TFloat", "TBool", "TObject", "TFunction", "TClass", "TEnum", "TUnknown"}[self.tag], self.params
 }
 
 var ValueType_TNull *ValueType = &ValueType{tag: 0, params: []any{}}

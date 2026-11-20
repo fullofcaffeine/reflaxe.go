@@ -52,3 +52,7 @@ func hx_init_haxe__io__StringInput(self *haxe__io__StringInput, value *string) *
 	hx_init_haxe__io__BytesInput(self.haxe__io__BytesInput, haxe__io__Bytes_ofString(value, nil), nil, nil)
 	return self
 }
+
+func (self *haxe__io__StringInput) HxClassName() string {
+	return "haxe.io.StringInput"
+}

@@ -117,6 +117,10 @@ func (self *_Main__DataOutput) close() {
 	self.haxe__io__Output.close()
 }
 
+func (self *_Main__DataOutput) HxClassName() string {
+	return "_Main.DataOutput"
+}
+
 func hx_structural_recover(value any) hxrt.Anonymous {
 	switch source := value.(type) {
 	case *_Main__DataOutput:

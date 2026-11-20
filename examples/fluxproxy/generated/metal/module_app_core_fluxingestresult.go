@@ -36,3 +36,7 @@ func hx_init_app__core__FluxIngestResult(self *app__core__FluxIngestResult, rece
 	self.backpressureEvents = backpressureEvents
 	return self
 }
+
+func (self *app__core__FluxIngestResult) HxClassName() string {
+	return "app.core.FluxIngestResult"
+}

@@ -34,6 +34,15 @@ func TestReflectRuntimeFieldAndMethodLookup(t *testing.T) {
 	}
 }
 
+func TestReflectRuntimeHidesStdStringProtocolMethods(t *testing.T) {
+	if lookup := ReflectLookupMethod(&stdStringTestClass{}, reflectTestName("HxClassName")); lookup == nil || lookup.Found {
+		t.Fatalf("HxClassName leaked as a Haxe member: %#v", lookup)
+	}
+	if lookup := ReflectLookupMethod(&stdStringTestEnum{}, reflectTestName("HxEnumValue")); lookup == nil || lookup.Found {
+		t.Fatalf("HxEnumValue leaked as a Haxe member: %#v", lookup)
+	}
+}
+
 func TestReflectRuntimeAnonymousObjectOperations(t *testing.T) {
 	object := map[string]any{"name": "Ada", "count": 2}
 	ReflectSetField(object, reflectTestName("name"), "Bea")

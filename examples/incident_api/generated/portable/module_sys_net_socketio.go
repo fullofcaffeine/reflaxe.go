@@ -100,6 +100,10 @@ func (self *sys__net__SocketOutput) close() {
 	hxrt.SocketClose(self.handle)
 }
 
+func (self *sys__net__SocketOutput) HxClassName() string {
+	return "sys.net.SocketOutput"
+}
+
 func sys__net__SocketOutput_translateWriteStatus(result *hxrt.SocketIOResult) {
 	if result.Status == hxrt.SocketIOBlocked {
 		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_Blocked))
@@ -196,6 +200,10 @@ func (self *sys__net__SocketInput) readBytes(bytes *haxe__io__Bytes, pos int, le
 
 func (self *sys__net__SocketInput) close() {
 	hxrt.SocketClose(self.handle)
+}
+
+func (self *sys__net__SocketInput) HxClassName() string {
+	return "sys.net.SocketInput"
 }
 
 func sys__net__SocketInput_translateReadStatus(result *hxrt.SocketIOResult) {

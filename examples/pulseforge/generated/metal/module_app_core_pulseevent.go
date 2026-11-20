@@ -41,3 +41,7 @@ func hx_init_app__core__PulseEvent(self *app__core__PulseEvent, id int, source *
 func (self *app__core__PulseEvent) isAlert(minValue int) bool {
 	return (self.value >= minValue)
 }
+
+func (self *app__core__PulseEvent) HxClassName() string {
+	return "app.core.PulseEvent"
+}

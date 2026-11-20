@@ -37,6 +37,10 @@ func hx_init_Box(self *Box, value any) *Box {
 	return self
 }
 
+func (self *Box) HxClassName() string {
+	return "Box"
+}
+
 func main() {
 	bytes_local := New_Box(bytes.NewBufferString(*hxrt.StdString(hxrt.StringFromLiteral("abc"))))
 	if func(hx_value_1 any) *bytes.Buffer {

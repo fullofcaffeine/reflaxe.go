@@ -41,6 +41,10 @@ func (self *Base) read() any {
 	}()
 }
 
+func (self *Base) HxClassName() string {
+	return "Base"
+}
+
 type I_Child interface {
 	read() any
 }
@@ -72,6 +76,10 @@ func hx_alloc_Child(owner any) *Child {
 func hx_init_Child(self *Child, it hxrt.Anonymous) *Child {
 	hx_init_Base(self.Base, it)
 	return self
+}
+
+func (self *Child) HxClassName() string {
+	return "Child"
 }
 
 func main() {

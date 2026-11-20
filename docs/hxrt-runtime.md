@@ -74,6 +74,12 @@ Key implementation points:
 
 - String/runtime conversion helpers:
   - `StringFromLiteral`, `StdString`, `StringSlice`
+  - `StdString` prints the text Haxe prints: enum values as `Some(1)` (through
+    the generated `HxEnumValue()` method), class instances through `toString()`
+    or else as their class path such as `pack.Point` (through the generated
+    `HxClassName()` method), and anonymous objects as `{a: 1, b: x}` in the
+    Haxe interpreter's field order. Values nested more than five levels deep
+    print as `<...>`, as in the interpreter.
   - `StringConcatAny`, `StringEqualAny`
   - `StringConcatStringPtr`, `StringEqualStringPtr`
   - `StringLength`, `StringCharAt`, `StringCharCodeAt`, `StringSubstring`

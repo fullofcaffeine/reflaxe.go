@@ -58,3 +58,7 @@ func (self *model__TodoItem) set_priority(value int) int {
 	self.priority = value
 	return value
 }
+
+func (self *model__TodoItem) HxClassName() string {
+	return "model.TodoItem"
+}

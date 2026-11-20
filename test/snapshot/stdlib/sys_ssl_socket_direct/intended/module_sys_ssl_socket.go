@@ -191,6 +191,10 @@ func (self *sys__ssl__Socket) peerCertificate() *sys__ssl__Certificate {
 	return hx_if_9
 }
 
+func (self *sys__ssl__Socket) HxClassName() string {
+	return "sys.ssl.Socket"
+}
+
 var sys__ssl__Socket_DEFAULT_CA *sys__ssl__Certificate
 
 var sys__ssl__Socket_DEFAULT_VERIFY_CERT bool = true

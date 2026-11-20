@@ -35,3 +35,7 @@ func hx_init_helper__Greeter(self *helper__Greeter) *helper__Greeter {
 func (self *helper__Greeter) hello(name *string) *string {
 	return hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("hello,"), name)
 }
+
+func (self *helper__Greeter) HxClassName() string {
+	return "helper.Greeter"
+}

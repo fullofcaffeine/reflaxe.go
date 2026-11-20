@@ -41,6 +41,10 @@ func (self *Greeter) wrap(prefix *string, suffix *string) *string {
 	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(prefix, hxrt.StringFromLiteral("go")), suffix)
 }
 
+func (self *Greeter) HxClassName() string {
+	return "Greeter"
+}
+
 func main() {
 	greeter := New_Greeter()
 	var v any = any(greeter.greet(hxrt.StringFromLiteral("world"), hxrt.StringFromLiteral("!")))

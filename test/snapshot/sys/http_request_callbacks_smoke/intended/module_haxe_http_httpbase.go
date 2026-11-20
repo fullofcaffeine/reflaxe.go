@@ -205,3 +205,7 @@ func (self *haxe__http__HttpBase) get_responseData() *string {
 	}
 	return self.responseAsString
 }
+
+func (self *haxe__http__HttpBase) HxClassName() string {
+	return "haxe.http.HttpBase"
+}

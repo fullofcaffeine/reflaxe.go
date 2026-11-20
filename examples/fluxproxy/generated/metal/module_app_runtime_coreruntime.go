@@ -80,3 +80,7 @@ func (self *app__runtime__CoreRuntime) stageScore(responses *hxrt.Array, retryCo
 	score = int((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(responses.Len())))
 	return score
 }
+
+func (self *app__runtime__CoreRuntime) HxClassName() string {
+	return "app.runtime.CoreRuntime"
+}

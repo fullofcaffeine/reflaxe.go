@@ -33,6 +33,10 @@ func hx_init_Item(self *Item) *Item {
 	return self
 }
 
+func (self *Item) HxClassName() string {
+	return "Item"
+}
+
 func identity(value any) any {
 	return value
 }

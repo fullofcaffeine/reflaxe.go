@@ -184,3 +184,7 @@ func (self *sys__thread__ElasticThreadPool) workerTaskFailed(worker *sys__thread
 	}
 	self.mutex.__hx_this.release()
 }
+
+func (self *sys__thread__ElasticThreadPool) HxClassName() string {
+	return "sys.thread.ElasticThreadPool"
+}

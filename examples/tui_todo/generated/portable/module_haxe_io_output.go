@@ -211,3 +211,7 @@ func (self *haxe__io__Output) writeString(value *string, encoding *haxe__io__Enc
 	bytes := haxe__io__Bytes_ofString(value, encoding)
 	self.__hx_this.writeFullBytes(bytes, 0, bytes.length)
 }
+
+func (self *haxe__io__Output) HxClassName() string {
+	return "haxe.io.Output"
+}

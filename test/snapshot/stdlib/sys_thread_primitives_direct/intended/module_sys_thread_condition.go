@@ -62,3 +62,7 @@ func (self *sys__thread__Condition) signal() {
 func (self *sys__thread__Condition) broadcast() {
 	hxrt.ThreadConditionBroadcast(self.__h)
 }
+
+func (self *sys__thread__Condition) HxClassName() string {
+	return "sys.thread.Condition"
+}

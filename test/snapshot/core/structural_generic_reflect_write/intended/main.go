@@ -41,6 +41,10 @@ func hx_init_CallbackReader(self *CallbackReader, read *hxrt.Function[func(*hxrt
 	return self
 }
 
+func (self *CallbackReader) HxClassName() string {
+	return "CallbackReader"
+}
+
 type I_Holder interface {
 }
 
@@ -70,6 +74,10 @@ func hx_alloc_Holder(owner any) *Holder {
 func hx_init_Holder(self *Holder, callback *hxrt.Function[func(any) any]) *Holder {
 	self.callback = callback
 	return self
+}
+
+func (self *Holder) HxClassName() string {
+	return "Holder"
 }
 
 func main() {

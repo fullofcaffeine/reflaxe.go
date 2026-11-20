@@ -48,6 +48,10 @@ func (self *app__core__Incident) toJson() *string {
 	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("{\"id\":"), self.id), hxrt.StringFromLiteral(",\"title\":\"")), app__core__Incident_jsonEscape(self.title)), hxrt.StringFromLiteral("\"")), hxrt.StringFromLiteral(",\"severity\":\"")), app__core__Incident_jsonEscape(self.severity)), hxrt.StringFromLiteral("\"")), hxrt.StringFromLiteral(",\"acknowledged\":")), app__core__Incident_boolJson(self.acknowledged)), hxrt.StringFromLiteral(",\"resolved\":")), app__core__Incident_boolJson(self.resolved)), hxrt.StringFromLiteral(",\"createdAt\":\"")), app__core__Incident_jsonEscape(self.createdAt)), hxrt.StringFromLiteral("\"}"))
 }
 
+func (self *app__core__Incident) HxClassName() string {
+	return "app.core.Incident"
+}
+
 func app__core__Incident_boolJson(value bool) *string {
 	var hx_if_1 *string
 	if value {

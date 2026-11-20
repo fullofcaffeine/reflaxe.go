@@ -33,6 +33,10 @@ func hx_init_Base(self *Base, label *string, number any, suffix *string) *Base {
 	return self
 }
 
+func (self *Base) HxClassName() string {
+	return "Base"
+}
+
 type I_Child interface {
 }
 
@@ -63,6 +67,10 @@ func hx_alloc_Child(owner any) *Child {
 func hx_init_Child(self *Child) *Child {
 	hx_init_Base(self.Base, hxrt.StringFromLiteral("x"), 4, nil)
 	return self
+}
+
+func (self *Child) HxClassName() string {
+	return "Child"
 }
 
 func erasedValue(value *Child) any {

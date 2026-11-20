@@ -66,6 +66,10 @@ func (self *haxe__iterators__StringKeyValueIteratorUnicode) next() hxrt.Anonymou
 	return hxrt.AnonymousFromMap(hx_obj_3)
 }
 
+func (self *haxe__iterators__StringKeyValueIteratorUnicode) HxClassName() string {
+	return "haxe.iterators.StringKeyValueIteratorUnicode"
+}
+
 func haxe__iterators__StringKeyValueIteratorUnicode_codeAt(value *string, index int) int {
 	return hxrt.StringCharCodeAtStringPtr(value, index)
 }

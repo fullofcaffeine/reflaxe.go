@@ -160,6 +160,10 @@ func (self *app__core__IncidentStore) save() {
 	sys__io__File_saveContent(self.statePath, hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("{\"nextId\":"), self.nextId), hxrt.StringFromLiteral(",\"incidents\":")), self.listJson()), hxrt.StringFromLiteral("}\n")))
 }
 
+func (self *app__core__IncidentStore) HxClassName() string {
+	return "app.core.IncidentStore"
+}
+
 func app__core__IncidentStore_boolField(raw any, name *string, fallback bool) bool {
 	if hxrt.AnyEqualsNull(raw) || !Reflect_hasField(raw, name) {
 		return fallback

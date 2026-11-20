@@ -39,3 +39,7 @@ func hx_init_app__core__PulseEnrichedEvent(self *app__core__PulseEnrichedEvent, 
 func (self *app__core__PulseEnrichedEvent) shouldAlert(weightedThreshold int) bool {
 	return (self.weightedValue >= weightedThreshold)
 }
+
+func (self *app__core__PulseEnrichedEvent) HxClassName() string {
+	return "app.core.PulseEnrichedEvent"
+}

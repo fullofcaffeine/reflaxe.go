@@ -368,3 +368,7 @@ func (self *app__core__FluxPipeline) setResponseById(states *hxrt.Array, request
 	states.Push(hxrt.AnonymousFromMap(hx_obj_45))
 	return states
 }
+
+func (self *app__core__FluxPipeline) HxClassName() string {
+	return "app.core.FluxPipeline"
+}

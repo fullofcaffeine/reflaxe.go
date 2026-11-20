@@ -38,6 +38,10 @@ func (self *Base) read() int {
 	return self.value
 }
 
+func (self *Base) HxClassName() string {
+	return "Base"
+}
+
 type I_Child interface {
 	read() int
 }
@@ -69,6 +73,10 @@ func hx_alloc_Child(owner any) *Child {
 func hx_init_Child(self *Child, value int) *Child {
 	hx_init_Base(self.Base, int((hxrt.Int32Wrap(value) + hxrt.Int32Wrap(1))))
 	return self
+}
+
+func (self *Child) HxClassName() string {
+	return "Child"
 }
 
 func main() {

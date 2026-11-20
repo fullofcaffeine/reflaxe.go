@@ -141,6 +141,10 @@ func (self *sys__net__Socket) replaceHandle(next *hxrt.SocketHandle) {
 	}(New_sys__net__SocketOutput(next))
 }
 
+func (self *sys__net__Socket) HxClassName() string {
+	return "sys.net.Socket"
+}
+
 func sys__net__Socket_pick(source *hxrt.Array, indexes []int) *hxrt.Array {
 	selected := hxrt.NewArray()
 	_g := 0

@@ -7,6 +7,10 @@ type Flag struct {
 	params []any
 }
 
+func (self *Flag) HxEnumValue() (string, []any) {
+	return [2]string{"Off", "On"}[self.tag], self.params
+}
+
 var Flag_Off *Flag = &Flag{tag: 0}
 
 var Flag_On *Flag = &Flag{tag: 1}

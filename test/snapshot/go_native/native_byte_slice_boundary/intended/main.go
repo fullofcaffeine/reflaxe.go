@@ -40,6 +40,10 @@ func hx_init_DecodedHex(self *DecodedHex, value1 []byte, value2 *hxrt.NativeErro
 	return self
 }
 
+func (self *DecodedHex) HxClassName() string {
+	return "DecodedHex"
+}
+
 func check(ok bool, label *string) {
 	if !ok {
 		hxrt.Throw(haxe__Exception_thrown(label))

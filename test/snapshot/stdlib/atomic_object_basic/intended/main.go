@@ -77,6 +77,10 @@ func hx_init_Node(self *Node, id *string) *Node {
 	return self
 }
 
+func (self *Node) HxClassName() string {
+	return "Node"
+}
+
 func hx_recover_class_0(value any) *Node {
 	value = hxrt.ObjectSource(value)
 	if value == nil {

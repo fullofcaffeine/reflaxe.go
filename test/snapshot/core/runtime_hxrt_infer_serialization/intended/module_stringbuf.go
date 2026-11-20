@@ -32,3 +32,7 @@ func hx_init_StringBuf(self *StringBuf) *StringBuf {
 	self.b = hxrt.StringFromLiteral("")
 	return self
 }
+
+func (self *StringBuf) HxClassName() string {
+	return "StringBuf"
+}

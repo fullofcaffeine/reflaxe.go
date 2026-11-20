@@ -116,6 +116,10 @@ func (self *_Main__SnapConnection) commit() {
 func (self *_Main__SnapConnection) rollback() {
 }
 
+func (self *_Main__SnapConnection) HxClassName() string {
+	return "_Main.SnapConnection"
+}
+
 type I__Main__SnapResultSet interface {
 	get_length() int
 	get_nfields() int
@@ -202,6 +206,10 @@ func (self *_Main__SnapResultSet) getFieldsNames() *hxrt.Array {
 	return hxrt.NewArray(hxrt.StringFromLiteral("value"))
 }
 
+func (self *_Main__SnapResultSet) HxClassName() string {
+	return "_Main.SnapResultSet"
+}
+
 type I__Main__SnapRow interface {
 }
 
@@ -231,6 +239,10 @@ func hx_alloc__Main__SnapRow(owner any) *_Main__SnapRow {
 func hx_init__Main__SnapRow(self *_Main__SnapRow, value int) *_Main__SnapRow {
 	self.value = value
 	return self
+}
+
+func (self *_Main__SnapRow) HxClassName() string {
+	return "_Main.SnapRow"
 }
 
 func hx_recover_class_0(value any) *haxe__Exception {

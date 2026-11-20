@@ -45,6 +45,10 @@ func hx_init_CancelPair(self *CancelPair, context_local context.Context, cancel 
 	return self
 }
 
+func (self *CancelPair) HxClassName() string {
+	return "CancelPair"
+}
+
 func ErrorProbe_check(ok bool, label *string) {
 	if !ok {
 		hxrt.Throw(haxe__Exception_thrown(label))
@@ -354,6 +358,10 @@ func hx_init_Holder(self *Holder, value any) *Holder {
 	return self
 }
 
+func (self *Holder) HxClassName() string {
+	return "Holder"
+}
+
 type I_Match interface {
 }
 
@@ -385,4 +393,8 @@ func hx_init_Match(self *Match, value any, matched bool) *Match {
 	self.value = value
 	self.matched = matched
 	return self
+}
+
+func (self *Match) HxClassName() string {
+	return "Match"
 }

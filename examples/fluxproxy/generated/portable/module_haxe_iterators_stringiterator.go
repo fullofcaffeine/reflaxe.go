@@ -48,3 +48,7 @@ func (self *haxe__iterators__StringIterator) next() int {
 		return hx_post_1
 	}())
 }
+
+func (self *haxe__iterators__StringIterator) HxClassName() string {
+	return "haxe.iterators.StringIterator"
+}

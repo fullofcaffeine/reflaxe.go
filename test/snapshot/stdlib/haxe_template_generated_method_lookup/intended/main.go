@@ -46,6 +46,10 @@ func (self *ConcreteIterable) iterator() *SpecializedIterator {
 	return New_SpecializedIterator(self.values)
 }
 
+func (self *ConcreteIterable) HxClassName() string {
+	return "ConcreteIterable"
+}
+
 type I_ConcreteIterator interface {
 	hasNext() bool
 	next() *string
@@ -91,6 +95,10 @@ func (self *ConcreteIterator) next() *string {
 		self.index = int(int32((self.index + 1)))
 		return hx_post_4
 	}()))
+}
+
+func (self *ConcreteIterator) HxClassName() string {
+	return "ConcreteIterator"
 }
 
 func call0(obj any, key *string) *string {
@@ -262,6 +270,10 @@ func (self *MethodBase) retainSecret() *string {
 	return self.__hx_this.secret(nil, nil)
 }
 
+func (self *MethodBase) HxClassName() string {
+	return "MethodBase"
+}
+
 type I_MethodLeaf interface {
 	virtualName() *string
 	macroName(resolve *hxrt.Function[func(*string) any], ignored any) *string
@@ -311,6 +323,10 @@ func (self *MethodLeaf) leafOnly(resolve *hxrt.Function[func(*string) any], igno
 	return hxrt.StringFromLiteral("leaf-only")
 }
 
+func (self *MethodLeaf) HxClassName() string {
+	return "MethodLeaf"
+}
+
 type I_MethodMiddle interface {
 	virtualName() *string
 	macroName(resolve *hxrt.Function[func(*string) any], ignored any) *string
@@ -353,6 +369,10 @@ func hx_init_MethodMiddle(self *MethodMiddle) *MethodMiddle {
 
 func (self *MethodMiddle) middleOnly(resolve *hxrt.Function[func(*string) any], ignored any) *string {
 	return hxrt.StringFromLiteral("middle")
+}
+
+func (self *MethodMiddle) HxClassName() string {
+	return "MethodMiddle"
 }
 
 type NameContract interface {
@@ -399,6 +419,10 @@ func (self *SpecializedIterator) next() *string {
 		self.index = int(int32((self.index + 1)))
 		return hx_post_18
 	}()))
+}
+
+func (self *SpecializedIterator) HxClassName() string {
+	return "SpecializedIterator"
 }
 
 func hx_structural_recover(value any) hxrt.Anonymous {

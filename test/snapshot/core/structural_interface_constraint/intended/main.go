@@ -36,6 +36,10 @@ func (self *Cursor) next() int {
 	return 3
 }
 
+func (self *Cursor) HxClassName() string {
+	return "Cursor"
+}
+
 type HasNext interface {
 	next() int
 }
@@ -168,6 +172,10 @@ func hx_init_MutableCursor(self *MutableCursor) *MutableCursor {
 		return self.__hx_this
 	}, "next")
 	return self
+}
+
+func (self *MutableCursor) HxClassName() string {
+	return "MutableCursor"
 }
 
 func hx_structural_recover(value any) hxrt.Anonymous {

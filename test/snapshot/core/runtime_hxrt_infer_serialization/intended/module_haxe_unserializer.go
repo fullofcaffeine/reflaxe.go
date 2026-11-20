@@ -755,6 +755,10 @@ func (self *haxe__Unserializer) isLegacyDate() bool {
 	}() == 45)
 }
 
+func (self *haxe__Unserializer) HxClassName() string {
+	return "haxe.Unserializer"
+}
+
 var haxe__Unserializer_BASE64 *string = hxrt.StringFromLiteral("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789%:")
 
 var haxe__Unserializer_DEFAULT_RESOLVER hxrt.Anonymous = func() hxrt.Anonymous {

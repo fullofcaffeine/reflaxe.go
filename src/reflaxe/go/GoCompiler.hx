@@ -43,6 +43,7 @@ import reflaxe.go.compiler.GoTypeMapper;
 import reflaxe.go.compiler.emit.GoGeneratedFieldMetadataEmitter;
 import reflaxe.go.compiler.emit.GoGeneratedMethodMetadataEmitter;
 import reflaxe.go.compiler.emit.GoReflectMetadataEmitter;
+import reflaxe.go.compiler.emit.GoStdStringProtocolEmitter;
 import reflaxe.go.compiler.emit.GoTypeReflectionEmitter;
 import reflaxe.go.compiler.emit.GoRttiMetadataEmitter;
 import reflaxe.go.ast.GoAST.GoDecl;
@@ -2523,6 +2524,9 @@ class GoCompiler {
 
 		var constructors = [for (field in enumType.constructs) field];
 		constructors.sort(function(a, b) return a.index - b.index);
+		if (constructors.length > 0) {
+			decls.push(GoStdStringProtocolEmitter.enumValueDecl(enumName, [for (constructor in constructors) constructor.name]));
+		}
 
 		for (constructor in constructors) {
 			var symbol = enumConstructorSymbol(enumType, constructor.name);
@@ -3372,6 +3376,8 @@ class GoCompiler {
 		}
 		if (hasPortableToString(dispatchMethods)) {
 			decls.push(lowerGoStringerAdapterDecl(classType));
+		} else if (hasInstanceLayout) {
+			decls.push(GoStdStringProtocolEmitter.classNameDecl(typeName, fullClassName(classType)));
 		}
 		var staticFields = classType.statics.get().copy();
 		staticFields.sort(function(a, b) return Reflect.compare(a.name, b.name));
@@ -3674,12 +3680,13 @@ class GoCompiler {
 
 		Why: Generated Haxe methods intentionally use their source spelling, so
 		`toString` is unexported to the separate `hxrt` Go package. Without a small
-		generated adapter, `Std.string` falls back to Go's struct dump instead of the
-		portable Haxe result.
+		generated adapter, `Std.string` could not call it.
 
 		How: Recognize the method only from typed dispatch information. Inherited and
 		overridden implementations therefore follow the same `__hx_this` virtual
-		dispatch path as an ordinary Haxe call.
+		dispatch path as an ordinary Haxe call. A class without this method gets
+		`HxClassName()` instead (see `GoStdStringProtocolEmitter`), so `Std.string`
+		prints its class path as Haxe does.
 	**/
 	function hasPortableToString(methods:Array<{name:String, func:TFunc, fieldType:Type}>):Bool {
 		for (method in methods) {

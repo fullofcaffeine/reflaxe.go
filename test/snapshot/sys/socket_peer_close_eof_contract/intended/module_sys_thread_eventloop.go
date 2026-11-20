@@ -103,6 +103,10 @@ func (self *sys__thread__EventLoop) loop() {
 	hxrt.ThreadEventLoopLoop(self.__h)
 }
 
+func (self *sys__thread__EventLoop) HxClassName() string {
+	return "sys.thread.EventLoop"
+}
+
 func sys__thread__EventLoop___fromHandle(handle *hxrt.EventLoopHandle) *sys__thread__EventLoop {
 	loop := New_sys__thread__EventLoop()
 	loop.__h = handle
@@ -112,6 +116,10 @@ func sys__thread__EventLoop___fromHandle(handle *hxrt.EventLoopHandle) *sys__thr
 type sys__thread__NextEventTime struct {
 	tag    int
 	params []any
+}
+
+func (self *sys__thread__NextEventTime) HxEnumValue() (string, []any) {
+	return [4]string{"Now", "Never", "AnyTime", "At"}[self.tag], self.params
 }
 
 var sys__thread__NextEventTime_Now *sys__thread__NextEventTime = &sys__thread__NextEventTime{tag: 0}

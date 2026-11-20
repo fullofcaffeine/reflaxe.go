@@ -142,6 +142,10 @@ func (self *app__TodoApp) items() *hxrt.Array {
 	return self.store.list()
 }
 
+func (self *app__TodoApp) HxClassName() string {
+	return "app.TodoApp"
+}
+
 func app__TodoApp_joinStringList(values *hxrt.Array, separator *string) *string {
 	out := hxrt.StringFromLiteral("")
 	first := true

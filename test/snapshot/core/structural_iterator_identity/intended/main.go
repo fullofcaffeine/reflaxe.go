@@ -41,6 +41,10 @@ func (self *Cursor) next() int {
 	return 7
 }
 
+func (self *Cursor) HxClassName() string {
+	return "Cursor"
+}
+
 func main() {
 	source := New_Cursor()
 	left := func(hx_structural_source_1 *Cursor) hxrt.Anonymous {
