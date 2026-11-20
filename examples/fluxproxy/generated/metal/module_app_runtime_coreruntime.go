@@ -52,7 +52,7 @@ func (self *app__runtime__CoreRuntime) dispatch(requests *hxrt.Array, workerCoun
 	responses := hxrt.NewArray()
 	_g := 0
 	for _g < requests.Len() {
-		request := hx_recover_class_0(requests.Get(_g))
+		request := hx_recover_class_app__core__FluxRequest(requests.Get(_g))
 		_g = int(int32((_g + 1)))
 		responses.Push(app__core__FluxCodec_proxy(request, 50))
 	}
@@ -64,7 +64,7 @@ func (self *app__runtime__CoreRuntime) stageScore(responses *hxrt.Array, retryCo
 	errorCount := 0
 	_g := 0
 	for _g < responses.Len() {
-		response := hx_recover_class_1(responses.Get(_g))
+		response := hx_recover_class_app__core__FluxProxyResponse(responses.Get(_g))
 		_g = int(int32((_g + 1)))
 		if response.success {
 			successCount = int(int32((successCount + 1)))

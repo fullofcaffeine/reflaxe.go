@@ -7,7 +7,7 @@ func haxe__MainLoop___remove(event *haxe__MainEvent) {
 	_g := 0
 	_g1 := haxe__MainLoop_pending
 	for _g < _g1.Len() {
-		candidate := hx_recover_class_0(_g1.Get(_g))
+		candidate := hx_recover_class_haxe__MainEvent(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if candidate != event {
 			next.Push(candidate)
@@ -39,7 +39,7 @@ func haxe__MainLoop_hasEvents() bool {
 	_g := 0
 	_g1 := haxe__MainLoop_pending
 	for _g < _g1.Len() {
-		event := hx_recover_class_0(_g1.Get(_g))
+		event := hx_recover_class_haxe__MainEvent(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if event.isBlocking {
 			return true

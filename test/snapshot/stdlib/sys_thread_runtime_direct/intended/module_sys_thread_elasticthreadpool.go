@@ -120,7 +120,7 @@ func (self *sys__thread__ElasticThreadPool) startWorkerLocked() {
 	_g := 0
 	_g1 := self.pool
 	for _g < _g1.Len() {
-		worker := hx_recover_class_4(_g1.Get(_g))
+		worker := hx_recover_class_sys__thread__ElasticThreadPoolWorker(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if worker.dead {
 			selected = worker
@@ -143,7 +143,7 @@ func (self *sys__thread__ElasticThreadPool) workerResolveWait(worker *sys__threa
 		hasToken = self.available.__hx_this.wait(0)
 	}
 	if hasToken {
-		nextTask := hx_recover_callable_1(self.queue.__hx_this.pop(false))
+		nextTask := hx_recover_callable_2d8d0a91(self.queue.__hx_this.pop(false))
 		if nextTask != nil {
 			worker.task = nextTask
 			self.mutex.__hx_this.release()

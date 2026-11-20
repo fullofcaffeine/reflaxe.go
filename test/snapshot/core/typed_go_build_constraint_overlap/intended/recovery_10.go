@@ -9,12 +9,12 @@ func reflaxe__go___internal__CompilerReflect_callMethod__probe_3(value any, argu
 	return zero, false
 }
 
-func hx_recover_callable_0__probe_3(value any) (*hxrt.Function[func(any) int], bool) {
-	var zero *hxrt.Function[func(any) int]
+func hx_recover_callable_50c151b6__probe_3(value any) (*hxrt.Function[func(*hxrt.Function[func(any) *string]) *string], bool) {
+	var zero *hxrt.Function[func(*hxrt.Function[func(any) *string]) *string]
 	return zero, false
 }
 
-func hx_recover_callable_1__probe_3(value any) (*hxrt.Function[func(*hxrt.Function[func(any) *string]) *string], bool) {
-	var zero *hxrt.Function[func(*hxrt.Function[func(any) *string]) *string]
+func hx_recover_callable_ae7f85da__probe_3(value any) (*hxrt.Function[func(any) int], bool) {
+	var zero *hxrt.Function[func(any) int]
 	return zero, false
 }

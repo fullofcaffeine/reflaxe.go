@@ -133,7 +133,7 @@ func main() {
 		hx_contains_length_38 := hx_contains_target_36.Len()
 		hx_contains_index_39 := 0
 		for hx_contains_index_39 < hx_contains_length_38 {
-			hx_contains_element_40 := hx_recover_class_0(hx_contains_target_36.Get(hx_contains_index_39))
+			hx_contains_element_40 := hx_recover_class_SharedArrayItem(hx_contains_target_36.Get(hx_contains_index_39))
 			if hx_contains_element_40 == hx_contains_value_37 {
 				return true
 			}
@@ -146,7 +146,7 @@ func main() {
 		hx_contains_length_43 := hx_contains_target_41.Len()
 		hx_contains_index_44 := 0
 		for hx_contains_index_44 < hx_contains_length_43 {
-			hx_contains_element_45 := hx_recover_class_0(hx_contains_target_41.Get(hx_contains_index_44))
+			hx_contains_element_45 := hx_recover_class_SharedArrayItem(hx_contains_target_41.Get(hx_contains_index_44))
 			if hx_contains_element_45 == hx_contains_value_42 {
 				return true
 			}
@@ -159,7 +159,7 @@ func main() {
 		hx_contains_length_48 := hx_contains_target_46.Len()
 		hx_contains_index_49 := 0
 		for hx_contains_index_49 < hx_contains_length_48 {
-			hx_contains_element_50 := hx_recover_class_0(hx_contains_target_46.Get(hx_contains_index_49))
+			hx_contains_element_50 := hx_recover_class_SharedArrayItem(hx_contains_target_46.Get(hx_contains_index_49))
 			if hx_contains_element_50 == hx_contains_value_47 {
 				return true
 			}
@@ -193,7 +193,7 @@ func main() {
 		hx_contains_length_60 := hx_contains_target_58.Len()
 		hx_contains_index_61 := 0
 		for hx_contains_index_61 < hx_contains_length_60 {
-			hx_contains_element_62 := hx_recover_class_0(hx_contains_target_58.Get(hx_contains_index_61))
+			hx_contains_element_62 := hx_recover_class_SharedArrayItem(hx_contains_target_58.Get(hx_contains_index_61))
 			if hx_contains_element_62 == hx_contains_value_59 {
 				return true
 			}
@@ -252,7 +252,7 @@ func main() {
 		hx_contains_length_79 := hx_contains_target_77.Len()
 		hx_contains_index_80 := 0
 		for hx_contains_index_80 < hx_contains_length_79 {
-			hx_contains_element_81 := hx_recover_class_0(hx_contains_target_77.Get(hx_contains_index_80))
+			hx_contains_element_81 := hx_recover_class_SharedArrayItem(hx_contains_target_77.Get(hx_contains_index_80))
 			if hx_contains_element_81 == hx_contains_value_78 {
 				return true
 			}
@@ -371,7 +371,7 @@ func main() {
 		hx_lastindexof_length_120 := hx_lastindexof_target_118.Len()
 		hx_lastindexof_index_121 := (hx_lastindexof_length_120 - 1)
 		for hx_lastindexof_index_121 >= 0 {
-			hx_lastindexof_element_122 := hx_recover_class_0(hx_lastindexof_target_118.Get(hx_lastindexof_index_121))
+			hx_lastindexof_element_122 := hx_recover_class_SharedArrayItem(hx_lastindexof_target_118.Get(hx_lastindexof_index_121))
 			if hx_lastindexof_element_122 == hx_lastindexof_value_119 {
 				return hx_lastindexof_index_121
 			}
@@ -411,7 +411,7 @@ func main() {
 			hx_lastindexof_index_131 = (hx_lastindexof_length_130 - 1)
 		}
 		for hx_lastindexof_index_131 >= 0 {
-			hx_lastindexof_element_132 := hx_recover_class_0(hx_lastindexof_target_128.Get(hx_lastindexof_index_131))
+			hx_lastindexof_element_132 := hx_recover_class_SharedArrayItem(hx_lastindexof_target_128.Get(hx_lastindexof_index_131))
 			if hx_lastindexof_element_132 == hx_lastindexof_value_129 {
 				return hx_lastindexof_index_131
 			}
@@ -476,7 +476,7 @@ func main() {
 		hx_lastindexof_length_149 := hx_lastindexof_target_147.Len()
 		hx_lastindexof_index_150 := (hx_lastindexof_length_149 - 1)
 		for hx_lastindexof_index_150 >= 0 {
-			hx_lastindexof_element_151 := hx_recover_class_0(hx_lastindexof_target_147.Get(hx_lastindexof_index_150))
+			hx_lastindexof_element_151 := hx_recover_class_SharedArrayItem(hx_lastindexof_target_147.Get(hx_lastindexof_index_150))
 			if hx_lastindexof_element_151 == hx_lastindexof_value_148 {
 				return hx_lastindexof_index_150
 			}
@@ -858,7 +858,7 @@ func (self *SharedArrayItem) String() string {
 	return *self.toString()
 }
 
-func hx_recover_class_0(value any) *SharedArrayItem {
+func hx_recover_class_SharedArrayItem(value any) *SharedArrayItem {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil

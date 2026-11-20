@@ -21,7 +21,7 @@ func go___Go___chanSend(channel any, value any) {
 }
 
 func go___Go___chanTryRecv(channel any) *go___Result {
-	return hx_recover_class_0(nil)
+	return hx_recover_class_go___Result(nil)
 }
 
 func go___Go___chanTrySend(channel any, value any) bool {

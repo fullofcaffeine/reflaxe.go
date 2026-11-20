@@ -39,14 +39,14 @@ func hx_init_haxe__iterators__MapKeyValueIterator(self *haxe__iterators__MapKeyV
 
 func (self *haxe__iterators__MapKeyValueIterator) hasNext() bool {
 	return func() bool {
-		var hx_callable_1 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(self.keys, "hasNext"))
+		var hx_callable_1 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(self.keys, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_1)()
 	}()
 }
 
 func (self *haxe__iterators__MapKeyValueIterator) next() hxrt.Anonymous {
 	var key any = func() any {
-		var hx_callable_2 *hxrt.Function[func() any] = hx_recover_callable_1(hxrt.AnonymousGet(self.keys, "next"))
+		var hx_callable_2 *hxrt.Function[func() any] = hx_recover_callable_c5309b43(hxrt.AnonymousGet(self.keys, "next"))
 		return hxrt.FunctionCall(hx_callable_2)()
 	}()
 	hx_obj_3 := map[string]any{}

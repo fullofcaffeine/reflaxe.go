@@ -4,7 +4,7 @@ import "snapshot/hxrt"
 
 func invoke(values *hxrt.Array, index int) int {
 	return func() int {
-		var hx_callable_1 *hxrt.Function[func(int) int] = hx_recover_callable_0(values.Get(index))
+		var hx_callable_1 *hxrt.Function[func(int) int] = hx_recover_callable_408c8b7a(values.Get(index))
 		var hx_argument_2 int = 20
 		return hxrt.FunctionCall(hx_callable_1)(hx_argument_2)
 	}()
@@ -19,14 +19,14 @@ func main() {
 		return int((hxrt.Int32Wrap(value) * hxrt.Int32Wrap(2)))
 	})
 	var v_1 any = any(func() int {
-		var hx_callable_3 *hxrt.Function[func(int) int] = hx_recover_callable_0(boxed)
+		var hx_callable_3 *hxrt.Function[func(int) int] = hx_recover_callable_408c8b7a(boxed)
 		var hx_argument_4 int = 11
 		return hxrt.FunctionCall(hx_callable_3)(hx_argument_4)
 	}())
 	hxrt.Println(v_1)
 }
 
-func hx_recover_callable_0(value any) *hxrt.Function[func(int) int] {
+func hx_recover_callable_408c8b7a(value any) *hxrt.Function[func(int) int] {
 	if value == nil {
 		return nil
 	}

@@ -58,7 +58,7 @@ func main() {
 	source := hxrt.AnonymousFromMap(hx_obj_1)
 	holder := New_Holder(source)
 	var v any = any(func() int {
-		var hx_callable_2 *hxrt.Function[func() int] = hx_recover_callable_0(hxrt.AnonymousGet(holder.value, "next"))
+		var hx_callable_2 *hxrt.Function[func() int] = hx_recover_callable_e273723c(hxrt.AnonymousGet(holder.value, "next"))
 		return hxrt.FunctionCall(hx_callable_2)()
 	}())
 	hxrt.Println(v)
@@ -71,13 +71,13 @@ func main() {
 		return hx_structural_value_5
 	}()
 	var v_1 any = any(func() int {
-		var hx_callable_6 *hxrt.Function[func() int] = hx_recover_callable_0(hxrt.AnonymousGet(holder.value, "next"))
+		var hx_callable_6 *hxrt.Function[func() int] = hx_recover_callable_e273723c(hxrt.AnonymousGet(holder.value, "next"))
 		return hxrt.FunctionCall(hx_callable_6)()
 	}())
 	hxrt.Println(v_1)
 }
 
-func hx_recover_callable_0(value any) *hxrt.Function[func() int] {
+func hx_recover_callable_e273723c(value any) *hxrt.Function[func() int] {
 	if value == nil {
 		return nil
 	}

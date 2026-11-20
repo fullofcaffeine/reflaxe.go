@@ -105,7 +105,7 @@ func (self *app__TodoApp) buildRuntimeMetrics() *profile__TodoRuntimeMetrics {
 	p1 := 0
 	_g := 0
 	for _g < items.Len() {
-		item := hx_recover_class_1(items.Get(_g))
+		item := hx_recover_class_model__TodoItem(items.Get(_g))
 		_g = int(int32((_g + 1)))
 		if item.done {
 			done = int(int32((done + 1)))
@@ -122,7 +122,7 @@ func (self *app__TodoApp) render() *string {
 	items := self.store.list()
 	_g := 0
 	for _g < items.Len() {
-		item := hx_recover_class_1(items.Get(_g))
+		item := hx_recover_class_model__TodoItem(items.Get(_g))
 		_g = int(int32((_g + 1)))
 		state := hxrt.StringFromLiteral("[ ]")
 		if item.done {

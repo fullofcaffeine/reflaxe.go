@@ -14,13 +14,18 @@ import reflaxe.go.compiler.GoRecoveryDispatch.GoRecoveryCasePlan;
 	Why: Eager switches miss late classes and cannot name conditional classes safely.
 	Go interface satisfaction also admits unrelated, same-shaped Haxe classes.
 	How: Intern demanded targets, follow declared ancestry, and let the shared
-	availability dispatcher place concrete cases in selected probe files.
+	availability dispatcher place concrete cases in selected probe files. Each
+	test is named from its target's generated type name (`hx_is_nominal_<Type>`)
+	and declared in name order, so an edit elsewhere cannot rename or move it.
 **/
 class GoNominalTypeTest {
+	static final symbolPrefix = "hx_is_nominal_";
+
 	final availability:GoRecoveryAvailability;
 	final dispatcher:GoRecoveryDispatch;
 	final className:ClassType->String;
-	final targets:Array<ClassType> = [];
+	final targets:Map<String, ClassType> = [];
+	var targetCount = 0;
 	var frozen = false;
 
 	public function new(availability:GoRecoveryAvailability, className:ClassType->String) {
@@ -30,30 +35,28 @@ class GoNominalTypeTest {
 	}
 
 	public function reset():Void {
-		targets.resize(0);
+		targets.clear();
+		targetCount = 0;
 		frozen = false;
 	}
 
 	public function requirementCount():Int
-		return targets.length;
+		return targetCount;
 
 	public function freeze():Void
 		frozen = true;
 
 	public function matches(value:GoExpr, target:ClassType):GoExpr {
-		var index = -1;
-		for (i in 0...targets.length)
-			if (className(targets[i]) == className(target)) {
-				index = i;
-				break;
-			}
-		if (index < 0) {
+		var name = className(target);
+		if (!targets.exists(name)) {
 			if (frozen)
 				Context.fatalError("Nominal type test discovered after freeze", Context.currentPos());
-			index = targets.length;
-			targets.push(target);
+			if (!GoRecoveryDispatch.isGoIdentifier(name))
+				Context.fatalError("Nominal type test requires a generated class or interface, got " + name, Context.currentPos());
+			targets.set(name, target);
+			targetCount++;
 		}
-		var symbol = "hx_is_nominal_" + index;
+		var symbol = GoRecoveryDispatch.entrySymbol(symbolPrefix, name);
 		availability.noteHelper(symbol, GoType.functionType([GoType.parse("any")], [GoType.parse("bool")]));
 		availability.requireHelper(symbol);
 		return GoExpr.GoCall(GoExpr.GoIdent(symbol), [value]);
@@ -77,17 +80,19 @@ class GoNominalTypeTest {
 	/** Only emitted concrete layouts become cases; interfaces remain nominal targets. */
 	public function discover(candidates:Array<ClassType>):Array<GoGuardedRecoveryDeclaration> {
 		var declarations = new Array<GoGuardedRecoveryDeclaration>();
-		for (index in 0...targets.length) {
+		var names = [for (name in targets.keys()) name];
+		names.sort(GoRecoveryDispatch.compareSymbols);
+		for (name in names) {
 			var cases = new Array<GoRecoveryCasePlan>();
 			for (candidate in candidates)
-				if (belongsTo(candidate, targets[index], new Map()))
+				if (belongsTo(candidate, targets.get(name), new Map()))
 					cases.push({
 						sourceType: GoType.pointer(GoType.named(className(candidate))),
 						body: [GoStmt.GoReturn(GoExpr.GoBinary("!=", GoExpr.GoIdent("source"), GoExpr.GoNil))],
 						dependencies: []
 					});
 			var plan = dispatcher.lower({
-				symbol: "hx_is_nominal_" + index,
+				symbol: GoRecoveryDispatch.entrySymbol(symbolPrefix, name),
 				params: [{name: "value", typeName: "any"}],
 				result: GoType.parse("bool"),
 				prefix: [

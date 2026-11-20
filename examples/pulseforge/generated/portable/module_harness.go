@@ -49,7 +49,7 @@ func Harness_cloneFrames(frames *hxrt.Array) *hxrt.Array {
 	out := hxrt.NewArray()
 	_g := 0
 	for _g < frames.Len() {
-		frame := hx_recover_class_0(frames.Get(_g))
+		frame := hx_recover_class_app__core__PulseIngressFrame(frames.Get(_g))
 		_g = int(int32((_g + 1)))
 		out.Push(New_app__core__PulseIngressFrame(frame.sequence, frame.source, frame.value, frame.region))
 	}

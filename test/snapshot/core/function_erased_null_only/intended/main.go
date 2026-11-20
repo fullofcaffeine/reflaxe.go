@@ -7,7 +7,7 @@ func absent() any {
 }
 
 func main() {
-	callback := hx_recover_callable_0(absent())
+	callback := hx_recover_callable_e273723c(absent())
 	hxrt.Println(any((callback == nil)))
 	var erased any = absent()
 	hxrt.TryCatch(func() {
@@ -31,7 +31,7 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 	return hxrt.ReflectCallMethod(value, arguments)
 }
 
-func hx_recover_callable_0(value any) *hxrt.Function[func() int] {
+func hx_recover_callable_e273723c(value any) *hxrt.Function[func() int] {
 	if value == nil {
 		return nil
 	}
@@ -47,20 +47,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() int] {
 	return nil
 }
 
-func hx_recover_class_0(value any) *haxe__ValueException {
-	value = hxrt.ObjectSource(value)
-	if value == nil {
-		return nil
-	}
-	switch source := value.(type) {
-	case *haxe__ValueException:
-		return source
-	default:
-		return value.(*haxe__ValueException)
-	}
-}
-
-func hx_recover_class_1(value any) *haxe__Exception {
+func hx_recover_class_haxe__Exception(value any) *haxe__Exception {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil
@@ -75,9 +62,24 @@ func hx_recover_class_1(value any) *haxe__Exception {
 	}
 }
 
-func hx_is_nominal_0(value any) bool {
+func hx_recover_class_haxe__ValueException(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
+}
+
+func hx_is_nominal_haxe__Exception(value any) bool {
 	value = hxrt.ObjectSource(value)
 	switch source := value.(type) {
+	case *haxe__Exception:
+		return (source != nil)
 	case *haxe__ValueException:
 		return (source != nil)
 	default:
@@ -85,11 +87,9 @@ func hx_is_nominal_0(value any) bool {
 	}
 }
 
-func hx_is_nominal_1(value any) bool {
+func hx_is_nominal_haxe__ValueException(value any) bool {
 	value = hxrt.ObjectSource(value)
 	switch source := value.(type) {
-	case *haxe__Exception:
-		return (source != nil)
 	case *haxe__ValueException:
 		return (source != nil)
 	default:

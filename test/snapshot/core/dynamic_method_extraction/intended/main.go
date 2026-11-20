@@ -53,7 +53,7 @@ func main() {
 		}, func(name string, incoming any) bool {
 			switch name {
 			case "next":
-				hx_structural_source_1.next = hx_recover_callable_0(incoming)
+				hx_structural_source_1.next = hx_recover_callable_e273723c(incoming)
 				return true
 			}
 			return false
@@ -64,7 +64,7 @@ func main() {
 	hxrt.Println(any(hxrt.HaxeEqual(a, b)))
 	var v any = any(hxrt.ReflectCompareMethods(any(a), any(b)))
 	hxrt.Println(v)
-	c := hx_recover_callable_0(hxrt.AnonymousGet(view, "next"))
+	c := hx_recover_callable_e273723c(hxrt.AnonymousGet(view, "next"))
 	hxrt.Println(any(hxrt.HaxeEqual(a, c)))
 	var v_1 any = any(hxrt.ReflectCompareMethods(any(a), any(c)))
 	hxrt.Println(v_1)
@@ -90,7 +90,7 @@ func main() {
 	hxrt.Println(v_5)
 }
 
-func hx_recover_callable_0(value any) *hxrt.Function[func() int] {
+func hx_recover_callable_e273723c(value any) *hxrt.Function[func() int] {
 	if value == nil {
 		return nil
 	}

@@ -37,7 +37,7 @@ func main() {
 	}
 }
 
-func hx_recover_class_0(value any) *haxe__Exception {
+func hx_recover_class_haxe__Exception(value any) *haxe__Exception {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil
@@ -56,20 +56,7 @@ func hx_recover_class_0(value any) *haxe__Exception {
 	}
 }
 
-func hx_recover_class_1(value any) *model__TodoItem {
-	value = hxrt.ObjectSource(value)
-	if value == nil {
-		return nil
-	}
-	switch source := value.(type) {
-	case *model__TodoItem:
-		return source
-	default:
-		return value.(*model__TodoItem)
-	}
-}
-
-func hx_recover_class_2(value any) *haxe__ValueException {
+func hx_recover_class_haxe__ValueException(value any) *haxe__ValueException {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil
@@ -82,7 +69,7 @@ func hx_recover_class_2(value any) *haxe__ValueException {
 	}
 }
 
-func hx_recover_class_3(value any) *haxe__io__Eof {
+func hx_recover_class_haxe__io__Eof(value any) *haxe__io__Eof {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil
@@ -95,17 +82,20 @@ func hx_recover_class_3(value any) *haxe__io__Eof {
 	}
 }
 
-func hx_is_nominal_0(value any) bool {
+func hx_recover_class_model__TodoItem(value any) *model__TodoItem {
 	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
 	switch source := value.(type) {
-	case *haxe__ValueException:
-		return (source != nil)
+	case *model__TodoItem:
+		return source
 	default:
-		return false
+		return value.(*model__TodoItem)
 	}
 }
 
-func hx_is_nominal_1(value any) bool {
+func hx_is_nominal_haxe__Exception(value any) bool {
 	value = hxrt.ObjectSource(value)
 	switch source := value.(type) {
 	case *haxe__Exception:
@@ -121,7 +111,17 @@ func hx_is_nominal_1(value any) bool {
 	}
 }
 
-func hx_is_nominal_2(value any) bool {
+func hx_is_nominal_haxe__ValueException(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_haxe__io__Eof(value any) bool {
 	value = hxrt.ObjectSource(value)
 	switch source := value.(type) {
 	case *haxe__io__Eof:

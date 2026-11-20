@@ -34,7 +34,7 @@ func main() {
 		recv := haxe__io__Bytes_alloc(32)
 		remote := New_sys__net__Address()
 		read := server.__hx_this.readFrom(recv, 0, recv.length, remote)
-		var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("bound.host="), hx_recover_class_0(hxrt.AnonymousGet(bound, "host")).__hx_this.toString()))
+		var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("bound.host="), hx_recover_class_sys__net__Host(hxrt.AnonymousGet(bound, "host")).__hx_this.toString()))
 		hxrt.Println(v)
 		var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("bound.port.positive="), hxrt.StdString((func(hx_value_8 any) int {
 			if hx_value_8 == nil {
@@ -92,61 +92,7 @@ func safeClose(socket *sys__net__UdpSocket) {
 	})
 }
 
-func hx_recover_class_0(value any) *sys__net__Host {
-	value = hxrt.ObjectSource(value)
-	if value == nil {
-		return nil
-	}
-	switch source := value.(type) {
-	case *sys__net__Host:
-		return source
-	default:
-		return value.(*sys__net__Host)
-	}
-}
-
-func hx_recover_class_1(value any) *sys__net__Socket {
-	value = hxrt.ObjectSource(value)
-	if value == nil {
-		return nil
-	}
-	switch source := value.(type) {
-	case *sys__net__UdpSocket:
-		return source.sys__net__Socket
-	case *sys__net__Socket:
-		return source
-	default:
-		return value.(*sys__net__Socket)
-	}
-}
-
-func hx_recover_class_2(value any) *haxe__io__Eof {
-	value = hxrt.ObjectSource(value)
-	if value == nil {
-		return nil
-	}
-	switch source := value.(type) {
-	case *haxe__io__Eof:
-		return source
-	default:
-		return value.(*haxe__io__Eof)
-	}
-}
-
-func hx_recover_class_3(value any) *haxe__ValueException {
-	value = hxrt.ObjectSource(value)
-	if value == nil {
-		return nil
-	}
-	switch source := value.(type) {
-	case *haxe__ValueException:
-		return source
-	default:
-		return value.(*haxe__ValueException)
-	}
-}
-
-func hx_recover_class_4(value any) *haxe__Exception {
+func hx_recover_class_haxe__Exception(value any) *haxe__Exception {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil
@@ -165,27 +111,61 @@ func hx_recover_class_4(value any) *haxe__Exception {
 	}
 }
 
-func hx_is_nominal_0(value any) bool {
+func hx_recover_class_haxe__ValueException(value any) *haxe__ValueException {
 	value = hxrt.ObjectSource(value)
-	switch source := value.(type) {
-	case *haxe__io__Eof:
-		return (source != nil)
-	default:
-		return false
+	if value == nil {
+		return nil
 	}
-}
-
-func hx_is_nominal_1(value any) bool {
-	value = hxrt.ObjectSource(value)
 	switch source := value.(type) {
 	case *haxe__ValueException:
-		return (source != nil)
+		return source
 	default:
-		return false
+		return value.(*haxe__ValueException)
 	}
 }
 
-func hx_is_nominal_2(value any) bool {
+func hx_recover_class_haxe__io__Eof(value any) *haxe__io__Eof {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__io__Eof:
+		return source
+	default:
+		return value.(*haxe__io__Eof)
+	}
+}
+
+func hx_recover_class_sys__net__Host(value any) *sys__net__Host {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *sys__net__Host:
+		return source
+	default:
+		return value.(*sys__net__Host)
+	}
+}
+
+func hx_recover_class_sys__net__Socket(value any) *sys__net__Socket {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *sys__net__UdpSocket:
+		return source.sys__net__Socket
+	case *sys__net__Socket:
+		return source
+	default:
+		return value.(*sys__net__Socket)
+	}
+}
+
+func hx_is_nominal_haxe__Exception(value any) bool {
 	value = hxrt.ObjectSource(value)
 	switch source := value.(type) {
 	case *haxe__Exception:
@@ -195,6 +175,26 @@ func hx_is_nominal_2(value any) bool {
 	case *haxe__exceptions__PosException:
 		return (source != nil)
 	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_haxe__ValueException(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_haxe__io__Eof(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__io__Eof:
 		return (source != nil)
 	default:
 		return false

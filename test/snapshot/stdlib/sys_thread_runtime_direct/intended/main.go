@@ -30,8 +30,8 @@ func main() {
 		hx_exception_2 := haxe__Exception_caught(hx_caught_1)
 		hx_payload_3 := haxe__Exception_catchValue(hx_caught_1)
 		_ = hx_payload_3
-		if hx_is_nominal_0(hx_exception_2) {
-			var err *sys__thread__NoEventLoopException = hx_recover_class_0(hx_exception_2)
+		if hx_is_nominal_sys__thread__NoEventLoopException(hx_exception_2) {
+			var err *sys__thread__NoEventLoopException = hx_recover_class_sys__thread__NoEventLoopException(hx_exception_2)
 			var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("thread.worker_events="), err.__hx_this.get_message()))
 			hxrt.Println(v_2)
 		} else {
@@ -100,8 +100,8 @@ func main() {
 		hx_exception_5 := haxe__Exception_caught(hx_caught_4)
 		hx_payload_6 := haxe__Exception_catchValue(hx_caught_4)
 		_ = hx_payload_6
-		if hx_is_nominal_1(hx_exception_5) {
-			var err_1 *sys__thread__ThreadPoolException = hx_recover_class_1(hx_exception_5)
+		if hx_is_nominal_sys__thread__ThreadPoolException(hx_exception_5) {
+			var err_1 *sys__thread__ThreadPoolException = hx_recover_class_sys__thread__ThreadPoolException(hx_exception_5)
 			var v_7 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("fixed.error="), err_1.__hx_this.get_message()))
 			hxrt.Println(v_7)
 		} else {
@@ -127,8 +127,8 @@ func main() {
 		hx_exception_8 := haxe__Exception_caught(hx_caught_7)
 		hx_payload_9 := haxe__Exception_catchValue(hx_caught_7)
 		_ = hx_payload_9
-		if hx_is_nominal_1(hx_exception_8) {
-			var err_2 *sys__thread__ThreadPoolException = hx_recover_class_1(hx_exception_8)
+		if hx_is_nominal_sys__thread__ThreadPoolException(hx_exception_8) {
+			var err_2 *sys__thread__ThreadPoolException = hx_recover_class_sys__thread__ThreadPoolException(hx_exception_8)
 			var v_10 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("elastic.error="), err_2.__hx_this.get_message()))
 			hxrt.Println(v_10)
 		} else {
@@ -164,7 +164,7 @@ func sortedMessages(count int) *string {
 				return hx_value_17.(*string)
 			}(hx_cmp_right_13))
 		})
-	}(hx_recover_callable_0(hxrt.NamedFunction(Reflect_compare, "Reflect.compare"))))
+	}(hx_recover_callable_4f8fe1be(hxrt.NamedFunction(Reflect_compare, "Reflect.compare"))))
 	var buf_b *string
 	buf_b = hxrt.StringFromLiteral("")
 	var _g_current int
@@ -332,65 +332,65 @@ func hxrt__generated_method_field__haxe__Exception(value *haxe__Exception, key s
 	switch key {
 	case "details":
 		return func() *hxrt.Function[func() *string] {
-			hx_receiver_103 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() *string {
-				return hx_receiver_103.__hx_this.details()
+				return hx_receiver_1.__hx_this.details()
 			}, func() any {
-				return hx_receiver_103.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "details")
 		}()
 	case "get_message":
 		return func() *hxrt.Function[func() *string] {
-			hx_receiver_104 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() *string {
-				return hx_receiver_104.__hx_this.get_message()
+				return hx_receiver_1.__hx_this.get_message()
 			}, func() any {
-				return hx_receiver_104.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "get_message")
 		}()
 	case "get_native":
 		return func() *hxrt.Function[func() any] {
-			hx_receiver_105 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() any {
-				return hx_receiver_105.__hx_this.get_native()
+				return hx_receiver_1.__hx_this.get_native()
 			}, func() any {
-				return hx_receiver_105.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "get_native")
 		}()
 	case "get_previous":
 		return func() *hxrt.Function[func() *haxe__Exception] {
-			hx_receiver_106 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() *haxe__Exception {
-				return hx_receiver_106.__hx_this.get_previous()
+				return hx_receiver_1.__hx_this.get_previous()
 			}, func() any {
-				return hx_receiver_106.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "get_previous")
 		}()
 	case "get_stack":
 		return func() *hxrt.Function[func() any] {
-			hx_receiver_107 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() any {
-				return hx_receiver_107.__hx_this.get_stack()
+				return hx_receiver_1.__hx_this.get_stack()
 			}, func() any {
-				return hx_receiver_107.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "get_stack")
 		}()
 	case "toString":
 		return func() *hxrt.Function[func() *string] {
-			hx_receiver_108 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() *string {
-				return hx_receiver_108.__hx_this.toString()
+				return hx_receiver_1.__hx_this.toString()
 			}, func() any {
-				return hx_receiver_108.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "toString")
 		}()
 	case "unwrap":
 		return func() *hxrt.Function[func() any] {
-			hx_receiver_109 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() any {
-				return hx_receiver_109.__hx_this.unwrap()
+				return hx_receiver_1.__hx_this.unwrap()
 			}, func() any {
-				return hx_receiver_109.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "unwrap")
 		}()
 	}
@@ -404,11 +404,11 @@ func hxrt__generated_method_field__haxe__ValueException(value *haxe__ValueExcept
 	switch key {
 	case "unwrap":
 		return func() *hxrt.Function[func() any] {
-			hx_receiver_110 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() any {
-				return hx_receiver_110.__hx_this.unwrap()
+				return hx_receiver_1.__hx_this.unwrap()
 			}, func() any {
-				return hx_receiver_110.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "unwrap")
 		}()
 	}
@@ -425,128 +425,128 @@ func hxrt__generated_method_field__haxe__ds__List(value *haxe__ds__List, key str
 	switch key {
 	case "add":
 		return func() *hxrt.Function[func(any)] {
-			hx_receiver_111 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func(item any) {
-				hx_receiver_111.__hx_this.add(item)
+				hx_receiver_1.__hx_this.add(item)
 			}, func() any {
-				return hx_receiver_111.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "add")
 		}()
 	case "clear":
 		return func() *hxrt.Function[func()] {
-			hx_receiver_112 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() {
-				hx_receiver_112.__hx_this.clear()
+				hx_receiver_1.__hx_this.clear()
 			}, func() any {
-				return hx_receiver_112.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "clear")
 		}()
 	case "filter":
 		return func() *hxrt.Function[func(*hxrt.Function[func(any) bool]) *haxe__ds__List] {
-			hx_receiver_113 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func(predicate *hxrt.Function[func(any) bool]) *haxe__ds__List {
-				return hx_receiver_113.__hx_this.filter(predicate)
+				return hx_receiver_1.__hx_this.filter(predicate)
 			}, func() any {
-				return hx_receiver_113.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "filter")
 		}()
 	case "first":
 		return func() *hxrt.Function[func() any] {
-			hx_receiver_114 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() any {
-				return hx_receiver_114.__hx_this.first()
+				return hx_receiver_1.__hx_this.first()
 			}, func() any {
-				return hx_receiver_114.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "first")
 		}()
 	case "isEmpty":
 		return func() *hxrt.Function[func() bool] {
-			hx_receiver_115 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() bool {
-				return hx_receiver_115.__hx_this.isEmpty()
+				return hx_receiver_1.__hx_this.isEmpty()
 			}, func() any {
-				return hx_receiver_115.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "isEmpty")
 		}()
 	case "iterator":
 		return func() *hxrt.Function[func() *haxe__ds___List__GoListIterator] {
-			hx_receiver_116 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() *haxe__ds___List__GoListIterator {
-				return hx_receiver_116.__hx_this.iterator()
+				return hx_receiver_1.__hx_this.iterator()
 			}, func() any {
-				return hx_receiver_116.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "iterator")
 		}()
 	case "join":
 		return func() *hxrt.Function[func(*string) *string] {
-			hx_receiver_117 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func(separator *string) *string {
-				return hx_receiver_117.__hx_this.join(separator)
+				return hx_receiver_1.__hx_this.join(separator)
 			}, func() any {
-				return hx_receiver_117.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "join")
 		}()
 	case "keyValueIterator":
 		return func() *hxrt.Function[func() *haxe__ds___List__GoListKeyValueIterator] {
-			hx_receiver_118 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() *haxe__ds___List__GoListKeyValueIterator {
-				return hx_receiver_118.__hx_this.keyValueIterator()
+				return hx_receiver_1.__hx_this.keyValueIterator()
 			}, func() any {
-				return hx_receiver_118.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "keyValueIterator")
 		}()
 	case "last":
 		return func() *hxrt.Function[func() any] {
-			hx_receiver_119 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() any {
-				return hx_receiver_119.__hx_this.last()
+				return hx_receiver_1.__hx_this.last()
 			}, func() any {
-				return hx_receiver_119.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "last")
 		}()
 	case "map":
 		return func() *hxrt.Function[func(*hxrt.Function[func(any) any]) *haxe__ds__List] {
-			hx_receiver_120 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func(transform *hxrt.Function[func(any) any]) *haxe__ds__List {
-				return hx_receiver_120.__hx_this.map_(transform)
+				return hx_receiver_1.__hx_this.map_(transform)
 			}, func() any {
-				return hx_receiver_120.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "map")
 		}()
 	case "pop":
 		return func() *hxrt.Function[func() any] {
-			hx_receiver_121 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() any {
-				return hx_receiver_121.__hx_this.pop()
+				return hx_receiver_1.__hx_this.pop()
 			}, func() any {
-				return hx_receiver_121.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "pop")
 		}()
 	case "push":
 		return func() *hxrt.Function[func(any)] {
-			hx_receiver_122 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func(item any) {
-				hx_receiver_122.__hx_this.push(item)
+				hx_receiver_1.__hx_this.push(item)
 			}, func() any {
-				return hx_receiver_122.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "push")
 		}()
 	case "remove":
 		return func() *hxrt.Function[func(any) bool] {
-			hx_receiver_123 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func(value any) bool {
-				return hx_receiver_123.__hx_this.remove(value)
+				return hx_receiver_1.__hx_this.remove(value)
 			}, func() any {
-				return hx_receiver_123.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "remove")
 		}()
 	case "toString":
 		return func() *hxrt.Function[func() *string] {
-			hx_receiver_124 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() *string {
-				return hx_receiver_124.__hx_this.toString()
+				return hx_receiver_1.__hx_this.toString()
 			}, func() any {
-				return hx_receiver_124.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "toString")
 		}()
 	}
@@ -560,20 +560,20 @@ func hxrt__generated_method_field__haxe__ds___List__GoListIterator(value *haxe__
 	switch key {
 	case "hasNext":
 		return func() *hxrt.Function[func() bool] {
-			hx_receiver_125 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() bool {
-				return hx_receiver_125.__hx_this.hasNext()
+				return hx_receiver_1.__hx_this.hasNext()
 			}, func() any {
-				return hx_receiver_125.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "hasNext")
 		}()
 	case "next":
 		return func() *hxrt.Function[func() any] {
-			hx_receiver_126 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() any {
-				return hx_receiver_126.__hx_this.next()
+				return hx_receiver_1.__hx_this.next()
 			}, func() any {
-				return hx_receiver_126.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "next")
 		}()
 	}
@@ -587,20 +587,20 @@ func hxrt__generated_method_field__haxe__ds___List__GoListKeyValueIterator(value
 	switch key {
 	case "hasNext":
 		return func() *hxrt.Function[func() bool] {
-			hx_receiver_127 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() bool {
-				return hx_receiver_127.__hx_this.hasNext()
+				return hx_receiver_1.__hx_this.hasNext()
 			}, func() any {
-				return hx_receiver_127.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "hasNext")
 		}()
 	case "next":
 		return func() *hxrt.Function[func() hxrt.Anonymous] {
-			hx_receiver_128 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() hxrt.Anonymous {
-				return hx_receiver_128.__hx_this.next()
+				return hx_receiver_1.__hx_this.next()
 			}, func() any {
-				return hx_receiver_128.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "next")
 		}()
 	}
@@ -614,29 +614,29 @@ func hxrt__generated_method_field__sys__thread__Deque(value *sys__thread__Deque,
 	switch key {
 	case "add":
 		return func() *hxrt.Function[func(any)] {
-			hx_receiver_129 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func(i any) {
-				hx_receiver_129.__hx_this.add(i)
+				hx_receiver_1.__hx_this.add(i)
 			}, func() any {
-				return hx_receiver_129.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "add")
 		}()
 	case "pop":
 		return func() *hxrt.Function[func(bool) any] {
-			hx_receiver_130 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func(block bool) any {
-				return hx_receiver_130.__hx_this.pop(block)
+				return hx_receiver_1.__hx_this.pop(block)
 			}, func() any {
-				return hx_receiver_130.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "pop")
 		}()
 	case "push":
 		return func() *hxrt.Function[func(any)] {
-			hx_receiver_131 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func(i any) {
-				hx_receiver_131.__hx_this.push(i)
+				hx_receiver_1.__hx_this.push(i)
 			}, func() any {
-				return hx_receiver_131.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "push")
 		}()
 	}
@@ -650,83 +650,83 @@ func hxrt__generated_method_field__sys__thread__ElasticThreadPool(value *sys__th
 	switch key {
 	case "get_isShutdown":
 		return func() *hxrt.Function[func() bool] {
-			hx_receiver_132 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() bool {
-				return hx_receiver_132.__hx_this.get_isShutdown()
+				return hx_receiver_1.__hx_this.get_isShutdown()
 			}, func() any {
-				return hx_receiver_132.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "get_isShutdown")
 		}()
 	case "get_threadsCount":
 		return func() *hxrt.Function[func() int] {
-			hx_receiver_133 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() int {
-				return hx_receiver_133.__hx_this.get_threadsCount()
+				return hx_receiver_1.__hx_this.get_threadsCount()
 			}, func() any {
-				return hx_receiver_133.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "get_threadsCount")
 		}()
 	case "retireWorkerLocked":
 		return func() *hxrt.Function[func(*sys__thread__ElasticThreadPoolWorker)] {
-			hx_receiver_134 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func(worker *sys__thread__ElasticThreadPoolWorker) {
-				hx_receiver_134.__hx_this.retireWorkerLocked(worker)
+				hx_receiver_1.__hx_this.retireWorkerLocked(worker)
 			}, func() any {
-				return hx_receiver_134.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "retireWorkerLocked")
 		}()
 	case "run":
 		return func() *hxrt.Function[func(*hxrt.Function[func()])] {
-			hx_receiver_135 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func(task *hxrt.Function[func()]) {
-				hx_receiver_135.__hx_this.run(task)
+				hx_receiver_1.__hx_this.run(task)
 			}, func() any {
-				return hx_receiver_135.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "run")
 		}()
 	case "shutdown":
 		return func() *hxrt.Function[func()] {
-			hx_receiver_136 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() {
-				hx_receiver_136.__hx_this.shutdown()
+				hx_receiver_1.__hx_this.shutdown()
 			}, func() any {
-				return hx_receiver_136.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "shutdown")
 		}()
 	case "startWorkerLocked":
 		return func() *hxrt.Function[func()] {
-			hx_receiver_137 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() {
-				hx_receiver_137.__hx_this.startWorkerLocked()
+				hx_receiver_1.__hx_this.startWorkerLocked()
 			}, func() any {
-				return hx_receiver_137.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "startWorkerLocked")
 		}()
 	case "workerResolveWait":
 		return func() *hxrt.Function[func(*sys__thread__ElasticThreadPoolWorker, bool) bool] {
-			hx_receiver_138 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func(worker *sys__thread__ElasticThreadPoolWorker, woke bool) bool {
-				return hx_receiver_138.__hx_this.workerResolveWait(worker, woke)
+				return hx_receiver_1.__hx_this.workerResolveWait(worker, woke)
 			}, func() any {
-				return hx_receiver_138.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "workerResolveWait")
 		}()
 	case "workerTaskFailed":
 		return func() *hxrt.Function[func(*sys__thread__ElasticThreadPoolWorker)] {
-			hx_receiver_139 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func(worker *sys__thread__ElasticThreadPoolWorker) {
-				hx_receiver_139.__hx_this.workerTaskFailed(worker)
+				hx_receiver_1.__hx_this.workerTaskFailed(worker)
 			}, func() any {
-				return hx_receiver_139.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "workerTaskFailed")
 		}()
 	case "workerTaskFinished":
 		return func() *hxrt.Function[func(*sys__thread__ElasticThreadPoolWorker)] {
-			hx_receiver_140 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func(worker *sys__thread__ElasticThreadPoolWorker) {
-				hx_receiver_140.__hx_this.workerTaskFinished(worker)
+				hx_receiver_1.__hx_this.workerTaskFinished(worker)
 			}, func() any {
-				return hx_receiver_140.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "workerTaskFinished")
 		}()
 	}
@@ -740,20 +740,20 @@ func hxrt__generated_method_field__sys__thread__ElasticThreadPoolWorker(value *s
 	switch key {
 	case "loop":
 		return func() *hxrt.Function[func()] {
-			hx_receiver_141 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() {
-				hx_receiver_141.__hx_this.loop()
+				hx_receiver_1.__hx_this.loop()
 			}, func() any {
-				return hx_receiver_141.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "loop")
 		}()
 	case "start":
 		return func() *hxrt.Function[func()] {
-			hx_receiver_142 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() {
-				hx_receiver_142.__hx_this.start()
+				hx_receiver_1.__hx_this.start()
 			}, func() any {
-				return hx_receiver_142.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "start")
 		}()
 	}
@@ -767,74 +767,74 @@ func hxrt__generated_method_field__sys__thread__EventLoop(value *sys__thread__Ev
 	switch key {
 	case "cancel":
 		return func() *hxrt.Function[func(any)] {
-			hx_receiver_143 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func(eventHandler any) {
-				hx_receiver_143.__hx_this.cancel(eventHandler)
+				hx_receiver_1.__hx_this.cancel(eventHandler)
 			}, func() any {
-				return hx_receiver_143.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "cancel")
 		}()
 	case "loop":
 		return func() *hxrt.Function[func()] {
-			hx_receiver_144 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() {
-				hx_receiver_144.__hx_this.loop()
+				hx_receiver_1.__hx_this.loop()
 			}, func() any {
-				return hx_receiver_144.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "loop")
 		}()
 	case "progress":
 		return func() *hxrt.Function[func() *sys__thread__NextEventTime] {
-			hx_receiver_145 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() *sys__thread__NextEventTime {
-				return hx_receiver_145.__hx_this.progress()
+				return hx_receiver_1.__hx_this.progress()
 			}, func() any {
-				return hx_receiver_145.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "progress")
 		}()
 	case "promise":
 		return func() *hxrt.Function[func()] {
-			hx_receiver_146 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() {
-				hx_receiver_146.__hx_this.promise()
+				hx_receiver_1.__hx_this.promise()
 			}, func() any {
-				return hx_receiver_146.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "promise")
 		}()
 	case "repeat":
 		return func() *hxrt.Function[func(*hxrt.Function[func()], int) any] {
-			hx_receiver_147 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func(event *hxrt.Function[func()], intervalMs int) any {
-				return hx_receiver_147.__hx_this.repeat(event, intervalMs)
+				return hx_receiver_1.__hx_this.repeat(event, intervalMs)
 			}, func() any {
-				return hx_receiver_147.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "repeat")
 		}()
 	case "run":
 		return func() *hxrt.Function[func(*hxrt.Function[func()])] {
-			hx_receiver_148 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func(event *hxrt.Function[func()]) {
-				hx_receiver_148.__hx_this.run(event)
+				hx_receiver_1.__hx_this.run(event)
 			}, func() any {
-				return hx_receiver_148.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "run")
 		}()
 	case "runPromised":
 		return func() *hxrt.Function[func(*hxrt.Function[func()])] {
-			hx_receiver_149 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func(event *hxrt.Function[func()]) {
-				hx_receiver_149.__hx_this.runPromised(event)
+				hx_receiver_1.__hx_this.runPromised(event)
 			}, func() any {
-				return hx_receiver_149.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "runPromised")
 		}()
 	case "wait":
 		return func() *hxrt.Function[func(any) bool] {
-			hx_receiver_150 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func(timeout any) bool {
-				return hx_receiver_150.__hx_this.wait(timeout)
+				return hx_receiver_1.__hx_this.wait(timeout)
 			}, func() any {
-				return hx_receiver_150.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "wait")
 		}()
 	}
@@ -848,38 +848,38 @@ func hxrt__generated_method_field__sys__thread__FixedThreadPool(value *sys__thre
 	switch key {
 	case "get_isShutdown":
 		return func() *hxrt.Function[func() bool] {
-			hx_receiver_151 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() bool {
-				return hx_receiver_151.__hx_this.get_isShutdown()
+				return hx_receiver_1.__hx_this.get_isShutdown()
 			}, func() any {
-				return hx_receiver_151.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "get_isShutdown")
 		}()
 	case "get_threadsCount":
 		return func() *hxrt.Function[func() int] {
-			hx_receiver_152 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() int {
-				return hx_receiver_152.__hx_this.get_threadsCount()
+				return hx_receiver_1.__hx_this.get_threadsCount()
 			}, func() any {
-				return hx_receiver_152.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "get_threadsCount")
 		}()
 	case "run":
 		return func() *hxrt.Function[func(*hxrt.Function[func()])] {
-			hx_receiver_153 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func(task *hxrt.Function[func()]) {
-				hx_receiver_153.__hx_this.run(task)
+				hx_receiver_1.__hx_this.run(task)
 			}, func() any {
-				return hx_receiver_153.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "run")
 		}()
 	case "shutdown":
 		return func() *hxrt.Function[func()] {
-			hx_receiver_154 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() {
-				hx_receiver_154.__hx_this.shutdown()
+				hx_receiver_1.__hx_this.shutdown()
 			}, func() any {
-				return hx_receiver_154.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "shutdown")
 		}()
 	}
@@ -903,11 +903,11 @@ func hxrt__generated_method_field__sys__thread__FixedThreadPoolWorker(value *sys
 	switch key {
 	case "loop":
 		return func() *hxrt.Function[func()] {
-			hx_receiver_155 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() {
-				hx_receiver_155.__hx_this.loop()
+				hx_receiver_1.__hx_this.loop()
 			}, func() any {
-				return hx_receiver_155.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "loop")
 		}()
 	}
@@ -921,20 +921,20 @@ func hxrt__generated_method_field__sys__thread__Lock(value *sys__thread__Lock, k
 	switch key {
 	case "release":
 		return func() *hxrt.Function[func()] {
-			hx_receiver_156 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() {
-				hx_receiver_156.__hx_this.release()
+				hx_receiver_1.__hx_this.release()
 			}, func() any {
-				return hx_receiver_156.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "release")
 		}()
 	case "wait":
 		return func() *hxrt.Function[func(any) bool] {
-			hx_receiver_157 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func(timeout any) bool {
-				return hx_receiver_157.__hx_this.wait(timeout)
+				return hx_receiver_1.__hx_this.wait(timeout)
 			}, func() any {
-				return hx_receiver_157.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "wait")
 		}()
 	}
@@ -948,29 +948,29 @@ func hxrt__generated_method_field__sys__thread__Mutex(value *sys__thread__Mutex,
 	switch key {
 	case "acquire":
 		return func() *hxrt.Function[func()] {
-			hx_receiver_158 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() {
-				hx_receiver_158.__hx_this.acquire()
+				hx_receiver_1.__hx_this.acquire()
 			}, func() any {
-				return hx_receiver_158.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "acquire")
 		}()
 	case "release":
 		return func() *hxrt.Function[func()] {
-			hx_receiver_159 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() {
-				hx_receiver_159.__hx_this.release()
+				hx_receiver_1.__hx_this.release()
 			}, func() any {
-				return hx_receiver_159.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "release")
 		}()
 	case "tryAcquire":
 		return func() *hxrt.Function[func() bool] {
-			hx_receiver_160 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() bool {
-				return hx_receiver_160.__hx_this.tryAcquire()
+				return hx_receiver_1.__hx_this.tryAcquire()
 			}, func() any {
-				return hx_receiver_160.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "tryAcquire")
 		}()
 	}
@@ -994,20 +994,20 @@ func hxrt__generated_method_field__sys__thread__Thread(value *sys__thread__Threa
 	switch key {
 	case "get_events":
 		return func() *hxrt.Function[func() *sys__thread__EventLoop] {
-			hx_receiver_161 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func() *sys__thread__EventLoop {
-				return hx_receiver_161.__hx_this.get_events()
+				return hx_receiver_1.__hx_this.get_events()
 			}, func() any {
-				return hx_receiver_161.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "get_events")
 		}()
 	case "sendMessage":
 		return func() *hxrt.Function[func(any)] {
-			hx_receiver_162 := value
+			hx_receiver_1 := value
 			return hxrt.BoundFunction(func(msg any) {
-				hx_receiver_162.__hx_this.sendMessage(msg)
+				hx_receiver_1.__hx_this.sendMessage(msg)
 			}, func() any {
-				return hx_receiver_162.__hx_this
+				return hx_receiver_1.__hx_this
 			}, "sendMessage")
 		}()
 	}
@@ -2328,7 +2328,7 @@ func hxrt__generated_field_set__sys__thread__ElasticThreadPoolWorker(value *sys_
 		}
 	case "task":
 		if (hxrt.FunctionOrigin(incoming) == nil) || hxrt.ReflectIsFunction(incoming) {
-			value.task = hx_recover_callable_1(incoming)
+			value.task = hx_recover_callable_2d8d0a91(incoming)
 			return true
 		}
 		return false
@@ -2834,7 +2834,7 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 		if 0 < len(arguments) {
 			argument_0 = arguments[0]
 		}
-		return hxrt.FunctionCall(source)(hx_recover_callable_2(argument_0))
+		return hxrt.FunctionCall(source)(hx_recover_callable_37a9c0ad(argument_0))
 	case *hxrt.Function[func() bool]:
 		return hxrt.FunctionCall(source)()
 	case *hxrt.Function[func() *haxe__ds___List__GoListIterator]:
@@ -2844,12 +2844,12 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 		if 0 < len(arguments) {
 			argument_0 = arguments[0]
 		}
-		return hxrt.FunctionCall(source)(func(hx_value_163 any) *string {
-			if hx_value_163 == nil {
-				var hx_zero_164 *string
-				return hx_zero_164
+		return hxrt.FunctionCall(source)(func(hx_value_1 any) *string {
+			if hx_value_1 == nil {
+				var hx_zero_2 *string
+				return hx_zero_2
 			}
-			return hx_value_163.(*string)
+			return hx_value_1.(*string)
 		}(argument_0))
 	case *hxrt.Function[func() *haxe__ds___List__GoListKeyValueIterator]:
 		return hxrt.FunctionCall(source)()
@@ -2858,7 +2858,7 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 		if 0 < len(arguments) {
 			argument_0 = arguments[0]
 		}
-		return hxrt.FunctionCall(source)(hx_recover_callable_3(argument_0))
+		return hxrt.FunctionCall(source)(hx_recover_callable_f4ee5029(argument_0))
 	case *hxrt.Function[func(any) bool]:
 		var argument_0 any = nil
 		if 0 < len(arguments) {
@@ -2872,12 +2872,12 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 		if 0 < len(arguments) {
 			argument_0 = arguments[0]
 		}
-		return hxrt.FunctionCall(source)(func(hx_value_165 any) bool {
-			if hx_value_165 == nil {
-				var hx_zero_166 bool
-				return hx_zero_166
+		return hxrt.FunctionCall(source)(func(hx_value_3 any) bool {
+			if hx_value_3 == nil {
+				var hx_zero_4 bool
+				return hx_zero_4
 			}
-			return hx_value_165.(bool)
+			return hx_value_3.(bool)
 		}(argument_0))
 	case *hxrt.Function[func() int]:
 		return hxrt.FunctionCall(source)()
@@ -2886,14 +2886,14 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 		if 0 < len(arguments) {
 			argument_0 = arguments[0]
 		}
-		hxrt.FunctionCall(source)(hx_recover_class_4(argument_0))
+		hxrt.FunctionCall(source)(hx_recover_class_sys__thread__ElasticThreadPoolWorker(argument_0))
 		return nil
 	case *hxrt.Function[func(*hxrt.Function[func()])]:
 		var argument_0 any = nil
 		if 0 < len(arguments) {
 			argument_0 = arguments[0]
 		}
-		hxrt.FunctionCall(source)(hx_recover_callable_1(argument_0))
+		hxrt.FunctionCall(source)(hx_recover_callable_2d8d0a91(argument_0))
 		return nil
 	case *hxrt.Function[func(*sys__thread__ElasticThreadPoolWorker, bool) bool]:
 		var argument_0 any = nil
@@ -2904,12 +2904,12 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 		if 1 < len(arguments) {
 			argument_1 = arguments[1]
 		}
-		return hxrt.FunctionCall(source)(hx_recover_class_4(argument_0), func(hx_value_167 any) bool {
-			if hx_value_167 == nil {
-				var hx_zero_168 bool
-				return hx_zero_168
+		return hxrt.FunctionCall(source)(hx_recover_class_sys__thread__ElasticThreadPoolWorker(argument_0), func(hx_value_5 any) bool {
+			if hx_value_5 == nil {
+				var hx_zero_6 bool
+				return hx_zero_6
 			}
-			return hx_value_167.(bool)
+			return hx_value_5.(bool)
 		}(argument_1))
 	case *hxrt.Function[func() *sys__thread__NextEventTime]:
 		return hxrt.FunctionCall(source)()
@@ -2922,12 +2922,12 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 		if 1 < len(arguments) {
 			argument_1 = arguments[1]
 		}
-		return hxrt.FunctionCall(source)(hx_recover_callable_1(argument_0), func(hx_value_169 any) int {
-			if hx_value_169 == nil {
-				var hx_zero_170 int
-				return hx_zero_170
+		return hxrt.FunctionCall(source)(hx_recover_callable_2d8d0a91(argument_0), func(hx_value_7 any) int {
+			if hx_value_7 == nil {
+				var hx_zero_8 int
+				return hx_zero_8
 			}
-			return hx_value_169.(int)
+			return hx_value_7.(int)
 		}(argument_1))
 	case *hxrt.Function[func() *sys__thread__EventLoop]:
 		return hxrt.FunctionCall(source)()
@@ -2936,72 +2936,7 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 	}
 }
 
-func hx_recover_callable_0(value any) *hxrt.Function[func(*string, *string) int] {
-	if value == nil {
-		return nil
-	}
-	switch exact := value.(type) {
-	case *hxrt.Function[func(*string, *string) int]:
-		return exact
-	}
-	origin := hxrt.FunctionOrigin(value)
-	if origin == nil {
-		return nil
-	}
-	switch source := origin.(type) {
-	case *hxrt.Function[func(any, any) int]:
-		return hxrt.ProjectFunction(source, func(arg_0 *string, arg_1 *string) int {
-			return hxrt.FunctionCall(source)(arg_0, arg_1)
-		})
-	case *hxrt.Function[func(...any) any]:
-		return hxrt.ProjectFunction(source, func(arg_0 *string, arg_1 *string) int {
-			return func(hx_value_171 any) int {
-				if hx_value_171 == nil {
-					var hx_zero_172 int
-					return hx_zero_172
-				}
-				return hx_value_171.(int)
-			}(hxrt.FunctionCall(source)(arg_0, arg_1))
-		})
-	case *hxrt.Function[func(*sys__thread__ElasticThreadPoolWorker, bool) bool]:
-		return hxrt.ProjectFunction(source, func(arg_0 *string, arg_1 *string) int {
-			return func(hx_value_175 any) int {
-				if hx_value_175 == nil {
-					var hx_zero_176 int
-					return hx_zero_176
-				}
-				return hx_value_175.(int)
-			}(hxrt.FunctionCall(source)(hx_recover_class_4(arg_0), func(hx_value_173 any) bool {
-				if hx_value_173 == nil {
-					var hx_zero_174 bool
-					return hx_zero_174
-				}
-				return hx_value_173.(bool)
-			}(arg_1)))
-		})
-	case *hxrt.Function[func(*hxrt.Function[func()], int) any]:
-		return hxrt.ProjectFunction(source, func(arg_0 *string, arg_1 *string) int {
-			return func(hx_value_179 any) int {
-				if hx_value_179 == nil {
-					var hx_zero_180 int
-					return hx_zero_180
-				}
-				return hx_value_179.(int)
-			}(hxrt.FunctionCall(source)(hx_recover_callable_1(arg_0), func(hx_value_177 any) int {
-				if hx_value_177 == nil {
-					var hx_zero_178 int
-					return hx_zero_178
-				}
-				return hx_value_177.(int)
-			}(arg_1)))
-		})
-	default:
-		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
-		return nil
-	}
-}
-
-func hx_recover_callable_1(value any) *hxrt.Function[func()] {
+func hx_recover_callable_2d8d0a91(value any) *hxrt.Function[func()] {
 	if value == nil {
 		return nil
 	}
@@ -3066,7 +3001,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func()] {
 	}
 }
 
-func hx_recover_callable_2(value any) *hxrt.Function[func(any) bool] {
+func hx_recover_callable_37a9c0ad(value any) *hxrt.Function[func(any) bool] {
 	if value == nil {
 		return nil
 	}
@@ -3082,98 +3017,98 @@ func hx_recover_callable_2(value any) *hxrt.Function[func(any) bool] {
 	case *hxrt.Function[func(any)]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) bool {
 			hxrt.FunctionCall(source)(arg_0)
-			return func(hx_value_181 any) bool {
-				if hx_value_181 == nil {
-					var hx_zero_182 bool
-					return hx_zero_182
+			return func(hx_value_1 any) bool {
+				if hx_value_1 == nil {
+					var hx_zero_2 bool
+					return hx_zero_2
 				}
-				return hx_value_181.(bool)
+				return hx_value_1.(bool)
 			}(nil)
 		})
 	case *hxrt.Function[func(...any) any]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) bool {
-			return func(hx_value_183 any) bool {
-				if hx_value_183 == nil {
-					var hx_zero_184 bool
-					return hx_zero_184
+			return func(hx_value_3 any) bool {
+				if hx_value_3 == nil {
+					var hx_zero_4 bool
+					return hx_zero_4
 				}
-				return hx_value_183.(bool)
+				return hx_value_3.(bool)
 			}(hxrt.FunctionCall(source)(arg_0))
 		})
 	case *hxrt.Function[func(*hxrt.Function[func(any) bool]) *haxe__ds__List]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) bool {
-			return func(hx_value_185 any) bool {
-				if hx_value_185 == nil {
-					var hx_zero_186 bool
-					return hx_zero_186
+			return func(hx_value_5 any) bool {
+				if hx_value_5 == nil {
+					var hx_zero_6 bool
+					return hx_zero_6
 				}
-				return hx_value_185.(bool)
-			}(hxrt.FunctionCall(source)(hx_recover_callable_2(arg_0)))
+				return hx_value_5.(bool)
+			}(hxrt.FunctionCall(source)(hx_recover_callable_37a9c0ad(arg_0)))
 		})
 	case *hxrt.Function[func(*string) *string]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) bool {
-			return func(hx_value_189 any) bool {
-				if hx_value_189 == nil {
-					var hx_zero_190 bool
-					return hx_zero_190
+			return func(hx_value_9 any) bool {
+				if hx_value_9 == nil {
+					var hx_zero_10 bool
+					return hx_zero_10
 				}
-				return hx_value_189.(bool)
-			}(hxrt.FunctionCall(source)(func(hx_value_187 any) *string {
-				if hx_value_187 == nil {
-					var hx_zero_188 *string
-					return hx_zero_188
+				return hx_value_9.(bool)
+			}(hxrt.FunctionCall(source)(func(hx_value_7 any) *string {
+				if hx_value_7 == nil {
+					var hx_zero_8 *string
+					return hx_zero_8
 				}
-				return hx_value_187.(*string)
+				return hx_value_7.(*string)
 			}(arg_0)))
 		})
 	case *hxrt.Function[func(*hxrt.Function[func(any) any]) *haxe__ds__List]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) bool {
-			return func(hx_value_191 any) bool {
-				if hx_value_191 == nil {
-					var hx_zero_192 bool
-					return hx_zero_192
+			return func(hx_value_11 any) bool {
+				if hx_value_11 == nil {
+					var hx_zero_12 bool
+					return hx_zero_12
 				}
-				return hx_value_191.(bool)
-			}(hxrt.FunctionCall(source)(hx_recover_callable_3(arg_0)))
+				return hx_value_11.(bool)
+			}(hxrt.FunctionCall(source)(hx_recover_callable_f4ee5029(arg_0)))
 		})
 	case *hxrt.Function[func(any) bool]:
 		return source
 	case *hxrt.Function[func(bool) any]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) bool {
-			return func(hx_value_195 any) bool {
-				if hx_value_195 == nil {
-					var hx_zero_196 bool
-					return hx_zero_196
+			return func(hx_value_15 any) bool {
+				if hx_value_15 == nil {
+					var hx_zero_16 bool
+					return hx_zero_16
 				}
-				return hx_value_195.(bool)
-			}(hxrt.FunctionCall(source)(func(hx_value_193 any) bool {
-				if hx_value_193 == nil {
-					var hx_zero_194 bool
-					return hx_zero_194
+				return hx_value_15.(bool)
+			}(hxrt.FunctionCall(source)(func(hx_value_13 any) bool {
+				if hx_value_13 == nil {
+					var hx_zero_14 bool
+					return hx_zero_14
 				}
-				return hx_value_193.(bool)
+				return hx_value_13.(bool)
 			}(arg_0)))
 		})
 	case *hxrt.Function[func(*sys__thread__ElasticThreadPoolWorker)]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) bool {
-			hxrt.FunctionCall(source)(hx_recover_class_4(arg_0))
-			return func(hx_value_197 any) bool {
-				if hx_value_197 == nil {
-					var hx_zero_198 bool
-					return hx_zero_198
+			hxrt.FunctionCall(source)(hx_recover_class_sys__thread__ElasticThreadPoolWorker(arg_0))
+			return func(hx_value_17 any) bool {
+				if hx_value_17 == nil {
+					var hx_zero_18 bool
+					return hx_zero_18
 				}
-				return hx_value_197.(bool)
+				return hx_value_17.(bool)
 			}(nil)
 		})
 	case *hxrt.Function[func(*hxrt.Function[func()])]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) bool {
-			hxrt.FunctionCall(source)(hx_recover_callable_1(arg_0))
-			return func(hx_value_199 any) bool {
-				if hx_value_199 == nil {
-					var hx_zero_200 bool
-					return hx_zero_200
+			hxrt.FunctionCall(source)(hx_recover_callable_2d8d0a91(arg_0))
+			return func(hx_value_19 any) bool {
+				if hx_value_19 == nil {
+					var hx_zero_20 bool
+					return hx_zero_20
 				}
-				return hx_value_199.(bool)
+				return hx_value_19.(bool)
 			}(nil)
 		})
 	default:
@@ -3182,7 +3117,72 @@ func hx_recover_callable_2(value any) *hxrt.Function[func(any) bool] {
 	}
 }
 
-func hx_recover_callable_3(value any) *hxrt.Function[func(any) any] {
+func hx_recover_callable_4f8fe1be(value any) *hxrt.Function[func(*string, *string) int] {
+	if value == nil {
+		return nil
+	}
+	switch exact := value.(type) {
+	case *hxrt.Function[func(*string, *string) int]:
+		return exact
+	}
+	origin := hxrt.FunctionOrigin(value)
+	if origin == nil {
+		return nil
+	}
+	switch source := origin.(type) {
+	case *hxrt.Function[func(any, any) int]:
+		return hxrt.ProjectFunction(source, func(arg_0 *string, arg_1 *string) int {
+			return hxrt.FunctionCall(source)(arg_0, arg_1)
+		})
+	case *hxrt.Function[func(...any) any]:
+		return hxrt.ProjectFunction(source, func(arg_0 *string, arg_1 *string) int {
+			return func(hx_value_1 any) int {
+				if hx_value_1 == nil {
+					var hx_zero_2 int
+					return hx_zero_2
+				}
+				return hx_value_1.(int)
+			}(hxrt.FunctionCall(source)(arg_0, arg_1))
+		})
+	case *hxrt.Function[func(*sys__thread__ElasticThreadPoolWorker, bool) bool]:
+		return hxrt.ProjectFunction(source, func(arg_0 *string, arg_1 *string) int {
+			return func(hx_value_5 any) int {
+				if hx_value_5 == nil {
+					var hx_zero_6 int
+					return hx_zero_6
+				}
+				return hx_value_5.(int)
+			}(hxrt.FunctionCall(source)(hx_recover_class_sys__thread__ElasticThreadPoolWorker(arg_0), func(hx_value_3 any) bool {
+				if hx_value_3 == nil {
+					var hx_zero_4 bool
+					return hx_zero_4
+				}
+				return hx_value_3.(bool)
+			}(arg_1)))
+		})
+	case *hxrt.Function[func(*hxrt.Function[func()], int) any]:
+		return hxrt.ProjectFunction(source, func(arg_0 *string, arg_1 *string) int {
+			return func(hx_value_9 any) int {
+				if hx_value_9 == nil {
+					var hx_zero_10 int
+					return hx_zero_10
+				}
+				return hx_value_9.(int)
+			}(hxrt.FunctionCall(source)(hx_recover_callable_2d8d0a91(arg_0), func(hx_value_7 any) int {
+				if hx_value_7 == nil {
+					var hx_zero_8 int
+					return hx_zero_8
+				}
+				return hx_value_7.(int)
+			}(arg_1)))
+		})
+	default:
+		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
+		return nil
+	}
+}
+
+func hx_recover_callable_f4ee5029(value any) *hxrt.Function[func(any) any] {
 	if value == nil {
 		return nil
 	}
@@ -3206,21 +3206,21 @@ func hx_recover_callable_3(value any) *hxrt.Function[func(any) any] {
 		})
 	case *hxrt.Function[func(*hxrt.Function[func(any) bool]) *haxe__ds__List]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) any {
-			return hxrt.FunctionCall(source)(hx_recover_callable_2(arg_0))
+			return hxrt.FunctionCall(source)(hx_recover_callable_37a9c0ad(arg_0))
 		})
 	case *hxrt.Function[func(*string) *string]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) any {
-			return hxrt.FunctionCall(source)(func(hx_value_201 any) *string {
-				if hx_value_201 == nil {
-					var hx_zero_202 *string
-					return hx_zero_202
+			return hxrt.FunctionCall(source)(func(hx_value_1 any) *string {
+				if hx_value_1 == nil {
+					var hx_zero_2 *string
+					return hx_zero_2
 				}
-				return hx_value_201.(*string)
+				return hx_value_1.(*string)
 			}(arg_0))
 		})
 	case *hxrt.Function[func(*hxrt.Function[func(any) any]) *haxe__ds__List]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) any {
-			return hxrt.FunctionCall(source)(hx_recover_callable_3(arg_0))
+			return hxrt.FunctionCall(source)(hx_recover_callable_f4ee5029(arg_0))
 		})
 	case *hxrt.Function[func(any) bool]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) any {
@@ -3228,22 +3228,22 @@ func hx_recover_callable_3(value any) *hxrt.Function[func(any) any] {
 		})
 	case *hxrt.Function[func(bool) any]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) any {
-			return hxrt.FunctionCall(source)(func(hx_value_203 any) bool {
-				if hx_value_203 == nil {
-					var hx_zero_204 bool
-					return hx_zero_204
+			return hxrt.FunctionCall(source)(func(hx_value_3 any) bool {
+				if hx_value_3 == nil {
+					var hx_zero_4 bool
+					return hx_zero_4
 				}
-				return hx_value_203.(bool)
+				return hx_value_3.(bool)
 			}(arg_0))
 		})
 	case *hxrt.Function[func(*sys__thread__ElasticThreadPoolWorker)]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) any {
-			hxrt.FunctionCall(source)(hx_recover_class_4(arg_0))
+			hxrt.FunctionCall(source)(hx_recover_class_sys__thread__ElasticThreadPoolWorker(arg_0))
 			return nil
 		})
 	case *hxrt.Function[func(*hxrt.Function[func()])]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) any {
-			hxrt.FunctionCall(source)(hx_recover_callable_1(arg_0))
+			hxrt.FunctionCall(source)(hx_recover_callable_2d8d0a91(arg_0))
 			return nil
 		})
 	default:
@@ -3252,85 +3252,7 @@ func hx_recover_callable_3(value any) *hxrt.Function[func(any) any] {
 	}
 }
 
-func hx_recover_class_0(value any) *sys__thread__NoEventLoopException {
-	value = hxrt.ObjectSource(value)
-	if value == nil {
-		return nil
-	}
-	switch source := value.(type) {
-	case *sys__thread__NoEventLoopException:
-		return source
-	default:
-		return value.(*sys__thread__NoEventLoopException)
-	}
-}
-
-func hx_recover_class_1(value any) *sys__thread__ThreadPoolException {
-	value = hxrt.ObjectSource(value)
-	if value == nil {
-		return nil
-	}
-	switch source := value.(type) {
-	case *sys__thread__ThreadPoolException:
-		return source
-	default:
-		return value.(*sys__thread__ThreadPoolException)
-	}
-}
-
-func hx_recover_class_2(value any) *sys__thread__FixedThreadPoolShutdownException {
-	value = hxrt.ObjectSource(value)
-	if value == nil {
-		return nil
-	}
-	switch source := value.(type) {
-	case *sys__thread__FixedThreadPoolShutdownException:
-		return source
-	default:
-		return value.(*sys__thread__FixedThreadPoolShutdownException)
-	}
-}
-
-func hx_recover_class_3(value any) *sys__thread__FixedThreadPoolWorker {
-	value = hxrt.ObjectSource(value)
-	if value == nil {
-		return nil
-	}
-	switch source := value.(type) {
-	case *sys__thread__FixedThreadPoolWorker:
-		return source
-	default:
-		return value.(*sys__thread__FixedThreadPoolWorker)
-	}
-}
-
-func hx_recover_class_4(value any) *sys__thread__ElasticThreadPoolWorker {
-	value = hxrt.ObjectSource(value)
-	if value == nil {
-		return nil
-	}
-	switch source := value.(type) {
-	case *sys__thread__ElasticThreadPoolWorker:
-		return source
-	default:
-		return value.(*sys__thread__ElasticThreadPoolWorker)
-	}
-}
-
-func hx_recover_class_5(value any) *haxe__ValueException {
-	value = hxrt.ObjectSource(value)
-	if value == nil {
-		return nil
-	}
-	switch source := value.(type) {
-	case *haxe__ValueException:
-		return source
-	default:
-		return value.(*haxe__ValueException)
-	}
-}
-
-func hx_recover_class_6(value any) *haxe__Exception {
+func hx_recover_class_haxe__Exception(value any) *haxe__Exception {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil
@@ -3351,7 +3273,20 @@ func hx_recover_class_6(value any) *haxe__Exception {
 	}
 }
 
-func hx_recover_class_7(value any) *haxe__ds___List__GoListIterator {
+func hx_recover_class_haxe__ValueException(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
+}
+
+func hx_recover_class_haxe__ds___List__GoListIterator(value any) *haxe__ds___List__GoListIterator {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil
@@ -3364,47 +3299,72 @@ func hx_recover_class_7(value any) *haxe__ds___List__GoListIterator {
 	}
 }
 
-func hx_is_nominal_0(value any) bool {
+func hx_recover_class_sys__thread__ElasticThreadPoolWorker(value any) *sys__thread__ElasticThreadPoolWorker {
 	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
 	switch source := value.(type) {
-	case *sys__thread__NoEventLoopException:
-		return (source != nil)
+	case *sys__thread__ElasticThreadPoolWorker:
+		return source
 	default:
-		return false
+		return value.(*sys__thread__ElasticThreadPoolWorker)
 	}
 }
 
-func hx_is_nominal_1(value any) bool {
+func hx_recover_class_sys__thread__FixedThreadPoolShutdownException(value any) *sys__thread__FixedThreadPoolShutdownException {
 	value = hxrt.ObjectSource(value)
-	switch source := value.(type) {
-	case *sys__thread__ThreadPoolException:
-		return (source != nil)
-	default:
-		return false
+	if value == nil {
+		return nil
 	}
-}
-
-func hx_is_nominal_2(value any) bool {
-	value = hxrt.ObjectSource(value)
 	switch source := value.(type) {
 	case *sys__thread__FixedThreadPoolShutdownException:
-		return (source != nil)
+		return source
 	default:
-		return false
+		return value.(*sys__thread__FixedThreadPoolShutdownException)
 	}
 }
 
-func hx_is_nominal_3(value any) bool {
+func hx_recover_class_sys__thread__FixedThreadPoolWorker(value any) *sys__thread__FixedThreadPoolWorker {
 	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
 	switch source := value.(type) {
-	case *haxe__ValueException:
-		return (source != nil)
+	case *sys__thread__FixedThreadPoolWorker:
+		return source
 	default:
-		return false
+		return value.(*sys__thread__FixedThreadPoolWorker)
 	}
 }
 
-func hx_is_nominal_4(value any) bool {
+func hx_recover_class_sys__thread__NoEventLoopException(value any) *sys__thread__NoEventLoopException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *sys__thread__NoEventLoopException:
+		return source
+	default:
+		return value.(*sys__thread__NoEventLoopException)
+	}
+}
+
+func hx_recover_class_sys__thread__ThreadPoolException(value any) *sys__thread__ThreadPoolException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *sys__thread__ThreadPoolException:
+		return source
+	default:
+		return value.(*sys__thread__ThreadPoolException)
+	}
+}
+
+func hx_is_nominal_haxe__Exception(value any) bool {
 	value = hxrt.ObjectSource(value)
 	switch source := value.(type) {
 	case *sys__thread__ThreadPoolException:
@@ -3416,6 +3376,46 @@ func hx_is_nominal_4(value any) bool {
 	case *haxe__ValueException:
 		return (source != nil)
 	case *haxe__Exception:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_haxe__ValueException(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_sys__thread__FixedThreadPoolShutdownException(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__thread__FixedThreadPoolShutdownException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_sys__thread__NoEventLoopException(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__thread__NoEventLoopException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_sys__thread__ThreadPoolException(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__thread__ThreadPoolException:
 		return (source != nil)
 	default:
 		return false

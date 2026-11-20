@@ -1256,11 +1256,11 @@ func (self *haxe__rtti__XmlParser) mkRights(r *string) *haxe__rtti__Rights {
 func (self *haxe__rtti__XmlParser) xroot(x *Xml) {
 	c := x.__hx_this.elements()
 	for func() bool {
-		var hx_callable_279 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(c, "hasNext"))
+		var hx_callable_279 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(c, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_279)()
 	}() {
 		c_1 := func() *Xml {
-			var hx_callable_280 *hxrt.Function[func() *Xml] = hx_recover_callable_1(hxrt.AnonymousGet(c, "next"))
+			var hx_callable_280 *hxrt.Function[func() *Xml] = hx_recover_callable_2f3c5984(hxrt.AnonymousGet(c, "next"))
 			return hxrt.FunctionCall(hx_callable_280)()
 		}()
 		self.__hx_this.merge(self.__hx_this.processElement(c_1))
@@ -1299,21 +1299,21 @@ func (self *haxe__rtti__XmlParser) xmeta(x *Xml) *hxrt.Array {
 	ml := hxrt.NewArray()
 	m := x.__hx_this.elementsNamed(hxrt.StringFromLiteral("m"))
 	for func() bool {
-		var hx_callable_283 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(m, "hasNext"))
+		var hx_callable_283 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(m, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_283)()
 	}() {
 		m_1 := func() *Xml {
-			var hx_callable_284 *hxrt.Function[func() *Xml] = hx_recover_callable_1(hxrt.AnonymousGet(m, "next"))
+			var hx_callable_284 *hxrt.Function[func() *Xml] = hx_recover_callable_2f3c5984(hxrt.AnonymousGet(m, "next"))
 			return hxrt.FunctionCall(hx_callable_284)()
 		}()
 		pl := hxrt.NewArray()
 		p := m_1.__hx_this.elementsNamed(hxrt.StringFromLiteral("e"))
 		for func() bool {
-			var hx_callable_285 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(p, "hasNext"))
+			var hx_callable_285 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(p, "hasNext"))
 			return hxrt.FunctionCall(hx_callable_285)()
 		}() {
 			p_1 := func() *Xml {
-				var hx_callable_286 *hxrt.Function[func() *Xml] = hx_recover_callable_1(hxrt.AnonymousGet(p, "next"))
+				var hx_callable_286 *hxrt.Function[func() *Xml] = hx_recover_callable_2f3c5984(hxrt.AnonymousGet(p, "next"))
 				return hxrt.FunctionCall(hx_callable_286)()
 			}()
 			pl.Push(self.__hx_this.innerHTML(p_1))
@@ -1330,11 +1330,11 @@ func (self *haxe__rtti__XmlParser) xoverloads(x *Xml) *hxrt.Array {
 	l := hxrt.NewArray()
 	m := x.__hx_this.elements()
 	for func() bool {
-		var hx_callable_290 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(m, "hasNext"))
+		var hx_callable_290 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(m, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_290)()
 	}() {
 		m_1 := func() *Xml {
-			var hx_callable_291 *hxrt.Function[func() *Xml] = hx_recover_callable_1(hxrt.AnonymousGet(m, "next"))
+			var hx_callable_291 *hxrt.Function[func() *Xml] = hx_recover_callable_2f3c5984(hxrt.AnonymousGet(m, "next"))
 			return hxrt.FunctionCall(hx_callable_291)()
 		}()
 		l.Push(self.__hx_this.xclassfield(m_1, false))
@@ -1347,11 +1347,11 @@ func (self *haxe__rtti__XmlParser) xpath(x *Xml) hxrt.Anonymous {
 	params := hxrt.NewArray()
 	c := x.__hx_this.elements()
 	for func() bool {
-		var hx_callable_293 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(c, "hasNext"))
+		var hx_callable_293 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(c, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_293)()
 	}() {
 		c_1 := func() *Xml {
-			var hx_callable_294 *hxrt.Function[func() *Xml] = hx_recover_callable_1(hxrt.AnonymousGet(c, "next"))
+			var hx_callable_294 *hxrt.Function[func() *Xml] = hx_recover_callable_2f3c5984(hxrt.AnonymousGet(c, "next"))
 			return hxrt.FunctionCall(hx_callable_294)()
 		}()
 		params.Push(self.__hx_this.xtype(c_1))
@@ -1373,11 +1373,11 @@ func (self *haxe__rtti__XmlParser) xclass(x *Xml) hxrt.Anonymous {
 	isInterface := x.__hx_this.exists(hxrt.StringFromLiteral("interface"))
 	c := x.__hx_this.elements()
 	for func() bool {
-		var hx_callable_297 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(c, "hasNext"))
+		var hx_callable_297 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(c, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_297)()
 	}() {
 		c_1 := func() *Xml {
-			var hx_callable_298 *hxrt.Function[func() *Xml] = hx_recover_callable_1(hxrt.AnonymousGet(c, "next"))
+			var hx_callable_298 *hxrt.Function[func() *Xml] = hx_recover_callable_2f3c5984(hxrt.AnonymousGet(c, "next"))
 			return hxrt.FunctionCall(hx_callable_298)()
 		}()
 		nodeName := self.__hx_this.elementName(c_1)
@@ -1440,7 +1440,7 @@ func (self *haxe__rtti__XmlParser) xclass(x *Xml) hxrt.Anonymous {
 func (self *haxe__rtti__XmlParser) xclassfield(x *Xml, defPublic bool) hxrt.Anonymous {
 	e := x.__hx_this.elements()
 	t := self.__hx_this.xtype(func() *Xml {
-		var hx_callable_305 *hxrt.Function[func() *Xml] = hx_recover_callable_1(hxrt.AnonymousGet(e, "next"))
+		var hx_callable_305 *hxrt.Function[func() *Xml] = hx_recover_callable_2f3c5984(hxrt.AnonymousGet(e, "next"))
 		return hxrt.FunctionCall(hx_callable_305)()
 	}())
 	var doc *string = nil
@@ -1452,11 +1452,11 @@ func (self *haxe__rtti__XmlParser) xclassfield(x *Xml, defPublic bool) hxrt.Anon
 	}
 	c := e
 	for func() bool {
-		var hx_callable_306 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(c, "hasNext"))
+		var hx_callable_306 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(c, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_306)()
 	}() {
 		c_1 := func() *Xml {
-			var hx_callable_307 *hxrt.Function[func() *Xml] = hx_recover_callable_1(hxrt.AnonymousGet(c, "next"))
+			var hx_callable_307 *hxrt.Function[func() *Xml] = hx_recover_callable_2f3c5984(hxrt.AnonymousGet(c, "next"))
 			return hxrt.FunctionCall(hx_callable_307)()
 		}()
 		nodeName := self.__hx_this.elementName(c_1)
@@ -1533,11 +1533,11 @@ func (self *haxe__rtti__XmlParser) xenum(x *Xml) hxrt.Anonymous {
 	meta := hxrt.NewArray()
 	c := x.__hx_this.elements()
 	for func() bool {
-		var hx_callable_316 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(c, "hasNext"))
+		var hx_callable_316 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(c, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_316)()
 	}() {
 		c_1 := func() *Xml {
-			var hx_callable_317 *hxrt.Function[func() *Xml] = hx_recover_callable_1(hxrt.AnonymousGet(c, "next"))
+			var hx_callable_317 *hxrt.Function[func() *Xml] = hx_recover_callable_2f3c5984(hxrt.AnonymousGet(c, "next"))
 			return hxrt.FunctionCall(hx_callable_317)()
 		}()
 		if hxrt.StringEqualStringPtr(self.__hx_this.elementName(c_1), hxrt.StringFromLiteral("haxe_doc")) {
@@ -1575,11 +1575,11 @@ func (self *haxe__rtti__XmlParser) xenumfield(x *Xml) hxrt.Anonymous {
 	docElements := x.__hx_this.elementsNamed(hxrt.StringFromLiteral("haxe_doc"))
 	var hx_if_323 *Xml
 	if func() bool {
-		var hx_callable_321 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(docElements, "hasNext"))
+		var hx_callable_321 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(docElements, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_321)()
 	}() {
 		hx_if_323 = func() *Xml {
-			var hx_callable_322 *hxrt.Function[func() *Xml] = hx_recover_callable_1(hxrt.AnonymousGet(docElements, "next"))
+			var hx_callable_322 *hxrt.Function[func() *Xml] = hx_recover_callable_2f3c5984(hxrt.AnonymousGet(docElements, "next"))
 			return hxrt.FunctionCall(hx_callable_322)()
 		}()
 	} else {
@@ -1616,7 +1616,7 @@ func (self *haxe__rtti__XmlParser) xenumfield(x *Xml) hxrt.Anonymous {
 			hx_obj_328["name"] = c
 			hx_obj_328["opt"] = opt
 			hx_obj_328["t"] = self.__hx_this.xtype(func() *Xml {
-				var hx_callable_329 *hxrt.Function[func() *Xml] = hx_recover_callable_1(hxrt.AnonymousGet(elts, "next"))
+				var hx_callable_329 *hxrt.Function[func() *Xml] = hx_recover_callable_2f3c5984(hxrt.AnonymousGet(elts, "next"))
 				return hxrt.FunctionCall(hx_callable_329)()
 			}())
 			args.Push(hxrt.AnonymousFromMap(hx_obj_328))
@@ -1646,11 +1646,11 @@ func (self *haxe__rtti__XmlParser) xabstract(x *Xml) hxrt.Anonymous {
 	from := hxrt.NewArray()
 	c := x.__hx_this.elements()
 	for func() bool {
-		var hx_callable_332 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(c, "hasNext"))
+		var hx_callable_332 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(c, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_332)()
 	}() {
 		c_1 := func() *Xml {
-			var hx_callable_333 *hxrt.Function[func() *Xml] = hx_recover_callable_1(hxrt.AnonymousGet(c, "next"))
+			var hx_callable_333 *hxrt.Function[func() *Xml] = hx_recover_callable_2f3c5984(hxrt.AnonymousGet(c, "next"))
 			return hxrt.FunctionCall(hx_callable_333)()
 		}()
 		nodeName := self.__hx_this.elementName(c_1)
@@ -1663,11 +1663,11 @@ func (self *haxe__rtti__XmlParser) xabstract(x *Xml) hxrt.Anonymous {
 				if hxrt.StringEqualStringPtr(nodeName, hxrt.StringFromLiteral("to")) {
 					t := c_1.__hx_this.elements()
 					for func() bool {
-						var hx_callable_334 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(t, "hasNext"))
+						var hx_callable_334 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(t, "hasNext"))
 						return hxrt.FunctionCall(hx_callable_334)()
 					}() {
 						t_1 := func() *Xml {
-							var hx_callable_335 *hxrt.Function[func() *Xml] = hx_recover_callable_1(hxrt.AnonymousGet(t, "next"))
+							var hx_callable_335 *hxrt.Function[func() *Xml] = hx_recover_callable_2f3c5984(hxrt.AnonymousGet(t, "next"))
 							return hxrt.FunctionCall(hx_callable_335)()
 						}()
 						hx_obj_337 := map[string]any{}
@@ -1679,11 +1679,11 @@ func (self *haxe__rtti__XmlParser) xabstract(x *Xml) hxrt.Anonymous {
 					if hxrt.StringEqualStringPtr(nodeName, hxrt.StringFromLiteral("from")) {
 						t_2 := c_1.__hx_this.elements()
 						for func() bool {
-							var hx_callable_338 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(t_2, "hasNext"))
+							var hx_callable_338 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(t_2, "hasNext"))
 							return hxrt.FunctionCall(hx_callable_338)()
 						}() {
 							t_3 := func() *Xml {
-								var hx_callable_339 *hxrt.Function[func() *Xml] = hx_recover_callable_1(hxrt.AnonymousGet(t_2, "next"))
+								var hx_callable_339 *hxrt.Function[func() *Xml] = hx_recover_callable_2f3c5984(hxrt.AnonymousGet(t_2, "next"))
 								return hxrt.FunctionCall(hx_callable_339)()
 							}()
 							hx_obj_341 := map[string]any{}
@@ -1734,11 +1734,11 @@ func (self *haxe__rtti__XmlParser) xtypedef(x *Xml) hxrt.Anonymous {
 	meta := hxrt.NewArray()
 	c := x.__hx_this.elements()
 	for func() bool {
-		var hx_callable_344 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(c, "hasNext"))
+		var hx_callable_344 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(c, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_344)()
 	}() {
 		c_1 := func() *Xml {
-			var hx_callable_345 *hxrt.Function[func() *Xml] = hx_recover_callable_1(hxrt.AnonymousGet(c, "next"))
+			var hx_callable_345 *hxrt.Function[func() *Xml] = hx_recover_callable_2f3c5984(hxrt.AnonymousGet(c, "next"))
 			return hxrt.FunctionCall(hx_callable_345)()
 		}()
 		if hxrt.StringEqualStringPtr(self.__hx_this.elementName(c_1), hxrt.StringFromLiteral("haxe_doc")) {
@@ -1806,11 +1806,11 @@ func (self *haxe__rtti__XmlParser) xtype(x *Xml) *haxe__rtti__CType {
 		valueIndex := 0
 		e := x.__hx_this.elements()
 		for func() bool {
-			var hx_callable_349 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(e, "hasNext"))
+			var hx_callable_349 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(e, "hasNext"))
 			return hxrt.FunctionCall(hx_callable_349)()
 		}() {
 			e_1 := func() *Xml {
-				var hx_callable_350 *hxrt.Function[func() *Xml] = hx_recover_callable_1(hxrt.AnonymousGet(e, "next"))
+				var hx_callable_350 *hxrt.Function[func() *Xml] = hx_recover_callable_2f3c5984(hxrt.AnonymousGet(e, "next"))
 				return hxrt.FunctionCall(hx_callable_350)()
 			}()
 			opt := false
@@ -1885,11 +1885,11 @@ func (self *haxe__rtti__XmlParser) xtype(x *Xml) *haxe__rtti__CType {
 		fields := hxrt.NewArray()
 		f := x.__hx_this.elements()
 		for func() bool {
-			var hx_callable_365 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(f, "hasNext"))
+			var hx_callable_365 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(f, "hasNext"))
 			return hxrt.FunctionCall(hx_callable_365)()
 		}() {
 			f_1 := func() *Xml {
-				var hx_callable_366 *hxrt.Function[func() *Xml] = hx_recover_callable_1(hxrt.AnonymousGet(f, "next"))
+				var hx_callable_366 *hxrt.Function[func() *Xml] = hx_recover_callable_2f3c5984(hxrt.AnonymousGet(f, "next"))
 				return hxrt.FunctionCall(hx_callable_366)()
 			}()
 			f_2 := self.__hx_this.xclassfield(f_1, true)
@@ -1920,11 +1920,11 @@ func (self *haxe__rtti__XmlParser) xtypeparams(x *Xml) *hxrt.Array {
 	p := hxrt.NewArray()
 	c := x.__hx_this.elements()
 	for func() bool {
-		var hx_callable_372 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(c, "hasNext"))
+		var hx_callable_372 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(c, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_372)()
 	}() {
 		c_1 := func() *Xml {
-			var hx_callable_373 *hxrt.Function[func() *Xml] = hx_recover_callable_1(hxrt.AnonymousGet(c, "next"))
+			var hx_callable_373 *hxrt.Function[func() *Xml] = hx_recover_callable_2f3c5984(hxrt.AnonymousGet(c, "next"))
 			return hxrt.FunctionCall(hx_callable_373)()
 		}()
 		p.Push(self.__hx_this.xtype(c_1))
@@ -2000,7 +2000,7 @@ func (self *haxe__rtti__XmlParser) requireAttr(x *Xml, name *string) *string {
 
 func (self *haxe__rtti__XmlParser) hasNamedElement(x *Xml, name *string) bool {
 	return func() bool {
-		var hx_callable_380 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(x.__hx_this.elementsNamed(name), "hasNext"))
+		var hx_callable_380 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(x.__hx_this.elementsNamed(name), "hasNext"))
 		return hxrt.FunctionCall(hx_callable_380)()
 	}()
 }
@@ -2008,13 +2008,13 @@ func (self *haxe__rtti__XmlParser) hasNamedElement(x *Xml, name *string) bool {
 func (self *haxe__rtti__XmlParser) requireNamedElement(x *Xml, name *string) *Xml {
 	elements := x.__hx_this.elementsNamed(name)
 	if !func() bool {
-		var hx_callable_381 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(elements, "hasNext"))
+		var hx_callable_381 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(elements, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_381)()
 	}() {
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(self.__hx_this.nodeDisplayName(x), hxrt.StringFromLiteral(" is missing element ")), name)))
 	}
 	return func() *Xml {
-		var hx_callable_382 *hxrt.Function[func() *Xml] = hx_recover_callable_1(hxrt.AnonymousGet(elements, "next"))
+		var hx_callable_382 *hxrt.Function[func() *Xml] = hx_recover_callable_2f3c5984(hxrt.AnonymousGet(elements, "next"))
 		return hxrt.FunctionCall(hx_callable_382)()
 	}()
 }
@@ -2061,7 +2061,7 @@ func (self *haxe__rtti__XmlParser) innerData(x *Xml) *string {
 	if !(it_current < it_array.Len()) {
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(self.__hx_this.nodeDisplayName(x), hxrt.StringFromLiteral(" does not have data"))))
 	}
-	value := hx_recover_class_0(it_array.Get(func() int {
+	value := hx_recover_class_Xml(it_array.Get(func() int {
 		hx_post_385 := it_current
 		it_current = int(int32((it_current + 1)))
 		return hx_post_385
@@ -2090,7 +2090,7 @@ func (self *haxe__rtti__XmlParser) innerHTML(x *Xml) *string {
 	for _g_current < _g_array.Len() {
 		hx_post_386 := _g_current
 		_g_current = int(int32((_g_current + 1)))
-		child := hx_recover_class_0(_g_array.Get(hx_post_386))
+		child := hx_recover_class_Xml(_g_array.Get(hx_post_386))
 		x_1 := child.__hx_this.toString()
 		buf_b = hxrt.StringConcatStringPtr(buf_b, hxrt.StdString(x_1))
 	}

@@ -70,7 +70,7 @@ func Harness_cloneRequests(requests *hxrt.Array) *hxrt.Array {
 	out := hxrt.NewArray()
 	_g := 0
 	for _g < requests.Len() {
-		request := hx_recover_class_0(requests.Get(_g))
+		request := hx_recover_class_app__core__FluxRequest(requests.Get(_g))
 		_g = int(int32((_g + 1)))
 		out.Push(New_app__core__FluxRequest(request.id, request.route, request.latencyMs, request.status))
 	}

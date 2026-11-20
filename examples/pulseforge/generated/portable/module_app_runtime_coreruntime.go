@@ -53,7 +53,7 @@ func (self *app__runtime__CoreRuntime) parse(frames *hxrt.Array, workerCount int
 	parsed := hxrt.NewArray()
 	_g := 0
 	for _g < frames.Len() {
-		frame := hx_recover_class_0(frames.Get(_g))
+		frame := hx_recover_class_app__core__PulseIngressFrame(frames.Get(_g))
 		_g = int(int32((_g + 1)))
 		parsed.Push(app__core__PulseCodec_parse(frame))
 	}
@@ -64,7 +64,7 @@ func (self *app__runtime__CoreRuntime) enrich(events *hxrt.Array, workerCount in
 	enriched := hxrt.NewArray()
 	_g := 0
 	for _g < events.Len() {
-		event := hx_recover_class_4(events.Get(_g))
+		event := hx_recover_class_app__core__PulseEvent(events.Get(_g))
 		_g = int(int32((_g + 1)))
 		enriched.Push(app__core__PulseCodec_enrich(event))
 	}
@@ -75,7 +75,7 @@ func (self *app__runtime__CoreRuntime) stageScore(parsed *hxrt.Array, enriched *
 	score := 0
 	_g := 0
 	for _g < enriched.Len() {
-		entry := hx_recover_class_1(enriched.Get(_g))
+		entry := hx_recover_class_app__core__PulseEnrichedEvent(enriched.Get(_g))
 		_g = int(int32((_g + 1)))
 		score = int((hxrt.Int32Wrap(score) + hxrt.Int32Wrap(entry.weightedValue)))
 	}

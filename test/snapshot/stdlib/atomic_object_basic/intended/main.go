@@ -10,25 +10,25 @@ func main() {
 	var this1 *hxrt.AtomicObjectCell
 	this1 = hxrt.AtomicObjectNew(a)
 	atom := this1
-	out(hxrt.StringFromLiteral("load.0"), nodeId(hx_recover_class_0(hxrt.AtomicObjectLoad(atom))))
-	oldMiss := hx_recover_class_0(hxrt.AtomicObjectCompareExchange(atom, b, c))
+	out(hxrt.StringFromLiteral("load.0"), nodeId(hx_recover_class_Node(hxrt.AtomicObjectLoad(atom))))
+	oldMiss := hx_recover_class_Node(hxrt.AtomicObjectCompareExchange(atom, b, c))
 	out(hxrt.StringFromLiteral("cmp.miss.old"), nodeId(oldMiss))
-	out(hxrt.StringFromLiteral("cmp.miss.now"), nodeId(hx_recover_class_0(hxrt.AtomicObjectLoad(atom))))
-	oldHit := hx_recover_class_0(hxrt.AtomicObjectCompareExchange(atom, a, c))
+	out(hxrt.StringFromLiteral("cmp.miss.now"), nodeId(hx_recover_class_Node(hxrt.AtomicObjectLoad(atom))))
+	oldHit := hx_recover_class_Node(hxrt.AtomicObjectCompareExchange(atom, a, c))
 	out(hxrt.StringFromLiteral("cmp.hit.old"), nodeId(oldHit))
-	out(hxrt.StringFromLiteral("cmp.hit.now"), nodeId(hx_recover_class_0(hxrt.AtomicObjectLoad(atom))))
-	oldExchange := hx_recover_class_0(hxrt.AtomicObjectExchange(atom, d))
+	out(hxrt.StringFromLiteral("cmp.hit.now"), nodeId(hx_recover_class_Node(hxrt.AtomicObjectLoad(atom))))
+	oldExchange := hx_recover_class_Node(hxrt.AtomicObjectExchange(atom, d))
 	out(hxrt.StringFromLiteral("xchg.old"), nodeId(oldExchange))
-	out(hxrt.StringFromLiteral("xchg.now"), nodeId(hx_recover_class_0(hxrt.AtomicObjectLoad(atom))))
-	stored := hx_recover_class_0(hxrt.AtomicObjectStore(atom, a))
+	out(hxrt.StringFromLiteral("xchg.now"), nodeId(hx_recover_class_Node(hxrt.AtomicObjectLoad(atom))))
+	stored := hx_recover_class_Node(hxrt.AtomicObjectStore(atom, a))
 	out(hxrt.StringFromLiteral("store.ret"), nodeId(stored))
-	out(hxrt.StringFromLiteral("store.now"), nodeId(hx_recover_class_0(hxrt.AtomicObjectLoad(atom))))
-	alias := hx_recover_class_0(hxrt.AtomicObjectLoad(atom))
+	out(hxrt.StringFromLiteral("store.now"), nodeId(hx_recover_class_Node(hxrt.AtomicObjectLoad(atom))))
+	alias := hx_recover_class_Node(hxrt.AtomicObjectLoad(atom))
 	alias.id = hxrt.StringFromLiteral("a_mut")
-	out(hxrt.StringFromLiteral("alias.now"), nodeId(hx_recover_class_0(hxrt.AtomicObjectLoad(atom))))
-	oldAlias := hx_recover_class_0(hxrt.AtomicObjectCompareExchange(atom, alias, c))
+	out(hxrt.StringFromLiteral("alias.now"), nodeId(hx_recover_class_Node(hxrt.AtomicObjectLoad(atom))))
+	oldAlias := hx_recover_class_Node(hxrt.AtomicObjectCompareExchange(atom, alias, c))
 	out(hxrt.StringFromLiteral("cmp.alias.old"), nodeId(oldAlias))
-	out(hxrt.StringFromLiteral("cmp.alias.now"), nodeId(hx_recover_class_0(hxrt.AtomicObjectLoad(atom))))
+	out(hxrt.StringFromLiteral("cmp.alias.now"), nodeId(hx_recover_class_Node(hxrt.AtomicObjectLoad(atom))))
 }
 
 func nodeId(value *Node) *string {
@@ -81,7 +81,7 @@ func (self *Node) HxClassName() string {
 	return "Node"
 }
 
-func hx_recover_class_0(value any) *Node {
+func hx_recover_class_Node(value any) *Node {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil

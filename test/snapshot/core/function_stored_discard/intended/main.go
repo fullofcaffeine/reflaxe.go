@@ -3,7 +3,7 @@ package main
 import "snapshot/hxrt"
 
 func discard(callback *hxrt.Function[func(int) int]) *hxrt.Function[func(int)] {
-	return hx_recover_callable_0(callback)
+	return hx_recover_callable_d8be58e9(callback)
 }
 
 func main() {
@@ -12,7 +12,7 @@ func main() {
 		return value
 	})
 	returned := discard(original)
-	stored := hx_recover_callable_0(original)
+	stored := hx_recover_callable_d8be58e9(original)
 	func() {
 		var hx_callable_1 *hxrt.Function[func(int)] = returned
 		var hx_argument_2 int = 3
@@ -27,13 +27,13 @@ func main() {
 	hxrt.Println(v)
 	var v_1 any = any(hxrt.ReflectCompareMethods(any(original), any(stored)))
 	hxrt.Println(v_1)
-	holder := New__Main__Holder(hx_recover_callable_0(original))
+	holder := New__Main__Holder(hx_recover_callable_d8be58e9(original))
 	func() {
 		var hx_callable_5 *hxrt.Function[func(int)] = holder.callback
 		var hx_argument_6 int = 7
 		hxrt.FunctionCall(hx_callable_5)(hx_argument_6)
 	}()
-	holder.callback = hx_recover_callable_0(original)
+	holder.callback = hx_recover_callable_d8be58e9(original)
 	func() {
 		var hx_callable_7 *hxrt.Function[func(int)] = holder.callback
 		var hx_argument_8 int = 8
@@ -42,7 +42,7 @@ func main() {
 	choose := true
 	var hx_if_9 *hxrt.Function[func(int)]
 	if choose {
-		hx_if_9 = hx_recover_callable_0(original)
+		hx_if_9 = hx_recover_callable_d8be58e9(original)
 	} else {
 		hx_if_9 = returned
 	}
@@ -60,7 +60,7 @@ func main() {
 	var v_3 any = any(hxrt.ReflectCompareMethods(any(original), any(branch)))
 	hxrt.Println(v_3)
 	var absent *hxrt.Function[func(int) int] = nil
-	absentDiscarded := hx_recover_callable_0(absent)
+	absentDiscarded := hx_recover_callable_d8be58e9(absent)
 	hxrt.Println(any((absentDiscarded == nil)))
 }
 
@@ -99,7 +99,7 @@ func (self *_Main__Holder) HxClassName() string {
 	return "_Main.Holder"
 }
 
-func hx_recover_callable_0(value any) *hxrt.Function[func(int)] {
+func hx_recover_callable_d8be58e9(value any) *hxrt.Function[func(int)] {
 	if value == nil {
 		return nil
 	}

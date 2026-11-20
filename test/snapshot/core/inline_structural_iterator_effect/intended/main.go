@@ -99,11 +99,11 @@ func checkedIterator(values *hxrt.Array) hxrt.Anonymous {
 func collect(iterator hxrt.Anonymous) *string {
 	values := hxrt.NewArray()
 	for func() bool {
-		var hx_callable_11 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(iterator, "hasNext"))
+		var hx_callable_11 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(iterator, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_11)()
 	}() {
 		values.Push(func() int {
-			var hx_callable_13 *hxrt.Function[func() int] = hx_recover_callable_1(hxrt.AnonymousGet(iterator, "next"))
+			var hx_callable_13 *hxrt.Function[func() int] = hx_recover_callable_e273723c(hxrt.AnonymousGet(iterator, "next"))
 			return hxrt.FunctionCall(hx_callable_13)()
 		}())
 	}
@@ -216,7 +216,7 @@ func main() {
 	hxrt.Println(v_4)
 }
 
-func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
+func hx_recover_callable_cf6928b1(value any) *hxrt.Function[func() bool] {
 	if value == nil {
 		return nil
 	}
@@ -247,7 +247,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
 	}
 }
 
-func hx_recover_callable_1(value any) *hxrt.Function[func() int] {
+func hx_recover_callable_e273723c(value any) *hxrt.Function[func() int] {
 	if value == nil {
 		return nil
 	}
@@ -262,22 +262,22 @@ func hx_recover_callable_1(value any) *hxrt.Function[func() int] {
 	switch source := origin.(type) {
 	case *hxrt.Function[func() bool]:
 		return hxrt.ProjectFunction(source, func() int {
+			return func(hx_value_1 any) int {
+				if hx_value_1 == nil {
+					var hx_zero_2 int
+					return hx_zero_2
+				}
+				return hx_value_1.(int)
+			}(hxrt.FunctionCall(source)())
+		})
+	case *hxrt.Function[func() any]:
+		return hxrt.ProjectFunction(source, func() int {
 			return func(hx_value_3 any) int {
 				if hx_value_3 == nil {
 					var hx_zero_4 int
 					return hx_zero_4
 				}
 				return hx_value_3.(int)
-			}(hxrt.FunctionCall(source)())
-		})
-	case *hxrt.Function[func() any]:
-		return hxrt.ProjectFunction(source, func() int {
-			return func(hx_value_5 any) int {
-				if hx_value_5 == nil {
-					var hx_zero_6 int
-					return hx_zero_6
-				}
-				return hx_value_5.(int)
 			}(hxrt.FunctionCall(source)())
 		})
 	default:

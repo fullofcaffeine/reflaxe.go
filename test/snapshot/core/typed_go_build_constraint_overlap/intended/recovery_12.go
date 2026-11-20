@@ -4,7 +4,7 @@ package main
 
 import "snapshot/hxrt"
 
-func hx_recover_callable_2__probe_2(value any) (*hxrt.Function[func(*AlphaFeature) *string], bool) {
+func hx_recover_callable_dbaff400__probe_2(value any) (*hxrt.Function[func(*AlphaFeature) *string], bool) {
 	var zero *hxrt.Function[func(*AlphaFeature) *string]
 	return zero, false
 }

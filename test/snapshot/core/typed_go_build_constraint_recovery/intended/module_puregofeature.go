@@ -41,12 +41,12 @@ func (self *PureGoFeature) HxClassName() string {
 
 func PureGoFeature_check() *string {
 	var erased any = New_PureGoFeature()
-	restored := hx_recover_class_1(erased)
+	restored := hx_recover_class_PureGoFeature(erased)
 	source := hxrt.NewFunction(func(value *PureGoFeature) *string {
 		return value.label
 	})
 	var callback any = source
-	recovered := hx_recover_callable_1(callback)
+	recovered := hx_recover_callable_efd55ccc(callback)
 	return func() *string {
 		var hx_callable_1 *hxrt.Function[func(*PureGoFeature) *string] = recovered
 		var hx_argument_2 *PureGoFeature = restored

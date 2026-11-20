@@ -240,7 +240,7 @@ func (self *Xml) elements() hxrt.Anonymous {
 	_g1 := 0
 	_g2 := self.children
 	for _g1 < _g2.Len() {
-		child := hx_recover_class_0(_g2.Get(_g1))
+		child := hx_recover_class_Xml(_g2.Get(_g1))
 		_g1 = int(int32((_g1 + 1)))
 		if hxrt.HaxeEqual(child.nodeType, Xml_Element) {
 			_g.Push(child)
@@ -297,7 +297,7 @@ func (self *Xml) elementsNamed(name *string) hxrt.Anonymous {
 	_g1 := 0
 	_g2 := self.children
 	for _g1 < _g2.Len() {
-		child := hx_recover_class_0(_g2.Get(_g1))
+		child := hx_recover_class_Xml(_g2.Get(_g1))
 		_g1 = int(int32((_g1 + 1)))
 		if hxrt.HaxeEqual(child.nodeType, Xml_Element) && hxrt.StringEqualStringPtr(func() *string {
 			if !hxrt.HaxeEqual(child.nodeType, Xml_Element) {
@@ -359,7 +359,7 @@ func (self *Xml) firstChild() *Xml {
 	if self.children.Len() == 0 {
 		hx_if_25 = nil
 	} else {
-		hx_if_25 = hx_recover_class_0(hx_recover_class_0(self.children.Get(0)))
+		hx_if_25 = hx_recover_class_Xml(hx_recover_class_Xml(self.children.Get(0)))
 	}
 	return hx_if_25
 }
@@ -369,7 +369,7 @@ func (self *Xml) firstElement() *Xml {
 	_g := 0
 	_g1 := self.children
 	for _g < _g1.Len() {
-		child := hx_recover_class_0(_g1.Get(_g))
+		child := hx_recover_class_Xml(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if hxrt.HaxeEqual(child.nodeType, Xml_Element) {
 			return child

@@ -88,7 +88,7 @@ func (self *app__core__PulsePipeline) ingest(frames *hxrt.Array, capacity int) *
 	backpressureEvents := 0
 	_g := 0
 	for _g < frames.Len() {
-		frame := hx_recover_class_0(frames.Get(_g))
+		frame := hx_recover_class_app__core__PulseIngressFrame(frames.Get(_g))
 		_g = int(int32((_g + 1)))
 		if int((hxrt.Int32Wrap(queue.Len()) - hxrt.Int32Wrap(queueHead))) >= boundedCapacity {
 			backpressureEvents = int(int32((backpressureEvents + 1)))
@@ -110,7 +110,7 @@ func (self *app__core__PulsePipeline) aggregate(enriched *hxrt.Array) hxrt.Anony
 	totalWeighted := 0
 	_g := 0
 	for _g < enriched.Len() {
-		entry := hx_recover_class_1(enriched.Get(_g))
+		entry := hx_recover_class_app__core__PulseEnrichedEvent(enriched.Get(_g))
 		_g = int(int32((_g + 1)))
 		totalValue = int((hxrt.Int32Wrap(totalValue) + hxrt.Int32Wrap(entry.event.value)))
 		totalWeighted = int((hxrt.Int32Wrap(totalWeighted) + hxrt.Int32Wrap(entry.weightedValue)))
@@ -125,7 +125,7 @@ func (self *app__core__PulsePipeline) aggregate(enriched *hxrt.Array) hxrt.Anony
 	digest := hxrt.StringFromLiteral("")
 	_g_1 := 0
 	for _g_1 < sourceSummaries.Len() {
-		summary := hx_recover_class_2(sourceSummaries.Get(_g_1))
+		summary := hx_recover_class_app__core__PulseSourceAggregate(sourceSummaries.Get(_g_1))
 		_g_1 = int(int32((_g_1 + 1)))
 		if !hxrt.StringEqualStringPtr(digest, hxrt.StringFromLiteral("")) {
 			digest = hxrt.StringConcatStringPtr(digest, hxrt.StringFromLiteral(","))
@@ -143,7 +143,7 @@ func (self *app__core__PulsePipeline) aggregate(enriched *hxrt.Array) hxrt.Anony
 func (self *app__core__PulsePipeline) findSourceAggregate(summaries *hxrt.Array, source *string) *app__core__PulseSourceAggregate {
 	_g := 0
 	for _g < summaries.Len() {
-		summary := hx_recover_class_2(summaries.Get(_g))
+		summary := hx_recover_class_app__core__PulseSourceAggregate(summaries.Get(_g))
 		_g = int(int32((_g + 1)))
 		if hxrt.StringEqualStringPtr(summary.source, source) {
 			return summary
@@ -156,7 +156,7 @@ func (self *app__core__PulsePipeline) collectAlerts(enriched *hxrt.Array, weight
 	alerts := hxrt.NewArray()
 	_g := 0
 	for _g < enriched.Len() {
-		entry := hx_recover_class_1(enriched.Get(_g))
+		entry := hx_recover_class_app__core__PulseEnrichedEvent(enriched.Get(_g))
 		_g = int(int32((_g + 1)))
 		if entry.weightedValue >= weightedThreshold {
 			alerts.Push(app__core__PulseAlert_fromEnriched(entry))
@@ -175,7 +175,7 @@ func (self *app__core__PulsePipeline) alertToken(alerts *hxrt.Array) *string {
 		if index > 0 {
 			digest = hxrt.StringConcatStringPtr(digest, hxrt.StringFromLiteral(","))
 		}
-		digest = hxrt.StringConcatStringPtr(digest, hxrt.StdString(hx_recover_class_3(alerts.Get(index)).eventId))
+		digest = hxrt.StringConcatStringPtr(digest, hxrt.StdString(hx_recover_class_app__core__PulseAlert(alerts.Get(index)).eventId))
 		index = int(int32((index + 1)))
 	}
 	return digest

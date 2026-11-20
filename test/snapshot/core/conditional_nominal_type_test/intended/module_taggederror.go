@@ -61,15 +61,15 @@ func TaggedError_check() bool {
 		return hx_value.haxe__Exception
 	}(original)
 	var erased any = base
-	if !hx_is_nominal_1(erased) || !hx_is_nominal_0(erased) {
+	if !hx_is_nominal_haxe__Exception(erased) || !hx_is_nominal_Tag(erased) {
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("conditional ancestry was not recognized")))
 	}
 	var view Tag = original
-	if !hx_is_nominal_2(view) {
+	if !hx_is_nominal_TaggedError(view) {
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("interface view lost conditional class identity")))
 	}
 	var absent *TaggedError = nil
-	if hx_is_nominal_0(absent) || hx_is_nominal_1(absent) {
+	if hx_is_nominal_Tag(absent) || hx_is_nominal_haxe__Exception(absent) {
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("null matched nominal membership")))
 	}
 	hxrt.TryCatch(func() {
@@ -77,8 +77,8 @@ func TaggedError_check() bool {
 	}, func(hx_caught_1 any) {
 		hx_exception_2 := haxe__Exception_caught(hx_caught_1)
 		hx_payload_3 := haxe__Exception_catchValue(hx_caught_1)
-		if hx_is_nominal_2(hx_exception_2) {
-			var caught *TaggedError = hx_recover_class_0(hx_exception_2)
+		if hx_is_nominal_TaggedError(hx_exception_2) {
+			var caught *TaggedError = hx_recover_class_TaggedError(hx_exception_2)
 			if caught != original {
 				hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("conditional catch identity changed")))
 			}
@@ -95,8 +95,8 @@ func TaggedError_check() bool {
 	}, func(hx_caught_5 any) {
 		hx_exception_6 := haxe__Exception_caught(hx_caught_5)
 		hx_payload_7 := haxe__Exception_catchValue(hx_caught_5)
-		if hx_is_nominal_2(hx_exception_6) {
-			var caught_1 *TaggedError = hx_recover_class_0(hx_exception_6)
+		if hx_is_nominal_TaggedError(hx_exception_6) {
+			var caught_1 *TaggedError = hx_recover_class_TaggedError(hx_exception_6)
 			hx_try_4 = (caught_1 == original)
 		} else {
 			var hx_tmp_1 any = hx_payload_7
@@ -115,14 +115,14 @@ func TaggedError_check() bool {
 			hx_exception_14 := haxe__Exception_caught(hx_caught_13)
 			hx_payload_15 := haxe__Exception_catchValue(hx_caught_13)
 			_ = hx_payload_15
-			var caught_3 *haxe__Exception = hx_recover_class_1(hx_exception_14)
+			var caught_3 *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_14)
 			hxrt.Throw(haxe__Exception_thrown(caught_3))
 		})
 	}, func(hx_caught_8 any) {
 		hx_exception_9 := haxe__Exception_caught(hx_caught_8)
 		hx_payload_10 := haxe__Exception_catchValue(hx_caught_8)
 		_ = hx_exception_9
-		if hx_is_nominal_0(hx_payload_10) {
+		if hx_is_nominal_Tag(hx_payload_10) {
 			var caught_2 Tag = func(hx_value_11 any) Tag {
 				if hx_value_11 == nil {
 					var hx_zero_12 Tag

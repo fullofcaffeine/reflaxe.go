@@ -73,12 +73,12 @@ func (self *Child) HxClassName() string {
 
 func main() {
 	var d any = New_Child()
-	var v any = any(hx_is_nominal_0(d))
+	var v any = any(hx_is_nominal_Base(d))
 	hxrt.Println(v)
-	var v_1 any = any(hx_is_nominal_1(d))
+	var v_1 any = any(hx_is_nominal_Child(d))
 	hxrt.Println(v_1)
 	d = New_Base()
-	var v_2 any = any(hx_is_nominal_1(d))
+	var v_2 any = any(hx_is_nominal_Child(d))
 	hxrt.Println(v_2)
 	d = hxrt.NewArray(1, 2)
 	var v_3 any = any(func(hx_value any) bool {
@@ -105,7 +105,7 @@ func main() {
 	hxrt.Println(v_5)
 }
 
-func hx_is_nominal_0(value any) bool {
+func hx_is_nominal_Base(value any) bool {
 	value = hxrt.ObjectSource(value)
 	switch source := value.(type) {
 	case *Base:
@@ -117,7 +117,7 @@ func hx_is_nominal_0(value any) bool {
 	}
 }
 
-func hx_is_nominal_1(value any) bool {
+func hx_is_nominal_Child(value any) bool {
 	value = hxrt.ObjectSource(value)
 	switch source := value.(type) {
 	case *Child:

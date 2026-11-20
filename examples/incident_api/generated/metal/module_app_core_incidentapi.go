@@ -78,8 +78,8 @@ func (self *app__core__IncidentApi) createIncident(body *string) *app__http__Htt
 		hx_exception_2 := haxe__Exception_caught(hx_caught_1)
 		hx_payload_3 := haxe__Exception_catchValue(hx_caught_1)
 		_ = hx_payload_3
-		if hx_is_nominal_0(hx_exception_2) {
-			var error *app__core__IncidentRequestException = hx_recover_class_1(hx_exception_2)
+		if hx_is_nominal_app__core__IncidentRequestException(hx_exception_2) {
+			var error *app__core__IncidentRequestException = hx_recover_class_app__core__IncidentRequestException(hx_exception_2)
 			response = app__http__HttpResponse_json(400, hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("{\"error\":\""), error.code), hxrt.StringFromLiteral("\"}")))
 		} else {
 			hxrt.Throw(hx_caught_1)
@@ -159,7 +159,7 @@ func app__core__IncidentApi_parseJsonBody(body *string) any {
 		hx_exception_14 := haxe__Exception_caught(hx_caught_13)
 		hx_payload_15 := haxe__Exception_catchValue(hx_caught_13)
 		_ = hx_payload_15
-		var hx_tmp *haxe__Exception = hx_recover_class_0(hx_exception_14)
+		var hx_tmp *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_14)
 		_ = hx_tmp
 		hxrt.Throw(haxe__Exception_thrown(New_app__core__IncidentRequestException(hxrt.StringFromLiteral("invalid_json"))))
 	})

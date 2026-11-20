@@ -11,36 +11,18 @@ func reflaxe__go___internal__CompilerReflect_callMethod__probe_2(value any, argu
 		if 0 < len(arguments) {
 			argument_0 = arguments[0]
 		}
-		return hxrt.FunctionCall(source)(hx_recover_callable_2(argument_0)), true
+		return hxrt.FunctionCall(source)(hx_recover_callable_dbaff400(argument_0)), true
 	default:
 		var zero any
 		return zero, false
 	}
 }
 
-func hx_recover_callable_0__probe_2(value any) (*hxrt.Function[func(any) int], bool) {
-	switch source := value.(type) {
-	case *hxrt.Function[func(*hxrt.Function[func(*AlphaFeature) *string]) *string]:
-		return hxrt.ProjectFunction(source, func(arg_0 any) int {
-			return func(hx_value_33 any) int {
-				if hx_value_33 == nil {
-					var hx_zero_34 int
-					return hx_zero_34
-				}
-				return hx_value_33.(int)
-			}(hxrt.FunctionCall(source)(hx_recover_callable_2(arg_0)))
-		}), true
-	default:
-		var zero *hxrt.Function[func(any) int]
-		return zero, false
-	}
-}
-
-func hx_recover_callable_1__probe_2(value any) (*hxrt.Function[func(*hxrt.Function[func(any) *string]) *string], bool) {
+func hx_recover_callable_50c151b6__probe_2(value any) (*hxrt.Function[func(*hxrt.Function[func(any) *string]) *string], bool) {
 	switch source := value.(type) {
 	case *hxrt.Function[func(*hxrt.Function[func(*AlphaFeature) *string]) *string]:
 		return hxrt.ProjectFunction(source, func(arg_0 *hxrt.Function[func(any) *string]) *string {
-			return hxrt.FunctionCall(source)(hx_recover_callable_2(arg_0))
+			return hxrt.FunctionCall(source)(hx_recover_callable_dbaff400(arg_0))
 		}), true
 	default:
 		var zero *hxrt.Function[func(*hxrt.Function[func(any) *string]) *string]
@@ -48,7 +30,25 @@ func hx_recover_callable_1__probe_2(value any) (*hxrt.Function[func(*hxrt.Functi
 	}
 }
 
-func hx_recover_callable_2(value any) *hxrt.Function[func(*AlphaFeature) *string] {
+func hx_recover_callable_ae7f85da__probe_2(value any) (*hxrt.Function[func(any) int], bool) {
+	switch source := value.(type) {
+	case *hxrt.Function[func(*hxrt.Function[func(*AlphaFeature) *string]) *string]:
+		return hxrt.ProjectFunction(source, func(arg_0 any) int {
+			return func(hx_value_3 any) int {
+				if hx_value_3 == nil {
+					var hx_zero_4 int
+					return hx_zero_4
+				}
+				return hx_value_3.(int)
+			}(hxrt.FunctionCall(source)(hx_recover_callable_dbaff400(arg_0)))
+		}), true
+	default:
+		var zero *hxrt.Function[func(any) int]
+		return zero, false
+	}
+}
+
+func hx_recover_callable_dbaff400(value any) *hxrt.Function[func(*AlphaFeature) *string] {
 	if value == nil {
 		return nil
 	}
@@ -63,22 +63,22 @@ func hx_recover_callable_2(value any) *hxrt.Function[func(*AlphaFeature) *string
 	switch source := origin.(type) {
 	case *hxrt.Function[func(*hxrt.Function[func(*AlphaFeature) *string]) *string]:
 		return hxrt.ProjectFunction(source, func(arg_0 *AlphaFeature) *string {
-			return hxrt.FunctionCall(source)(hx_recover_callable_2(arg_0))
+			return hxrt.FunctionCall(source)(hx_recover_callable_dbaff400(arg_0))
 		})
 	case *hxrt.Function[func(any) *string]:
 		return hxrt.ProjectFunction(source, func(arg_0 *AlphaFeature) *string {
 			return hxrt.FunctionCall(source)(arg_0)
 		})
 	}
-	hx_recovered, hx_matched := hx_recover_callable_2__probe_0(origin)
+	hx_recovered, hx_matched := hx_recover_callable_dbaff400__probe_0(origin)
 	if hx_matched {
 		return hx_recovered
 	}
-	hx_recovered, hx_matched = hx_recover_callable_2__probe_1(origin)
+	hx_recovered, hx_matched = hx_recover_callable_dbaff400__probe_1(origin)
 	if hx_matched {
 		return hx_recovered
 	}
-	hx_recovered, hx_matched = hx_recover_callable_2__probe_2(origin)
+	hx_recovered, hx_matched = hx_recover_callable_dbaff400__probe_2(origin)
 	if hx_matched {
 		return hx_recovered
 	}

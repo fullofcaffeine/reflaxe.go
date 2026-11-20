@@ -4,7 +4,7 @@ import "snapshot/hxrt"
 
 func main() {
 	var value any = New_SameShape()
-	if hx_is_nominal_0(value) {
+	if hx_is_nominal_Tag(value) {
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("structural interface match violated nominal membership")))
 	}
 	var v any = any(Registry_count)
@@ -49,7 +49,7 @@ func (self *SameShape) HxClassName() string {
 	return "SameShape"
 }
 
-func hx_recover_class_1(value any) *haxe__Exception {
+func hx_recover_class_haxe__Exception(value any) *haxe__Exception {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil
@@ -60,14 +60,14 @@ func hx_recover_class_1(value any) *haxe__Exception {
 	case *haxe__ValueException:
 		return source.haxe__Exception
 	}
-	hx_recovered, hx_matched := hx_recover_class_1__probe_0(value)
+	hx_recovered, hx_matched := hx_recover_class_haxe__Exception__probe_0(value)
 	if hx_matched {
 		return hx_recovered
 	}
 	return value.(*haxe__Exception)
 }
 
-func hx_recover_class_2(value any) *haxe__ValueException {
+func hx_recover_class_haxe__ValueException(value any) *haxe__ValueException {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil
@@ -80,16 +80,25 @@ func hx_recover_class_2(value any) *haxe__ValueException {
 	}
 }
 
-func hx_is_nominal_0(value any) bool {
+func hx_is_nominal_Tag(value any) bool {
 	value = hxrt.ObjectSource(value)
-	hx_recovered, hx_matched := hx_is_nominal_0__probe_0(value)
+	hx_recovered, hx_matched := hx_is_nominal_Tag__probe_0(value)
 	if hx_matched {
 		return hx_recovered
 	}
 	return false
 }
 
-func hx_is_nominal_1(value any) bool {
+func hx_is_nominal_TaggedError(value any) bool {
+	value = hxrt.ObjectSource(value)
+	hx_recovered, hx_matched := hx_is_nominal_TaggedError__probe_0(value)
+	if hx_matched {
+		return hx_recovered
+	}
+	return false
+}
+
+func hx_is_nominal_haxe__Exception(value any) bool {
 	value = hxrt.ObjectSource(value)
 	switch source := value.(type) {
 	case *haxe__Exception:
@@ -97,23 +106,14 @@ func hx_is_nominal_1(value any) bool {
 	case *haxe__ValueException:
 		return (source != nil)
 	}
-	hx_recovered, hx_matched := hx_is_nominal_1__probe_0(value)
+	hx_recovered, hx_matched := hx_is_nominal_haxe__Exception__probe_0(value)
 	if hx_matched {
 		return hx_recovered
 	}
 	return false
 }
 
-func hx_is_nominal_2(value any) bool {
-	value = hxrt.ObjectSource(value)
-	hx_recovered, hx_matched := hx_is_nominal_2__probe_0(value)
-	if hx_matched {
-		return hx_recovered
-	}
-	return false
-}
-
-func hx_is_nominal_3(value any) bool {
+func hx_is_nominal_haxe__ValueException(value any) bool {
 	value = hxrt.ObjectSource(value)
 	switch source := value.(type) {
 	case *haxe__ValueException:

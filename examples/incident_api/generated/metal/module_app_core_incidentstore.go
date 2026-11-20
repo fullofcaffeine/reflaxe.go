@@ -85,7 +85,7 @@ func (self *app__core__IncidentStore) listJson() *string {
 		if i > 0 {
 			out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StringFromLiteral(","))
 		}
-		x := hx_recover_class_2(self.incidents.Get(i)).toJson()
+		x := hx_recover_class_app__core__Incident(self.incidents.Get(i)).toJson()
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(x))
 		i = int(int32((i + 1)))
 	}
@@ -100,7 +100,7 @@ func (self *app__core__IncidentStore) metricsJson(serviceName *string, requests 
 	_g := 0
 	_g1 := self.incidents
 	for _g < _g1.Len() {
-		incident := hx_recover_class_2(_g1.Get(_g))
+		incident := hx_recover_class_app__core__Incident(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if incident.resolved {
 			resolved = int(int32((resolved + 1)))
@@ -118,7 +118,7 @@ func (self *app__core__IncidentStore) find(id int) *app__core__Incident {
 	_g := 0
 	_g1 := self.incidents
 	for _g < _g1.Len() {
-		incident := hx_recover_class_2(_g1.Get(_g))
+		incident := hx_recover_class_app__core__Incident(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if incident.id == id {
 			return incident

@@ -93,7 +93,7 @@ func (self *sys__thread__FixedThreadPool) shutdown() {
 	_g := 0
 	_g1 := self.pool
 	for _g < _g1.Len() {
-		hx_tmp := hx_recover_class_3(_g1.Get(_g))
+		hx_tmp := hx_recover_class_sys__thread__FixedThreadPoolWorker(_g1.Get(_g))
 		_ = hx_tmp
 		_g = int(int32((_g + 1)))
 		self.queue.__hx_this.add(hxrt.NamedFunction(sys__thread__FixedThreadPool_shutdownTask, "sys.thread.FixedThreadPool.shutdownTask"))

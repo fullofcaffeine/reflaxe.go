@@ -17,14 +17,19 @@ import reflaxe.go.compiler.GoRecoveryAvailability.GoRecoveryDependency;
 	Why: A boxed subclass is not a Go pointer to its embedded base. Structural and
 	base views must also resolve their canonical object before recovering a class.
 	How: Intern demanded targets, then emit typed superclass selector paths after
-	the compiler has discovered every reachable generated layout.
+	the compiler has discovered every reachable generated layout. Each helper is
+	named from its target's generated type name (`hx_recover_class_<Type>`) and
+	declared in name order, so an edit elsewhere cannot rename or move it.
 **/
 class GoNominalValueRecovery {
+	static final symbolPrefix = "hx_recover_class_";
+
 	final availability:GoRecoveryAvailability;
 	final dispatcher:GoRecoveryDispatch;
 	final className:ClassType->String;
 	final inheritancePath:(ClassType, ClassType) -> Null<Array<ClassType>>;
-	final targets:Array<ClassType> = [];
+	final targets:Map<String, ClassType> = [];
+	var targetCount = 0;
 	var frozen = false;
 
 	public function new(availability:GoRecoveryAvailability, className:ClassType->String, inheritancePath:(ClassType, ClassType) -> Null<Array<ClassType>>) {
@@ -35,31 +40,29 @@ class GoNominalValueRecovery {
 	}
 
 	public function reset():Void {
-		targets.resize(0);
+		targets.clear();
+		targetCount = 0;
 		frozen = false;
 	}
 
 	public function requirementCount():Int
-		return targets.length;
+		return targetCount;
 
 	public function freeze():Void
 		frozen = true;
 
 	public function recover(value:GoExpr, target:ClassType):GoExpr {
-		var index = -1;
-		for (i in 0...targets.length)
-			if (className(targets[i]) == className(target)) {
-				index = i;
-				break;
-			}
-		if (index < 0) {
+		var name = className(target);
+		if (!targets.exists(name)) {
 			if (frozen)
 				Context.fatalError("Nominal recovery discovered after freeze", Context.currentPos());
-			index = targets.length;
-			targets.push(target);
+			if (!GoRecoveryDispatch.isGoIdentifier(name))
+				Context.fatalError("Nominal recovery requires a generated class, got " + name, Context.currentPos());
+			targets.set(name, target);
+			targetCount++;
 		}
-		var symbol = "hx_recover_class_" + index;
-		availability.noteHelper(symbol, GoType.functionType([GoType.parse("any")], [GoType.pointer(GoType.named(className(target)))]));
+		var symbol = GoRecoveryDispatch.entrySymbol(symbolPrefix, name);
+		availability.noteHelper(symbol, GoType.functionType([GoType.parse("any")], [GoType.pointer(GoType.named(name))]));
 		availability.requireHelper(symbol);
 		return GoExpr.GoCall(GoExpr.GoIdent(symbol), [value]);
 	}
@@ -67,9 +70,11 @@ class GoNominalValueRecovery {
 	/** Candidates come from the compiler's emitted, same-package class layouts. */
 	public function discover(candidates:Array<ClassType>):Array<GoGuardedRecoveryDeclaration> {
 		var declarations = new Array<GoGuardedRecoveryDeclaration>();
-		for (index in 0...targets.length) {
-			var target = targets[index];
-			var targetType = GoType.pointer(GoType.named(className(target)));
+		var names = [for (name in targets.keys()) name];
+		names.sort(GoRecoveryDispatch.compareSymbols);
+		for (name in names) {
+			var target = targets.get(name);
+			var targetType = GoType.pointer(GoType.named(name));
 			var cases = new Array<GoRecoveryCasePlan>();
 			for (candidate in candidates) {
 				var path = inheritancePath(candidate, target);
@@ -88,7 +93,7 @@ class GoNominalValueRecovery {
 				});
 			}
 			var plan = dispatcher.lower({
-				symbol: "hx_recover_class_" + index,
+				symbol: GoRecoveryDispatch.entrySymbol(symbolPrefix, name),
 				params: [{name: "value", typeName: "any"}],
 				result: targetType,
 				prefix: [

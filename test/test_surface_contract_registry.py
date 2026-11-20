@@ -502,12 +502,12 @@ class SurfaceContractRegistryTest(unittest.TestCase):
         self.assertRegex(
             main_go,
             r'\*hxrt\.Function\[func\(\) bool\] = '
-            r'hx_recover_callable_\d+\(hxrt\.AnonymousGet\(iterator, "hasNext"\)\)',
+            r'hx_recover_callable_[0-9a-f]+\(hxrt\.AnonymousGet\(iterator, "hasNext"\)\)',
         )
         self.assertRegex(
             main_go,
             r'\*hxrt\.Function\[func\(\) int\] = '
-            r'hx_recover_callable_\d+\(hxrt\.AnonymousGet\(iterator, "next"\)\)',
+            r'hx_recover_callable_[0-9a-f]+\(hxrt\.AnonymousGet\(iterator, "next"\)\)',
         )
         self.assertIn('case "hasNext":', main_go)
         self.assertIn('case "next":', main_go)

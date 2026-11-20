@@ -67,7 +67,7 @@ func (self *Holder) HxClassName() string {
 }
 
 func main() {
-	read := hx_recover_callable_0(New_Holder(19).reader())
+	read := hx_recover_callable_e273723c(New_Holder(19).reader())
 	alias := read
 	var v any = any(func() int {
 		var hx_callable_1 *hxrt.Function[func() int] = read
@@ -78,32 +78,32 @@ func main() {
 	hxrt.Println(v_1)
 	holder := New_Holder(23)
 	var v_2 any = any(func() int {
-		var hx_callable_2 *hxrt.Function[func(int) int] = hx_recover_callable_1(holder.echo())
+		var hx_callable_2 *hxrt.Function[func(int) int] = hx_recover_callable_408c8b7a(holder.echo())
 		var hx_argument_3 int = 29
 		return hxrt.FunctionCall(hx_callable_2)(hx_argument_3)
 	}())
 	hxrt.Println(v_2)
 	var v_3 any = any(func() int {
-		var hx_callable_4 *hxrt.Function[func() int] = hx_recover_callable_0(holder.savedReader())
+		var hx_callable_4 *hxrt.Function[func() int] = hx_recover_callable_e273723c(holder.savedReader())
 		return hxrt.FunctionCall(hx_callable_4)()
 	}())
 	hxrt.Println(v_3)
 	var v_4 any = any(func() bool {
-		var f1 any = any(hx_recover_callable_0(holder.savedReader()))
-		var f2 any = any(hx_recover_callable_0(holder.savedReader()))
+		var f1 any = any(hx_recover_callable_e273723c(holder.savedReader()))
+		var f2 any = any(hx_recover_callable_e273723c(holder.savedReader()))
 		return hxrt.ReflectCompareMethods(f1, f2)
 	}())
 	hxrt.Println(v_4)
 	var v_5 any = any(func() bool {
-		var f1_1 any = any(hx_recover_callable_0(holder.reader()))
-		var f2_1 any = any(hx_recover_callable_0(holder.reader()))
+		var f1_1 any = any(hx_recover_callable_e273723c(holder.reader()))
+		var f2_1 any = any(hx_recover_callable_e273723c(holder.reader()))
 		return hxrt.ReflectCompareMethods(f1_1, f2_1)
 	}())
 	hxrt.Println(v_5)
-	var v_6 any = any((hx_recover_callable_0(holder.missing()) == nil))
+	var v_6 any = any((hx_recover_callable_e273723c(holder.missing()) == nil))
 	hxrt.Println(v_6)
 	var v_7 any = any(func() *string {
-		var hx_callable_5 *hxrt.Function[func() *string] = hx_recover_callable_2(New_Holder(hxrt.StringFromLiteral("text")).reader())
+		var hx_callable_5 *hxrt.Function[func() *string] = hx_recover_callable_b9d17ba0(New_Holder(hxrt.StringFromLiteral("text")).reader())
 		return hxrt.FunctionCall(hx_callable_5)()
 	}())
 	hxrt.Println(v_7)
@@ -114,7 +114,65 @@ func main() {
 	hxrt.Println(v_8)
 }
 
-func hx_recover_callable_0(value any) *hxrt.Function[func() int] {
+func hx_recover_callable_408c8b7a(value any) *hxrt.Function[func(int) int] {
+	if value == nil {
+		return nil
+	}
+	switch exact := value.(type) {
+	case *hxrt.Function[func(int) int]:
+		return exact
+	}
+	origin := hxrt.FunctionOrigin(value)
+	if origin == nil {
+		return nil
+	}
+	switch source := origin.(type) {
+	case *hxrt.Function[func(any) any]:
+		return hxrt.ProjectFunction(source, func(arg_0 int) int {
+			return func(hx_value_1 any) int {
+				if hx_value_1 == nil {
+					var hx_zero_2 int
+					return hx_zero_2
+				}
+				return hx_value_1.(int)
+			}(hxrt.FunctionCall(source)(arg_0))
+		})
+	default:
+		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
+		return nil
+	}
+}
+
+func hx_recover_callable_b9d17ba0(value any) *hxrt.Function[func() *string] {
+	if value == nil {
+		return nil
+	}
+	switch exact := value.(type) {
+	case *hxrt.Function[func() *string]:
+		return exact
+	}
+	origin := hxrt.FunctionOrigin(value)
+	if origin == nil {
+		return nil
+	}
+	switch source := origin.(type) {
+	case *hxrt.Function[func() any]:
+		return hxrt.ProjectFunction(source, func() *string {
+			return func(hx_value_1 any) *string {
+				if hx_value_1 == nil {
+					var hx_zero_2 *string
+					return hx_zero_2
+				}
+				return hx_value_1.(*string)
+			}(hxrt.FunctionCall(source)())
+		})
+	default:
+		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
+		return nil
+	}
+}
+
+func hx_recover_callable_e273723c(value any) *hxrt.Function[func() int] {
 	if value == nil {
 		return nil
 	}
@@ -135,64 +193,6 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() int] {
 					return hx_zero_2
 				}
 				return hx_value_1.(int)
-			}(hxrt.FunctionCall(source)())
-		})
-	default:
-		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
-		return nil
-	}
-}
-
-func hx_recover_callable_1(value any) *hxrt.Function[func(int) int] {
-	if value == nil {
-		return nil
-	}
-	switch exact := value.(type) {
-	case *hxrt.Function[func(int) int]:
-		return exact
-	}
-	origin := hxrt.FunctionOrigin(value)
-	if origin == nil {
-		return nil
-	}
-	switch source := origin.(type) {
-	case *hxrt.Function[func(any) any]:
-		return hxrt.ProjectFunction(source, func(arg_0 int) int {
-			return func(hx_value_3 any) int {
-				if hx_value_3 == nil {
-					var hx_zero_4 int
-					return hx_zero_4
-				}
-				return hx_value_3.(int)
-			}(hxrt.FunctionCall(source)(arg_0))
-		})
-	default:
-		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
-		return nil
-	}
-}
-
-func hx_recover_callable_2(value any) *hxrt.Function[func() *string] {
-	if value == nil {
-		return nil
-	}
-	switch exact := value.(type) {
-	case *hxrt.Function[func() *string]:
-		return exact
-	}
-	origin := hxrt.FunctionOrigin(value)
-	if origin == nil {
-		return nil
-	}
-	switch source := origin.(type) {
-	case *hxrt.Function[func() any]:
-		return hxrt.ProjectFunction(source, func() *string {
-			return func(hx_value_5 any) *string {
-				if hx_value_5 == nil {
-					var hx_zero_6 *string
-					return hx_zero_6
-				}
-				return hx_value_5.(*string)
 			}(hxrt.FunctionCall(source)())
 		})
 	default:

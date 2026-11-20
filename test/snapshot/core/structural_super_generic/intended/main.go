@@ -36,7 +36,7 @@ func hx_init_Base(self *Base, it hxrt.Anonymous) *Base {
 
 func (self *Base) read() any {
 	return func() any {
-		var hx_callable_1 *hxrt.Function[func() any] = hx_recover_callable_0(hxrt.AnonymousGet(self.it, "next"))
+		var hx_callable_1 *hxrt.Function[func() any] = hx_recover_callable_c5309b43(hxrt.AnonymousGet(self.it, "next"))
 		return hxrt.FunctionCall(hx_callable_1)()
 	}()
 }
@@ -118,7 +118,7 @@ func main() {
 	hxrt.Println(v_1)
 }
 
-func hx_recover_callable_0(value any) *hxrt.Function[func() any] {
+func hx_recover_callable_c5309b43(value any) *hxrt.Function[func() any] {
 	if value == nil {
 		return nil
 	}

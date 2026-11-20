@@ -176,7 +176,7 @@ func hx_init_haxe__ds__BalancedTree(self *haxe__ds__BalancedTree) *haxe__ds__Bal
 }
 
 func (self *haxe__ds__BalancedTree) set(key any, value any) {
-	self.root = hx_recover_class_0(self.__hx_this.setLoop(key, value, self.root))
+	self.root = hx_recover_class_haxe__ds__TreeNode(self.__hx_this.setLoop(key, value, self.root))
 }
 
 func (self *haxe__ds__BalancedTree) get(key any) any {
@@ -204,7 +204,7 @@ func (self *haxe__ds__BalancedTree) get(key any) any {
 func (self *haxe__ds__BalancedTree) remove(key any) bool {
 	removed := true
 	hxrt.TryCatch(func() {
-		self.root = hx_recover_class_0(self.__hx_this.removeLoop(key, self.root))
+		self.root = hx_recover_class_haxe__ds__TreeNode(self.__hx_this.removeLoop(key, self.root))
 	}, func(hx_caught_14 any) {
 		hx_exception_15 := haxe__Exception_caught(hx_caught_14)
 		hx_payload_16 := haxe__Exception_catchValue(hx_caught_14)
@@ -298,13 +298,13 @@ func (self *haxe__ds__BalancedTree) keyValueIterator() hxrt.Anonymous {
 	hx_obj_27 := map[string]any{}
 	hx_obj_27["hasNext"] = hxrt.NewFunction(func() bool {
 		return func() bool {
-			var hx_callable_28 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(keyIterator, "hasNext"))
+			var hx_callable_28 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(keyIterator, "hasNext"))
 			return hxrt.FunctionCall(hx_callable_28)()
 		}()
 	})
 	hx_obj_27["next"] = hxrt.NewFunction(func() hxrt.Anonymous {
 		var key any = func() any {
-			var hx_callable_29 *hxrt.Function[func() any] = hx_recover_callable_1(hxrt.AnonymousGet(keyIterator, "next"))
+			var hx_callable_29 *hxrt.Function[func() any] = hx_recover_callable_c5309b43(hxrt.AnonymousGet(keyIterator, "next"))
 			return hxrt.FunctionCall(hx_callable_29)()
 		}()
 		hx_obj_30 := map[string]any{}
@@ -346,11 +346,11 @@ func (self *haxe__ds__BalancedTree) setLoop(k any, v any, node *haxe__ds__TreeNo
 	} else {
 		var hx_if_34 *haxe__ds__TreeNode
 		if c < 0 {
-			nl := hx_recover_class_0(self.__hx_this.setLoop(k, v, node.left))
-			hx_if_34 = hx_recover_class_0(self.__hx_this.balance(nl, node.key, node.value, node.right))
+			nl := hx_recover_class_haxe__ds__TreeNode(self.__hx_this.setLoop(k, v, node.left))
+			hx_if_34 = hx_recover_class_haxe__ds__TreeNode(self.__hx_this.balance(nl, node.key, node.value, node.right))
 		} else {
-			nr := hx_recover_class_0(self.__hx_this.setLoop(k, v, node.right))
-			hx_if_34 = hx_recover_class_0(self.__hx_this.balance(node.left, node.key, node.value, nr))
+			nr := hx_recover_class_haxe__ds__TreeNode(self.__hx_this.setLoop(k, v, node.right))
+			hx_if_34 = hx_recover_class_haxe__ds__TreeNode(self.__hx_this.balance(node.left, node.key, node.value, nr))
 		}
 		hx_if_35 = hx_if_34
 	}
@@ -370,13 +370,13 @@ func (self *haxe__ds__BalancedTree) removeLoop(k any, node *haxe__ds__TreeNode) 
 	}(self.__hx_this.compare(k, node.key))
 	var hx_if_39 *haxe__ds__TreeNode
 	if c == 0 {
-		hx_if_39 = hx_recover_class_0(self.__hx_this.merge(node.left, node.right))
+		hx_if_39 = hx_recover_class_haxe__ds__TreeNode(self.__hx_this.merge(node.left, node.right))
 	} else {
 		var hx_if_38 *haxe__ds__TreeNode
 		if c < 0 {
-			hx_if_38 = hx_recover_class_0(self.__hx_this.balance(hx_recover_class_0(self.__hx_this.removeLoop(k, node.left)), node.key, node.value, node.right))
+			hx_if_38 = hx_recover_class_haxe__ds__TreeNode(self.__hx_this.balance(hx_recover_class_haxe__ds__TreeNode(self.__hx_this.removeLoop(k, node.left)), node.key, node.value, node.right))
 		} else {
-			hx_if_38 = hx_recover_class_0(self.__hx_this.balance(node.left, node.key, node.value, hx_recover_class_0(self.__hx_this.removeLoop(k, node.right))))
+			hx_if_38 = hx_recover_class_haxe__ds__TreeNode(self.__hx_this.balance(node.left, node.key, node.value, hx_recover_class_haxe__ds__TreeNode(self.__hx_this.removeLoop(k, node.right))))
 		}
 		hx_if_39 = hx_if_38
 	}
@@ -411,8 +411,8 @@ func (self *haxe__ds__BalancedTree) merge(t1 *haxe__ds__TreeNode, t2 *haxe__ds__
 	if t2 == nil {
 		return t1
 	}
-	t := hx_recover_class_0(self.__hx_this.minBinding(t2))
-	return hx_recover_class_0(self.__hx_this.balance(t1, t.key, t.value, hx_recover_class_0(self.__hx_this.removeMinBinding(t2))))
+	t := hx_recover_class_haxe__ds__TreeNode(self.__hx_this.minBinding(t2))
+	return hx_recover_class_haxe__ds__TreeNode(self.__hx_this.balance(t1, t.key, t.value, hx_recover_class_haxe__ds__TreeNode(self.__hx_this.removeMinBinding(t2))))
 }
 
 func (self *haxe__ds__BalancedTree) minBinding(t *haxe__ds__TreeNode) *haxe__ds__TreeNode {
@@ -428,7 +428,7 @@ func (self *haxe__ds__BalancedTree) minBinding(t *haxe__ds__TreeNode) *haxe__ds_
 		if t.left == nil {
 			hx_if_46 = t
 		} else {
-			hx_if_46 = hx_recover_class_0(self.__hx_this.minBinding(t.left))
+			hx_if_46 = hx_recover_class_haxe__ds__TreeNode(self.__hx_this.minBinding(t.left))
 		}
 		hx_if_47 = hx_if_46
 	}
@@ -440,7 +440,7 @@ func (self *haxe__ds__BalancedTree) removeMinBinding(t *haxe__ds__TreeNode) *hax
 	if t.left == nil {
 		hx_if_48 = t.right
 	} else {
-		hx_if_48 = hx_recover_class_0(self.__hx_this.balance(hx_recover_class_0(self.__hx_this.removeMinBinding(t.left)), t.key, t.value, t.right))
+		hx_if_48 = hx_recover_class_haxe__ds__TreeNode(self.__hx_this.balance(hx_recover_class_haxe__ds__TreeNode(self.__hx_this.removeMinBinding(t.left)), t.key, t.value, t.right))
 	}
 	return hx_if_48
 }
@@ -584,7 +584,7 @@ func (self *haxe__ds__BalancedTree) removeIMap(key any) bool {
 }
 
 func (self *haxe__ds__BalancedTree) copyIMap() haxe__IMap {
-	return hx_recover_class_1(self.__hx_this.copy())
+	return hx_recover_class_haxe__ds__BalancedTree(self.__hx_this.copy())
 }
 
 func (self *haxe__ds__BalancedTree) String() string {

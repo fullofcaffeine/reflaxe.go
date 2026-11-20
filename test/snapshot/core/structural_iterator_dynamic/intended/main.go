@@ -76,49 +76,49 @@ func main() {
 				}(incoming)
 				return true
 			case "hasNext":
-				hx_structural_source_2.hasNext = hx_recover_callable_0(incoming)
+				hx_structural_source_2.hasNext = hx_recover_callable_cf6928b1(incoming)
 				return true
 			case "next":
-				hx_structural_source_2.next = hx_recover_callable_1(incoming)
+				hx_structural_source_2.next = hx_recover_callable_e273723c(incoming)
 				return true
 			}
 			return false
 		})
 	}(source)
 	var v any = any(func() bool {
-		var hx_callable_5 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(view, "hasNext"))
+		var hx_callable_5 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(view, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_5)()
 	}())
 	hxrt.Println(v)
 	var v_1 any = any(func() int {
-		var hx_callable_6 *hxrt.Function[func() int] = hx_recover_callable_1(hxrt.AnonymousGet(view, "next"))
+		var hx_callable_6 *hxrt.Function[func() int] = hx_recover_callable_e273723c(hxrt.AnonymousGet(view, "next"))
 		return hxrt.FunctionCall(hx_callable_6)()
 	}())
 	hxrt.Println(v_1)
 	var v_2 any = any(func() bool {
-		var hx_callable_7 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(view, "hasNext"))
+		var hx_callable_7 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(view, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_7)()
 	}())
 	hxrt.Println(v_2)
-	saved := hx_recover_callable_1(hxrt.AnonymousGet(view, "next"))
-	hxrt.Println(any(hxrt.HaxeEqual(saved, hx_recover_callable_1(hxrt.AnonymousGet(view, "next")))))
+	saved := hx_recover_callable_e273723c(hxrt.AnonymousGet(view, "next"))
+	hxrt.Println(any(hxrt.HaxeEqual(saved, hx_recover_callable_e273723c(hxrt.AnonymousGet(view, "next")))))
 	source.next = hxrt.NewFunction(func() int {
 		return 23
 	})
-	hxrt.Println(any(hxrt.HaxeEqual(saved, hx_recover_callable_1(hxrt.AnonymousGet(view, "next")))))
+	hxrt.Println(any(hxrt.HaxeEqual(saved, hx_recover_callable_e273723c(hxrt.AnonymousGet(view, "next")))))
 	var v_3 any = any(func() int {
 		var hx_callable_8 *hxrt.Function[func() int] = saved
 		return hxrt.FunctionCall(hx_callable_8)()
 	}())
 	hxrt.Println(v_3)
 	var v_4 any = any(func() int {
-		var hx_callable_9 *hxrt.Function[func() int] = hx_recover_callable_1(hxrt.AnonymousGet(view, "next"))
+		var hx_callable_9 *hxrt.Function[func() int] = hx_recover_callable_e273723c(hxrt.AnonymousGet(view, "next"))
 		return hxrt.FunctionCall(hx_callable_9)()
 	}())
 	hxrt.Println(v_4)
 }
 
-func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
+func hx_recover_callable_cf6928b1(value any) *hxrt.Function[func() bool] {
 	if value == nil {
 		return nil
 	}
@@ -149,7 +149,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() bool] {
 	}
 }
 
-func hx_recover_callable_1(value any) *hxrt.Function[func() int] {
+func hx_recover_callable_e273723c(value any) *hxrt.Function[func() int] {
 	if value == nil {
 		return nil
 	}
@@ -164,12 +164,12 @@ func hx_recover_callable_1(value any) *hxrt.Function[func() int] {
 	switch source := origin.(type) {
 	case *hxrt.Function[func() bool]:
 		return hxrt.ProjectFunction(source, func() int {
-			return func(hx_value_3 any) int {
-				if hx_value_3 == nil {
-					var hx_zero_4 int
-					return hx_zero_4
+			return func(hx_value_1 any) int {
+				if hx_value_1 == nil {
+					var hx_zero_2 int
+					return hx_zero_2
 				}
-				return hx_value_3.(int)
+				return hx_value_1.(int)
 			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() int]:

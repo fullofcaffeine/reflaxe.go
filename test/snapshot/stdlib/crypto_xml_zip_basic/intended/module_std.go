@@ -142,35 +142,35 @@ func Std_downcast(value any, c any) any {
 					}
 				}(hx_value)
 			case "StringBuf":
-				return hx_is_nominal_2(hx_value)
+				return hx_is_nominal_StringBuf(hx_value)
 			case "Xml":
-				return hx_is_nominal_3(hx_value)
+				return hx_is_nominal_Xml(hx_value)
 			case "haxe.Exception":
-				return hx_is_nominal_1(hx_value)
+				return hx_is_nominal_haxe__Exception(hx_value)
 			case "haxe.ValueException":
-				return hx_is_nominal_0(hx_value)
+				return hx_is_nominal_haxe__ValueException(hx_value)
 			case "haxe._Int64.___Int64":
-				return hx_is_nominal_4(hx_value)
+				return hx_is_nominal_haxe___Int64_____Int64(hx_value)
 			case "haxe.ds.StringMap":
-				return hx_is_nominal_5(hx_value)
+				return hx_is_nominal_haxe__ds__StringMap(hx_value)
 			case "haxe.io.Bytes":
-				return hx_is_nominal_6(hx_value)
+				return hx_is_nominal_haxe__io__Bytes(hx_value)
 			case "haxe.iterators.ArrayIterator":
-				return hx_is_nominal_7(hx_value)
+				return hx_is_nominal_haxe__iterators__ArrayIterator(hx_value)
 			case "haxe.iterators.MapKeyValueIterator":
-				return hx_is_nominal_8(hx_value)
+				return hx_is_nominal_haxe__iterators__MapKeyValueIterator(hx_value)
 			case "haxe.iterators.StringIterator":
-				return hx_is_nominal_9(hx_value)
+				return hx_is_nominal_haxe__iterators__StringIterator(hx_value)
 			case "haxe.iterators.StringKeyValueIterator":
-				return hx_is_nominal_10(hx_value)
+				return hx_is_nominal_haxe__iterators__StringKeyValueIterator(hx_value)
 			case "haxe.xml.Printer":
-				return hx_is_nominal_11(hx_value)
+				return hx_is_nominal_haxe__xml__Printer(hx_value)
 			case "haxe.xml.XmlParserException":
-				return hx_is_nominal_12(hx_value)
+				return hx_is_nominal_haxe__xml__XmlParserException(hx_value)
 			case "haxe.zip.Compress":
-				return hx_is_nominal_13(hx_value)
+				return hx_is_nominal_haxe__zip__Compress(hx_value)
 			case "haxe.zip.Uncompress":
-				return hx_is_nominal_14(hx_value)
+				return hx_is_nominal_haxe__zip__Uncompress(hx_value)
 			default:
 				return false
 			}
@@ -321,35 +321,35 @@ func Std_instance(value any, c any) any {
 						}
 					}(hx_value)
 				case "StringBuf":
-					return hx_is_nominal_2(hx_value)
+					return hx_is_nominal_StringBuf(hx_value)
 				case "Xml":
-					return hx_is_nominal_3(hx_value)
+					return hx_is_nominal_Xml(hx_value)
 				case "haxe.Exception":
-					return hx_is_nominal_1(hx_value)
+					return hx_is_nominal_haxe__Exception(hx_value)
 				case "haxe.ValueException":
-					return hx_is_nominal_0(hx_value)
+					return hx_is_nominal_haxe__ValueException(hx_value)
 				case "haxe._Int64.___Int64":
-					return hx_is_nominal_4(hx_value)
+					return hx_is_nominal_haxe___Int64_____Int64(hx_value)
 				case "haxe.ds.StringMap":
-					return hx_is_nominal_5(hx_value)
+					return hx_is_nominal_haxe__ds__StringMap(hx_value)
 				case "haxe.io.Bytes":
-					return hx_is_nominal_6(hx_value)
+					return hx_is_nominal_haxe__io__Bytes(hx_value)
 				case "haxe.iterators.ArrayIterator":
-					return hx_is_nominal_7(hx_value)
+					return hx_is_nominal_haxe__iterators__ArrayIterator(hx_value)
 				case "haxe.iterators.MapKeyValueIterator":
-					return hx_is_nominal_8(hx_value)
+					return hx_is_nominal_haxe__iterators__MapKeyValueIterator(hx_value)
 				case "haxe.iterators.StringIterator":
-					return hx_is_nominal_9(hx_value)
+					return hx_is_nominal_haxe__iterators__StringIterator(hx_value)
 				case "haxe.iterators.StringKeyValueIterator":
-					return hx_is_nominal_10(hx_value)
+					return hx_is_nominal_haxe__iterators__StringKeyValueIterator(hx_value)
 				case "haxe.xml.Printer":
-					return hx_is_nominal_11(hx_value)
+					return hx_is_nominal_haxe__xml__Printer(hx_value)
 				case "haxe.xml.XmlParserException":
-					return hx_is_nominal_12(hx_value)
+					return hx_is_nominal_haxe__xml__XmlParserException(hx_value)
 				case "haxe.zip.Compress":
-					return hx_is_nominal_13(hx_value)
+					return hx_is_nominal_haxe__zip__Compress(hx_value)
 				case "haxe.zip.Uncompress":
-					return hx_is_nominal_14(hx_value)
+					return hx_is_nominal_haxe__zip__Uncompress(hx_value)
 				default:
 					return false
 				}
@@ -507,35 +507,35 @@ func Std_is(v any, t any) bool {
 					}
 				}(hx_value)
 			case "StringBuf":
-				return hx_is_nominal_2(hx_value)
+				return hx_is_nominal_StringBuf(hx_value)
 			case "Xml":
-				return hx_is_nominal_3(hx_value)
+				return hx_is_nominal_Xml(hx_value)
 			case "haxe.Exception":
-				return hx_is_nominal_1(hx_value)
+				return hx_is_nominal_haxe__Exception(hx_value)
 			case "haxe.ValueException":
-				return hx_is_nominal_0(hx_value)
+				return hx_is_nominal_haxe__ValueException(hx_value)
 			case "haxe._Int64.___Int64":
-				return hx_is_nominal_4(hx_value)
+				return hx_is_nominal_haxe___Int64_____Int64(hx_value)
 			case "haxe.ds.StringMap":
-				return hx_is_nominal_5(hx_value)
+				return hx_is_nominal_haxe__ds__StringMap(hx_value)
 			case "haxe.io.Bytes":
-				return hx_is_nominal_6(hx_value)
+				return hx_is_nominal_haxe__io__Bytes(hx_value)
 			case "haxe.iterators.ArrayIterator":
-				return hx_is_nominal_7(hx_value)
+				return hx_is_nominal_haxe__iterators__ArrayIterator(hx_value)
 			case "haxe.iterators.MapKeyValueIterator":
-				return hx_is_nominal_8(hx_value)
+				return hx_is_nominal_haxe__iterators__MapKeyValueIterator(hx_value)
 			case "haxe.iterators.StringIterator":
-				return hx_is_nominal_9(hx_value)
+				return hx_is_nominal_haxe__iterators__StringIterator(hx_value)
 			case "haxe.iterators.StringKeyValueIterator":
-				return hx_is_nominal_10(hx_value)
+				return hx_is_nominal_haxe__iterators__StringKeyValueIterator(hx_value)
 			case "haxe.xml.Printer":
-				return hx_is_nominal_11(hx_value)
+				return hx_is_nominal_haxe__xml__Printer(hx_value)
 			case "haxe.xml.XmlParserException":
-				return hx_is_nominal_12(hx_value)
+				return hx_is_nominal_haxe__xml__XmlParserException(hx_value)
 			case "haxe.zip.Compress":
-				return hx_is_nominal_13(hx_value)
+				return hx_is_nominal_haxe__zip__Compress(hx_value)
 			case "haxe.zip.Uncompress":
-				return hx_is_nominal_14(hx_value)
+				return hx_is_nominal_haxe__zip__Uncompress(hx_value)
 			default:
 				return false
 			}

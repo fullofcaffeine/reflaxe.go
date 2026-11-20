@@ -53,11 +53,11 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 		_this_1.b = hxrt.StringConcatStringPtr(_this_1.b, hxrt.StdString(input))
 		attribute := value.__hx_this.attributes()
 		for func() bool {
-			var hx_callable_1 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(attribute, "hasNext"))
+			var hx_callable_1 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(attribute, "hasNext"))
 			return hxrt.FunctionCall(hx_callable_1)()
 		}() {
 			attribute_1 := func() *string {
-				var hx_callable_2 *hxrt.Function[func() *string] = hx_recover_callable_1(hxrt.AnonymousGet(attribute, "next"))
+				var hx_callable_2 *hxrt.Function[func() *string] = hx_recover_callable_b9d17ba0(hxrt.AnonymousGet(attribute, "next"))
 				return hxrt.FunctionCall(hx_callable_2)()
 			}()
 			_this_2 := self.output
@@ -84,7 +84,7 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 			for _g_current < _g_array.Len() {
 				hx_post_3 := _g_current
 				_g_current = int(int32((_g_current + 1)))
-				child := hx_recover_class_0(_g_array.Get(hx_post_3))
+				child := hx_recover_class_Xml(_g_array.Get(hx_post_3))
 				self.__hx_this.writeNode(child, func() *string {
 					var hx_if_4 *string
 					if self.pretty {
@@ -200,7 +200,7 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 		for _g_current_1 < _g_array_1.Len() {
 			hx_post_5 := _g_current_1
 			_g_current_1 = int(int32((_g_current_1 + 1)))
-			child_1 := hx_recover_class_0(_g_array_1.Get(hx_post_5))
+			child_1 := hx_recover_class_Xml(_g_array_1.Get(hx_post_5))
 			self.__hx_this.writeNode(child_1, tabs)
 		}
 	}
@@ -228,7 +228,7 @@ func (self *haxe__xml__Printer) hasChildren(value *Xml) bool {
 	for _g_current < _g_array.Len() {
 		hx_post_6 := _g_current
 		_g_current = int(int32((_g_current + 1)))
-		child := hx_recover_class_0(_g_array.Get(hx_post_6))
+		child := hx_recover_class_Xml(_g_array.Get(hx_post_6))
 		var _g any = child.nodeType
 		switch _g {
 		case 0, 1:

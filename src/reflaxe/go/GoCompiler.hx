@@ -471,7 +471,7 @@ class GoCompiler {
 					return path;
 			return null;
 		});
-		valueRecovery = new GoValueRecovery(recoveryAvailability, recoverStoredGoValue);
+		valueRecovery = new GoValueRecovery(recoveryAvailability, recoverStoredGoValue, lowerWithLocalTemps);
 		nominalValueRecovery = new GoNominalValueRecovery(recoveryAvailability, classTypeName, inheritancePath);
 		nominalTypeTest = new GoNominalTypeTest(recoveryAvailability, classTypeName);
 		structuralObjectLowering = new GoStructuralObjectLowering(recoveryAvailability, {
@@ -605,7 +605,11 @@ class GoCompiler {
 		var preludeDecls = new Array<GoDecl>();
 		var supportDecls = new Array<GoDecl>();
 		var guardedRecoveryDecls = new Array<GoGuardedRecoveryDeclaration>();
+		// Every pass rebuilds these declarations; their temporaries must not depend
+		// on how many passes an unrelated change needed.
+		var passTempCounter = tempVarCounter;
 		while (true) {
+			tempVarCounter = passTempCounter;
 			recoveryAvailability.beginPass();
 			noteRecoveryModuleOwners(moduleDecls, moduleBuildConstraints);
 			var before = recoveryRequirementCount();
@@ -614,10 +618,10 @@ class GoCompiler {
 			generatedMethodMetadataPlan = requiresGeneratedMethodLookup ? generatedMethodClassMetadata() : [];
 			generatedFieldMetadataPlan = requiresGeneratedFieldLookup ? generatedFieldClassMetadata() : [];
 			preludeDecls = requiresTypeValueSupport ? lowerTypeValueDecls() : [];
-			guardedRecoveryDecls = structuralObjectLowering.emitRecoveries([
+			guardedRecoveryDecls = lowerWithLocalTemps(() -> structuralObjectLowering.emitRecoveries([
 				for (source in projectClasses)
 					if (generatedFieldMetadataByClassName.exists(fullClassName(source))) source
-			]);
+			]));
 			supportDecls = lowerGeneratedMethodMetadataShimDecls();
 			supportDecls = supportDecls.concat(lowerRegisteredCompilerCapabilityDecls());
 			supportDecls = supportDecls.concat(lowerTestAstStmtDecls());
@@ -1896,7 +1900,9 @@ class GoCompiler {
 				{
 					lookupKey: method.name,
 					selector: method.selector,
-					boundValue: () -> lowerBoundFunctionValue(GoExpr.GoIdent("value"), classType, method.fieldType, method.name, method.selector, method.func)
+					// Each value is its own function literal in a compiler-owned resolver.
+					boundValue: () -> lowerWithLocalTemps(() -> lowerBoundFunctionValue(GoExpr.GoIdent("value"), classType, method.fieldType, method.name,
+						method.selector, method.func))
 				}
 		];
 		ownMethods.sort(function(a, b) {
@@ -13719,6 +13725,29 @@ class GoCompiler {
 		tempVarCountersByModule.set(moduleName, tempVarCounter);
 		tempVarCounter = previousCounter;
 		return decls;
+	}
+
+	/**
+		Lowers one compiler-owned declaration with its own temporary-name sequence.
+
+		Why: recovery helpers and generated method resolvers are built after module
+		lowering. They shared one counter for the whole compilation, which also kept
+		counting across discovery passes, so adding one helper renumbered the
+		temporaries in every helper built after it.
+
+		What: temporaries inside the built code start again at 1. Callers use it only
+		for code that is its own Go function or function literal, because names only
+		need to be unique inside one function scope.
+
+		How: like `lowerModuleDecls`, save the shared counter, reset it, build, and
+		restore it.
+	**/
+	function lowerWithLocalTemps<T>(build:Void->T):T {
+		var previousCounter = tempVarCounter;
+		tempVarCounter = 0;
+		var result = build();
+		tempVarCounter = previousCounter;
+		return result;
 	}
 
 	function freshTempName(prefix:String):String {

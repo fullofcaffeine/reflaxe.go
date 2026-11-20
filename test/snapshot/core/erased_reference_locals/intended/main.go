@@ -91,7 +91,7 @@ func (self *Child) HxClassName() string {
 
 func main() {
 	var erased any = New_Child()
-	base := hx_recover_class_0(erased)
+	base := hx_recover_class_Base(erased)
 	var v any = any(base.value)
 	hxrt.Println(v)
 	var named Named = func(hx_value_1 any) Named {
@@ -104,11 +104,11 @@ func main() {
 	var v_1 any = any(named.name())
 	hxrt.Println(v_1)
 	base.value = 9
-	child := hx_recover_class_1(erased)
+	child := hx_recover_class_Child(erased)
 	var v_2 any = any(child.value)
 	hxrt.Println(v_2)
 	var absent any = nil
-	missing := hx_recover_class_0(absent)
+	missing := hx_recover_class_Base(absent)
 	hxrt.Println(any((missing == nil)))
 	var missingNamed Named = func(hx_value_3 any) Named {
 		if hx_value_3 == nil {
@@ -142,7 +142,7 @@ type Named interface {
 	name() *string
 }
 
-func hx_recover_class_0(value any) *Base {
+func hx_recover_class_Base(value any) *Base {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil
@@ -157,7 +157,7 @@ func hx_recover_class_0(value any) *Base {
 	}
 }
 
-func hx_recover_class_1(value any) *Child {
+func hx_recover_class_Child(value any) *Child {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil

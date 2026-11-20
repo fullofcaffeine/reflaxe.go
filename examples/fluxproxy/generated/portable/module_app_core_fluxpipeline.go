@@ -107,7 +107,7 @@ func (self *app__core__FluxPipeline) ingest(requests *hxrt.Array, capacity int) 
 	backpressureEvents := 0
 	_g := 0
 	for _g < requests.Len() {
-		request := hx_recover_class_0(requests.Get(_g))
+		request := hx_recover_class_app__core__FluxRequest(requests.Get(_g))
 		_g = int(int32((_g + 1)))
 		if int((hxrt.Int32Wrap(queue.Len()) - hxrt.Int32Wrap(queueHead))) >= boundedCapacity {
 			backpressureEvents = int(int32((backpressureEvents + 1)))
@@ -127,7 +127,7 @@ func (self *app__core__FluxPipeline) aggregate(responses *hxrt.Array) hxrt.Anony
 	routes := hxrt.NewArray()
 	_g := 0
 	for _g < responses.Len() {
-		response := hx_recover_class_1(responses.Get(_g))
+		response := hx_recover_class_app__core__FluxProxyResponse(responses.Get(_g))
 		_g = int(int32((_g + 1)))
 		route := response.route
 		bucket := self.findRouteAggregate(routes, route)
@@ -140,7 +140,7 @@ func (self *app__core__FluxPipeline) aggregate(responses *hxrt.Array) hxrt.Anony
 	digest := hxrt.StringFromLiteral("")
 	_g_1 := 0
 	for _g_1 < routes.Len() {
-		item := hx_recover_class_2(routes.Get(_g_1))
+		item := hx_recover_class_app__core__FluxRouteAggregate(routes.Get(_g_1))
 		_g_1 = int(int32((_g_1 + 1)))
 		if !hxrt.StringEqualStringPtr(digest, hxrt.StringFromLiteral("")) {
 			digest = hxrt.StringConcatStringPtr(digest, hxrt.StringFromLiteral(","))
@@ -157,7 +157,7 @@ func (self *app__core__FluxPipeline) retries(responses *hxrt.Array) int {
 	total := 0
 	_g := 0
 	for _g < responses.Len() {
-		response := hx_recover_class_1(responses.Get(_g))
+		response := hx_recover_class_app__core__FluxProxyResponse(responses.Get(_g))
 		_g = int(int32((_g + 1)))
 		total = int((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(int((hxrt.Int32Wrap(response.attempts) - hxrt.Int32Wrap(1))))))
 	}
@@ -168,7 +168,7 @@ func (self *app__core__FluxPipeline) errors(responses *hxrt.Array) int {
 	total := 0
 	_g := 0
 	for _g < responses.Len() {
-		response := hx_recover_class_1(responses.Get(_g))
+		response := hx_recover_class_app__core__FluxProxyResponse(responses.Get(_g))
 		_g = int(int32((_g + 1)))
 		if !response.success {
 			total = int(int32((total + 1)))
@@ -200,7 +200,7 @@ func (self *app__core__FluxPipeline) applyRoutePolicies(requests *hxrt.Array, pe
 	breakerOpen := 0
 	_g := 0
 	for _g < requests.Len() {
-		request := hx_recover_class_0(requests.Get(_g))
+		request := hx_recover_class_app__core__FluxRequest(requests.Get(_g))
 		_g = int(int32((_g + 1)))
 		route := app__core__FluxCodec_normalizedRoute(request.route)
 		streak := self.getStringIntStateValue(failureStreak, route)
@@ -236,20 +236,20 @@ func (self *app__core__FluxPipeline) orderedResponses(synthetic *hxrt.Array, dis
 	byId := hxrt.NewArray()
 	_g := 0
 	for _g < synthetic.Len() {
-		response := hx_recover_class_1(synthetic.Get(_g))
+		response := hx_recover_class_app__core__FluxProxyResponse(synthetic.Get(_g))
 		_g = int(int32((_g + 1)))
 		byId = self.setResponseById(byId, response.requestId, response)
 	}
 	_g_1 := 0
 	for _g_1 < dispatched.Len() {
-		response_1 := hx_recover_class_1(dispatched.Get(_g_1))
+		response_1 := hx_recover_class_app__core__FluxProxyResponse(dispatched.Get(_g_1))
 		_g_1 = int(int32((_g_1 + 1)))
 		byId = self.setResponseById(byId, response_1.requestId, response_1)
 	}
 	ordered := hxrt.NewArray()
 	_g_2 := 0
 	for _g_2 < acceptedRequests.Len() {
-		request := hx_recover_class_0(acceptedRequests.Get(_g_2))
+		request := hx_recover_class_app__core__FluxRequest(acceptedRequests.Get(_g_2))
 		_g_2 = int(int32((_g_2 + 1)))
 		response_2 := self.getResponseById(byId, request.id)
 		if response_2 != nil {
@@ -262,7 +262,7 @@ func (self *app__core__FluxPipeline) orderedResponses(synthetic *hxrt.Array, dis
 func (self *app__core__FluxPipeline) findRouteAggregate(routes *hxrt.Array, route *string) *app__core__FluxRouteAggregate {
 	_g := 0
 	for _g < routes.Len() {
-		item := hx_recover_class_2(routes.Get(_g))
+		item := hx_recover_class_app__core__FluxRouteAggregate(routes.Get(_g))
 		_g = int(int32((_g + 1)))
 		if hxrt.StringEqualStringPtr(item.route, route) {
 			return item
@@ -335,7 +335,7 @@ func (self *app__core__FluxPipeline) getResponseById(states *hxrt.Array, request
 			}
 			return hx_value_37.(int)
 		}(hxrt.AnonymousGet(state, "requestId")) == requestId {
-			return hx_recover_class_1(hxrt.AnonymousGet(state, "response"))
+			return hx_recover_class_app__core__FluxProxyResponse(hxrt.AnonymousGet(state, "response"))
 		}
 	}
 	return nil

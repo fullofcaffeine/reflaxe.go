@@ -82,11 +82,11 @@ func main() {
 	var erased any = value
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("state="), value.state))
 	hxrt.Println(v)
-	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("identity="), hxrt.StdString((hx_recover_class_0(erased) == value))))
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("identity="), hxrt.StdString((hx_recover_class_Child(erased) == value))))
 	hxrt.Println(v_1)
 	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("call-identity="), hxrt.StdString((func() *Child {
 		var this1 any = erasedValue(value)
-		return hx_recover_class_0(this1)
+		return hx_recover_class_Child(this1)
 	}() == value))))
 	hxrt.Println(v_2)
 	base := func(hx_value *Child) *Base {
@@ -99,7 +99,7 @@ func main() {
 	hxrt.Println(v_3)
 }
 
-func hx_recover_class_0(value any) *Child {
+func hx_recover_class_Child(value any) *Child {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil

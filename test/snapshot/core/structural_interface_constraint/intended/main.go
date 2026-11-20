@@ -68,7 +68,7 @@ func main() {
 		})
 	}(nominal)
 	var v any = any(func() int {
-		var hx_callable_3 *hxrt.Function[func() int] = hx_recover_callable_0(hxrt.AnonymousGet(narrow, "next"))
+		var hx_callable_3 *hxrt.Function[func() int] = hx_recover_callable_e273723c(hxrt.AnonymousGet(narrow, "next"))
 		return hxrt.FunctionCall(hx_callable_3)()
 	}())
 	hxrt.Println(v)
@@ -104,7 +104,7 @@ func main() {
 	var erased any = source
 	recovered := hx_structural_recover(hx_structural_recover(erased))
 	var v_3 any = any(func() int {
-		var hx_callable_7 *hxrt.Function[func() int] = hx_recover_callable_0(hxrt.AnonymousGet(recovered, "next"))
+		var hx_callable_7 *hxrt.Function[func() int] = hx_recover_callable_e273723c(hxrt.AnonymousGet(recovered, "next"))
 		return hxrt.FunctionCall(hx_callable_7)()
 	}())
 	hxrt.Println(v_3)
@@ -115,7 +115,7 @@ func main() {
 	mutable := New_MutableCursor()
 	var mutableErased any = mutable
 	live := hx_structural_recover(hx_structural_recover(mutableErased))
-	saved := hx_recover_callable_0(hxrt.AnonymousGet(live, "next"))
+	saved := hx_recover_callable_e273723c(hxrt.AnonymousGet(live, "next"))
 	mutable.next = hxrt.NewFunction(func() int {
 		return 19
 	})
@@ -125,7 +125,7 @@ func main() {
 	}())
 	hxrt.Println(v_4)
 	var v_5 any = any(func() int {
-		var hx_callable_9 *hxrt.Function[func() int] = hx_recover_callable_0(hxrt.AnonymousGet(live, "next"))
+		var hx_callable_9 *hxrt.Function[func() int] = hx_recover_callable_e273723c(hxrt.AnonymousGet(live, "next"))
 		return hxrt.FunctionCall(hx_callable_9)()
 	}())
 	hxrt.Println(v_5)
@@ -134,7 +134,7 @@ func main() {
 
 func read(value hxrt.Anonymous) int {
 	return func() int {
-		var hx_callable_10 *hxrt.Function[func() int] = hx_recover_callable_0(hxrt.AnonymousGet(value, "next"))
+		var hx_callable_10 *hxrt.Function[func() int] = hx_recover_callable_e273723c(hxrt.AnonymousGet(value, "next"))
 		return hxrt.FunctionCall(hx_callable_10)()
 	}()
 }
@@ -212,7 +212,7 @@ func hx_structural_recover(value any) hxrt.Anonymous {
 			}, func(name string, incoming any) bool {
 				switch name {
 				case "next":
-					hx_structural_source_3.next = hx_recover_callable_0(incoming)
+					hx_structural_source_3.next = hx_recover_callable_e273723c(incoming)
 					return true
 				}
 				return false
@@ -257,7 +257,7 @@ func hx_structural_recover(value any) hxrt.Anonymous {
 	}
 }
 
-func hx_recover_callable_0(value any) *hxrt.Function[func() int] {
+func hx_recover_callable_e273723c(value any) *hxrt.Function[func() int] {
 	if value == nil {
 		return nil
 	}

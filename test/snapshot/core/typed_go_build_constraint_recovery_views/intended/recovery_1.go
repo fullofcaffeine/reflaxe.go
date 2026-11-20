@@ -12,22 +12,22 @@ func hx_structural_recover__probe_0(value any) (hxrt.Anonymous, bool) {
 func hx_structural_recover__probe_1(value any) (hxrt.Anonymous, bool) {
 	switch source := value.(type) {
 	case *CgoFeature:
-		return func(hx_structural_source_35 *CgoFeature) hxrt.Anonymous {
-			return hxrt.NewAnonymousView(hx_structural_source_35, func(name string) hxrt.AnonymousField {
+		return func(hx_structural_source_1 *CgoFeature) hxrt.Anonymous {
+			return hxrt.NewAnonymousView(hx_structural_source_1, func(name string) hxrt.AnonymousField {
 				switch name {
 				case "label":
-					return hxrt.AnonymousField{Value: hx_structural_source_35.label, Found: true}
+					return hxrt.AnonymousField{Value: hx_structural_source_1.label, Found: true}
 				}
 				return hxrt.AnonymousField{}
 			}, func(name string, incoming any) bool {
 				switch name {
 				case "label":
-					hx_structural_source_35.label = func(hx_value_36 any) *string {
-						if hx_value_36 == nil {
-							var hx_zero_37 *string
-							return hx_zero_37
+					hx_structural_source_1.label = func(hx_value_2 any) *string {
+						if hx_value_2 == nil {
+							var hx_zero_3 *string
+							return hx_zero_3
 						}
-						return hx_value_36.(*string)
+						return hx_value_2.(*string)
 					}(incoming)
 					return true
 				}
@@ -52,23 +52,23 @@ func reflaxe__go___internal__CompilerReflect_callMethod__probe_1(value any, argu
 		if 0 < len(arguments) {
 			argument_0 = arguments[0]
 		}
-		return hxrt.FunctionCall(source)(hx_recover_class_3(argument_0)), true
+		return hxrt.FunctionCall(source)(hx_recover_class_CgoFeature(argument_0)), true
 	default:
 		var zero any
 		return zero, false
 	}
 }
 
-func hx_recover_callable_0__probe_0(value any) (*hxrt.Function[func(any) *string], bool) {
+func hx_recover_callable_6be299fc__probe_0(value any) (*hxrt.Function[func(any) *string], bool) {
 	var zero *hxrt.Function[func(any) *string]
 	return zero, false
 }
 
-func hx_recover_callable_0__probe_1(value any) (*hxrt.Function[func(any) *string], bool) {
+func hx_recover_callable_6be299fc__probe_1(value any) (*hxrt.Function[func(any) *string], bool) {
 	switch source := value.(type) {
 	case *hxrt.Function[func(*CgoFeature) *string]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) *string {
-			return hxrt.FunctionCall(source)(hx_recover_class_3(arg_0))
+			return hxrt.FunctionCall(source)(hx_recover_class_CgoFeature(arg_0))
 		}), true
 	default:
 		var zero *hxrt.Function[func(any) *string]
@@ -76,22 +76,7 @@ func hx_recover_callable_0__probe_1(value any) (*hxrt.Function[func(any) *string
 	}
 }
 
-func hx_recover_class_0__probe_0(value any) (*FeatureBase, bool) {
-	var zero *FeatureBase
-	return zero, false
-}
-
-func hx_recover_class_0__probe_1(value any) (*FeatureBase, bool) {
-	switch source := value.(type) {
-	case *CgoFeature:
-		return source.FeatureBase, true
-	default:
-		var zero *FeatureBase
-		return zero, false
-	}
-}
-
-func hx_recover_class_3(value any) *CgoFeature {
+func hx_recover_class_CgoFeature(value any) *CgoFeature {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil
@@ -101,5 +86,20 @@ func hx_recover_class_3(value any) *CgoFeature {
 		return source
 	default:
 		return value.(*CgoFeature)
+	}
+}
+
+func hx_recover_class_FeatureBase__probe_0(value any) (*FeatureBase, bool) {
+	var zero *FeatureBase
+	return zero, false
+}
+
+func hx_recover_class_FeatureBase__probe_1(value any) (*FeatureBase, bool) {
+	switch source := value.(type) {
+	case *CgoFeature:
+		return source.FeatureBase, true
+	default:
+		var zero *FeatureBase
+		return zero, false
 	}
 }

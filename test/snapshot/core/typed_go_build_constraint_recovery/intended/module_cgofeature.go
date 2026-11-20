@@ -41,12 +41,12 @@ func (self *CgoFeature) HxClassName() string {
 
 func CgoFeature_check() *string {
 	var erased any = New_CgoFeature()
-	restored := hx_recover_class_0(erased)
+	restored := hx_recover_class_CgoFeature(erased)
 	source := hxrt.NewFunction(func(value *CgoFeature) *string {
 		return value.label
 	})
 	var callback any = source
-	recovered := hx_recover_callable_0(callback)
+	recovered := hx_recover_callable_5893d680(callback)
 	return func() *string {
 		var hx_callable_1 *hxrt.Function[func(*CgoFeature) *string] = recovered
 		var hx_argument_2 *CgoFeature = restored

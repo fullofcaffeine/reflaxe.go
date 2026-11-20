@@ -16,7 +16,7 @@ func Harness_cleanup() {
 		hx_exception_2 := haxe__Exception_caught(hx_caught_1)
 		hx_payload_3 := haxe__Exception_catchValue(hx_caught_1)
 		_ = hx_payload_3
-		var hx_tmp *haxe__Exception = hx_recover_class_0(hx_exception_2)
+		var hx_tmp *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_2)
 		_ = hx_tmp
 	})
 	path_1 := hxrt.StringFromLiteral(".incident_api_scripted_state.json")
@@ -28,7 +28,7 @@ func Harness_cleanup() {
 		hx_exception_5 := haxe__Exception_caught(hx_caught_4)
 		hx_payload_6 := haxe__Exception_catchValue(hx_caught_4)
 		_ = hx_payload_6
-		var hx_tmp_1 *haxe__Exception = hx_recover_class_0(hx_exception_5)
+		var hx_tmp_1 *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_5)
 		_ = hx_tmp_1
 	})
 }
@@ -52,7 +52,7 @@ func Harness_request(server *app__http__TinyHttpServer, method *string, path *st
 		hx_exception_8 := haxe__Exception_caught(hx_caught_7)
 		hx_payload_9 := haxe__Exception_catchValue(hx_caught_7)
 		_ = hx_payload_9
-		var error *haxe__Exception = hx_recover_class_0(hx_exception_8)
+		var error *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_8)
 		_ = error
 		result = hxrt.StringFromLiteral("HTTP/1.1 000 Client Error body={\"error\":\"client_error\"}")
 	})
@@ -62,7 +62,7 @@ func Harness_request(server *app__http__TinyHttpServer, method *string, path *st
 		hx_exception_11 := haxe__Exception_caught(hx_caught_10)
 		hx_payload_12 := haxe__Exception_catchValue(hx_caught_10)
 		_ = hx_payload_12
-		var hx_tmp *haxe__Exception = hx_recover_class_0(hx_exception_11)
+		var hx_tmp *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_11)
 		_ = hx_tmp
 	})
 	return result
@@ -92,7 +92,7 @@ func Harness_run() *string {
 		hx_exception_15 := haxe__Exception_caught(hx_caught_13)
 		hx_payload_16 := haxe__Exception_catchValue(hx_caught_13)
 		_ = hx_payload_16
-		var error *haxe__Exception = hx_recover_class_0(hx_exception_15)
+		var error *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_15)
 		out.Push(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("error="), hxrt.StdString(error)))
 	})
 	server.close()

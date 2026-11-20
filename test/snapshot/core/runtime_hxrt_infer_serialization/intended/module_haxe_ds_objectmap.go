@@ -105,13 +105,13 @@ func (self *haxe__ds__ObjectMap) keyValueIterator() hxrt.Anonymous {
 	hx_obj_5 := map[string]any{}
 	hx_obj_5["hasNext"] = hxrt.NewFunction(func() bool {
 		return func() bool {
-			var hx_callable_6 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(keys, "hasNext"))
+			var hx_callable_6 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(keys, "hasNext"))
 			return hxrt.FunctionCall(hx_callable_6)()
 		}()
 	})
 	hx_obj_5["next"] = hxrt.NewFunction(func() hxrt.Anonymous {
 		var key any = func() any {
-			var hx_callable_7 *hxrt.Function[func() any] = hx_recover_callable_2(hxrt.AnonymousGet(keys, "next"))
+			var hx_callable_7 *hxrt.Function[func() any] = hx_recover_callable_c5309b43(hxrt.AnonymousGet(keys, "next"))
 			return hxrt.FunctionCall(hx_callable_7)()
 		}()
 		hx_obj_8 := map[string]any{}
@@ -151,18 +151,18 @@ func (self *haxe__ds__ObjectMap) removeIMap(key any) bool {
 }
 
 func (self *haxe__ds__ObjectMap) copyIMap() haxe__IMap {
-	return hx_recover_class_2(self.__hx_this.copy())
+	return hx_recover_class_haxe__ds__ObjectMap(self.__hx_this.copy())
 }
 
 func (self *haxe__ds__ObjectMap) copy() *haxe__ds__ObjectMap {
 	copied := New_haxe__ds__ObjectMap()
 	key := self.__hx_this.keys()
 	for func() bool {
-		var hx_callable_13 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(key, "hasNext"))
+		var hx_callable_13 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(key, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_13)()
 	}() {
 		var key_1 any = func() any {
-			var hx_callable_14 *hxrt.Function[func() any] = hx_recover_callable_2(hxrt.AnonymousGet(key, "next"))
+			var hx_callable_14 *hxrt.Function[func() any] = hx_recover_callable_c5309b43(hxrt.AnonymousGet(key, "next"))
 			return hxrt.FunctionCall(hx_callable_14)()
 		}()
 		copied.__hx_this.set(key_1, self.__hx_this.get(key_1))
@@ -176,11 +176,11 @@ func (self *haxe__ds__ObjectMap) toString() *string {
 	out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StringFromLiteral("["))
 	iterator := self.__hx_this.keys()
 	for func() bool {
-		var hx_callable_15 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(iterator, "hasNext"))
+		var hx_callable_15 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(iterator, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_15)()
 	}() {
 		var key any = func() any {
-			var hx_callable_16 *hxrt.Function[func() any] = hx_recover_callable_2(hxrt.AnonymousGet(iterator, "next"))
+			var hx_callable_16 *hxrt.Function[func() any] = hx_recover_callable_c5309b43(hxrt.AnonymousGet(iterator, "next"))
 			return hxrt.FunctionCall(hx_callable_16)()
 		}()
 		x := hxrt.StdString(key)
@@ -189,7 +189,7 @@ func (self *haxe__ds__ObjectMap) toString() *string {
 		x_1 := hxrt.StdString(self.__hx_this.get(key))
 		out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StdString(x_1))
 		if func() bool {
-			var hx_callable_17 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(iterator, "hasNext"))
+			var hx_callable_17 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(iterator, "hasNext"))
 			return hxrt.FunctionCall(hx_callable_17)()
 		}() {
 			out_b = hxrt.StringConcatStringPtr(out_b, hxrt.StringFromLiteral(", "))

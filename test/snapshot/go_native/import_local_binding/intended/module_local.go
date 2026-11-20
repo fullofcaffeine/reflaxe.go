@@ -50,7 +50,7 @@ func Local_catchValue() *string {
 		hx_exception_4 := haxe__Exception_caught(hx_caught_3)
 		hx_payload_5 := haxe__Exception_catchValue(hx_caught_3)
 		_ = hx_payload_5
-		var bytes_local *haxe__Exception = hx_recover_class_0(hx_exception_4)
+		var bytes_local *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_4)
 		hx_try_value_2 = bytes_local.__hx_this.get_message()
 		hx_try_return_1 = true
 		return

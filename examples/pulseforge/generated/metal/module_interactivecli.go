@@ -19,7 +19,7 @@ func InteractiveCli_nextSequence(frames *hxrt.Array) int {
 	next := 1
 	_g := 0
 	for _g < frames.Len() {
-		frame := hx_recover_class_0(frames.Get(_g))
+		frame := hx_recover_class_app__core__PulseIngressFrame(frames.Get(_g))
 		_g = int(int32((_g + 1)))
 		if frame.sequence >= next {
 			next = int((hxrt.Int32Wrap(frame.sequence) + hxrt.Int32Wrap(1)))

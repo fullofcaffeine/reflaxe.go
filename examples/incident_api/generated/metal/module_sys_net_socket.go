@@ -188,7 +188,7 @@ func sys__net__Socket_select_(read *hxrt.Array, write *hxrt.Array, others *hxrt.
 		_g := hxrt.NewArray()
 		_g1 := 0
 		for _g1 < read.Len() {
-			socket := hx_recover_class_3(read.Get(_g1))
+			socket := hx_recover_class_sys__net__Socket(read.Get(_g1))
 			_g1 = int(int32((_g1 + 1)))
 			_g.Push(socket.handle)
 		}
@@ -210,7 +210,7 @@ func sys__net__Socket_select_(read *hxrt.Array, write *hxrt.Array, others *hxrt.
 		_g_1 := hxrt.NewArray()
 		_g1_1 := 0
 		for _g1_1 < write.Len() {
-			socket_1 := hx_recover_class_3(write.Get(_g1_1))
+			socket_1 := hx_recover_class_sys__net__Socket(write.Get(_g1_1))
 			_g1_1 = int(int32((_g1_1 + 1)))
 			_g_1.Push(socket_1.handle)
 		}
@@ -232,7 +232,7 @@ func sys__net__Socket_select_(read *hxrt.Array, write *hxrt.Array, others *hxrt.
 		_g_2 := hxrt.NewArray()
 		_g1_2 := 0
 		for _g1_2 < others.Len() {
-			socket_2 := hx_recover_class_3(others.Get(_g1_2))
+			socket_2 := hx_recover_class_sys__net__Socket(others.Get(_g1_2))
 			_g1_2 = int(int32((_g1_2 + 1)))
 			_g_2.Push(socket_2.handle)
 		}

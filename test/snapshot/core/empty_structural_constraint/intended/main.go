@@ -43,9 +43,9 @@ func identity(value any) any {
 
 func main() {
 	item := New_Item()
-	var v any = any(same(hx_recover_class_0(identity(item)), item))
+	var v any = any(same(hx_recover_class_Item(identity(item)), item))
 	hxrt.Println(v)
-	var v_1 any = any(hx_recover_class_0(identity(item)).n)
+	var v_1 any = any(hx_recover_class_Item(identity(item)).n)
 	hxrt.Println(v_1)
 	hx_obj_1 := map[string]any{}
 	hx_obj_1["n"] = 7
@@ -130,7 +130,7 @@ func hx_structural_recover(value any) hxrt.Anonymous {
 	}
 }
 
-func hx_recover_class_0(value any) *Item {
+func hx_recover_class_Item(value any) *Item {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil

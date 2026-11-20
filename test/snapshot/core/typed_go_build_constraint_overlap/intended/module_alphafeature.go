@@ -47,7 +47,7 @@ func AlphaFeature_check() bool {
 		return value.X
 	})
 	var erased any = native
-	recovered := hx_recover_callable_0(erased)
+	recovered := hx_recover_callable_ae7f85da(erased)
 	if func() int {
 		var hx_callable_1 *hxrt.Function[func(any) int] = recovered
 		var hx_argument_2 any = point
@@ -66,7 +66,7 @@ func AlphaFeature_check() bool {
 		}()
 	})
 	var stored any = source
-	nested := hx_recover_callable_1(stored)
+	nested := hx_recover_callable_50c151b6(stored)
 	calls := 0
 	result := func() *string {
 		var hx_callable_5 *hxrt.Function[func(*hxrt.Function[func(any) *string]) *string] = nested

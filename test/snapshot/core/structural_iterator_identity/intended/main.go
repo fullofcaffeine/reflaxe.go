@@ -116,7 +116,7 @@ func main() {
 	var v_3 any = any(same(narrow, source))
 	hxrt.Println(v_3)
 	var v_4 any = any(func() int {
-		var hx_callable_7 *hxrt.Function[func() int] = hx_recover_callable_0(hxrt.AnonymousGet(narrow, "next"))
+		var hx_callable_7 *hxrt.Function[func() int] = hx_recover_callable_e273723c(hxrt.AnonymousGet(narrow, "next"))
 		return hxrt.FunctionCall(hx_callable_7)()
 	}())
 	hxrt.Println(v_4)
@@ -125,12 +125,12 @@ func main() {
 	var v_5 any = any(same(restored, source))
 	hxrt.Println(v_5)
 	var v_6 any = any(func() int {
-		var hx_callable_8 *hxrt.Function[func() int] = hx_recover_callable_0(hxrt.AnonymousGet(restored, "next"))
+		var hx_callable_8 *hxrt.Function[func() int] = hx_recover_callable_e273723c(hxrt.AnonymousGet(restored, "next"))
 		return hxrt.FunctionCall(hx_callable_8)()
 	}())
 	hxrt.Println(v_6)
-	a := hx_recover_callable_0(hxrt.AnonymousGet(left, "next"))
-	b := hx_recover_callable_0(hxrt.AnonymousGet(left, "next"))
+	a := hx_recover_callable_e273723c(hxrt.AnonymousGet(left, "next"))
+	b := hx_recover_callable_e273723c(hxrt.AnonymousGet(left, "next"))
 	hxrt.Println(any(hxrt.HaxeEqual(a, b)))
 	var v_7 any = any(hxrt.ReflectCompareMethods(any(a), any(b)))
 	hxrt.Println(v_7)
@@ -254,7 +254,7 @@ func hx_structural_recover(value any) hxrt.Anonymous {
 	}
 }
 
-func hx_recover_callable_0(value any) *hxrt.Function[func() int] {
+func hx_recover_callable_e273723c(value any) *hxrt.Function[func() int] {
 	if value == nil {
 		return nil
 	}
@@ -269,12 +269,12 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() int] {
 	switch source := origin.(type) {
 	case *hxrt.Function[func() bool]:
 		return hxrt.ProjectFunction(source, func() int {
-			return func(hx_value_9 any) int {
-				if hx_value_9 == nil {
-					var hx_zero_10 int
-					return hx_zero_10
+			return func(hx_value_1 any) int {
+				if hx_value_1 == nil {
+					var hx_zero_2 int
+					return hx_zero_2
 				}
-				return hx_value_9.(int)
+				return hx_value_1.(int)
 			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() int]:

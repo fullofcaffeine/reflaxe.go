@@ -65,7 +65,7 @@ func hx_init_sys__ssl__Socket(self *sys__ssl__Socket) *sys__ssl__Socket {
 			hx_exception_2 := haxe__Exception_caught(hx_caught_1)
 			hx_payload_3 := haxe__Exception_catchValue(hx_caught_1)
 			_ = hx_payload_3
-			var hx_tmp *haxe__Exception = hx_recover_class_0(hx_exception_2)
+			var hx_tmp *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_2)
 			_ = hx_tmp
 		})
 	}

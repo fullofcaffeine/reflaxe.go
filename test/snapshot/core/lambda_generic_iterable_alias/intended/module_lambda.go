@@ -6,15 +6,15 @@ func Lambda_count(it hxrt.Anonymous, predicate *hxrt.Function[func(any) bool]) i
 	result := 0
 	if predicate == nil {
 		hx_tmp := func() hxrt.Anonymous {
-			var hx_callable_1 *hxrt.Function[func() hxrt.Anonymous] = hx_recover_callable_0(hxrt.AnonymousGet(it, "iterator"))
+			var hx_callable_1 *hxrt.Function[func() hxrt.Anonymous] = hx_recover_callable_7838dc94(hxrt.AnonymousGet(it, "iterator"))
 			return hxrt.FunctionCall(hx_callable_1)()
 		}()
 		for func() bool {
-			var hx_callable_2 *hxrt.Function[func() bool] = hx_recover_callable_1(hxrt.AnonymousGet(hx_tmp, "hasNext"))
+			var hx_callable_2 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(hx_tmp, "hasNext"))
 			return hxrt.FunctionCall(hx_callable_2)()
 		}() {
 			var hx_tmp_1 any = func() any {
-				var hx_callable_3 *hxrt.Function[func() any] = hx_recover_callable_2(hxrt.AnonymousGet(hx_tmp, "next"))
+				var hx_callable_3 *hxrt.Function[func() any] = hx_recover_callable_c5309b43(hxrt.AnonymousGet(hx_tmp, "next"))
 				return hxrt.FunctionCall(hx_callable_3)()
 			}()
 			_ = hx_tmp_1
@@ -22,15 +22,15 @@ func Lambda_count(it hxrt.Anonymous, predicate *hxrt.Function[func(any) bool]) i
 		}
 	} else {
 		value := func() hxrt.Anonymous {
-			var hx_callable_4 *hxrt.Function[func() hxrt.Anonymous] = hx_recover_callable_0(hxrt.AnonymousGet(it, "iterator"))
+			var hx_callable_4 *hxrt.Function[func() hxrt.Anonymous] = hx_recover_callable_7838dc94(hxrt.AnonymousGet(it, "iterator"))
 			return hxrt.FunctionCall(hx_callable_4)()
 		}()
 		for func() bool {
-			var hx_callable_5 *hxrt.Function[func() bool] = hx_recover_callable_1(hxrt.AnonymousGet(value, "hasNext"))
+			var hx_callable_5 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(value, "hasNext"))
 			return hxrt.FunctionCall(hx_callable_5)()
 		}() {
 			var value_1 any = func() any {
-				var hx_callable_6 *hxrt.Function[func() any] = hx_recover_callable_2(hxrt.AnonymousGet(value, "next"))
+				var hx_callable_6 *hxrt.Function[func() any] = hx_recover_callable_c5309b43(hxrt.AnonymousGet(value, "next"))
 				return hxrt.FunctionCall(hx_callable_6)()
 			}()
 			if func() bool {
@@ -48,15 +48,15 @@ func Lambda_count(it hxrt.Anonymous, predicate *hxrt.Function[func(any) bool]) i
 func Lambda_empty(it hxrt.Anonymous) bool {
 	result := true
 	hx_tmp := func() hxrt.Anonymous {
-		var hx_callable_9 *hxrt.Function[func() hxrt.Anonymous] = hx_recover_callable_0(hxrt.AnonymousGet(it, "iterator"))
+		var hx_callable_9 *hxrt.Function[func() hxrt.Anonymous] = hx_recover_callable_7838dc94(hxrt.AnonymousGet(it, "iterator"))
 		return hxrt.FunctionCall(hx_callable_9)()
 	}()
 	for func() bool {
-		var hx_callable_10 *hxrt.Function[func() bool] = hx_recover_callable_1(hxrt.AnonymousGet(hx_tmp, "hasNext"))
+		var hx_callable_10 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(hx_tmp, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_10)()
 	}() {
 		var hx_tmp_1 any = func() any {
-			var hx_callable_11 *hxrt.Function[func() any] = hx_recover_callable_2(hxrt.AnonymousGet(hx_tmp, "next"))
+			var hx_callable_11 *hxrt.Function[func() any] = hx_recover_callable_c5309b43(hxrt.AnonymousGet(hx_tmp, "next"))
 			return hxrt.FunctionCall(hx_callable_11)()
 		}()
 		_ = hx_tmp_1
@@ -69,15 +69,15 @@ func Lambda_empty(it hxrt.Anonymous) bool {
 func Lambda_exists(it hxrt.Anonymous, predicate *hxrt.Function[func(any) bool]) bool {
 	found := false
 	value := func() hxrt.Anonymous {
-		var hx_callable_12 *hxrt.Function[func() hxrt.Anonymous] = hx_recover_callable_0(hxrt.AnonymousGet(it, "iterator"))
+		var hx_callable_12 *hxrt.Function[func() hxrt.Anonymous] = hx_recover_callable_7838dc94(hxrt.AnonymousGet(it, "iterator"))
 		return hxrt.FunctionCall(hx_callable_12)()
 	}()
 	for func() bool {
-		var hx_callable_13 *hxrt.Function[func() bool] = hx_recover_callable_1(hxrt.AnonymousGet(value, "hasNext"))
+		var hx_callable_13 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(value, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_13)()
 	}() {
 		var value_1 any = func() any {
-			var hx_callable_14 *hxrt.Function[func() any] = hx_recover_callable_2(hxrt.AnonymousGet(value, "next"))
+			var hx_callable_14 *hxrt.Function[func() any] = hx_recover_callable_c5309b43(hxrt.AnonymousGet(value, "next"))
 			return hxrt.FunctionCall(hx_callable_14)()
 		}()
 		if func() bool {
@@ -95,15 +95,15 @@ func Lambda_exists(it hxrt.Anonymous, predicate *hxrt.Function[func(any) bool]) 
 func Lambda_filter(it hxrt.Anonymous, predicate *hxrt.Function[func(any) bool]) *hxrt.Array {
 	out := hxrt.NewArray()
 	value := func() hxrt.Anonymous {
-		var hx_callable_17 *hxrt.Function[func() hxrt.Anonymous] = hx_recover_callable_0(hxrt.AnonymousGet(it, "iterator"))
+		var hx_callable_17 *hxrt.Function[func() hxrt.Anonymous] = hx_recover_callable_7838dc94(hxrt.AnonymousGet(it, "iterator"))
 		return hxrt.FunctionCall(hx_callable_17)()
 	}()
 	for func() bool {
-		var hx_callable_18 *hxrt.Function[func() bool] = hx_recover_callable_1(hxrt.AnonymousGet(value, "hasNext"))
+		var hx_callable_18 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(value, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_18)()
 	}() {
 		var value_1 any = func() any {
-			var hx_callable_19 *hxrt.Function[func() any] = hx_recover_callable_2(hxrt.AnonymousGet(value, "next"))
+			var hx_callable_19 *hxrt.Function[func() any] = hx_recover_callable_c5309b43(hxrt.AnonymousGet(value, "next"))
 			return hxrt.FunctionCall(hx_callable_19)()
 		}()
 		if func() bool {
@@ -119,15 +119,15 @@ func Lambda_filter(it hxrt.Anonymous, predicate *hxrt.Function[func(any) bool]) 
 
 func Lambda_fold(it hxrt.Anonymous, combine *hxrt.Function[func(any, any) any], first any) any {
 	value := func() hxrt.Anonymous {
-		var hx_callable_23 *hxrt.Function[func() hxrt.Anonymous] = hx_recover_callable_0(hxrt.AnonymousGet(it, "iterator"))
+		var hx_callable_23 *hxrt.Function[func() hxrt.Anonymous] = hx_recover_callable_7838dc94(hxrt.AnonymousGet(it, "iterator"))
 		return hxrt.FunctionCall(hx_callable_23)()
 	}()
 	for func() bool {
-		var hx_callable_24 *hxrt.Function[func() bool] = hx_recover_callable_1(hxrt.AnonymousGet(value, "hasNext"))
+		var hx_callable_24 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(value, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_24)()
 	}() {
 		var value_1 any = func() any {
-			var hx_callable_25 *hxrt.Function[func() any] = hx_recover_callable_2(hxrt.AnonymousGet(value, "next"))
+			var hx_callable_25 *hxrt.Function[func() any] = hx_recover_callable_c5309b43(hxrt.AnonymousGet(value, "next"))
 			return hxrt.FunctionCall(hx_callable_25)()
 		}()
 		first = func() any {
@@ -143,15 +143,15 @@ func Lambda_fold(it hxrt.Anonymous, combine *hxrt.Function[func(any, any) any], 
 func Lambda_has(it hxrt.Anonymous, expected any) bool {
 	found := false
 	value := func() hxrt.Anonymous {
-		var hx_callable_29 *hxrt.Function[func() hxrt.Anonymous] = hx_recover_callable_0(hxrt.AnonymousGet(it, "iterator"))
+		var hx_callable_29 *hxrt.Function[func() hxrt.Anonymous] = hx_recover_callable_7838dc94(hxrt.AnonymousGet(it, "iterator"))
 		return hxrt.FunctionCall(hx_callable_29)()
 	}()
 	for func() bool {
-		var hx_callable_30 *hxrt.Function[func() bool] = hx_recover_callable_1(hxrt.AnonymousGet(value, "hasNext"))
+		var hx_callable_30 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(value, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_30)()
 	}() {
 		var value_1 any = func() any {
-			var hx_callable_31 *hxrt.Function[func() any] = hx_recover_callable_2(hxrt.AnonymousGet(value, "next"))
+			var hx_callable_31 *hxrt.Function[func() any] = hx_recover_callable_c5309b43(hxrt.AnonymousGet(value, "next"))
 			return hxrt.FunctionCall(hx_callable_31)()
 		}()
 		if hxrt.HaxeEqual(value_1, expected) {
@@ -165,15 +165,15 @@ func Lambda_has(it hxrt.Anonymous, expected any) bool {
 func Lambda_map_(it hxrt.Anonymous, transform *hxrt.Function[func(any) any]) *hxrt.Array {
 	out := hxrt.NewArray()
 	value := func() hxrt.Anonymous {
-		var hx_callable_32 *hxrt.Function[func() hxrt.Anonymous] = hx_recover_callable_0(hxrt.AnonymousGet(it, "iterator"))
+		var hx_callable_32 *hxrt.Function[func() hxrt.Anonymous] = hx_recover_callable_7838dc94(hxrt.AnonymousGet(it, "iterator"))
 		return hxrt.FunctionCall(hx_callable_32)()
 	}()
 	for func() bool {
-		var hx_callable_33 *hxrt.Function[func() bool] = hx_recover_callable_1(hxrt.AnonymousGet(value, "hasNext"))
+		var hx_callable_33 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(value, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_33)()
 	}() {
 		var value_1 any = func() any {
-			var hx_callable_34 *hxrt.Function[func() any] = hx_recover_callable_2(hxrt.AnonymousGet(value, "next"))
+			var hx_callable_34 *hxrt.Function[func() any] = hx_recover_callable_c5309b43(hxrt.AnonymousGet(value, "next"))
 			return hxrt.FunctionCall(hx_callable_34)()
 		}()
 		out.Push(func() any {

@@ -46,7 +46,7 @@ func (self *sys__thread__FixedThreadPoolWorker) loop() {
 	hx_try_return_2 := false
 	hxrt.TryCatch(func() {
 		for true {
-			task := hx_recover_callable_1(self.queue.__hx_this.pop(true))
+			task := hx_recover_callable_2d8d0a91(self.queue.__hx_this.pop(true))
 			if task != nil {
 				func() {
 					var hx_callable_7 *hxrt.Function[func()] = task
@@ -57,8 +57,8 @@ func (self *sys__thread__FixedThreadPoolWorker) loop() {
 	}, func(hx_caught_3 any) {
 		hx_exception_5 := haxe__Exception_caught(hx_caught_3)
 		hx_payload_6 := haxe__Exception_catchValue(hx_caught_3)
-		if hx_is_nominal_2(hx_exception_5) {
-			var hx_tmp *sys__thread__FixedThreadPoolShutdownException = hx_recover_class_2(hx_exception_5)
+		if hx_is_nominal_sys__thread__FixedThreadPoolShutdownException(hx_exception_5) {
+			var hx_tmp *sys__thread__FixedThreadPoolShutdownException = hx_recover_class_sys__thread__FixedThreadPoolShutdownException(hx_exception_5)
 			_ = hx_tmp
 			hx_try_return_2 = true
 			return

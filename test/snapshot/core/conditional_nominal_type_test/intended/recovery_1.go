@@ -4,7 +4,7 @@ package main
 
 import "snapshot/hxrt"
 
-func hx_recover_class_0(value any) *TaggedError {
+func hx_recover_class_TaggedError(value any) *TaggedError {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil
@@ -17,7 +17,7 @@ func hx_recover_class_0(value any) *TaggedError {
 	}
 }
 
-func hx_recover_class_1__probe_0(value any) (*haxe__Exception, bool) {
+func hx_recover_class_haxe__Exception__probe_0(value any) (*haxe__Exception, bool) {
 	switch source := value.(type) {
 	case *TaggedError:
 		return source.haxe__Exception, true
@@ -27,7 +27,7 @@ func hx_recover_class_1__probe_0(value any) (*haxe__Exception, bool) {
 	}
 }
 
-func hx_is_nominal_0__probe_0(value any) (bool, bool) {
+func hx_is_nominal_Tag__probe_0(value any) (bool, bool) {
 	switch source := value.(type) {
 	case *TaggedError:
 		return (source != nil), true
@@ -37,7 +37,7 @@ func hx_is_nominal_0__probe_0(value any) (bool, bool) {
 	}
 }
 
-func hx_is_nominal_1__probe_0(value any) (bool, bool) {
+func hx_is_nominal_TaggedError__probe_0(value any) (bool, bool) {
 	switch source := value.(type) {
 	case *TaggedError:
 		return (source != nil), true
@@ -47,7 +47,7 @@ func hx_is_nominal_1__probe_0(value any) (bool, bool) {
 	}
 }
 
-func hx_is_nominal_2__probe_0(value any) (bool, bool) {
+func hx_is_nominal_haxe__Exception__probe_0(value any) (bool, bool) {
 	switch source := value.(type) {
 	case *TaggedError:
 		return (source != nil), true

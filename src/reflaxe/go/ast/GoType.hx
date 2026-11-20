@@ -243,28 +243,50 @@ abstract GoType(GoTypeKind) {
 
 	/** Render canonical Go type syntax; only printers and diagnostics should need it. */
 	public function render():String {
+		return spell(false);
+	}
+
+	/**
+		What: A spelling that two types share exactly when `sameRepresentation` holds.
+
+		Why: Generated helper names are derived from types. If a name came from the
+		first spelling the compiler happened to see (`byte` or `uint8`, `any` or
+		`interface{}`), an edit elsewhere could still rename the helper.
+
+		How: Spell the type like `render`, but use one spelling per builtin alias,
+		`any` for the empty interface, and interface methods in a fixed order.
+	**/
+	public function representationKey():String {
+		return spell(true);
+	}
+
+	function spell(canonical:Bool):String {
 		return switch (this) {
-			case Builtin(value): value.token();
+			case Builtin(value): (canonical ? normalizedBuiltin(value) : value).token();
 			case Named(packageName, name): packageName == null ? name : packageName.value() + "." + name;
-			case Pointer(element): "*" + element.render();
-			case Slice(element): "[]" + element.render();
-			case ArrayType(length, element): "[" + length + "]" + element.render();
-			case MapType(key, value): "map[" + key.render() + "]" + value.render();
+			case Pointer(element): "*" + element.spell(canonical);
+			case Slice(element): "[]" + element.spell(canonical);
+			case ArrayType(length, element): "[" + length + "]" + element.spell(canonical);
+			case MapType(key, value): "map[" + key.spell(canonical) + "]" + value.spell(canonical);
 			case Channel(direction, element):
 				switch (direction) {
-					case Bidirectional: "chan " + element.render();
-					case ReceiveOnly: "<-chan " + element.render();
-					case SendOnly: "chan<- " + element.render();
+					case Bidirectional: "chan " + element.spell(canonical);
+					case ReceiveOnly: "<-chan " + element.spell(canonical);
+					case SendOnly: "chan<- " + element.spell(canonical);
 				};
 			case FunctionType(params, result):
-				var suffix = result == null ? "" : " " + result.render();
-				"func(" + [for (param in params) param.render()].join(", ") + ")" + suffix;
+				var suffix = result == null ? "" : " " + result.spell(canonical);
+				"func(" + [for (param in params) param.spell(canonical)].join(", ") + ")" + suffix;
+			case InterfaceType(methods) if (canonical && methods.length == 0): "any";
 			case InterfaceType(methods):
-				var rendered = [for (method in methods) renderInterfaceMethod(method)];
+				var rendered = [for (method in methods) spellInterfaceMethod(method, canonical)];
+				// Method names are unique, so this order does not depend on declaration order.
+				if (canonical)
+					rendered.sort((left, right) -> left < right ? -1 : left > right ? 1 : 0);
 				"interface{" + rendered.join("; ") + "}";
-			case GenericType(base, arguments): base.render() + "[" + [for (argument in arguments) argument.render()].join(", ") + "]";
-			case MultiResult(results): "(" + [for (result in results) result.render()].join(", ") + ")";
-			case Variadic(element): "..." + element.render();
+			case GenericType(base, arguments): base.spell(canonical) + "[" + [for (argument in arguments) argument.spell(canonical)].join(", ") + "]";
+			case MultiResult(results): "(" + [for (result in results) result.spell(canonical)].join(", ") + ")";
+			case Variadic(element): "..." + element.spell(canonical);
 		};
 	}
 
@@ -450,13 +472,13 @@ abstract GoType(GoTypeKind) {
 		return this;
 	}
 
-	static function renderInterfaceMethod(method:GoTypeInterfaceMethod):String {
+	static function spellInterfaceMethod(method:GoTypeInterfaceMethod, canonical:Bool):String {
 		var suffix = switch (method.results.length) {
 			case 0: "";
-			case 1: " " + method.results[0].render();
-			case _: " (" + [for (result in method.results) result.render()].join(", ") + ")";
+			case 1: " " + method.results[0].spell(canonical);
+			case _: " (" + [for (result in method.results) result.spell(canonical)].join(", ") + ")";
 		};
-		return method.name + "(" + [for (param in method.params) param.render()].join(", ") + ")" + suffix;
+		return method.name + "(" + [for (param in method.params) param.spell(canonical)].join(", ") + ")" + suffix;
 	}
 
 	static function flattenResult(result:Null<GoType>):Array<GoType> {

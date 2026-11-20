@@ -66,7 +66,7 @@ func main() {
 		}, "read")
 	}()
 	var v any = any(func() int {
-		var hx_callable_4 *hxrt.Function[func() int] = hx_recover_callable_0(hxrt.AnonymousGet(func() hxrt.Anonymous {
+		var hx_callable_4 *hxrt.Function[func() int] = hx_recover_callable_e273723c(hxrt.AnonymousGet(func() hxrt.Anonymous {
 			var hx_callable_3 *hxrt.Function[func() hxrt.Anonymous] = read
 			return hxrt.FunctionCall(hx_callable_3)()
 		}(), "next"))
@@ -82,7 +82,7 @@ func main() {
 		return hx_structural_value_7
 	}()
 	var v_1 any = any(func() int {
-		var hx_callable_9 *hxrt.Function[func() int] = hx_recover_callable_0(hxrt.AnonymousGet(func() hxrt.Anonymous {
+		var hx_callable_9 *hxrt.Function[func() int] = hx_recover_callable_e273723c(hxrt.AnonymousGet(func() hxrt.Anonymous {
 			var hx_callable_8 *hxrt.Function[func() hxrt.Anonymous] = read
 			return hxrt.FunctionCall(hx_callable_8)()
 		}(), "next"))
@@ -91,7 +91,7 @@ func main() {
 	hxrt.Println(v_1)
 }
 
-func hx_recover_callable_0(value any) *hxrt.Function[func() int] {
+func hx_recover_callable_e273723c(value any) *hxrt.Function[func() int] {
 	if value == nil {
 		return nil
 	}

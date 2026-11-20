@@ -15,7 +15,7 @@ func main() {
 		}
 		return hxrt.FunctionCall(hx_callable_1)(hxrt.IntFromNullableAny(x))
 	})
-	var callback *hxrt.Function[func(any)] = hx_recover_callable_0(hx_normalized_callable_2)
+	var callback *hxrt.Function[func(any)] = hx_recover_callable_d9d0d490(hx_normalized_callable_2)
 	func() {
 		var hx_callable_3 *hxrt.Function[func(any)] = callback
 		var hx_argument_4 any = nil
@@ -23,7 +23,7 @@ func main() {
 	}()
 }
 
-func hx_recover_callable_0(value any) *hxrt.Function[func(any)] {
+func hx_recover_callable_d9d0d490(value any) *hxrt.Function[func(any)] {
 	if value == nil {
 		return nil
 	}

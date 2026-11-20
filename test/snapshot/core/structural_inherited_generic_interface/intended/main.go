@@ -89,12 +89,12 @@ func main() {
 		})
 	}(instance)
 	var v any = any(func() int {
-		var hx_callable_5 *hxrt.Function[func(int) int] = hx_recover_callable_0(hxrt.AnonymousGet(live, "f"))
+		var hx_callable_5 *hxrt.Function[func(int) int] = hx_recover_callable_408c8b7a(hxrt.AnonymousGet(live, "f"))
 		var hx_argument_6 int = 4
 		return hxrt.FunctionCall(hx_callable_5)(hx_argument_6)
 	}())
 	hxrt.Println(v)
-	saved := hx_recover_callable_0(hxrt.AnonymousGet(live, "f"))
+	saved := hx_recover_callable_408c8b7a(hxrt.AnonymousGet(live, "f"))
 	var v_1 any = any(func() int {
 		var hx_callable_7 *hxrt.Function[func(int) int] = saved
 		var hx_argument_8 int = 5
@@ -111,7 +111,7 @@ type Parent interface {
 	f(x any) any
 }
 
-func hx_recover_callable_0(value any) *hxrt.Function[func(int) int] {
+func hx_recover_callable_408c8b7a(value any) *hxrt.Function[func(int) int] {
 	if value == nil {
 		return nil
 	}

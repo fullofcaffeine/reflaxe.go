@@ -25,7 +25,7 @@ func main() {
 		hx_exception_2 := haxe__Exception_caught(hx_caught_1)
 		hx_payload_3 := haxe__Exception_catchValue(hx_caught_1)
 		_ = hx_payload_3
-		var e *haxe__Exception = hx_recover_class_0(hx_exception_2)
+		var e *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_2)
 		_ = e
 	})
 	hxrt.TryCatch(func() {
@@ -34,7 +34,7 @@ func main() {
 		hx_exception_6 := haxe__Exception_caught(hx_caught_5)
 		hx_payload_7 := haxe__Exception_catchValue(hx_caught_5)
 		_ = hx_payload_7
-		var e_1 *haxe__Exception = hx_recover_class_0(hx_exception_6)
+		var e_1 *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_6)
 		_ = e_1
 	})
 	sys__FileSystem_deleteFile(hxrt.StringFromLiteral("snapshot.txt"))
@@ -191,15 +191,15 @@ func (self *_Main__SnapResultSet) results() *haxe__ds__List {
 }
 
 func (self *_Main__SnapResultSet) getResult(n int) *string {
-	return hxrt.StdString(hx_recover_class_1(self.rows.Get(int((hxrt.Int32Wrap(self.index) - hxrt.Int32Wrap(1))))).value)
+	return hxrt.StdString(hx_recover_class__Main__SnapRow(self.rows.Get(int((hxrt.Int32Wrap(self.index) - hxrt.Int32Wrap(1))))).value)
 }
 
 func (self *_Main__SnapResultSet) getIntResult(n int) int {
-	return hx_recover_class_1(self.rows.Get(int((hxrt.Int32Wrap(self.index) - hxrt.Int32Wrap(1))))).value
+	return hx_recover_class__Main__SnapRow(self.rows.Get(int((hxrt.Int32Wrap(self.index) - hxrt.Int32Wrap(1))))).value
 }
 
 func (self *_Main__SnapResultSet) getFloatResult(n int) float64 {
-	return (float64(hx_recover_class_1(self.rows.Get(int((hxrt.Int32Wrap(self.index) - hxrt.Int32Wrap(1))))).value) + 0.0)
+	return (float64(hx_recover_class__Main__SnapRow(self.rows.Get(int((hxrt.Int32Wrap(self.index) - hxrt.Int32Wrap(1))))).value) + 0.0)
 }
 
 func (self *_Main__SnapResultSet) getFieldsNames() *hxrt.Array {
@@ -245,7 +245,20 @@ func (self *_Main__SnapRow) HxClassName() string {
 	return "_Main.SnapRow"
 }
 
-func hx_recover_class_0(value any) *haxe__Exception {
+func hx_recover_class__Main__SnapRow(value any) *_Main__SnapRow {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *_Main__SnapRow:
+		return source
+	default:
+		return value.(*_Main__SnapRow)
+	}
+}
+
+func hx_recover_class_haxe__Exception(value any) *haxe__Exception {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil
@@ -264,33 +277,7 @@ func hx_recover_class_0(value any) *haxe__Exception {
 	}
 }
 
-func hx_recover_class_1(value any) *_Main__SnapRow {
-	value = hxrt.ObjectSource(value)
-	if value == nil {
-		return nil
-	}
-	switch source := value.(type) {
-	case *_Main__SnapRow:
-		return source
-	default:
-		return value.(*_Main__SnapRow)
-	}
-}
-
-func hx_recover_class_2(value any) *haxe__io__Eof {
-	value = hxrt.ObjectSource(value)
-	if value == nil {
-		return nil
-	}
-	switch source := value.(type) {
-	case *haxe__io__Eof:
-		return source
-	default:
-		return value.(*haxe__io__Eof)
-	}
-}
-
-func hx_recover_class_3(value any) *haxe__ValueException {
+func hx_recover_class_haxe__ValueException(value any) *haxe__ValueException {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil
@@ -303,7 +290,7 @@ func hx_recover_class_3(value any) *haxe__ValueException {
 	}
 }
 
-func hx_recover_class_4(value any) *haxe__ds___List__GoListIterator {
+func hx_recover_class_haxe__ds___List__GoListIterator(value any) *haxe__ds___List__GoListIterator {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil
@@ -316,27 +303,20 @@ func hx_recover_class_4(value any) *haxe__ds___List__GoListIterator {
 	}
 }
 
-func hx_is_nominal_0(value any) bool {
+func hx_recover_class_haxe__io__Eof(value any) *haxe__io__Eof {
 	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
 	switch source := value.(type) {
 	case *haxe__io__Eof:
-		return (source != nil)
+		return source
 	default:
-		return false
+		return value.(*haxe__io__Eof)
 	}
 }
 
-func hx_is_nominal_1(value any) bool {
-	value = hxrt.ObjectSource(value)
-	switch source := value.(type) {
-	case *haxe__ValueException:
-		return (source != nil)
-	default:
-		return false
-	}
-}
-
-func hx_is_nominal_2(value any) bool {
+func hx_is_nominal_haxe__Exception(value any) bool {
 	value = hxrt.ObjectSource(value)
 	switch source := value.(type) {
 	case *haxe__exceptions__NotImplementedException:
@@ -346,6 +326,26 @@ func hx_is_nominal_2(value any) bool {
 	case *haxe__Exception:
 		return (source != nil)
 	case *haxe__exceptions__PosException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_haxe__ValueException(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_haxe__io__Eof(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__io__Eof:
 		return (source != nil)
 	default:
 		return false

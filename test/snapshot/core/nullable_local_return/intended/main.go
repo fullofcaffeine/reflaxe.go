@@ -99,7 +99,7 @@ func redirected(value any) int {
 		hx_exception_11 := haxe__Exception_caught(hx_caught_10)
 		hx_payload_12 := haxe__Exception_catchValue(hx_caught_10)
 		_ = hx_payload_12
-		var hx_tmp *haxe__Exception = hx_recover_class_0(hx_exception_11)
+		var hx_tmp *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_11)
 		_ = hx_tmp
 		hx_try_value_9 = -1
 		hx_try_return_8 = true
@@ -112,7 +112,7 @@ func redirected(value any) int {
 	return hx_try_zero_14
 }
 
-func hx_recover_class_0(value any) *haxe__Exception {
+func hx_recover_class_haxe__Exception(value any) *haxe__Exception {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil
@@ -127,7 +127,7 @@ func hx_recover_class_0(value any) *haxe__Exception {
 	}
 }
 
-func hx_recover_class_1(value any) *haxe__ValueException {
+func hx_recover_class_haxe__ValueException(value any) *haxe__ValueException {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil
@@ -140,22 +140,22 @@ func hx_recover_class_1(value any) *haxe__ValueException {
 	}
 }
 
-func hx_is_nominal_0(value any) bool {
+func hx_is_nominal_haxe__Exception(value any) bool {
 	value = hxrt.ObjectSource(value)
 	switch source := value.(type) {
 	case *haxe__ValueException:
+		return (source != nil)
+	case *haxe__Exception:
 		return (source != nil)
 	default:
 		return false
 	}
 }
 
-func hx_is_nominal_1(value any) bool {
+func hx_is_nominal_haxe__ValueException(value any) bool {
 	value = hxrt.ObjectSource(value)
 	switch source := value.(type) {
 	case *haxe__ValueException:
-		return (source != nil)
-	case *haxe__Exception:
 		return (source != nil)
 	default:
 		return false

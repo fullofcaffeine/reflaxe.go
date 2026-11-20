@@ -1053,14 +1053,14 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 		v := _g
 		self.output = hxrt.StringConcatStringPtr(self.output, hxrt.StdString(self.__hx_this.resolve(v)))
 	case 1:
-		_g_1 := hx_recover_callable_0(e.params[0])
+		_g_1 := hx_recover_callable_c5309b43(e.params[0])
 		expr := _g_1
 		self.output = hxrt.StringConcatStringPtr(self.output, hxrt.StdString(func() any {
 			var hx_callable_175 *hxrt.Function[func() any] = expr
 			return hxrt.FunctionCall(hx_callable_175)()
 		}()))
 	case 2:
-		_g_2 := hx_recover_callable_0(e.params[0])
+		_g_2 := hx_recover_callable_c5309b43(e.params[0])
 		_g1 := func(hx_value_176 any) *haxe___Template__TemplateExpr {
 			if hx_value_176 == nil {
 				var hx_zero_177 *haxe___Template__TemplateExpr
@@ -1121,7 +1121,7 @@ func (self *haxe__Template) run(e *haxe___Template__TemplateExpr) {
 			self.__hx_this.run(item)
 		}
 	case 5:
-		_g_6 := hx_recover_callable_0(e.params[0])
+		_g_6 := hx_recover_callable_c5309b43(e.params[0])
 		_g1_1 := func(hx_value_187 any) *haxe___Template__TemplateExpr {
 			if hx_value_187 == nil {
 				var hx_zero_188 *haxe___Template__TemplateExpr

@@ -29,6 +29,12 @@ typedef GoRecoveryEntry = {
 	final fallback:Array<GoStmt>;
 }
 
+/**
+	Builds one helper's declarations. The compiler supplies a scope that gives the
+	helper its own temporary-name sequence, because each helper is its own Go function.
+**/
+typedef GoRecoveryHelperScope = (Void->Array<GoGuardedRecoveryDeclaration>)->Array<GoGuardedRecoveryDeclaration>;
+
 private typedef RecoveryGroup = {
 	final selection:GoBuildConstraint;
 	final cases:Array<GoTypeSwitchCase>;
@@ -44,6 +50,30 @@ class GoRecoveryDispatch {
 
 	public function new(availability:GoRecoveryAvailability) {
 		this.availability = availability;
+	}
+
+	/**
+		What: Names a helper from a stable key, such as a generated type symbol.
+
+		Why: Helpers used to be numbered by first use across the whole compilation,
+		so an edit in one module renamed helper calls in unrelated generated files.
+
+		How: `prefix + key`. Probe declarations append `__probe_<n>` to their entry
+		name, so a key that already ends that way (with any trailing `_`) takes one
+		more `_`. The mapping stays one-to-one and no entry can share a probe's name.
+	**/
+	public static function entrySymbol(prefix:String, key:String):String {
+		return ~/__probe_[0-9]+_*$/.match(key) ? prefix + key + "_" : prefix + key;
+	}
+
+	/** Generated type symbols are plain identifiers; qualified extern names are not keys. */
+	public static function isGoIdentifier(value:String):Bool {
+		return ~/^[A-Za-z_][A-Za-z0-9_]*$/.match(value);
+	}
+
+	/** Orders helper symbols so declaration placement depends only on the helper set. */
+	public static function compareSymbols(left:String, right:String):Int {
+		return left < right ? -1 : left > right ? 1 : 0;
 	}
 
 	/** Returns null until all source and signature owners have been discovered. */

@@ -142,33 +142,33 @@ func Std_downcast(value any, c any) any {
 					}
 				}(hx_value)
 			case "haxe.Exception":
-				return hx_is_nominal_1(hx_value)
+				return hx_is_nominal_haxe__Exception(hx_value)
 			case "haxe.ValueException":
-				return hx_is_nominal_2(hx_value)
+				return hx_is_nominal_haxe__ValueException(hx_value)
 			case "haxe._Int64.___Int64":
-				return hx_is_nominal_3(hx_value)
+				return hx_is_nominal_haxe___Int64_____Int64(hx_value)
 			case "haxe.exceptions.NotImplementedException":
-				return hx_is_nominal_4(hx_value)
+				return hx_is_nominal_haxe__exceptions__NotImplementedException(hx_value)
 			case "haxe.exceptions.PosException":
-				return hx_is_nominal_5(hx_value)
+				return hx_is_nominal_haxe__exceptions__PosException(hx_value)
 			case "haxe.io.Bytes":
-				return hx_is_nominal_6(hx_value)
+				return hx_is_nominal_haxe__io__Bytes(hx_value)
 			case "haxe.io.BytesBuffer":
-				return hx_is_nominal_7(hx_value)
+				return hx_is_nominal_haxe__io__BytesBuffer(hx_value)
 			case "haxe.io.Eof":
-				return hx_is_nominal_0(hx_value)
+				return hx_is_nominal_haxe__io__Eof(hx_value)
 			case "haxe.io.Input":
-				return hx_is_nominal_8(hx_value)
+				return hx_is_nominal_haxe__io__Input(hx_value)
 			case "haxe.io.Output":
-				return hx_is_nominal_9(hx_value)
+				return hx_is_nominal_haxe__io__Output(hx_value)
 			case "sys.net.Host":
-				return hx_is_nominal_10(hx_value)
+				return hx_is_nominal_sys__net__Host(hx_value)
 			case "sys.net.Socket":
-				return hx_is_nominal_11(hx_value)
+				return hx_is_nominal_sys__net__Socket(hx_value)
 			case "sys.net.SocketInput":
-				return hx_is_nominal_12(hx_value)
+				return hx_is_nominal_sys__net__SocketInput(hx_value)
 			case "sys.net.SocketOutput":
-				return hx_is_nominal_13(hx_value)
+				return hx_is_nominal_sys__net__SocketOutput(hx_value)
 			default:
 				return false
 			}
@@ -319,33 +319,33 @@ func Std_instance(value any, c any) any {
 						}
 					}(hx_value)
 				case "haxe.Exception":
-					return hx_is_nominal_1(hx_value)
+					return hx_is_nominal_haxe__Exception(hx_value)
 				case "haxe.ValueException":
-					return hx_is_nominal_2(hx_value)
+					return hx_is_nominal_haxe__ValueException(hx_value)
 				case "haxe._Int64.___Int64":
-					return hx_is_nominal_3(hx_value)
+					return hx_is_nominal_haxe___Int64_____Int64(hx_value)
 				case "haxe.exceptions.NotImplementedException":
-					return hx_is_nominal_4(hx_value)
+					return hx_is_nominal_haxe__exceptions__NotImplementedException(hx_value)
 				case "haxe.exceptions.PosException":
-					return hx_is_nominal_5(hx_value)
+					return hx_is_nominal_haxe__exceptions__PosException(hx_value)
 				case "haxe.io.Bytes":
-					return hx_is_nominal_6(hx_value)
+					return hx_is_nominal_haxe__io__Bytes(hx_value)
 				case "haxe.io.BytesBuffer":
-					return hx_is_nominal_7(hx_value)
+					return hx_is_nominal_haxe__io__BytesBuffer(hx_value)
 				case "haxe.io.Eof":
-					return hx_is_nominal_0(hx_value)
+					return hx_is_nominal_haxe__io__Eof(hx_value)
 				case "haxe.io.Input":
-					return hx_is_nominal_8(hx_value)
+					return hx_is_nominal_haxe__io__Input(hx_value)
 				case "haxe.io.Output":
-					return hx_is_nominal_9(hx_value)
+					return hx_is_nominal_haxe__io__Output(hx_value)
 				case "sys.net.Host":
-					return hx_is_nominal_10(hx_value)
+					return hx_is_nominal_sys__net__Host(hx_value)
 				case "sys.net.Socket":
-					return hx_is_nominal_11(hx_value)
+					return hx_is_nominal_sys__net__Socket(hx_value)
 				case "sys.net.SocketInput":
-					return hx_is_nominal_12(hx_value)
+					return hx_is_nominal_sys__net__SocketInput(hx_value)
 				case "sys.net.SocketOutput":
-					return hx_is_nominal_13(hx_value)
+					return hx_is_nominal_sys__net__SocketOutput(hx_value)
 				default:
 					return false
 				}
@@ -503,33 +503,33 @@ func Std_is(v any, t any) bool {
 					}
 				}(hx_value)
 			case "haxe.Exception":
-				return hx_is_nominal_1(hx_value)
+				return hx_is_nominal_haxe__Exception(hx_value)
 			case "haxe.ValueException":
-				return hx_is_nominal_2(hx_value)
+				return hx_is_nominal_haxe__ValueException(hx_value)
 			case "haxe._Int64.___Int64":
-				return hx_is_nominal_3(hx_value)
+				return hx_is_nominal_haxe___Int64_____Int64(hx_value)
 			case "haxe.exceptions.NotImplementedException":
-				return hx_is_nominal_4(hx_value)
+				return hx_is_nominal_haxe__exceptions__NotImplementedException(hx_value)
 			case "haxe.exceptions.PosException":
-				return hx_is_nominal_5(hx_value)
+				return hx_is_nominal_haxe__exceptions__PosException(hx_value)
 			case "haxe.io.Bytes":
-				return hx_is_nominal_6(hx_value)
+				return hx_is_nominal_haxe__io__Bytes(hx_value)
 			case "haxe.io.BytesBuffer":
-				return hx_is_nominal_7(hx_value)
+				return hx_is_nominal_haxe__io__BytesBuffer(hx_value)
 			case "haxe.io.Eof":
-				return hx_is_nominal_0(hx_value)
+				return hx_is_nominal_haxe__io__Eof(hx_value)
 			case "haxe.io.Input":
-				return hx_is_nominal_8(hx_value)
+				return hx_is_nominal_haxe__io__Input(hx_value)
 			case "haxe.io.Output":
-				return hx_is_nominal_9(hx_value)
+				return hx_is_nominal_haxe__io__Output(hx_value)
 			case "sys.net.Host":
-				return hx_is_nominal_10(hx_value)
+				return hx_is_nominal_sys__net__Host(hx_value)
 			case "sys.net.Socket":
-				return hx_is_nominal_11(hx_value)
+				return hx_is_nominal_sys__net__Socket(hx_value)
 			case "sys.net.SocketInput":
-				return hx_is_nominal_12(hx_value)
+				return hx_is_nominal_sys__net__SocketInput(hx_value)
 			case "sys.net.SocketOutput":
-				return hx_is_nominal_13(hx_value)
+				return hx_is_nominal_sys__net__SocketOutput(hx_value)
 			default:
 				return false
 			}

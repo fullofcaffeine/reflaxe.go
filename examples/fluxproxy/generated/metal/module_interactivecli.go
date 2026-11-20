@@ -19,7 +19,7 @@ func InteractiveCli_nextId(requests *hxrt.Array) int {
 	next := 1
 	_g := 0
 	for _g < requests.Len() {
-		request := hx_recover_class_0(requests.Get(_g))
+		request := hx_recover_class_app__core__FluxRequest(requests.Get(_g))
 		_g = int(int32((_g + 1)))
 		if request.id >= next {
 			next = int((hxrt.Int32Wrap(request.id) + hxrt.Int32Wrap(1)))

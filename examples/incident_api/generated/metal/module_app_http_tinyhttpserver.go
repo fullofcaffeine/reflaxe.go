@@ -70,7 +70,7 @@ func (self *app__http__TinyHttpServer) serveOnce() {
 		hx_exception_5 := haxe__Exception_caught(hx_caught_4)
 		hx_payload_6 := haxe__Exception_catchValue(hx_caught_4)
 		_ = hx_payload_6
-		var error *haxe__Exception = hx_recover_class_0(hx_exception_5)
+		var error *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_5)
 		_ = error
 		if peer != nil {
 			self.writeResponse(peer, app__http__HttpResponse_json(500, hxrt.StringFromLiteral("{\"error\":\"server_error\"}")))
@@ -86,7 +86,7 @@ func (self *app__http__TinyHttpServer) close() {
 		hx_exception_8 := haxe__Exception_caught(hx_caught_7)
 		hx_payload_9 := haxe__Exception_catchValue(hx_caught_7)
 		_ = hx_payload_9
-		var hx_tmp *haxe__Exception = hx_recover_class_0(hx_exception_8)
+		var hx_tmp *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_8)
 		_ = hx_tmp
 	})
 }
@@ -183,7 +183,7 @@ func app__http__TinyHttpServer_closePeer(peer *sys__net__Socket) {
 		hx_exception_21 := haxe__Exception_caught(hx_caught_20)
 		hx_payload_22 := haxe__Exception_catchValue(hx_caught_20)
 		_ = hx_payload_22
-		var hx_tmp *haxe__Exception = hx_recover_class_0(hx_exception_21)
+		var hx_tmp *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_21)
 		_ = hx_tmp
 	})
 }

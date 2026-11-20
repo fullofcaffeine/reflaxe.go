@@ -83,7 +83,7 @@ func (self *model__TodoStore) openCount() int {
 	_g := 0
 	_g1 := self.entries
 	for _g < _g1.Len() {
-		item := hx_recover_class_1(_g1.Get(_g))
+		item := hx_recover_class_model__TodoItem(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if !item.done {
 			total = int(int32((total + 1)))
@@ -97,7 +97,7 @@ func (self *model__TodoStore) doneCount() int {
 	_g := 0
 	_g1 := self.entries
 	for _g < _g1.Len() {
-		item := hx_recover_class_1(_g1.Get(_g))
+		item := hx_recover_class_model__TodoItem(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if item.done {
 			total = int(int32((total + 1)))
@@ -110,7 +110,7 @@ func (self *model__TodoStore) findById(id int) *model__TodoItem {
 	_g := 0
 	_g1 := self.entries
 	for _g < _g1.Len() {
-		item := hx_recover_class_1(_g1.Get(_g))
+		item := hx_recover_class_model__TodoItem(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		if item.id == id {
 			return item

@@ -89,22 +89,22 @@ func (self *haxe__Exception) String() string {
 }
 
 func haxe__Exception_catchValue(value any) any {
-	if hx_is_nominal_0(value) {
+	if hx_is_nominal_haxe__ValueException(value) {
 		wrapped := func(hx_value_2 any) *haxe__ValueException {
 			if hx_value_2 == nil {
 				var hx_zero_3 *haxe__ValueException
 				return hx_zero_3
 			}
 			return hx_value_2.(*haxe__ValueException)
-		}(hx_recover_class_1(value))
+		}(hx_recover_class_haxe__ValueException(value))
 		return wrapped.value
 	}
 	return value
 }
 
 func haxe__Exception_caught(value any) *haxe__Exception {
-	if hx_is_nominal_1(value) {
-		return hx_recover_class_2(value)
+	if hx_is_nominal_haxe__Exception(value) {
+		return hx_recover_class_haxe__Exception(value)
 	}
 	return func(hx_value *haxe__ValueException) *haxe__Exception {
 		if hx_value == nil {
@@ -115,7 +115,7 @@ func haxe__Exception_caught(value any) *haxe__Exception {
 }
 
 func haxe__Exception_thrown(value any) any {
-	if hx_is_nominal_1(value) {
+	if hx_is_nominal_haxe__Exception(value) {
 		return value
 	}
 	return New_haxe__ValueException(value, nil, nil)

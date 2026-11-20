@@ -58,7 +58,7 @@ func Std_downcast(value any, c any) any {
 					}
 				}(hx_value)
 			case "Date":
-				return hx_is_nominal_4(hx_value)
+				return hx_is_nominal_Date(hx_value)
 			case "Dynamic":
 				return (hx_value != nil)
 			case "Enum":
@@ -144,57 +144,57 @@ func Std_downcast(value any, c any) any {
 					}
 				}(hx_value)
 			case "app.core.Incident":
-				return hx_is_nominal_5(hx_value)
+				return hx_is_nominal_app__core__Incident(hx_value)
 			case "app.core.IncidentApi":
-				return hx_is_nominal_6(hx_value)
+				return hx_is_nominal_app__core__IncidentApi(hx_value)
 			case "app.core.IncidentConfig":
-				return hx_is_nominal_7(hx_value)
+				return hx_is_nominal_app__core__IncidentConfig(hx_value)
 			case "app.core.IncidentRequestException":
-				return hx_is_nominal_0(hx_value)
+				return hx_is_nominal_app__core__IncidentRequestException(hx_value)
 			case "app.core.IncidentStore":
-				return hx_is_nominal_8(hx_value)
+				return hx_is_nominal_app__core__IncidentStore(hx_value)
 			case "app.http.HttpRequest":
-				return hx_is_nominal_9(hx_value)
+				return hx_is_nominal_app__http__HttpRequest(hx_value)
 			case "app.http.HttpResponse":
-				return hx_is_nominal_10(hx_value)
+				return hx_is_nominal_app__http__HttpResponse(hx_value)
 			case "app.http.TinyHttpServer":
-				return hx_is_nominal_11(hx_value)
+				return hx_is_nominal_app__http__TinyHttpServer(hx_value)
 			case "haxe.Exception":
-				return hx_is_nominal_3(hx_value)
+				return hx_is_nominal_haxe__Exception(hx_value)
 			case "haxe.ValueException":
-				return hx_is_nominal_2(hx_value)
+				return hx_is_nominal_haxe__ValueException(hx_value)
 			case "haxe._Int64.___Int64":
-				return hx_is_nominal_12(hx_value)
+				return hx_is_nominal_haxe___Int64_____Int64(hx_value)
 			case "haxe.exceptions.NotImplementedException":
-				return hx_is_nominal_13(hx_value)
+				return hx_is_nominal_haxe__exceptions__NotImplementedException(hx_value)
 			case "haxe.exceptions.PosException":
-				return hx_is_nominal_14(hx_value)
+				return hx_is_nominal_haxe__exceptions__PosException(hx_value)
 			case "haxe.io.Bytes":
-				return hx_is_nominal_15(hx_value)
+				return hx_is_nominal_haxe__io__Bytes(hx_value)
 			case "haxe.io.BytesBuffer":
-				return hx_is_nominal_16(hx_value)
+				return hx_is_nominal_haxe__io__BytesBuffer(hx_value)
 			case "haxe.io.Eof":
-				return hx_is_nominal_1(hx_value)
+				return hx_is_nominal_haxe__io__Eof(hx_value)
 			case "haxe.io.Input":
-				return hx_is_nominal_17(hx_value)
+				return hx_is_nominal_haxe__io__Input(hx_value)
 			case "haxe.io.Output":
-				return hx_is_nominal_18(hx_value)
+				return hx_is_nominal_haxe__io__Output(hx_value)
 			case "haxe.iterators.StringIterator":
-				return hx_is_nominal_19(hx_value)
+				return hx_is_nominal_haxe__iterators__StringIterator(hx_value)
 			case "haxe.iterators.StringKeyValueIterator":
-				return hx_is_nominal_20(hx_value)
+				return hx_is_nominal_haxe__iterators__StringKeyValueIterator(hx_value)
 			case "sys.io.FileInput":
-				return hx_is_nominal_21(hx_value)
+				return hx_is_nominal_sys__io__FileInput(hx_value)
 			case "sys.io.FileOutput":
-				return hx_is_nominal_22(hx_value)
+				return hx_is_nominal_sys__io__FileOutput(hx_value)
 			case "sys.net.Host":
-				return hx_is_nominal_23(hx_value)
+				return hx_is_nominal_sys__net__Host(hx_value)
 			case "sys.net.Socket":
-				return hx_is_nominal_24(hx_value)
+				return hx_is_nominal_sys__net__Socket(hx_value)
 			case "sys.net.SocketInput":
-				return hx_is_nominal_25(hx_value)
+				return hx_is_nominal_sys__net__SocketInput(hx_value)
 			case "sys.net.SocketOutput":
-				return hx_is_nominal_26(hx_value)
+				return hx_is_nominal_sys__net__SocketOutput(hx_value)
 			default:
 				return false
 			}
@@ -261,7 +261,7 @@ func Std_instance(value any, c any) any {
 						}
 					}(hx_value)
 				case "Date":
-					return hx_is_nominal_4(hx_value)
+					return hx_is_nominal_Date(hx_value)
 				case "Dynamic":
 					return (hx_value != nil)
 				case "Enum":
@@ -347,57 +347,57 @@ func Std_instance(value any, c any) any {
 						}
 					}(hx_value)
 				case "app.core.Incident":
-					return hx_is_nominal_5(hx_value)
+					return hx_is_nominal_app__core__Incident(hx_value)
 				case "app.core.IncidentApi":
-					return hx_is_nominal_6(hx_value)
+					return hx_is_nominal_app__core__IncidentApi(hx_value)
 				case "app.core.IncidentConfig":
-					return hx_is_nominal_7(hx_value)
+					return hx_is_nominal_app__core__IncidentConfig(hx_value)
 				case "app.core.IncidentRequestException":
-					return hx_is_nominal_0(hx_value)
+					return hx_is_nominal_app__core__IncidentRequestException(hx_value)
 				case "app.core.IncidentStore":
-					return hx_is_nominal_8(hx_value)
+					return hx_is_nominal_app__core__IncidentStore(hx_value)
 				case "app.http.HttpRequest":
-					return hx_is_nominal_9(hx_value)
+					return hx_is_nominal_app__http__HttpRequest(hx_value)
 				case "app.http.HttpResponse":
-					return hx_is_nominal_10(hx_value)
+					return hx_is_nominal_app__http__HttpResponse(hx_value)
 				case "app.http.TinyHttpServer":
-					return hx_is_nominal_11(hx_value)
+					return hx_is_nominal_app__http__TinyHttpServer(hx_value)
 				case "haxe.Exception":
-					return hx_is_nominal_3(hx_value)
+					return hx_is_nominal_haxe__Exception(hx_value)
 				case "haxe.ValueException":
-					return hx_is_nominal_2(hx_value)
+					return hx_is_nominal_haxe__ValueException(hx_value)
 				case "haxe._Int64.___Int64":
-					return hx_is_nominal_12(hx_value)
+					return hx_is_nominal_haxe___Int64_____Int64(hx_value)
 				case "haxe.exceptions.NotImplementedException":
-					return hx_is_nominal_13(hx_value)
+					return hx_is_nominal_haxe__exceptions__NotImplementedException(hx_value)
 				case "haxe.exceptions.PosException":
-					return hx_is_nominal_14(hx_value)
+					return hx_is_nominal_haxe__exceptions__PosException(hx_value)
 				case "haxe.io.Bytes":
-					return hx_is_nominal_15(hx_value)
+					return hx_is_nominal_haxe__io__Bytes(hx_value)
 				case "haxe.io.BytesBuffer":
-					return hx_is_nominal_16(hx_value)
+					return hx_is_nominal_haxe__io__BytesBuffer(hx_value)
 				case "haxe.io.Eof":
-					return hx_is_nominal_1(hx_value)
+					return hx_is_nominal_haxe__io__Eof(hx_value)
 				case "haxe.io.Input":
-					return hx_is_nominal_17(hx_value)
+					return hx_is_nominal_haxe__io__Input(hx_value)
 				case "haxe.io.Output":
-					return hx_is_nominal_18(hx_value)
+					return hx_is_nominal_haxe__io__Output(hx_value)
 				case "haxe.iterators.StringIterator":
-					return hx_is_nominal_19(hx_value)
+					return hx_is_nominal_haxe__iterators__StringIterator(hx_value)
 				case "haxe.iterators.StringKeyValueIterator":
-					return hx_is_nominal_20(hx_value)
+					return hx_is_nominal_haxe__iterators__StringKeyValueIterator(hx_value)
 				case "sys.io.FileInput":
-					return hx_is_nominal_21(hx_value)
+					return hx_is_nominal_sys__io__FileInput(hx_value)
 				case "sys.io.FileOutput":
-					return hx_is_nominal_22(hx_value)
+					return hx_is_nominal_sys__io__FileOutput(hx_value)
 				case "sys.net.Host":
-					return hx_is_nominal_23(hx_value)
+					return hx_is_nominal_sys__net__Host(hx_value)
 				case "sys.net.Socket":
-					return hx_is_nominal_24(hx_value)
+					return hx_is_nominal_sys__net__Socket(hx_value)
 				case "sys.net.SocketInput":
-					return hx_is_nominal_25(hx_value)
+					return hx_is_nominal_sys__net__SocketInput(hx_value)
 				case "sys.net.SocketOutput":
-					return hx_is_nominal_26(hx_value)
+					return hx_is_nominal_sys__net__SocketOutput(hx_value)
 				default:
 					return false
 				}
@@ -471,7 +471,7 @@ func Std_is(v any, t any) bool {
 					}
 				}(hx_value)
 			case "Date":
-				return hx_is_nominal_4(hx_value)
+				return hx_is_nominal_Date(hx_value)
 			case "Dynamic":
 				return (hx_value != nil)
 			case "Enum":
@@ -557,57 +557,57 @@ func Std_is(v any, t any) bool {
 					}
 				}(hx_value)
 			case "app.core.Incident":
-				return hx_is_nominal_5(hx_value)
+				return hx_is_nominal_app__core__Incident(hx_value)
 			case "app.core.IncidentApi":
-				return hx_is_nominal_6(hx_value)
+				return hx_is_nominal_app__core__IncidentApi(hx_value)
 			case "app.core.IncidentConfig":
-				return hx_is_nominal_7(hx_value)
+				return hx_is_nominal_app__core__IncidentConfig(hx_value)
 			case "app.core.IncidentRequestException":
-				return hx_is_nominal_0(hx_value)
+				return hx_is_nominal_app__core__IncidentRequestException(hx_value)
 			case "app.core.IncidentStore":
-				return hx_is_nominal_8(hx_value)
+				return hx_is_nominal_app__core__IncidentStore(hx_value)
 			case "app.http.HttpRequest":
-				return hx_is_nominal_9(hx_value)
+				return hx_is_nominal_app__http__HttpRequest(hx_value)
 			case "app.http.HttpResponse":
-				return hx_is_nominal_10(hx_value)
+				return hx_is_nominal_app__http__HttpResponse(hx_value)
 			case "app.http.TinyHttpServer":
-				return hx_is_nominal_11(hx_value)
+				return hx_is_nominal_app__http__TinyHttpServer(hx_value)
 			case "haxe.Exception":
-				return hx_is_nominal_3(hx_value)
+				return hx_is_nominal_haxe__Exception(hx_value)
 			case "haxe.ValueException":
-				return hx_is_nominal_2(hx_value)
+				return hx_is_nominal_haxe__ValueException(hx_value)
 			case "haxe._Int64.___Int64":
-				return hx_is_nominal_12(hx_value)
+				return hx_is_nominal_haxe___Int64_____Int64(hx_value)
 			case "haxe.exceptions.NotImplementedException":
-				return hx_is_nominal_13(hx_value)
+				return hx_is_nominal_haxe__exceptions__NotImplementedException(hx_value)
 			case "haxe.exceptions.PosException":
-				return hx_is_nominal_14(hx_value)
+				return hx_is_nominal_haxe__exceptions__PosException(hx_value)
 			case "haxe.io.Bytes":
-				return hx_is_nominal_15(hx_value)
+				return hx_is_nominal_haxe__io__Bytes(hx_value)
 			case "haxe.io.BytesBuffer":
-				return hx_is_nominal_16(hx_value)
+				return hx_is_nominal_haxe__io__BytesBuffer(hx_value)
 			case "haxe.io.Eof":
-				return hx_is_nominal_1(hx_value)
+				return hx_is_nominal_haxe__io__Eof(hx_value)
 			case "haxe.io.Input":
-				return hx_is_nominal_17(hx_value)
+				return hx_is_nominal_haxe__io__Input(hx_value)
 			case "haxe.io.Output":
-				return hx_is_nominal_18(hx_value)
+				return hx_is_nominal_haxe__io__Output(hx_value)
 			case "haxe.iterators.StringIterator":
-				return hx_is_nominal_19(hx_value)
+				return hx_is_nominal_haxe__iterators__StringIterator(hx_value)
 			case "haxe.iterators.StringKeyValueIterator":
-				return hx_is_nominal_20(hx_value)
+				return hx_is_nominal_haxe__iterators__StringKeyValueIterator(hx_value)
 			case "sys.io.FileInput":
-				return hx_is_nominal_21(hx_value)
+				return hx_is_nominal_sys__io__FileInput(hx_value)
 			case "sys.io.FileOutput":
-				return hx_is_nominal_22(hx_value)
+				return hx_is_nominal_sys__io__FileOutput(hx_value)
 			case "sys.net.Host":
-				return hx_is_nominal_23(hx_value)
+				return hx_is_nominal_sys__net__Host(hx_value)
 			case "sys.net.Socket":
-				return hx_is_nominal_24(hx_value)
+				return hx_is_nominal_sys__net__Socket(hx_value)
 			case "sys.net.SocketInput":
-				return hx_is_nominal_25(hx_value)
+				return hx_is_nominal_sys__net__SocketInput(hx_value)
 			case "sys.net.SocketOutput":
-				return hx_is_nominal_26(hx_value)
+				return hx_is_nominal_sys__net__SocketOutput(hx_value)
 			default:
 				return false
 			}

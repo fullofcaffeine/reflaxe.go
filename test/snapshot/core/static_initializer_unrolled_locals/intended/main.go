@@ -37,7 +37,7 @@ func main() {
 		_g1_1 := 0
 		_g2 := getters
 		for _g1_1 < _g2.Len() {
-			getter := hx_recover_callable_0(_g2.Get(_g1_1))
+			getter := hx_recover_callable_b9d17ba0(_g2.Get(_g1_1))
 			_g1_1 = int(int32((_g1_1 + 1)))
 			_g_1.Push(func() *string {
 				var hx_callable_6 *hxrt.Function[func() *string] = getter
@@ -52,7 +52,7 @@ func main() {
 		_g1_2 := 0
 		_g2_1 := mutatedGetters
 		for _g1_2 < _g2_1.Len() {
-			getter_1 := hx_recover_callable_1(_g2_1.Get(_g1_2))
+			getter_1 := hx_recover_callable_e273723c(_g2_1.Get(_g1_2))
 			_g1_2 = int(int32((_g1_2 + 1)))
 			_g_2.Push(func() int {
 				var hx_callable_8 *hxrt.Function[func() int] = getter_1
@@ -160,7 +160,7 @@ func hx_structural_recover(value any) hxrt.Anonymous {
 	}
 }
 
-func hx_recover_callable_0(value any) *hxrt.Function[func() *string] {
+func hx_recover_callable_b9d17ba0(value any) *hxrt.Function[func() *string] {
 	if value == nil {
 		return nil
 	}
@@ -177,12 +177,12 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() *string] {
 		return source
 	case *hxrt.Function[func() int]:
 		return hxrt.ProjectFunction(source, func() *string {
-			return func(hx_value_6 any) *string {
-				if hx_value_6 == nil {
-					var hx_zero_7 *string
-					return hx_zero_7
+			return func(hx_value_1 any) *string {
+				if hx_value_1 == nil {
+					var hx_zero_2 *string
+					return hx_zero_2
 				}
-				return hx_value_6.(*string)
+				return hx_value_1.(*string)
 			}(hxrt.FunctionCall(source)())
 		})
 	default:
@@ -191,7 +191,7 @@ func hx_recover_callable_0(value any) *hxrt.Function[func() *string] {
 	}
 }
 
-func hx_recover_callable_1(value any) *hxrt.Function[func() int] {
+func hx_recover_callable_e273723c(value any) *hxrt.Function[func() int] {
 	if value == nil {
 		return nil
 	}
@@ -206,12 +206,12 @@ func hx_recover_callable_1(value any) *hxrt.Function[func() int] {
 	switch source := origin.(type) {
 	case *hxrt.Function[func() *string]:
 		return hxrt.ProjectFunction(source, func() int {
-			return func(hx_value_8 any) int {
-				if hx_value_8 == nil {
-					var hx_zero_9 int
-					return hx_zero_9
+			return func(hx_value_1 any) int {
+				if hx_value_1 == nil {
+					var hx_zero_2 int
+					return hx_zero_2
 				}
-				return hx_value_8.(int)
+				return hx_value_1.(int)
 			}(hxrt.FunctionCall(source)())
 		})
 	case *hxrt.Function[func() int]:

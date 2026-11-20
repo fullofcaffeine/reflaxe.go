@@ -29,11 +29,11 @@ func PortableSurfaceDigest_compute(seed int) *string {
 	mapValueSum := 0
 	entry := map_.__hx_this.keyValueIterator()
 	for func() bool {
-		var hx_callable_3 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(entry, "hasNext"))
+		var hx_callable_3 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(entry, "hasNext"))
 		return hxrt.FunctionCall(hx_callable_3)()
 	}() {
 		entry_1 := func() hxrt.Anonymous {
-			var hx_callable_4 *hxrt.Function[func() hxrt.Anonymous] = hx_recover_callable_1(hxrt.AnonymousGet(entry, "next"))
+			var hx_callable_4 *hxrt.Function[func() hxrt.Anonymous] = hx_recover_callable_7838dc94(hxrt.AnonymousGet(entry, "next"))
 			return hxrt.FunctionCall(hx_callable_4)()
 		}()
 		key := func(hx_value_5 any) *string {

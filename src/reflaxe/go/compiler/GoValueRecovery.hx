@@ -11,6 +11,7 @@ import reflaxe.go.ast.GoBuiltinType;
 import reflaxe.go.ast.GoType;
 import reflaxe.go.compiler.GoRecoveryDispatch.GoRecoveryCasePlan;
 import reflaxe.go.compiler.GoRecoveryDispatch.GoGuardedRecoveryDeclaration;
+import reflaxe.go.compiler.GoRecoveryDispatch.GoRecoveryHelperScope;
 import reflaxe.go.ast.GoType.GoFunctionSignature;
 
 /** Actual emitted storage, rather than an applied Haxe expression's type. */
@@ -31,28 +32,39 @@ private typedef CallableRecovery = {
 	and projections must start at the normalized source to avoid wrapper chains.
 	How: Intern exact emitted representations, record reachable source producers,
 	and emit only demanded target helpers with finite typed source dispatch.
-	Anonymous storage is opaque here: its fields recover when accessed.
+	Anonymous storage is opaque here: its fields recover when accessed. A helper
+	is named from a digest of its target representation and declared in name
+	order, so an edit elsewhere cannot rename or move it.
 **/
 class GoValueRecovery {
+	static final symbolPrefix = "hx_recover_callable_";
+	static inline final shortDigestLength = 8;
+
 	final availability:GoRecoveryAvailability;
 	final dispatcher:GoRecoveryDispatch;
 	final recoverStored:(GoExpr, GoType) -> GoExpr;
+	final helperScope:GoRecoveryHelperScope;
 	final sources:Array<CallableRepresentation> = [];
 	final demands:Array<CallableRecovery> = [];
+	final demandsByKey:Map<String, CallableRecovery> = [];
+	final symbolKeys:Map<String, String> = [];
 	final namedSources:Map<String, Bool> = [];
 	final declarations:Map<String, GoType> = [];
 	var frozen = false;
 	var needsInvocation = false;
 
-	public function new(availability:GoRecoveryAvailability, recoverStored:(GoExpr, GoType) -> GoExpr) {
+	public function new(availability:GoRecoveryAvailability, recoverStored:(GoExpr, GoType) -> GoExpr, ?helperScope:GoRecoveryHelperScope) {
 		this.availability = availability;
 		this.dispatcher = new GoRecoveryDispatch(availability);
 		this.recoverStored = recoverStored;
+		this.helperScope = helperScope != null ? helperScope : build -> build();
 	}
 
 	public function reset():Void {
 		sources.resize(0);
 		demands.resize(0);
+		demandsByKey.clear();
+		symbolKeys.clear();
 		frozen = false;
 		needsInvocation = false;
 		namedSources.clear();
@@ -106,14 +118,43 @@ class GoValueRecovery {
 
 	/** Demand a target before discovering child conversions, preventing recursion. */
 	public function recover(value:GoExpr, target:GoType):GoExpr {
-		for (demand in demands)
-			if (demand.representation.carrier.sameRepresentation(target))
-				return demandCall(demand, value);
+		var key = target.representationKey();
+		var existing = demandsByKey.get(key);
+		if (existing != null)
+			return demandCall(existing, value);
 		if (frozen)
 			Context.fatalError("Callable recovery discovered after recovery freeze", Context.currentPos());
-		var demand:CallableRecovery = {representation: representation(target), symbol: "hx_recover_callable_" + demands.length};
+		var demand:CallableRecovery = {representation: representation(target), symbol: callableSymbol(key)};
 		demands.push(demand);
+		demandsByKey.set(key, demand);
 		return demandCall(demand, value);
+	}
+
+	/**
+		What: Names a callable helper from its target representation.
+
+		Why: A first-use number changed whenever another module added or removed a
+		callable recovery, which renamed calls in unrelated generated files. A
+		signature spelled out as an identifier would be long and ambiguous.
+
+		How: Use the first 8 hex digits of the SHA-1 of the canonical type key.
+		If another representation already owns those digits (a real collision),
+		this one takes the full 40-digit digest. Only in that rare case does demand
+		order decide which of the two keeps the short name. Equal keys always share
+		one demand.
+	**/
+	function callableSymbol(key:String):String {
+		var digest = haxe.crypto.Sha1.encode(key);
+		var symbol = GoRecoveryDispatch.entrySymbol(symbolPrefix, digest.substr(0, shortDigestLength));
+		var owner = symbolKeys.get(symbol);
+		if (owner != null && owner != key) {
+			symbol = GoRecoveryDispatch.entrySymbol(symbolPrefix, digest);
+			owner = symbolKeys.get(symbol);
+			if (owner != null && owner != key)
+				Context.fatalError("Callable recovery digest collision: " + key + " and " + owner, Context.currentPos());
+		}
+		symbolKeys.set(symbol, key);
+		return symbol;
 	}
 
 	function demandCall(demand:CallableRecovery, value:GoExpr):GoExpr {
@@ -157,10 +198,18 @@ class GoValueRecovery {
 	public function discover():Array<GoGuardedRecoveryDeclaration> {
 		var declarations = new Array<GoGuardedRecoveryDeclaration>();
 		if (needsInvocation)
-			declarations = declarations.concat(lowerInvocation());
+			declarations = declarations.concat(helperScope(lowerInvocation));
+		// Building one helper can demand another, so close the queue before ordering.
+		var plans = new Map<String, Array<GoGuardedRecoveryDeclaration>>();
 		var index = 0;
-		while (index < demands.length)
-			declarations = declarations.concat(lowerRecovery(demands[index++]));
+		while (index < demands.length) {
+			var demand = demands[index++];
+			plans.set(demand.symbol, helperScope(() -> lowerRecovery(demand)));
+		}
+		var symbols = [for (symbol in plans.keys()) symbol];
+		symbols.sort(GoRecoveryDispatch.compareSymbols);
+		for (symbol in symbols)
+			declarations = declarations.concat(plans.get(symbol));
 		return declarations;
 	}
 

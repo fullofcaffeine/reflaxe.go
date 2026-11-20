@@ -4,7 +4,7 @@ package main
 
 import "snapshot/hxrt"
 
-func hx_recover_callable_1(value any) *hxrt.Function[func(*PureGoFeature) *string] {
+func hx_recover_callable_efd55ccc(value any) *hxrt.Function[func(*PureGoFeature) *string] {
 	if value == nil {
 		return nil
 	}
@@ -25,7 +25,7 @@ func hx_recover_callable_1(value any) *hxrt.Function[func(*PureGoFeature) *strin
 	}
 }
 
-func hx_recover_class_1(value any) *PureGoFeature {
+func hx_recover_class_PureGoFeature(value any) *PureGoFeature {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil

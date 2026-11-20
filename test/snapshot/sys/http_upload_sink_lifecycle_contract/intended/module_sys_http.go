@@ -391,7 +391,7 @@ func (self *sys__Http) requestWith(post bool, api *haxe__io__Output, sock *sys__
 					hx_exception_53 := haxe__Exception_caught(hx_caught_52)
 					hx_payload_54 := haxe__Exception_catchValue(hx_caught_52)
 					_ = hx_payload_54
-					var error *haxe__Exception = hx_recover_class_2(hx_exception_53)
+					var error *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_53)
 					errorMessage = error.__hx_this.get_message()
 				})
 			}
@@ -439,16 +439,16 @@ func (self *sys__Http) pumpUpload(exchange *hxrt.HttpExchange, upload hxrt.Anony
 		chunk := haxe__io__Bytes_alloc(requested)
 		count := 0
 		hxrt.TryCatch(func() {
-			count = hx_recover_class_4(hxrt.AnonymousGet(upload, "io")).__hx_this.readBytes(chunk, 0, requested)
+			count = hx_recover_class_haxe__io__Input(hxrt.AnonymousGet(upload, "io")).__hx_this.readBytes(chunk, 0, requested)
 		}, func(hx_caught_63 any) {
 			hx_exception_64 := haxe__Exception_caught(hx_caught_63)
 			hx_payload_65 := haxe__Exception_catchValue(hx_caught_63)
-			if hx_is_nominal_0(hx_payload_65) {
-				var hx_tmp *haxe__io__Eof = hx_recover_class_3(hx_payload_65)
+			if hx_is_nominal_haxe__io__Eof(hx_payload_65) {
+				var hx_tmp *haxe__io__Eof = hx_recover_class_haxe__io__Eof(hx_payload_65)
 				_ = hx_tmp
 				sourceError = hxrt.StringFromLiteral("Transfer aborted")
 			} else {
-				var error *haxe__Exception = hx_recover_class_2(hx_exception_64)
+				var error *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_64)
 				sourceError = error.__hx_this.get_message()
 			}
 		})
@@ -562,7 +562,7 @@ func (self *sys__Http) handleDataRequest(post bool, api *haxe__io__Output, metho
 		hx_exception_76 := haxe__Exception_caught(hx_caught_75)
 		hx_payload_77 := haxe__Exception_catchValue(hx_caught_75)
 		_ = hx_payload_77
-		var error *haxe__Exception = hx_recover_class_2(hx_exception_76)
+		var error *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_76)
 		errorMessage = error.__hx_this.get_message()
 	})
 	if !hxrt.StringEqualStringPtr(errorMessage, nil) {

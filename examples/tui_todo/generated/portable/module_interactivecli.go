@@ -11,7 +11,7 @@ func InteractiveCli_clearState() {
 		hx_exception_2 := haxe__Exception_caught(hx_caught_1)
 		hx_payload_3 := haxe__Exception_catchValue(hx_caught_1)
 		_ = hx_payload_3
-		var hx_tmp *haxe__Exception = hx_recover_class_0(hx_exception_2)
+		var hx_tmp *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_2)
 		_ = hx_tmp
 	})
 }
@@ -166,7 +166,7 @@ func InteractiveCli_loadState(app *app__TodoApp) {
 		hx_exception_13 := haxe__Exception_caught(hx_caught_12)
 		hx_payload_14 := haxe__Exception_catchValue(hx_caught_12)
 		_ = hx_payload_14
-		var hx_tmp *haxe__Exception = hx_recover_class_0(hx_exception_13)
+		var hx_tmp *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_13)
 		_ = hx_tmp
 		hx_try_return_11 = true
 		return
@@ -411,7 +411,7 @@ func InteractiveCli_saveState(app *app__TodoApp) {
 	out := hxrt.StringFromLiteral("")
 	_g := 0
 	for _g < items.Len() {
-		item := hx_recover_class_1(items.Get(_g))
+		item := hx_recover_class_model__TodoItem(items.Get(_g))
 		_g = int(int32((_g + 1)))
 		out = hxrt.StringConcatStringPtr(out, hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(InteractiveCli_encodeField(item.title), hxrt.StringFromLiteral("\t")), item.priority), hxrt.StringFromLiteral("\t")), func() *string {
 			var hx_if_50 *string

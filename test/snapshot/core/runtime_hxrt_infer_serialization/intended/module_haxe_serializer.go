@@ -282,7 +282,7 @@ func (self *haxe__Serializer) serializeClass(value any, declaration any) {
 			return hx_value_13.(*hxrt.Array)
 		}(value)))
 	case *hxrt.StdString(hxrt.StringFromLiteral("Date")):
-		date := hx_recover_class_5(hx_recover_class_5(value))
+		date := hx_recover_class_Date(hx_recover_class_Date(value))
 		_this := self.buf
 		_this.b = hxrt.StringConcatStringPtr(_this.b, hxrt.StringFromLiteral("v"))
 		_this_1 := self.buf
@@ -291,14 +291,14 @@ func (self *haxe__Serializer) serializeClass(value any, declaration any) {
 	case *hxrt.StdString(hxrt.StringFromLiteral("haxe.ds.IntMap")):
 		_this_2 := self.buf
 		_this_2.b = hxrt.StringConcatStringPtr(_this_2.b, hxrt.StringFromLiteral("q"))
-		map_ := hx_recover_class_4(hx_recover_class_4(value))
+		map_ := hx_recover_class_haxe__ds__IntMap(hx_recover_class_haxe__ds__IntMap(value))
 		key := map_.__hx_this.keys()
 		for func() bool {
-			var hx_callable_17 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(key, "hasNext"))
+			var hx_callable_17 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(key, "hasNext"))
 			return hxrt.FunctionCall(hx_callable_17)()
 		}() {
 			key_1 := func() int {
-				var hx_callable_18 *hxrt.Function[func() int] = hx_recover_callable_3(hxrt.AnonymousGet(key, "next"))
+				var hx_callable_18 *hxrt.Function[func() int] = hx_recover_callable_e273723c(hxrt.AnonymousGet(key, "next"))
 				return hxrt.FunctionCall(hx_callable_18)()
 			}()
 			_this_3 := self.buf
@@ -312,8 +312,8 @@ func (self *haxe__Serializer) serializeClass(value any, declaration any) {
 	case *hxrt.StdString(hxrt.StringFromLiteral("haxe.ds.List")):
 		_this_6 := self.buf
 		_this_6.b = hxrt.StringConcatStringPtr(_this_6.b, hxrt.StringFromLiteral("l"))
-		list := hx_recover_class_6(hx_recover_class_6(value))
-		item := hx_recover_class_3(list.__hx_this.iterator())
+		list := hx_recover_class_haxe__ds__List(hx_recover_class_haxe__ds__List(value))
+		item := hx_recover_class_haxe__ds___List__GoListIterator(list.__hx_this.iterator())
 		for func(hx_value_19 any) bool {
 			if hx_value_19 == nil {
 				var hx_zero_20 bool
@@ -329,14 +329,14 @@ func (self *haxe__Serializer) serializeClass(value any, declaration any) {
 	case *hxrt.StdString(hxrt.StringFromLiteral("haxe.ds.ObjectMap")):
 		_this_8 := self.buf
 		_this_8.b = hxrt.StringConcatStringPtr(_this_8.b, hxrt.StringFromLiteral("M"))
-		map__1 := hx_recover_class_2(hx_recover_class_2(value))
+		map__1 := hx_recover_class_haxe__ds__ObjectMap(hx_recover_class_haxe__ds__ObjectMap(value))
 		key_2 := map__1.__hx_this.keys()
 		for func() bool {
-			var hx_callable_21 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(key_2, "hasNext"))
+			var hx_callable_21 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(key_2, "hasNext"))
 			return hxrt.FunctionCall(hx_callable_21)()
 		}() {
 			var key_3 any = func() any {
-				var hx_callable_22 *hxrt.Function[func() any] = hx_recover_callable_2(hxrt.AnonymousGet(key_2, "next"))
+				var hx_callable_22 *hxrt.Function[func() any] = hx_recover_callable_c5309b43(hxrt.AnonymousGet(key_2, "next"))
 				return hxrt.FunctionCall(hx_callable_22)()
 			}()
 			self.__hx_this.serialize(key_3)
@@ -347,14 +347,14 @@ func (self *haxe__Serializer) serializeClass(value any, declaration any) {
 	case *hxrt.StdString(hxrt.StringFromLiteral("haxe.ds.StringMap")):
 		_this_10 := self.buf
 		_this_10.b = hxrt.StringConcatStringPtr(_this_10.b, hxrt.StringFromLiteral("b"))
-		map__2 := hx_recover_class_1(hx_recover_class_1(value))
+		map__2 := hx_recover_class_haxe__ds__StringMap(hx_recover_class_haxe__ds__StringMap(value))
 		key_4 := map__2.__hx_this.keys()
 		for func() bool {
-			var hx_callable_23 *hxrt.Function[func() bool] = hx_recover_callable_0(hxrt.AnonymousGet(key_4, "hasNext"))
+			var hx_callable_23 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(key_4, "hasNext"))
 			return hxrt.FunctionCall(hx_callable_23)()
 		}() {
 			key_5 := func() *string {
-				var hx_callable_24 *hxrt.Function[func() *string] = hx_recover_callable_1(hxrt.AnonymousGet(key_4, "next"))
+				var hx_callable_24 *hxrt.Function[func() *string] = hx_recover_callable_b9d17ba0(hxrt.AnonymousGet(key_4, "next"))
 				return hxrt.FunctionCall(hx_callable_24)()
 			}()
 			self.__hx_this.serializeString(key_5)
@@ -363,7 +363,7 @@ func (self *haxe__Serializer) serializeClass(value any, declaration any) {
 		_this_11 := self.buf
 		_this_11.b = hxrt.StringConcatStringPtr(_this_11.b, hxrt.StringFromLiteral("h"))
 	case *hxrt.StdString(hxrt.StringFromLiteral("haxe.io.Bytes")):
-		self.__hx_this.serializeBytes(hx_recover_class_7(hx_recover_class_7(value)))
+		self.__hx_this.serializeBytes(hx_recover_class_haxe__io__Bytes(hx_recover_class_haxe__io__Bytes(value)))
 	default:
 		if self.useCache {
 			hx_arr_25 := self.cache
@@ -440,11 +440,11 @@ func (self *haxe__Serializer) serializeEnum(value any, declaration any) {
 }
 
 func (self *haxe__Serializer) serialize(value any) {
-	if hx_is_nominal_0(value) {
+	if hx_is_nominal_haxe__io__Bytes(value) {
 		if self.useCache && self.__hx_this.serializeRef(value) {
 			return
 		}
-		self.__hx_this.serializeBytes(hx_recover_class_7(hx_recover_class_7(value)))
+		self.__hx_this.serializeBytes(hx_recover_class_haxe__io__Bytes(hx_recover_class_haxe__io__Bytes(value)))
 		return
 	}
 	_g := Type_typeof(value)

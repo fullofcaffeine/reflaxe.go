@@ -281,7 +281,7 @@ func (self *haxe__ds__List) join(separator *string) *string {
 
 func (self *haxe__ds__List) filter(predicate *hxrt.Function[func(any) bool]) *haxe__ds__List {
 	filtered := New_haxe__ds__List()
-	source := hx_recover_class_2(self.__hx_this.iterator())
+	source := hx_recover_class_haxe__ds___List__GoListIterator(self.__hx_this.iterator())
 	for func(hx_value_17 any) bool {
 		if hx_value_17 == nil {
 			var hx_zero_18 bool
@@ -303,7 +303,7 @@ func (self *haxe__ds__List) filter(predicate *hxrt.Function[func(any) bool]) *ha
 
 func (self *haxe__ds__List) map_(transform *hxrt.Function[func(any) any]) *haxe__ds__List {
 	mapped := New_haxe__ds__List()
-	source := hx_recover_class_2(self.__hx_this.iterator())
+	source := hx_recover_class_haxe__ds___List__GoListIterator(self.__hx_this.iterator())
 	for func(hx_value_21 any) bool {
 		if hx_value_21 == nil {
 			var hx_zero_22 bool

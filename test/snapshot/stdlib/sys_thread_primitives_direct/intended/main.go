@@ -124,8 +124,8 @@ func main() {
 		hx_exception_18 := haxe__Exception_caught(hx_caught_17)
 		hx_payload_19 := haxe__Exception_catchValue(hx_caught_17)
 		_ = hx_payload_19
-		if hx_is_nominal_0(hx_exception_18) {
-			var err *sys__thread__ThreadPoolException = hx_recover_class_0(hx_exception_18)
+		if hx_is_nominal_sys__thread__ThreadPoolException(hx_exception_18) {
+			var err *sys__thread__ThreadPoolException = hx_recover_class_sys__thread__ThreadPoolException(hx_exception_18)
 			var v_18 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("pool.error="), err.__hx_this.get_message()))
 			hxrt.Println(v_18)
 		} else {
@@ -205,33 +205,7 @@ func (self *_Main__DummyPool) HxClassName() string {
 	return "_Main.DummyPool"
 }
 
-func hx_recover_class_0(value any) *sys__thread__ThreadPoolException {
-	value = hxrt.ObjectSource(value)
-	if value == nil {
-		return nil
-	}
-	switch source := value.(type) {
-	case *sys__thread__ThreadPoolException:
-		return source
-	default:
-		return value.(*sys__thread__ThreadPoolException)
-	}
-}
-
-func hx_recover_class_1(value any) *haxe__ValueException {
-	value = hxrt.ObjectSource(value)
-	if value == nil {
-		return nil
-	}
-	switch source := value.(type) {
-	case *haxe__ValueException:
-		return source
-	default:
-		return value.(*haxe__ValueException)
-	}
-}
-
-func hx_recover_class_2(value any) *haxe__Exception {
+func hx_recover_class_haxe__Exception(value any) *haxe__Exception {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil
@@ -250,7 +224,20 @@ func hx_recover_class_2(value any) *haxe__Exception {
 	}
 }
 
-func hx_recover_class_3(value any) *haxe__ds___List__GoListIterator {
+func hx_recover_class_haxe__ValueException(value any) *haxe__ValueException {
+	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return source
+	default:
+		return value.(*haxe__ValueException)
+	}
+}
+
+func hx_recover_class_haxe__ds___List__GoListIterator(value any) *haxe__ds___List__GoListIterator {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil
@@ -263,27 +250,20 @@ func hx_recover_class_3(value any) *haxe__ds___List__GoListIterator {
 	}
 }
 
-func hx_is_nominal_0(value any) bool {
+func hx_recover_class_sys__thread__ThreadPoolException(value any) *sys__thread__ThreadPoolException {
 	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
 	switch source := value.(type) {
 	case *sys__thread__ThreadPoolException:
-		return (source != nil)
+		return source
 	default:
-		return false
+		return value.(*sys__thread__ThreadPoolException)
 	}
 }
 
-func hx_is_nominal_1(value any) bool {
-	value = hxrt.ObjectSource(value)
-	switch source := value.(type) {
-	case *haxe__ValueException:
-		return (source != nil)
-	default:
-		return false
-	}
-}
-
-func hx_is_nominal_2(value any) bool {
+func hx_is_nominal_haxe__Exception(value any) bool {
 	value = hxrt.ObjectSource(value)
 	switch source := value.(type) {
 	case *sys__thread__ThreadPoolException:
@@ -293,6 +273,26 @@ func hx_is_nominal_2(value any) bool {
 	case *haxe__ValueException:
 		return (source != nil)
 	case *haxe__Exception:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_haxe__ValueException(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_sys__thread__ThreadPoolException(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *sys__thread__ThreadPoolException:
 		return (source != nil)
 	default:
 		return false

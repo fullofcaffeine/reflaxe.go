@@ -79,13 +79,13 @@ func main() {
 		return hx_value.Base
 	}(New_Child())
 	base := New_Base()
-	var v any = any(hx_is_nominal_0(child))
+	var v any = any(hx_is_nominal_Child(child))
 	hxrt.Println(v)
-	var v_1 any = any(hx_is_nominal_1(child))
+	var v_1 any = any(hx_is_nominal_Base(child))
 	hxrt.Println(v_1)
-	var v_2 any = any(hx_is_nominal_0(base))
+	var v_2 any = any(hx_is_nominal_Child(base))
 	hxrt.Println(v_2)
-	var v_3 any = any(hx_is_nominal_0(nil))
+	var v_3 any = any(hx_is_nominal_Child(nil))
 	hxrt.Println(v_3)
 	var v_4 any = any(true)
 	hxrt.Println(v_4)
@@ -101,9 +101,11 @@ func main() {
 	hxrt.Println(v_9)
 }
 
-func hx_is_nominal_0(value any) bool {
+func hx_is_nominal_Base(value any) bool {
 	value = hxrt.ObjectSource(value)
 	switch source := value.(type) {
+	case *Base:
+		return (source != nil)
 	case *Child:
 		return (source != nil)
 	default:
@@ -111,11 +113,9 @@ func hx_is_nominal_0(value any) bool {
 	}
 }
 
-func hx_is_nominal_1(value any) bool {
+func hx_is_nominal_Child(value any) bool {
 	value = hxrt.ObjectSource(value)
 	switch source := value.(type) {
-	case *Base:
-		return (source != nil)
 	case *Child:
 		return (source != nil)
 	default:

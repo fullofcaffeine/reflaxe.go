@@ -21,7 +21,7 @@ func invoke(callback *hxrt.Function[func(any)]) {
 }
 
 func main() {
-	invoke(hx_recover_callable_0(make()))
+	invoke(hx_recover_callable_d9d0d490(make()))
 }
 
 func make() *hxrt.Function[func(any) int] {
@@ -34,7 +34,7 @@ func make() *hxrt.Function[func(any) int] {
 	})
 }
 
-func hx_recover_callable_0(value any) *hxrt.Function[func(any)] {
+func hx_recover_callable_d9d0d490(value any) *hxrt.Function[func(any)] {
 	if value == nil {
 		return nil
 	}

@@ -62,14 +62,14 @@ func main() {
 		})
 	}(New_Box())
 	var v any = any((func() any {
-		var hx_callable_3 *hxrt.Function[func(int) any] = hx_recover_callable_0(hxrt.AnonymousGet(view, "read"))
+		var hx_callable_3 *hxrt.Function[func(int) any] = hx_recover_callable_5264ca87(hxrt.AnonymousGet(view, "read"))
 		var hx_argument_4 int = 1
 		return hxrt.FunctionCall(hx_callable_3)(hx_argument_4)
 	}() == nil))
 	hxrt.Println(v)
 }
 
-func hx_recover_callable_0(value any) *hxrt.Function[func(int) any] {
+func hx_recover_callable_5264ca87(value any) *hxrt.Function[func(int) any] {
 	if value == nil {
 		return nil
 	}

@@ -23,7 +23,7 @@ func connectAndPrint(server *sys__ssl__Socket, port int, hostname *string) {
 	peer := client.__hx_this.peerCertificate()
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hostname, hxrt.StringFromLiteral("=")), peer.__hx_this.get_commonName()))
 	hxrt.Println(v)
-	hx_recover_class_0(acceptedSockets.__hx_this.pop(true)).__hx_this.close()
+	hx_recover_class_sys__net__Socket(acceptedSockets.__hx_this.pop(true)).__hx_this.close()
 	client.__hx_this.close()
 }
 
@@ -58,22 +58,7 @@ func main() {
 	server.__hx_this.close()
 }
 
-func hx_recover_class_0(value any) *sys__net__Socket {
-	value = hxrt.ObjectSource(value)
-	if value == nil {
-		return nil
-	}
-	switch source := value.(type) {
-	case *sys__ssl__Socket:
-		return source.sys__net__Socket
-	case *sys__net__Socket:
-		return source
-	default:
-		return value.(*sys__net__Socket)
-	}
-}
-
-func hx_recover_class_1(value any) *haxe__Exception {
+func hx_recover_class_haxe__Exception(value any) *haxe__Exception {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil
@@ -94,20 +79,7 @@ func hx_recover_class_1(value any) *haxe__Exception {
 	}
 }
 
-func hx_recover_class_2(value any) *haxe__io__Eof {
-	value = hxrt.ObjectSource(value)
-	if value == nil {
-		return nil
-	}
-	switch source := value.(type) {
-	case *haxe__io__Eof:
-		return source
-	default:
-		return value.(*haxe__io__Eof)
-	}
-}
-
-func hx_recover_class_3(value any) *haxe__ValueException {
+func hx_recover_class_haxe__ValueException(value any) *haxe__ValueException {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil
@@ -120,7 +92,7 @@ func hx_recover_class_3(value any) *haxe__ValueException {
 	}
 }
 
-func hx_recover_class_4(value any) *haxe__ds___List__GoListIterator {
+func hx_recover_class_haxe__ds___List__GoListIterator(value any) *haxe__ds___List__GoListIterator {
 	value = hxrt.ObjectSource(value)
 	if value == nil {
 		return nil
@@ -133,27 +105,35 @@ func hx_recover_class_4(value any) *haxe__ds___List__GoListIterator {
 	}
 }
 
-func hx_is_nominal_0(value any) bool {
+func hx_recover_class_haxe__io__Eof(value any) *haxe__io__Eof {
 	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
 	switch source := value.(type) {
 	case *haxe__io__Eof:
-		return (source != nil)
+		return source
 	default:
-		return false
+		return value.(*haxe__io__Eof)
 	}
 }
 
-func hx_is_nominal_1(value any) bool {
+func hx_recover_class_sys__net__Socket(value any) *sys__net__Socket {
 	value = hxrt.ObjectSource(value)
+	if value == nil {
+		return nil
+	}
 	switch source := value.(type) {
-	case *haxe__ValueException:
-		return (source != nil)
+	case *sys__ssl__Socket:
+		return source.sys__net__Socket
+	case *sys__net__Socket:
+		return source
 	default:
-		return false
+		return value.(*sys__net__Socket)
 	}
 }
 
-func hx_is_nominal_2(value any) bool {
+func hx_is_nominal_haxe__Exception(value any) bool {
 	value = hxrt.ObjectSource(value)
 	switch source := value.(type) {
 	case *sys__thread__NoEventLoopException:
@@ -165,6 +145,26 @@ func hx_is_nominal_2(value any) bool {
 	case *haxe__exceptions__NotImplementedException:
 		return (source != nil)
 	case *haxe__exceptions__PosException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_haxe__ValueException(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__ValueException:
+		return (source != nil)
+	default:
+		return false
+	}
+}
+
+func hx_is_nominal_haxe__io__Eof(value any) bool {
+	value = hxrt.ObjectSource(value)
+	switch source := value.(type) {
+	case *haxe__io__Eof:
 		return (source != nil)
 	default:
 		return false
