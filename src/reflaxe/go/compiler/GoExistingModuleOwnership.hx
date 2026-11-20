@@ -2,7 +2,6 @@ package reflaxe.go.compiler;
 
 #if (macro || eval)
 import haxe.Json;
-import haxe.crypto.Sha256;
 import haxe.io.Bytes;
 import haxe.io.Path;
 import reflaxe.go.compiler.GoGeneratedOutputBoundary.GoOutputPathError;
@@ -74,14 +73,19 @@ class GoExistingModuleOwnershipSnapshot {
 		return owned != null && owned.path != path;
 	}
 
-	/** Return true only when the record owns the path and its current bytes. */
-	public function ownsCurrent(path:String, boundary:GoGeneratedOutputBoundary):Bool {
+	/**
+		Return true only when the record owns the path and its current bytes.
+
+		`digests` hashes the bytes read now; it reuses a digest only for
+		byte-identical content, so the decision is the same as hashing directly.
+	**/
+	public function ownsCurrent(path:String, boundary:GoGeneratedOutputBoundary, digests:GoContentDigestMemo):Bool {
 		final owned = record(path);
 		if (owned == null) {
 			return false;
 		}
 		final current = boundary.readBytes(path);
-		return current != null && GoExistingModuleOwnership.digest(current) == owned.sha256;
+		return current != null && digests.digest(path, current) == owned.sha256;
 	}
 }
 
@@ -258,8 +262,9 @@ class GoExistingModuleOwnership {
 		return manifestRelative != null && key == pathKey(manifestRelative);
 	}
 
+	/** Return the lowercase hex SHA-256 digest stored in ownership records. */
 	public static inline function digest(bytes:Bytes):String {
-		return Sha256.make(bytes).toHex();
+		return GoSha256.hex(bytes);
 	}
 
 	public static inline function pathKey(path:String):String {

@@ -22,6 +22,7 @@ import reflaxe.go.compiler.GoRuntimeCapabilityManifest.GoRuntimeCapabilityManife
 import reflaxe.go.compiler.GoRuntimeCapabilityManifest.GoRuntimeCapabilitySelection;
 import reflaxe.go.compiler.GoAutoLoweringModeTools;
 import reflaxe.go.compiler.GoBuildContextResolver;
+import reflaxe.go.compiler.GoContentDigestMemo;
 import reflaxe.go.compiler.GoExistingModuleOutputPlan;
 import reflaxe.go.compiler.GoExistingModuleOutputTransaction;
 import reflaxe.go.compiler.GoGeneratedOutputBoundary;
@@ -249,6 +250,10 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 	var lastRuntimePlan:Null<GoRuntimeCapabilityManifestSnapshot> = null;
 	var outputBoundary:Null<GoGeneratedOutputBoundary> = null;
 	var existingModuleOutputPlan:Null<GoExistingModuleOutputPlan> = null;
+
+	/** SHA-256 digests of exact file bytes, shared by every ownership check in one compile. */
+	var contentDigests:GoContentDigestMemo = new GoContentDigestMemo();
+
 	var projectMode:GoProjectMode = GoProjectMode.Standalone;
 	var moduleFileGuard:Null<GoModuleFileGuard> = null;
 	var typeUsageLedger:GoTypeUsageLedger = new GoTypeUsageLedger();
@@ -272,13 +277,14 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		lastRuntimePlan = null;
 		outputBoundary = null;
 		existingModuleOutputPlan = null;
+		contentDigests = new GoContentDigestMemo();
 		projectMode = GoProjectMode.Standalone;
 		moduleFileGuard = null;
 		typeUsageLedger = new GoTypeUsageLedger();
 		lastTypeUsageReport = GoTypeUsageLedger.emptySnapshot();
 		lastSurfaceContractReport = GoSurfaceContractRegistry.emptySnapshot();
 		try {
-			projectMode = GoProjectModeResolver.resolve();
+			projectMode = GoProjectModeResolver.resolve(contentDigests);
 		} catch (error:GoProjectModeError) {
 			Context.fatalError(error.message, Context.currentPos());
 			return;
@@ -473,12 +479,12 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 					moduleFileGuard = new GoModuleFileGuard(project.moduleRoot);
 					final boundary = new GoGeneratedOutputBoundary(configuredRoot, ["go.mod", "go.sum"]);
 					outputBoundary = boundary;
-					final plan = new GoExistingModuleOutputPlan(project, boundary);
+					final plan = new GoExistingModuleOutputPlan(project, boundary, contentDigests);
 					existingModuleOutputPlan = plan;
 					generateFilesManually();
 					collectExistingModuleExtraFiles(plan);
 					existingModuleOutputPlan = null;
-					new GoExistingModuleOutputTransaction(project, boundary).commit(plan);
+					new GoExistingModuleOutputTransaction(project, boundary, contentDigests).commit(plan);
 			}
 			if (moduleFileGuard != null) {
 				moduleFileGuard.verify();

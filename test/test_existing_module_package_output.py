@@ -106,6 +106,26 @@ def run_compiler(
     )
 
 
+def run_haxe_contract(main: str, *arguments: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [
+            shutil.which("haxe") or "haxe",
+            "-cp",
+            "src",
+            "-cp",
+            "test/compiler",
+            "--run",
+            main,
+            *arguments,
+        ],
+        cwd=ROOT,
+        env=haxe_env(),
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+
+
 def assert_module_files_unchanged(
     case: unittest.TestCase, module_root: Path, go_mod: bytes, go_sum: bytes
 ) -> None:
@@ -627,24 +647,106 @@ class Main {
             self.assertNotIn(str(module_root), output)
 
     def test_transaction_digest_memo_reuses_only_identical_bytes(self) -> None:
-        result = subprocess.run(
-            [
-                shutil.which("haxe") or "haxe",
-                "-cp",
-                "src",
-                "-cp",
-                "test/compiler",
-                "--run",
-                "GoContentDigestMemoContract",
-            ],
-            cwd=ROOT,
-            env=haxe_env(),
-            capture_output=True,
-            text=True,
-            timeout=120,
-        )
+        result = run_haxe_contract("GoContentDigestMemoContract")
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
         self.assertEqual("ok", result.stdout.strip())
+
+    def test_ownership_digest_is_standard_sha256(self) -> None:
+        result = run_haxe_contract("GoOwnershipDigestContract")
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertEqual("ok", result.stdout.strip())
+
+    def test_module_file_guard_rejects_any_byte_change(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="haxe-go-module-guard-") as raw:
+            result = run_haxe_contract("GoModuleFileGuardContract", raw)
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertEqual("ok", result.stdout.strip())
+
+    def test_compiler_main_rerun_decides_ownership_from_exact_digests(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="haxe-go-package-output-") as raw:
+            module_root = Path(raw)
+            go_mod, go_sum = write_module(module_root)
+            write_manifest(
+                module_root,
+                package_dir="cmd/generated",
+                package_name="main",
+                runtime_dir="internal/haxe_hxrt",
+                entrypoint={"kind": "compiler-main"},
+            )
+            package_dir = module_root / "cmd" / "generated"
+            ownership_path = package_dir / ".reflaxe-go-owned.json"
+
+            def assert_records_match_files() -> bytes:
+                manifest_bytes = ownership_path.read_bytes()
+                records = json.loads(manifest_bytes)["files"]
+                paths = [record["path"] for record in records]
+                self.assertTrue(
+                    any(path.startswith("cmd/generated/haxego_generated_") for path in paths)
+                )
+                self.assertTrue(any(path.startswith("internal/haxe_hxrt/") for path in paths))
+                for record in records:
+                    self.assertEqual(
+                        sha256((module_root / record["path"]).read_bytes()),
+                        record["sha256"],
+                        record["path"],
+                    )
+                return manifest_bytes
+
+            first = run_compiler(module_root, "cmd/generated")
+            self.assertEqual(0, first.returncode, first.stdout + first.stderr)
+            first_manifest = assert_records_match_files()
+
+            # Owned: unchanged generated files admit compiler-main again.
+            repeated = run_compiler(module_root, "cmd/generated")
+            self.assertEqual(0, repeated.returncode, repeated.stdout + repeated.stderr)
+            self.assertEqual(first_manifest, ownership_path.read_bytes())
+
+            # Modified: a same-length edit turns an owned file into a caller file.
+            target = generated_sources(package_dir)[0]
+            original = target.read_bytes()
+            replacement = b"x" if original[-2:-1] != b"x" else b"y"
+            modified = original[:-2] + replacement + original[-1:]
+            self.assertEqual(len(original), len(modified))
+            target.write_bytes(modified)
+            rejected = run_compiler(module_root, "cmd/generated")
+            output = rejected.stdout + rejected.stderr
+            self.assertNotEqual(0, rejected.returncode, output)
+            self.assertIn("GO-ENTRYPOINT-OWNERSHIP", output)
+            self.assertEqual(modified, target.read_bytes())
+            self.assertEqual(first_manifest, ownership_path.read_bytes())
+            target.write_bytes(original)
+
+            # Foreign: an unrecorded Go file beside owned files is caller-owned.
+            helper = package_dir / "helper.go"
+            helper_source = b"package main\n\nconst CallerOwned = true\n"
+            helper.write_bytes(helper_source)
+            foreign = run_compiler(module_root, "cmd/generated")
+            output = foreign.stdout + foreign.stderr
+            self.assertNotEqual(0, foreign.returncode, output)
+            self.assertIn("GO-ENTRYPOINT-OWNERSHIP", output)
+            self.assertEqual(helper_source, helper.read_bytes())
+            self.assertEqual(original, target.read_bytes())
+            helper.unlink()
+
+            # Restored bytes are owned again, and a regenerated file with the same
+            # length but different bytes gets a freshly computed digest.
+            main_source = module_root / "Main.hx"
+            main_text = main_source.read_text(encoding="utf-8")
+            self.assertIn('"bridge ran"', main_text)
+            main_source.write_text(
+                main_text.replace('"bridge ran"', '"bridge RAN"'), encoding="utf-8"
+            )
+            changed = run_compiler(module_root, "cmd/generated")
+            self.assertEqual(0, changed.returncode, changed.stdout + changed.stderr)
+            changed_manifest = assert_records_match_files()
+            self.assertNotEqual(first_manifest, changed_manifest)
+            generated_text = "\n".join(
+                path.read_text(encoding="utf-8") for path in generated_sources(package_dir)
+            )
+            self.assertIn("bridge RAN", generated_text)
+            self.assertNotIn("bridge ran", generated_text)
+            assert_module_files_unchanged(self, module_root, go_mod, go_sum)
+            self.assertNotIn(str(module_root), output)
 
     def test_rerun_rejects_a_caller_modified_generated_file(self) -> None:
         with tempfile.TemporaryDirectory(prefix="haxe-go-package-output-") as raw:

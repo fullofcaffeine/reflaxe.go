@@ -18,10 +18,12 @@ import sys.io.File;
 	The scanner reads only the required leading `package` clause. It skips Go
 	comments without trying to model declarations or infer symbol ownership.
 	Compiler-owned `main` is admitted only for an empty directory or for a rerun
-	whose Go sources have exact digests in the package ownership record.
+	whose Go sources have exact digests in the package ownership record. Those
+	digests go into the compile's shared `GoContentDigestMemo`, so the output plan
+	and transaction do not hash the same unchanged files again.
 **/
 class GoPackageDirectoryInspector {
-	public static function validate(project:ExistingGoModuleProject, boundary:GoGeneratedOutputBoundary):Void {
+	public static function validate(project:ExistingGoModuleProject, boundary:GoGeneratedOutputBoundary, digests:GoContentDigestMemo):Void {
 		final directory = Path.join([project.moduleRoot, project.packageDir.value()]);
 		if (!FileSystem.exists(directory)) {
 			return;
@@ -39,7 +41,7 @@ class GoPackageDirectoryInspector {
 		final ownership = GoExistingModuleOwnership.load(project, boundary);
 		final callerGoFiles = [
 			for (name in goFiles)
-				if (!ownership.ownsCurrent(project.generatedSourcePath(name), boundary)) name
+				if (!ownership.ownsCurrent(project.generatedSourcePath(name), boundary, digests)) name
 		];
 
 		for (name in goFiles) {

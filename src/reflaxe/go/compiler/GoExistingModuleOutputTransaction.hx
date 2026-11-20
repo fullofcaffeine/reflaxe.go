@@ -44,8 +44,10 @@ private typedef RawGoOutputTransactionJournal = {
 	new commit, `recover` either rolls back a pre-commit interruption or verifies
 	a manifest-last commit and removes its control files. Unknown bytes, links, or
 	malformed control data stop without deleting evidence. Owned-file digest checks
-	share one `GoContentDigestMemo`, so each exact content is hashed at most once
-	per transaction while every check still reads the current bytes.
+	use the compile's shared `GoContentDigestMemo`, which already holds the
+	digests of the package inspector's owned files and of every planned artifact.
+	Each exact content is therefore hashed at most once per compile, while every
+	check still reads the current bytes.
 **/
 class GoExistingModuleOutputTransaction {
 	static inline final JOURNAL_SCHEMA_VERSION = 1;
@@ -53,20 +55,18 @@ class GoExistingModuleOutputTransaction {
 
 	final project:ExistingGoModuleProject;
 	final boundary:GoGeneratedOutputBoundary;
-	final digests = new GoContentDigestMemo();
+	final digests:GoContentDigestMemo;
 
-	public function new(project:ExistingGoModuleProject, boundary:GoGeneratedOutputBoundary) {
+	public function new(project:ExistingGoModuleProject, boundary:GoGeneratedOutputBoundary, digests:GoContentDigestMemo) {
 		this.project = project;
 		this.boundary = boundary;
+		this.digests = digests;
 	}
 
+	/** Commit `plan`, whose artifact digests were computed through this transaction's memo. */
 	public function commit(plan:GoExistingModuleOutputPlan):Void {
 		recover();
 		final artifacts = plan.artifacts();
-		// The plan hashed each artifact's exact bytes; unchanged files on disk reuse it.
-		for (artifact in artifacts) {
-			digests.seed(artifact.path, artifact.bytes, artifact.sha256);
-		}
 		final oldOwnership = GoExistingModuleOwnership.load(project, boundary);
 		verifySnapshot(oldOwnership, "a previously owned generated file changed");
 		validateRuntimeDirectoryOwnership(oldOwnership);

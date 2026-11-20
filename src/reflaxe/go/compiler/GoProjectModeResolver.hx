@@ -64,14 +64,21 @@ class GoProjectModeResolver {
 		"build"
 	];
 
-	public static function resolve():GoProjectMode {
+	/**
+		Resolve the project mode for this compile.
+
+		`digests` is the compile's shared content-digest memo. Existing-module
+		recovery and package inspection hash owned files through it, so the later
+		output plan and transaction reuse those digests for unchanged bytes.
+	**/
+	public static function resolve(digests:GoContentDigestMemo):GoProjectMode {
 		final manifestDefine = Context.definedValue(GoCompilerDefine.DefineGoProject);
 		if (manifestDefine == null || StringTools.trim(manifestDefine) == "") {
 			return Standalone;
 		}
 
 		try {
-			return ExistingModule(parseManifest(StringTools.trim(manifestDefine)));
+			return ExistingModule(parseManifest(StringTools.trim(manifestDefine), digests));
 		} catch (error:GoProjectModeError) {
 			throw error;
 		} catch (error:GoOutputPathError) {
@@ -81,7 +88,7 @@ class GoProjectModeResolver {
 		}
 	}
 
-	static function parseManifest(configuredPath:String):ExistingGoModuleProject {
+	static function parseManifest(configuredPath:String, digests:GoContentDigestMemo):ExistingGoModuleProject {
 		final manifestPath = canonicalRegularFile(configuredPath, InvalidManifest, "the project manifest is not a regular file");
 		final raw:RawProjectManifest = try {
 			Json.parse(File.getContent(manifestPath));
@@ -162,9 +169,9 @@ class GoProjectModeResolver {
 		});
 		final moduleGuard = new GoModuleFileGuard(moduleRoot);
 		final boundary = new GoGeneratedOutputBoundary(moduleRoot, ["go.mod", "go.sum"]);
-		new GoExistingModuleOutputTransaction(project, boundary).recover();
+		new GoExistingModuleOutputTransaction(project, boundary, digests).recover();
 		moduleGuard.verify();
-		GoPackageDirectoryInspector.validate(project, boundary);
+		GoPackageDirectoryInspector.validate(project, boundary, digests);
 		return project;
 	}
 

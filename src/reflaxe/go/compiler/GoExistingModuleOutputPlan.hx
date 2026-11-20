@@ -30,15 +30,20 @@ typedef GoExistingModuleArtifact = {
 	How
 	The compiler routes its ordinary emission helpers into this plan. The output
 	transaction receives one sorted immutable copy after collection completes.
+	Artifact digests come from the compile's shared `GoContentDigestMemo`: an
+	artifact whose bytes equal the owned file the package inspector already
+	hashed reuses that digest, and the transaction later reuses the plan's.
 **/
 class GoExistingModuleOutputPlan {
 	final project:ExistingGoModuleProject;
 	final boundary:GoGeneratedOutputBoundary;
+	final digests:GoContentDigestMemo;
 	final artifactsByPath:Map<String, GoExistingModuleArtifact> = [];
 
-	public function new(project:ExistingGoModuleProject, boundary:GoGeneratedOutputBoundary) {
+	public function new(project:ExistingGoModuleProject, boundary:GoGeneratedOutputBoundary, digests:GoContentDigestMemo) {
 		this.project = project;
 		this.boundary = boundary;
+		this.digests = digests;
 	}
 
 	public function add(path:String, content:StringOrBytes):Void {
@@ -63,7 +68,7 @@ class GoExistingModuleOutputPlan {
 		artifactsByPath.set(key, {
 			path: relative,
 			bytes: bytes,
-			sha256: GoExistingModuleOwnership.digest(bytes)
+			sha256: digests.digest(relative, bytes)
 		});
 	}
 

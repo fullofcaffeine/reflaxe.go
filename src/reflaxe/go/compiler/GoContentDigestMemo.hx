@@ -10,14 +10,15 @@ private typedef GoContentDigestEntry = {
 }
 
 /**
-	Remembers SHA-256 digests of exact file contents for one output transaction.
+	Remembers SHA-256 digests of exact file contents for one existing-module compile.
 
 	Why
-	An existing-module commit checks ownership by hashing the same files several
-	times: old owned files before staging, replaced destinations, backups, and the
-	newly installed files. The compiler hashes in interpreted Haxe, so on a large
-	program these repeated passes cost more time than formatting every generated
-	file with `gofmt`.
+	An existing-module compile checks ownership by hashing the same files several
+	times: the package inspector hashes owned sources before compilation, the
+	output plan hashes every artifact, and the commit hashes old owned files,
+	replaced destinations, backups, and the newly installed files. The compiler
+	hashes in interpreted Haxe, so on a large program these repeated passes cost
+	more time than formatting every generated file with `gofmt`.
 
 	What
 	`digest` always returns `GoExistingModuleOwnership.digest(bytes)`. A known
@@ -30,7 +31,10 @@ private typedef GoContentDigestEntry = {
 	with each remembered entry of the same length through native `Bytes.compare`.
 	A miss hashes the bytes and remembers a private copy, so later edits to a
 	caller's buffer cannot change what an entry describes. `seed` records a digest
-	that the output plan already computed from exactly those bytes.
+	that a caller already computed from exactly those bytes.
+
+	`GoReflaxeCompiler` creates one memo per compile and hands it to project-mode
+	recovery, the package inspector, the output plan, and the output transaction.
 **/
 class GoContentDigestMemo {
 	final entriesByPath:Map<String, Array<GoContentDigestEntry>> = [];
