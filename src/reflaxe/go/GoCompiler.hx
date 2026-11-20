@@ -3392,7 +3392,7 @@ class GoCompiler {
 						haxeResourceContentLiteral();
 					} else {
 						var valueExpr = field.expr();
-						valueExpr == null ? null : materializeExprWithPrefix(lowerStoredExprWithExpectedType(valueExpr, field.type), field.type).expr;
+						valueExpr == null ? null : lowerStaticInitializer(valueExpr, field.type);
 					}
 					decls.push(GoDecl.GoGlobalVarDecl(symbol, scalarGoType(field.type), loweredValue));
 				case FMethod(MethDynamic):
@@ -3400,8 +3400,7 @@ class GoCompiler {
 					// instance counterparts. A named Go function is not assignable and
 					// breaks APIs such as haxe.Log.trace rebinding.
 					var valueExpr = field.expr();
-					var loweredValue = valueExpr == null ? null : materializeExprWithPrefix(lowerStoredExprWithExpectedType(valueExpr, field.type),
-						field.type).expr;
+					var loweredValue = valueExpr == null ? null : lowerStaticInitializer(valueExpr, field.type);
 					decls.push(GoDecl.GoGlobalVarDecl(symbol, scalarGoType(field.type), loweredValue));
 				case FMethod(_):
 					var func = unwrapFunction(field.expr());
@@ -3412,6 +3411,28 @@ class GoCompiler {
 		}
 
 		return decls;
+	}
+
+	/**
+		What: Lowers one static (or module-level) field initializer in its own local scope.
+
+		Why: An initializer that needs statements becomes a Go function literal that runs
+		once (`var x T = func() T { ... }()`), so its Haxe locals need unique Go names just
+		like a function body. The Haxe typer unrolls `for (v in [a, b])` into one block per
+		element, each declaring its own `v`, and nested blocks share one Go scope. Without a
+		scope `localVarName` returned the bare name for every copy, and Go rejected the
+		repeated `v := ...` with "no new variables on left side of :=".
+
+		How: Push the per-function naming scope (`pushFunctionVarNameScope`) that every
+		function declaration and literal uses for the duration of the lowering, so repeated
+		names become `v`, `v_1`, ... and each closure created in the loop captures its own
+		iteration's variable.
+	**/
+	function lowerStaticInitializer(valueExpr:TypedExpr, fieldType:Type):GoExpr {
+		pushFunctionVarNameScope();
+		var lowered = materializeExprWithPrefix(lowerStoredExprWithExpectedType(valueExpr, fieldType), fieldType).expr;
+		popFunctionVarNameScope();
+		return lowered;
 	}
 
 	function lowerInterfaceDecls(classType:ClassType):Array<GoDecl> {

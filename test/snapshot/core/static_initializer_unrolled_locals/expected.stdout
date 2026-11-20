@@ -1,0 +1,6 @@
+module=a:text
+module=b:text
+nested=1p,1q,2p,2q
+getters=first,second
+mutated=11,12
+shadowed=left+right
