@@ -364,6 +364,9 @@ class GoCompiler {
 	/** Keyed by module path; see `instanceMemberDeclarations`. */
 	final buildConstraintEntriesByModule:Map<String, Array<Array<MetadataEntry>>>;
 
+	/** Compiled symbol-scan patterns keyed by pattern source; see `symbolPattern`. */
+	final symbolPatterns:Map<String, EReg>;
+
 	final generatedMethodMetadataByClassName:Map<String, GeneratedMethodMetadataSeed>;
 	final generatedFieldMetadataByClassName:Map<String, GeneratedFieldMetadataSeed>;
 	var generatedMethodMetadataPlan:Array<GeneratedMethodClassMetadata>;
@@ -442,6 +445,7 @@ class GoCompiler {
 		instanceMemberDeclarations = new Map<String, Bool>();
 		optionalArgumentMethods = new Map<String, Bool>();
 		buildConstraintEntriesByModule = new Map<String, Array<Array<MetadataEntry>>>();
+		symbolPatterns = new Map<String, EReg>();
 		generatedMethodMetadataByClassName = new Map<String, GeneratedMethodMetadataSeed>();
 		generatedFieldMetadataByClassName = new Map<String, GeneratedFieldMetadataSeed>();
 		generatedMethodMetadataPlan = [];
@@ -1520,7 +1524,30 @@ class GoCompiler {
 		if (alias.indexOf(".") >= 0) {
 			return rawCodeUsesQualifiedSymbol(code, alias);
 		}
-		return new EReg("\\b" + EReg.escape(alias) + "\\s*\\.", "").match(code);
+		// The pattern can only match where the alias text occurs.
+		if (code.indexOf(alias) < 0) {
+			return false;
+		}
+		return symbolPattern("\\b" + EReg.escape(alias) + "\\s*\\.").match(code);
+	}
+
+	/**
+		What: Returns the compiled regular expression for one symbol-scan pattern.
+		Why: Import filtering and runtime-feature detection test every identifier
+		and raw Go snippet against each candidate package or symbol. Building a new
+		`EReg` for each test compiled the same few patterns millions of times.
+		How: Keep one compiled `EReg` per pattern text for this compilation. The
+		key is the exact pattern source, and these patterns use no flags, so a
+		reused `EReg` matches exactly like a new one.
+	**/
+	function symbolPattern(source:String):EReg {
+		final cached = symbolPatterns.get(source);
+		if (cached != null) {
+			return cached;
+		}
+		final pattern = new EReg(source, "");
+		symbolPatterns.set(source, pattern);
+		return pattern;
 	}
 
 	function selectorMatchesQualifiedSymbol(target:GoExpr, field:String, symbol:String):Bool {
@@ -1540,7 +1567,11 @@ class GoCompiler {
 		}
 		var packageName = symbol.substr(0, separator);
 		var memberName = symbol.substr(separator + 1);
-		return new EReg("\\b" + EReg.escape(packageName) + "\\s*\\.\\s*" + EReg.escape(memberName) + "\\b", "").match(code);
+		// The pattern can only match where both names occur.
+		if (code.indexOf(memberName) < 0 || code.indexOf(packageName) < 0) {
+			return false;
+		}
+		return symbolPattern("\\b" + EReg.escape(packageName) + "\\s*\\.\\s*" + EReg.escape(memberName) + "\\b").match(code);
 	}
 
 	function collectProjectClasses(types:Array<ModuleType>):Array<ClassType> {
