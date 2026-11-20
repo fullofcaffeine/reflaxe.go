@@ -7951,23 +7951,13 @@ class GoCompiler {
 		for (index in 0...args.length) {
 			var arg = args[index];
 			var paramType = callParamType(callee.t, index);
-			var emittedParamType = emittedCallParamType(callee, index);
-			var nullablePrimitiveArg = paramType != null
-				&& isNullablePrimitiveType(paramType) ? lowerNullablePrimitiveStorageExpr(arg) : null;
-			var loweredArg = nullablePrimitiveArg == null ? (paramType == null ? lowerCallArgExpr(arg) : lowerCallArgExprForExpectedType(arg,
-				paramType)) : nullablePrimitiveArg;
-			if (paramType != null) {
-				loweredArg = upcastIfNeeded(loweredArg, arg.t, paramType, arg);
-				if (!isNullablePrimitiveType(paramType)) {
-					var argKnownNonNullPrimitive = nonNullPrimitiveExprGoType(arg) != null;
-					if (!argKnownNonNullPrimitive && isSharedArrayElementExpr(arg)) {
-						loweredArg = coerceStoredArrayElementExpr(loweredArg, paramType);
-					} else {
-						loweredArg = coerceAnyExprToType(loweredArg, arg.t, paramType, !argKnownNonNullPrimitive && (exprBackedByAny(arg)
-							|| shouldForceAnyCoerce(arg.t, paramType)));
-					}
-				}
+			var variadicPack = lowerExternVariadicRestArg(callee, arg, paramType, index);
+			if (variadicPack != null) {
+				loweredArgs.push(variadicPack);
+				continue;
 			}
+			var emittedParamType = emittedCallParamType(callee, index);
+			var loweredArg = lowerCallArgForParamType(arg, paramType);
 			// Generated Haxe generic parameters erase to their declared storage. Imported
 			// Go generics instead infer the applied native signature; erasing first would
 			// feed a different callback type into the native export adapter below.
@@ -7979,7 +7969,6 @@ class GoCompiler {
 					emittedParamType) : adaptErasedFunctionCallArg(loweredArg, loweredArgType, emittedParamType);
 			}
 			loweredArg = normalizeExternCallArg(callee, loweredArg, paramType, index);
-			loweredArg = normalizeExternVariadicRestArg(callee, arg, loweredArg, index);
 			loweredArgs.push(loweredArg);
 		}
 		var functionInfo = resolveFunctionInfo(callee);
@@ -9003,6 +8992,35 @@ class GoCompiler {
 		}
 		body.push(GoStmt.GoReturn(GoExpr.GoNil));
 		return GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["any"], body), []);
+	}
+
+	/**
+		What: Lowers one call argument and adapts it to the Haxe type of the
+		parameter that receives it.
+		Why: Ordinary arguments and the values packed into an imported extern's
+		`Rest<T>` must cross the same boundary: nullable storage, upcasts, and
+		recovery from `any` all depend on the receiving type, not on the argument.
+		How: Keep nullable primitive storage when the parameter is nullable, lower
+		the value against callable expectations, then upcast and coerce it to the
+		parameter type. A null parameter type leaves the plain lowering unchanged.
+	**/
+	function lowerCallArgForParamType(arg:TypedExpr, paramType:Null<Type>):GoExpr {
+		var nullablePrimitiveArg = paramType != null && isNullablePrimitiveType(paramType) ? lowerNullablePrimitiveStorageExpr(arg) : null;
+		var loweredArg = nullablePrimitiveArg == null ? (paramType == null ? lowerCallArgExpr(arg) : lowerCallArgExprForExpectedType(arg,
+			paramType)) : nullablePrimitiveArg;
+		if (paramType != null) {
+			loweredArg = upcastIfNeeded(loweredArg, arg.t, paramType, arg);
+			if (!isNullablePrimitiveType(paramType)) {
+				var argKnownNonNullPrimitive = nonNullPrimitiveExprGoType(arg) != null;
+				if (!argKnownNonNullPrimitive && isSharedArrayElementExpr(arg)) {
+					loweredArg = coerceStoredArrayElementExpr(loweredArg, paramType);
+				} else {
+					loweredArg = coerceAnyExprToType(loweredArg, arg.t, paramType, !argKnownNonNullPrimitive && (exprBackedByAny(arg)
+						|| shouldForceAnyCoerce(arg.t, paramType)));
+				}
+			}
+		}
+		return loweredArg;
 	}
 
 	/**
@@ -10595,38 +10613,59 @@ class GoCompiler {
 	}
 
 	/**
-		What: Preserves Go's variadic ABI for imported externs declared with `Rest<T>`.
-		Why: Haxe types a variadic call as one packed slice. An erased `[]any` pack
-		cannot satisfy an imported Go method that requires `...T` for concrete `T`.
-		How: Rebuild the typer-owned pack using the declared `Rest<T>` element and
-		native boundary values; the call node expands that slice with Go's `...`.
+		What: Lowers the final argument of an imported Go extern declared with
+		`Rest<T>` into the exact slice that Go's `...T` parameter accepts.
+		Why: Haxe types a variadic call as one packed `Rest<T>` value, and that
+		value's Go carrier holds Haxe element storage, such as `[]*string` for
+		`String`. Go requires a slice of the declared native element instead. The
+		typer packs simple values directly, but a nested call makes it hoist the
+		literal into a temporary first, and a spread passes an existing Array.
+		Handling only the direct literal left those calls with the Haxe storage
+		slice, which Go rejects (`[]*string` is not `[]string`).
+		How: For a direct or hoisted literal pack, lower each value as an ordinary
+		argument of the declared element type and build the native slice literal;
+		Go evaluates its elements left to right, as Haxe evaluated the pack. For
+		any other packed value, lower it normally and copy a Haxe string slice into
+		`[]string`; other element types already store their native Go value.
+		Returns null for every argument that is not such a final `Rest<T>`.
 	**/
-	function normalizeExternVariadicRestArg(callee:TypedExpr, source:TypedExpr, lowered:GoExpr, paramIndex:Int):GoExpr {
+	function lowerExternVariadicRestArg(callee:TypedExpr, source:TypedExpr, paramType:Null<Type>, paramIndex:Int):Null<GoExpr> {
 		if (!isImportedExternVariadicCall(callee)) {
-			return lowered;
+			return null;
 		}
 		final parameters = externCallParameters(callee);
 		if (paramIndex != parameters.length - 1) {
-			return lowered;
-		}
-		final values = restPackValues(source);
-		if (values == null) {
-			return lowered;
+			return null;
 		}
 		final elementType = restElementType(parameters[paramIndex].t);
 		if (elementType == null) {
-			return lowered;
+			return null;
+		}
+		final values = restPackValues(source);
+		if (values == null) {
+			final packed = normalizeExternCallArg(callee, lowerCallArgForParamType(source, paramType), paramType, paramIndex);
+			return isStringType(elementType) ? GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringSlice"), [packed]) : packed;
 		}
 		final elementGoType = isStringType(elementType) ? "string" : scalarGoType(elementType);
 		return GoExpr.GoCompositeLiteral(GoType.slice(GoType.parse(elementGoType)), [
 			for (value in values)
-				GoCompositeElement.GoCompositeValue(normalizeExternVariadicValue(value))
+				GoCompositeElement.GoCompositeValue(lowerExternVariadicValue(callee, value, elementType, elementGoType, paramIndex))
 		]);
 	}
 
-	function normalizeExternVariadicValue(value:TypedExpr):GoExpr {
-		final lowered = lowerExpr(value).expr;
-		if (isStringType(value.t)) {
+	/**
+		What: Lowers one value of a variadic pack to the declared native element.
+		Why: A packed value can be narrower than the element, such as an abstract
+		over `String` returned by a nested call, so converting by the value's own
+		type left Haxe string pointers inside a Go `[]string`. Erased `...any`
+		parameters still need Haxe strings as Go string values.
+		How: Treat the declared element as this value's parameter type, reusing the
+		ordinary argument conversion. For an erased element, also project any Haxe
+		string carrier to its Go string value.
+	**/
+	function lowerExternVariadicValue(callee:TypedExpr, value:TypedExpr, elementType:Type, elementGoType:String, paramIndex:Int):GoExpr {
+		final lowered = normalizeExternCallArg(callee, lowerCallArgForParamType(value, elementType), elementType, paramIndex);
+		if (elementGoType == "any" && isStringCarrierType(value.t)) {
 			return GoExpr.GoUnary(GoUnaryOperator.Dereference, GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [lowered]));
 		}
 		return lowered;
@@ -10645,23 +10684,67 @@ class GoCompiler {
 		return typedFunctionArgs(field == null ? callee.t : field.type);
 	}
 
+	/**
+		What: Returns the values of the array literal that the typer packed into a
+		`Rest<T>` argument, or null when the argument is not such a literal.
+		Why: `haxe.Rest.of` inlines to `{var this1; this1 = [a, b]; this1}` for
+		simple values. When a value is a call, the inliner first binds the literal
+		to a temporary: `{var array = [a, f()]; var this1; this1 = array; this1}`.
+		Both forms evaluate exactly the literal's values, in order.
+		How: Accept only declarations, the one assignment, and the final read. The
+		assigned value is the literal itself or the temporary bound to it. Any other
+		statement may have effects, so return null and keep the packed value.
+	**/
 	function restPackValues(expr:TypedExpr):Null<Array<TypedExpr>> {
 		return switch expr.expr {
-			case TBlock(exprs):
+			case TBlock(exprs) if (exprs.length > 0):
+				final hoisted = new Map<Int, Array<TypedExpr>>();
 				var found:Null<Array<TypedExpr>> = null;
-				for (entry in exprs) {
+				for (index in 0...exprs.length - 1) {
+					final entry = exprs[index];
 					switch entry.expr {
-						case TBinop(OpAssign, _, right):
-							switch right.expr {
-								case TArrayDecl(values): found = values;
-								case _:
+						case TVar(_, null):
+						case TVar(temp, init):
+							final literal = arrayDeclValues(init);
+							if (literal == null) {
+								return null;
+							}
+							hoisted.set(temp.id, literal);
+						case TBinop(OpAssign, {expr: TLocal(_)}, right) if (found == null):
+							found = arrayDeclValues(right);
+							if (found == null) {
+								switch unwrapRestPackValue(right).expr {
+									case TLocal(temp) if (hoisted.exists(temp.id)):
+										found = hoisted.get(temp.id);
+									case _:
+										return null;
+								}
 							}
 						case _:
+							return null;
 					}
 				}
-				found;
+				switch unwrapRestPackValue(exprs[exprs.length - 1]).expr {
+					case TLocal(_): found;
+					case _: null;
+				}
 			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _): restPackValues(inner);
 			case _: null;
+		};
+	}
+
+	function arrayDeclValues(expr:TypedExpr):Null<Array<TypedExpr>> {
+		return switch unwrapRestPackValue(expr).expr {
+			case TArrayDecl(values): values;
+			case _: null;
+		};
+	}
+
+	/** Peels the compile-time wrappers the typer puts around a rest pack's values. */
+	function unwrapRestPackValue(expr:TypedExpr):TypedExpr {
+		return switch expr.expr {
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, null): unwrapRestPackValue(inner);
+			case _: expr;
 		};
 	}
 
