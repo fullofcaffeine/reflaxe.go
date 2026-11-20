@@ -111,7 +111,52 @@ class GoTypeMapperContract {
 		return GoTypeMapper.typeToGoType(type, classType -> classType.name, enumType -> enumType.name);
 	}
 
+	/** Class facts may be cached by `uniqueClassPath` only for module-level classes. */
+	static function checkClassKeysAndFieldNames():Void {
+		final classType = switch (Context.getType("GoTypeMapperContractFixture")) {
+			case TInst(ref, _): ref.get();
+			case _: null;
+		};
+		require(classType != null, "fixture class");
+		require(GoTypeMapper.uniqueClassPath(classType) == "GoTypeMapperContractFixture", "module class key");
+		for (param in classType.params)
+			switch (param.t) {
+				case TInst(ref, _):
+					require(GoTypeMapper.uniqueClassPath(ref.get()) == null, "class type parameter " + ref.toString() + " has a key");
+				case _:
+					require(false, "class type parameter shape");
+			}
+		var methodParameters = 0;
+		var fieldReads = 0;
+		for (field in classType.fields.get()) {
+			for (param in field.params)
+				switch (param.t) {
+					case TInst(ref, _):
+						methodParameters++;
+						require(GoTypeMapper.uniqueClassPath(ref.get()) == null, "method type parameter " + ref.toString() + " has a key");
+					case _:
+						require(false, "method type parameter shape");
+				}
+			final body = field.expr();
+			if (body == null)
+				continue;
+			function visit(expr:TypedExpr):Void {
+				switch (expr.expr) {
+					case TField(_, FInstance(_, _, ref) | FStatic(_, ref)):
+						fieldReads++;
+						require(GoTypeMapper.referencedFieldName(ref) == ref.get().name, "field reference prints " + ref.toString());
+					case _:
+				}
+				haxe.macro.TypedExprTools.iter(expr, visit);
+			}
+			visit(body);
+		}
+		require(methodParameters > 0, "fixture method type parameter");
+		require(fieldReads >= 2, "fixture instance and static field reads");
+	}
+
 	static function run():Void {
+		checkClassKeysAndFieldNames();
 		final fixture = fieldTypes("GoTypeMapperContractFixture");
 		final other = fieldTypes("GoTypeMapperContractOtherFixture");
 		final get = (types:Map<String, Type>, name:String) -> {

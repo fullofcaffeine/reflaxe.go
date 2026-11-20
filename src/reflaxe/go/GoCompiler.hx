@@ -345,6 +345,25 @@ class GoCompiler {
 	final requiredSourceOwnedClassNames:Map<String, Bool>;
 	final requiredNominalClassTypeNames:Map<String, Bool>;
 	final requiredEmbeddedSuperclassClassNames:Map<String, Bool>;
+
+	/**
+		What: Facts read from class and module declarations, remembered for this
+		compilation (one `GoCompiler` serves one compilation).
+		Why: Each fact needs a declaration's whole field list or every type of a
+		module, and Haxe rebuilds those as fresh macro values on every read. The
+		same questions repeat for every class and every recovery pass.
+		How: Keys name exactly one declaration: `GoTypeMapper.uniqueClassPath`
+		for classes (type parameters are never cached) and the module path for
+		modules. Declarations no longer change after typing.
+	**/
+	final instanceMemberDeclarations:Map<String, Bool>;
+
+	/** Keyed by `uniqueClassPath + "#" + methodName`; see `instanceMemberDeclarations`. */
+	final optionalArgumentMethods:Map<String, Bool>;
+
+	/** Keyed by module path; see `instanceMemberDeclarations`. */
+	final buildConstraintEntriesByModule:Map<String, Array<Array<MetadataEntry>>>;
+
 	final generatedMethodMetadataByClassName:Map<String, GeneratedMethodMetadataSeed>;
 	final generatedFieldMetadataByClassName:Map<String, GeneratedFieldMetadataSeed>;
 	var generatedMethodMetadataPlan:Array<GeneratedMethodClassMetadata>;
@@ -420,6 +439,9 @@ class GoCompiler {
 		requiredSourceOwnedClassNames = new Map<String, Bool>();
 		requiredNominalClassTypeNames = new Map<String, Bool>();
 		requiredEmbeddedSuperclassClassNames = new Map<String, Bool>();
+		instanceMemberDeclarations = new Map<String, Bool>();
+		optionalArgumentMethods = new Map<String, Bool>();
+		buildConstraintEntriesByModule = new Map<String, Array<Array<MetadataEntry>>>();
 		generatedMethodMetadataByClassName = new Map<String, GeneratedMethodMetadataSeed>();
 		generatedFieldMetadataByClassName = new Map<String, GeneratedFieldMetadataSeed>();
 		generatedMethodMetadataPlan = [];
@@ -859,14 +881,40 @@ class GoCompiler {
 
 	/** Resolve the complete module contract before admitting an immutable owner witness. */
 	function collectRecoveryModuleConstraint(moduleName:String, result:Map<String, GoBuildConstraint>, rendered:Map<String, String>):Void {
+		for (entries in moduleBuildConstraintEntries(moduleName))
+			collectModuleBuildConstraint(moduleName, entries, result, rendered);
+	}
+
+	/**
+		What: Lists the `@:goBuildConstraint` entries of each class and enum in a
+		module, in module order.
+		Why: Build constraints are collected again for every recovery pass and every
+		native type, and each pass would otherwise decode every type of the module.
+		How: Remember the filtered entries per module path for this compilation;
+		validation still runs on every use, so errors are reported unchanged.
+	**/
+	function moduleBuildConstraintEntries(moduleName:String):Array<Array<MetadataEntry>> {
+		final cached = buildConstraintEntriesByModule.get(moduleName);
+		if (cached != null)
+			return cached;
+		final perType = new Array<Array<MetadataEntry>>();
 		for (type in Context.getModule(moduleName))
 			switch (type) {
 				case TInst(ref, _):
-					collectModuleBuildConstraint(moduleName, ref.get().meta, result, rendered);
+					perType.push(buildConstraintEntries(ref.get().meta));
 				case TEnum(ref, _):
-					collectModuleBuildConstraint(moduleName, ref.get().meta, result, rendered);
+					perType.push(buildConstraintEntries(ref.get().meta));
 				case _:
 			}
+		buildConstraintEntriesByModule.set(moduleName, perType);
+		return perType;
+	}
+
+	function buildConstraintEntries(meta:MetaAccess):Array<MetadataEntry> {
+		return [
+			for (entry in meta.get())
+				if (GoMetadataName.GoBuildConstraintMetadata.matches(entry.name)) entry
+		];
 	}
 
 	function recoveryModuleSelection(moduleName:String):GoBuildConstraint {
@@ -893,11 +941,8 @@ class GoCompiler {
 			}
 	}
 
-	function collectModuleBuildConstraint(moduleName:String, meta:MetaAccess, result:Map<String, GoBuildConstraint>, rendered:Map<String, String>):Void {
-		final entries = [
-			for (entry in meta.get())
-				if (GoMetadataName.GoBuildConstraintMetadata.matches(entry.name)) entry
-		];
+	function collectModuleBuildConstraint(moduleName:String, entries:Array<MetadataEntry>, result:Map<String, GoBuildConstraint>,
+			rendered:Map<String, String>):Void {
 		if (entries.length == 0)
 			return;
 		if (entries.length != 1)
@@ -3846,19 +3891,8 @@ class GoCompiler {
 					return false;
 				}
 				visitedInterfaces.set(interfaceName, true);
-				for (field in interfaceType.fields.get()) {
-					if (field.name != methodName) {
-						continue;
-					}
-					switch (Context.follow(field.type)) {
-						case TFun(args, _):
-							for (arg in args) {
-								if (arg.opt) {
-									return true;
-								}
-							}
-						case _:
-					}
+				if (declaresOptionalArgumentMethod(interfaceType, methodName)) {
+					return true;
 				}
 				for (entry in interfaceType.interfaces) {
 					if (interfaceDeclaresCarrierMethod(entry.t.get())) {
@@ -3923,6 +3957,38 @@ class GoCompiler {
 			}
 		}
 		return false;
+	}
+
+	/** True when a class's own field `methodName` is a function with an optional argument. */
+	function declaresOptionalArgumentMethod(classType:ClassType, methodName:String):Bool {
+		final path = GoTypeMapper.uniqueClassPath(classType);
+		final key = path == null ? null : path + "#" + methodName;
+		if (key != null) {
+			final cached = optionalArgumentMethods.get(key);
+			if (cached != null)
+				return cached;
+		}
+		var declares = false;
+		for (field in classType.fields.get()) {
+			if (field.name != methodName) {
+				continue;
+			}
+			switch (Context.follow(field.type)) {
+				case TFun(args, _):
+					for (arg in args) {
+						if (arg.opt) {
+							declares = true;
+							break;
+						}
+					}
+				case _:
+			}
+			if (declares)
+				break;
+		}
+		if (key != null)
+			optionalArgumentMethods.set(key, declares);
+		return declares;
 	}
 
 	/**
@@ -6846,7 +6912,7 @@ class GoCompiler {
 			case TField(_, fieldAccess):
 				switch (fieldAccess) {
 					case FInstance(_, _, classField) | FStatic(_, classField) | FAnon(classField) | FClosure(_, classField):
-						classField.get().name == "__go__";
+						GoTypeMapper.referencedFieldName(classField) == "__go__";
 					case FEnum(_, enumField):
 						enumField.name == "__go__";
 					case FDynamic(name):
@@ -9788,18 +9854,35 @@ class GoCompiler {
 			return true;
 		}
 
-		for (field in classType.fields.get()) {
-			switch (field.kind) {
-				case FVar(_, _):
-					return true;
-				case FMethod(_):
-					if (field.name != "new") {
-						return true;
-					}
-			}
+		if (declaresInstanceMembers(classType)) {
+			return true;
 		}
 
 		return classType.constructor != null;
+	}
+
+	/** True when a class declares an instance variable or an instance method other than `new`. */
+	function declaresInstanceMembers(classType:ClassType):Bool {
+		final key = GoTypeMapper.uniqueClassPath(classType);
+		if (key != null) {
+			final cached = instanceMemberDeclarations.get(key);
+			if (cached != null)
+				return cached;
+		}
+		var declares = false;
+		for (field in classType.fields.get()) {
+			switch (field.kind) {
+				case FVar(_, _):
+					declares = true;
+				case FMethod(_):
+					declares = field.name != "new";
+			}
+			if (declares)
+				break;
+		}
+		if (key != null)
+			instanceMemberDeclarations.set(key, declares);
+		return declares;
 	}
 
 	/**
@@ -9819,8 +9902,8 @@ class GoCompiler {
 
 	function isStaticCall(callee:TypedExpr, className:String, classPack:Array<String>, fieldName:String):Bool {
 		return switch (callee.expr) {
-			case TField(_, FStatic(classRef, field)): var classType = classRef.get(); classType.name == className && classType.pack.join(".") == classPack.join(".") && field.get()
-					.name == fieldName;
+			case TField(_, FStatic(classRef, field)): GoTypeMapper.declarationPath(classRef) == (classPack.length == 0 ? className : classPack.join(".")
+					+ "." + className) && GoTypeMapper.referencedFieldName(field) == fieldName;
 			case _:
 				false;
 		};

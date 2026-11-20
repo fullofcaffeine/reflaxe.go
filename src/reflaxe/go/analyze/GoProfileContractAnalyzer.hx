@@ -12,6 +12,7 @@ import reflaxe.go.compiler.GoNativeAuthorityPolicy;
 import reflaxe.go.compiler.GoNativeTypeEligibility;
 import reflaxe.go.compiler.GoNativeTypeEligibility.GoNativeEligibilityRole;
 import reflaxe.go.compiler.GoNativeTypeEligibility.GoNativeTypeEligibilityResult;
+import reflaxe.go.compiler.GoTypeMapper;
 
 private typedef AnalyzerElementMethodCall = {
 	final methodName:String;
@@ -237,7 +238,7 @@ class GoProfileContractAnalyzer {
 					case TField(_, fieldAccess):
 						switch (fieldAccess) {
 							case FInstance(_, _, classField) | FStatic(_, classField) | FAnon(classField) | FClosure(_, classField):
-								classField.get().name == "__go__";
+								GoTypeMapper.referencedFieldName(classField) == "__go__";
 							case FEnum(_, enumField):
 								enumField.name == "__go__";
 							case FDynamic(name):
@@ -429,36 +430,32 @@ class GoProfileContractAnalyzer {
 
 		return switch (t) {
 			case TInst(classRef, params):
-				var classType = classRef.get();
-				if (isGoPath(classType.pack)) {
+				if (isGoDeclarationPath(GoTypeMapper.declarationPath(classRef))) {
 					true;
 				} else {
 					typeListHasGoNative(params, seen);
 				}
 			case TEnum(enumRef, params):
-				var enumType = enumRef.get();
-				if (isGoPath(enumType.pack)) {
+				if (isGoDeclarationPath(GoTypeMapper.declarationPath(enumRef))) {
 					true;
 				} else {
 					typeListHasGoNative(params, seen);
 				}
 			case TType(typeRef, params):
-				var typeDecl = typeRef.get();
-				if (isGoPath(typeDecl.pack)) {
+				if (isGoDeclarationPath(GoTypeMapper.declarationPath(typeRef))) {
 					true;
 				} else if (typeListHasGoNative(params, seen)) {
 					true;
 				} else {
-					typeHasGoNativeInner(typeDecl.type, seen);
+					typeHasGoNativeInner(typeRef.get().type, seen);
 				}
 			case TAbstract(absRef, params):
-				var absType = absRef.get();
-				if (isGoPath(absType.pack)) {
+				if (isGoDeclarationPath(GoTypeMapper.declarationPath(absRef))) {
 					true;
 				} else if (typeListHasGoNative(params, seen)) {
 					true;
 				} else {
-					typeHasGoNativeInner(absType.type, seen);
+					typeHasGoNativeInner(GoTypeMapper.abstractDeclaration(absRef).type, seen);
 				}
 			case TFun(args, ret): var argHas = false; for (arg in args) {
 					if (typeHasGoNativeInner(arg.t, seen)) {
@@ -492,8 +489,9 @@ class GoProfileContractAnalyzer {
 		return false;
 	}
 
-	static inline function isGoPath(pack:Array<String>):Bool {
-		return pack != null && pack.length > 0 && pack[0] == "go";
+	/** True when a dotted declaration path (`pack.Name`) lies in the `go` package tree. */
+	static inline function isGoDeclarationPath(path:String):Bool {
+		return StringTools.startsWith(path, "go.");
 	}
 
 	static function unionPortableNativeHits(typedHits:Array<GoPortableNativeImportHit>,

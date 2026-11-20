@@ -27,8 +27,43 @@ class GoTypeMapper {
 		`GoTypeMapperContract` pins this. Use `Ref.get()` only for checks that need
 		more than the path.
 	**/
-	static inline function declarationPath<T>(ref:Ref<T>):String {
+	public static inline function declarationPath<T>(ref:Ref<T>):String {
 		return ref.toString();
+	}
+
+	/**
+		What: Reads the name of a referenced class field without decoding it.
+		Why: Decoding a field rebuilds its type, metadata, and expression access.
+		How: A field reference's `toString()` prints exactly the field name.
+		`GoTypeMapperContract` pins this.
+	**/
+	public static inline function referencedFieldName(ref:Ref<ClassField>):String {
+		return ref.toString();
+	}
+
+	/**
+		What: Returns a path that names exactly one class declaration in this
+		compilation, or null when the class has none.
+
+		Why: Per-compilation caches of facts about a class (for example "does it
+		declare instance fields?") need a key that can never mix two declarations
+		up. The compiler otherwise decodes the class's whole field list for each
+		question.
+
+		How: Module-level classes (ordinary, generic, generic instance, abstract
+		implementation, and module-fields classes) have unique type paths: Haxe
+		rejects two types with one path, and private types get module-qualified
+		paths. Type parameter and constant-expression classes are not module types,
+		and their paths repeat (every method `map<S>` owns a `map.S`), so they get
+		no key and callers must not cache them.
+	**/
+	public static function uniqueClassPath(classType:ClassType):Null<String> {
+		return switch (classType.kind) {
+			case KNormal | KGeneric | KGenericInstance(_, _) | KAbstractImpl(_) | KModuleFields(_):
+				classType.pack.length == 0 ? classType.name : classType.pack.join(".") + "." + classType.name;
+			case _:
+				null;
+		};
 	}
 
 	/**
@@ -42,14 +77,15 @@ class GoTypeMapper {
 
 		How: A path names exactly one abstract in a compilation: Haxe rejects two
 		types with the same path, private types get a module-qualified path, and
-		type parameters are classes, never abstracts. The type mapper runs after
-		typing, when declarations no longer change. Haxe resets macro statics for
-		every compilation (this map is not `@:persistent`), so a compilation server
-		never sees an old entry. Callers only read the returned declaration.
+		type parameters are classes, never abstracts. Every caller (type mapping and
+		the profile contract analyzer) runs after typing, when declarations no
+		longer change. Haxe resets macro statics for every compilation (this map is
+		not `@:persistent`), so a compilation server never sees an old entry.
+		Callers only read the returned declaration.
 	**/
 	static final abstractDeclarations = new Map<String, AbstractType>();
 
-	static function abstractDeclaration(ref:Ref<AbstractType>):AbstractType {
+	public static function abstractDeclaration(ref:Ref<AbstractType>):AbstractType {
 		final path = declarationPath(ref);
 		final cached = abstractDeclarations.get(path);
 		if (cached != null) {

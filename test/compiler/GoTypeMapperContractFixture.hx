@@ -27,7 +27,14 @@ class GoTypeMapperContractFixture<T:{x:Int}, U> {
 	public var nativeInt64:go.NativeInt64;
 	public var map:Map<String, Int>;
 
+	public static var created:Int = 0;
+
 	public function mapValue<S>(value:S):S {
 		return value;
+	}
+
+	/** Reads an instance and a static field so the contract can inspect field references. */
+	public function describe():String {
+		return text + created;
 	}
 }
