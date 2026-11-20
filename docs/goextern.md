@@ -49,6 +49,10 @@ npm run dev:goextern -- --package fmt --dynamic-report test/.test-cache/goextern
 The default `--error-representation legacy` maps Go errors to `go.Error`.
 This type captures the error message when the native call returns.
 Its constructor, `message` field, and `toString()` method keep their existing behavior.
+A `go.Error` passed to a native call becomes a new Go error with the same text.
+This includes each value of a variadic `...error` parameter, such as `errors.Join`.
+A null `go.Error` becomes a nil interface, so `errors.Join` skips it.
+Because each crossing makes a copy, `errors.Is` cannot match a `go.Error` value.
 
 For bindings that need native error types or wrapped causes, select the native representation:
 

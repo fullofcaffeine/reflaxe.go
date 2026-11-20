@@ -1000,7 +1000,9 @@ class GoCompiler {
 			"hxrt.NativeErrorValue",
 			"hxrt.RawError",
 			"hxrt.ImportNativeError",
-			"hxrt.ExportNativeError"
+			"hxrt.ExportNativeError",
+			"hxrt.ExportLegacyError",
+			"hxrt.ExportErrors"
 		])
 			if (declsUseRuntimeSymbol(decls, symbol)) {
 				requireGeneratedRuntimeFeature(GoHxrtFeatureAnalyzer.FEATURE_NATIVE_ERROR, "lowered_go_ast:" + symbol);
@@ -10648,7 +10650,8 @@ class GoCompiler {
 		shapes made valid static `Void` externs fail Go type checking.
 		How: Normalize non-nullable strings at native imported extern boundaries. Keep
 		explicit `Null<String>` parameters and the staged `hxrt` ABI pointer-backed so
-		nil and runtime-owned string carriers remain observable.
+		nil and runtime-owned string carriers remain observable. Export both Haxe
+		error carriers as Go `error` interface values, with null as a nil interface.
 	**/
 	function normalizeExternCallArg(callee:TypedExpr, argExpr:GoExpr, paramType:Null<Type>, paramIndex:Int):GoExpr {
 		if (paramType != null && isGoImportExternCall(callee)) {
@@ -10663,6 +10666,9 @@ class GoCompiler {
 		}
 		if (isGoNativeErrorType(paramType)) {
 			return exportNativeError(argExpr);
+		}
+		if (isGoErrorType(paramType)) {
+			return exportLegacyError(argExpr);
 		}
 		if (isNativeGoValueExternType(paramType) && externCallMetadataContainsIndex(callee, GoMetadataName.GoValueArgs, paramIndex)) {
 			return GoExpr.GoUnary(GoUnaryOperator.Dereference, argExpr);
@@ -10687,12 +10693,16 @@ class GoCompiler {
 		literal into a temporary first, and a spread passes an existing Array.
 		Handling only the direct literal left those calls with the Haxe storage
 		slice, which Go rejects (`[]*string` is not `[]string`).
+		Error carriers have the same problem: `go.Error` and `go.NativeError` are
+		stored as pointers, but Go's `...error` needs `[]error`.
 		How: For a direct or hoisted literal pack, lower each value as an ordinary
 		argument of the declared element type and build the native slice literal;
-		Go evaluates its elements left to right, as Haxe evaluated the pack. For
-		any other packed value, lower it normally and copy a Haxe string slice into
-		`[]string`; other element types already store their native Go value.
-		Returns null for every argument that is not such a final `Rest<T>`.
+		Go evaluates its elements left to right, as Haxe evaluated the pack. An
+		error element is typed `hxrt.RawError`, Go's `error` under a name that a
+		local cannot shadow. For any other packed value, lower it normally, then
+		copy a Haxe string slice into `[]string` and export a slice of error
+		carriers into `[]error`; other element types already store their native Go
+		value. Returns null for every argument that is not such a final `Rest<T>`.
 	**/
 	function lowerExternVariadicRestArg(callee:TypedExpr, source:TypedExpr, paramType:Null<Type>, paramIndex:Int):Null<GoExpr> {
 		if (!isImportedExternVariadicCall(callee)) {
@@ -10706,12 +10716,16 @@ class GoCompiler {
 		if (elementType == null) {
 			return null;
 		}
+		final exportError = errorCarrierExportFunction(elementType);
 		final values = restPackValues(source);
 		if (values == null) {
 			final packed = normalizeExternCallArg(callee, lowerCallArgForParamType(source, paramType), paramType, paramIndex);
-			return isStringType(elementType) ? GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringSlice"), [packed]) : packed;
+			if (isStringType(elementType)) {
+				return GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringSlice"), [packed]);
+			}
+			return exportError == null ? packed : GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExportErrors"), [packed, exportError]);
 		}
-		final elementGoType = isStringType(elementType) ? "string" : scalarGoType(elementType);
+		final elementGoType = isStringType(elementType) ? "string" : exportError != null ? "hxrt.RawError" : scalarGoType(elementType);
 		return GoExpr.GoCompositeLiteral(GoType.slice(GoType.parse(elementGoType)), [
 			for (value in values)
 				GoCompositeElement.GoCompositeValue(lowerExternVariadicValue(callee, value, elementType, elementGoType, paramIndex))
@@ -10929,6 +10943,41 @@ class GoCompiler {
 	/** Exports the saved native root, evaluating the Haxe carrier exactly once. */
 	function exportNativeError(value:GoExpr):GoExpr {
 		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExportNativeError"), [value]);
+	}
+
+	/**
+		What: Exports one `go.Error` value as a Go `error`.
+		Why: The generated `go.Error` class pointer has no `Error` method, and a
+		null pointer stored in an `error` would be a typed nil that Go treats as a
+		present error.
+		How: The runtime helper copies the text from `toString()` (the generated
+		`String()` method) into a new error and returns a nil interface for null.
+		A literal `nil` stays as is: it already is a nil interface, and the generic
+		helper could not infer a type from it.
+	**/
+	function exportLegacyError(value:GoExpr):GoExpr {
+		return switch (value) {
+			case GoExpr.GoNil: GoExpr.GoNil;
+			case _: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExportLegacyError"), [value]);
+		};
+	}
+
+	/**
+		What: Returns the runtime function value that exports one Haxe error carrier
+		as a Go `error`, or null when the type is not an error carrier.
+		Why: A spread passes an existing Haxe slice of carriers, so each element
+		must cross with the same export as a single argument.
+		How: `go.NativeError` uses its root export. The `go.Error` export is generic
+		over the generated class pointer, so instantiate it with that type.
+	**/
+	function errorCarrierExportFunction(type:Type):Null<GoExpr> {
+		if (isGoNativeErrorType(type)) {
+			return GoExpr.GoIdent("hxrt.ExportNativeError");
+		}
+		if (isGoErrorType(type)) {
+			return GoExpr.GoInstantiate(GoExpr.GoIdent("hxrt.ExportLegacyError"), [GoType.parse(typeToGoType(type))]);
+		}
+		return null;
 	}
 
 	/**

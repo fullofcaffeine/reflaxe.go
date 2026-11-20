@@ -1,0 +1,15 @@
+literal=first|second
+all-null=null
+spread=first|second
+spread-null=null
+nested=first|second
+rest=first|second
+shadow=second
+unwrap=null
+order=a|b a,b
+native=x|y
+native-is=true,true
+native-is-copy=false
+native-spread-is=true
+native-nested-is=true
+native-null=true

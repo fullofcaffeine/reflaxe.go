@@ -110,3 +110,37 @@ func TestNativeErrorAliasPreservesFunctionSignature(t *testing.T) {
 		t.Fatal("raw alias changed native ABI")
 	}
 }
+
+// legacyErrorCarrier stands in for the generated go.Error class pointer.
+type legacyErrorCarrier struct{ message string }
+
+func (e *legacyErrorCarrier) String() string { return e.message }
+
+func TestLegacyErrorExportKeepsNullAsNilInterface(t *testing.T) {
+	var missing *legacyErrorCarrier
+	if ExportLegacyError(missing) != nil {
+		t.Fatal("a null go.Error became a present error")
+	}
+	first := &legacyErrorCarrier{"first"}
+	if exported := ExportLegacyError(first); exported == nil || exported.Error() != "first" {
+		t.Fatal("the go.Error message was not exported")
+	}
+	natives := ExportErrors([]*legacyErrorCarrier{first, nil}, ExportLegacyError[*legacyErrorCarrier])
+	if len(natives) != 2 || natives[0].Error() != "first" || natives[1] != nil {
+		t.Fatal("slice export changed an element")
+	}
+	if joined := errors.Join(natives...); joined == nil || joined.Error() != "first" {
+		t.Fatal("errors.Join kept the null element")
+	}
+}
+
+func TestNativeErrorSliceExportKeepsOriginals(t *testing.T) {
+	root := errors.New("root")
+	natives := ExportErrors([]*NativeErrorValue{ImportNativeError(root), nil}, ExportNativeError)
+	if len(natives) != 2 || natives[0] != root || natives[1] != nil {
+		t.Fatal("slice export changed a native root")
+	}
+	if !errors.Is(errors.Join(natives...), root) {
+		t.Fatal("joined native roots no longer match")
+	}
+}
