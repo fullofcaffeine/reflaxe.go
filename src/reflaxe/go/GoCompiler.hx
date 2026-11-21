@@ -65,6 +65,7 @@ import reflaxe.go.ast.GoImportPath;
 import reflaxe.go.ast.GoPackageName;
 import reflaxe.go.ast.GoSimpleStmt;
 import reflaxe.go.ast.GoSymbolUsage;
+import reflaxe.go.ast.GoTermination;
 import reflaxe.go.ast.GoType;
 import reflaxe.go.ast.GoUnaryOperator;
 import reflaxe.go.naming.GoNaming;
@@ -4247,10 +4248,33 @@ class GoCompiler {
 		if (returnType != null && !isVoidType(returnType) && endsWithTryReturnRedirect(out)) {
 			out = out.concat(unreachableReturnFallbackStmts(returnType));
 		}
+		if (returnType != null && !isVoidType(returnType) && !GoTermination.endsInTerminatingStatement(out)) {
+			out = out.concat([unreachableEndOfFunctionStmt()]);
+		}
 		requireOwnedHaxeReturns(firstReturn, out);
 		popReturnRedirect();
 		popLocalScope();
 		return out;
+	}
+
+	/**
+		What: The statement that ends a non-Void function body whose end Go cannot
+		prove unreachable.
+
+		Why: Haxe only accepts a non-Void function when every path returns or
+		throws, so the end of its body is never reached. Go's own check is narrower:
+		an exhaustive enum `switch` has no `default`, and `while (true)` prints as a
+		`for` loop with a condition, so Go reports "missing return" for bodies that
+		Haxe accepted.
+
+		How: `lowerFunctionBody` adds this `panic` only when the lowered body does
+		not already end in a Go terminating statement (`GoTermination`), so bodies
+		that Go accepts keep their exact output. Only a value outside its Haxe type
+		can reach it, such as an enum abstract value made with `cast` that matches
+		no case; `--interp` returns null there, and Go stops instead.
+	**/
+	function unreachableEndOfFunctionStmt():GoStmt {
+		return GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("panic"), [GoExpr.GoStringLiteral("unreachable")]));
 	}
 
 	/** Records a Go `return` that implements a Haxe `return` (directly or through a try redirect). */
