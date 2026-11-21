@@ -12,6 +12,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import textwrap
 import time
 import unittest
 
@@ -35,7 +36,57 @@ def load_watcher():
     return module
 
 
+def python_pid_publisher(pid_file: Path, pid: str = "os.getpid()", before_write: str = "pass") -> str:
+    """Python statements that publish a PID file atomically.
+
+    Fixture processes report a PID through a file that the test polls. Creating
+    that file and writing the PID are separate steps, so a writer paused between
+    them under load would expose an empty file. Writing a temporary sibling and
+    renaming it into place means the file is complete whenever it exists.
+    ``before_write`` runs after the temporary file is created and before the PID
+    is written, which is exactly where a non-atomic writer would expose an empty
+    file; tests use it to hold the writer there.
+    """
+
+    temporary = pid_file.with_name(pid_file.name + ".tmp")
+    return (
+        "import os\n"
+        f"with open({str(temporary)!r}, 'w', encoding='utf-8') as pid_handle:\n"
+        f"    {before_write}\n"
+        f"    pid_handle.write(str({pid}))\n"
+        f"os.replace({str(temporary)!r}, {str(pid_file)!r})\n"
+    )
+
+
+def bash_pid_publisher(pid_file: Path, before_write: str = ":") -> str:
+    """Bash commands that publish the shell's PID atomically (see python_pid_publisher)."""
+
+    temporary = shlex.quote(str(pid_file) + ".tmp")
+    return (
+        f"{{ {before_write}; printf '%s' \"$$\"; }} > {temporary}\n"
+        f"mv -f {temporary} {shlex.quote(str(pid_file))}\n"
+    )
+
+
 class DevWatchContractTest(unittest.TestCase):
+    def wait_for_pid(self, path: Path, timeout: float = 5.0) -> int:
+        """Return the PID a fixture published with one of the atomic publishers.
+
+        The file is complete as soon as it exists, so the value is read once. A
+        value that is not a whole PID fails with a clear message instead of a
+        ``ValueError`` from ``int()``.
+        """
+
+        deadline = time.monotonic() + timeout
+        while not path.exists():
+            if time.monotonic() >= deadline:
+                self.fail(f"timed out waiting for PID file {path}")
+            time.sleep(0.01)
+        text = path.read_text(encoding="utf-8")
+        if not text.isdigit():
+            self.fail(f"PID file {path} was visible before it held a whole PID: {text!r}")
+        return int(text)
+
     def wait_for_text(self, path: Path, expected: str, timeout: float = 8.0) -> str:
         deadline = time.monotonic() + timeout
         text = ""
@@ -164,6 +215,8 @@ class DevWatchContractTest(unittest.TestCase):
         parsed = module._parser().parse_args([])
         self.assertEqual("on", parsed.server)
         self.assertFalse(parsed.once)
+        # Tests shorten the stop grace; a real session keeps the 3 s default.
+        self.assertEqual(3000, parsed.stop_grace_ms)
 
     def test_failed_rebuild_keeps_last_good_process_and_success_restarts_it(self) -> None:
         module = load_watcher()
@@ -215,20 +268,16 @@ class DevWatchContractTest(unittest.TestCase):
                     sys.executable,
                     "-c",
                     (
-                        "import pathlib,subprocess,sys,time; "
-                        "p=subprocess.Popen([sys.executable,'-c','import time; time.sleep(60)']); "
-                        "pathlib.Path(sys.argv[1]).write_text(str(p.pid)); time.sleep(60)"
+                        "import subprocess, sys, time\n"
+                        "p = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])\n"
+                        + python_pid_publisher(pid_file, pid="p.pid")
+                        + "time.sleep(60)\n"
                     ),
-                    str(pid_file),
                 ],
                 cwd=Path(raw),
             )
             try:
-                deadline = time.monotonic() + 5
-                while not pid_file.exists() and time.monotonic() < deadline:
-                    time.sleep(0.01)
-                self.assertTrue(pid_file.exists())
-                child_pid = int(pid_file.read_text(encoding="utf-8"))
+                child_pid = self.wait_for_pid(pid_file)
 
                 module.stop_owned_process(parent, timeout=2)
 
@@ -255,28 +304,29 @@ class DevWatchContractTest(unittest.TestCase):
         module = load_watcher()
         with tempfile.TemporaryDirectory(prefix="haxe-go-watch-stubborn-") as raw:
             pid_file = Path(raw) / "child.pid"
+            # The descendant publishes its own PID only after it ignores SIGTERM,
+            # so the stop below always meets a descendant that resists SIGTERM.
+            stubborn_child = (
+                "import signal, time\n"
+                "signal.signal(signal.SIGTERM, signal.SIG_IGN)\n"
+                + python_pid_publisher(pid_file)
+                + "time.sleep(60)\n"
+            )
             leader = module.start_owned_process(
                 [
                     sys.executable,
                     "-c",
                     (
-                        "import pathlib,signal,subprocess,sys,time; "
-                        "p=subprocess.Popen([sys.executable,'-c',"
-                        "'import signal,time; signal.signal(signal.SIGTERM,signal.SIG_IGN); time.sleep(60)']); "
-                        "pathlib.Path(sys.argv[1]).write_text(str(p.pid)); time.sleep(60)"
+                        "import subprocess, sys, time\n"
+                        f"subprocess.Popen([sys.executable, '-c', {stubborn_child!r}])\n"
+                        "time.sleep(60)\n"
                     ),
-                    str(pid_file),
                 ],
                 cwd=Path(raw),
             )
             child_pid: int | None = None
             try:
-                deadline = time.monotonic() + 5
-                while not pid_file.exists() and time.monotonic() < deadline:
-                    time.sleep(0.01)
-                self.assertTrue(pid_file.exists())
-                child_pid = int(pid_file.read_text(encoding="utf-8"))
-                time.sleep(0.05)
+                child_pid = self.wait_for_pid(pid_file)
                 module.stop_owned_process(leader, timeout=0.2)
                 self.assert_pid_gone(child_pid)
             finally:
@@ -284,6 +334,117 @@ class DevWatchContractTest(unittest.TestCase):
                     os.killpg(leader.pid, signal.SIGKILL)
                 except (PermissionError, ProcessLookupError):
                     pass
+
+    @unittest.skipUnless(os.name == "posix", "process-group lifecycle is POSIX-only")
+    def test_killed_leader_is_reaped_even_when_it_exits_slower_than_the_grace(self) -> None:
+        """The wait after SIGKILL must not reuse the SIGTERM grace as its limit.
+
+        SIGKILL cannot be ignored, but under load the kernel can need longer than a
+        short grace to tear the killed process down. The watcher must still reap
+        its child instead of failing with ``TimeoutExpired`` and leaving it behind.
+        The real child ignores SIGTERM; the wrapper makes the reap after SIGKILL
+        take ``reap_delay`` seconds, ten times the grace.
+        """
+
+        module = load_watcher()
+        grace = 0.05
+        reap_delay = 0.5
+
+        class SlowReap:
+            def __init__(self, real: subprocess.Popen) -> None:
+                self.real = real
+                self.pid = real.pid
+                self.args = real.args
+                self.waits = 0
+
+            def poll(self):
+                return self.real.poll()
+
+            def wait(self, timeout: float | None = None):
+                self.waits += 1
+                if self.waits == 1:
+                    # The grace wait: the child ignores SIGTERM, so this expires.
+                    return self.real.wait(timeout)
+                if timeout is not None and timeout < reap_delay:
+                    time.sleep(timeout)
+                    raise subprocess.TimeoutExpired(self.args, timeout)
+                time.sleep(reap_delay)
+                return self.real.wait(timeout)
+
+        with tempfile.TemporaryDirectory(prefix="haxe-go-watch-slow-reap-") as raw:
+            pid_file = Path(raw) / "leader.pid"
+            real = module.start_owned_process(
+                [
+                    sys.executable,
+                    "-c",
+                    (
+                        "import signal, time\n"
+                        "signal.signal(signal.SIGTERM, signal.SIG_IGN)\n"
+                        + python_pid_publisher(pid_file)
+                        + "time.sleep(60)\n"
+                    ),
+                ],
+                cwd=Path(raw),
+            )
+            try:
+                self.assertEqual(real.pid, self.wait_for_pid(pid_file))
+                module.stop_owned_process(SlowReap(real), timeout=grace)
+                self.assertEqual(-signal.SIGKILL, real.returncode)
+            finally:
+                try:
+                    os.killpg(real.pid, signal.SIGKILL)
+                except (PermissionError, ProcessLookupError):
+                    pass
+                if real.returncode is None:
+                    real.wait()
+
+    def test_pid_publishers_never_expose_an_incomplete_file(self) -> None:
+        """A test polling a fixture's PID file must never read it empty.
+
+        Each writer is held after it has created its output file and before it has
+        written the PID. A plain ``write_text`` or shell redirect would already
+        expose an empty PID file at that point, and a test that waits only for
+        the file to exist would fail in ``int('')``. The published path must not
+        exist yet; once the writer is released it holds the writer's whole PID.
+        """
+
+        with tempfile.TemporaryDirectory(prefix="haxe-go-watch-pid-publish-") as raw:
+            for name in ("python", "bash"):
+                with self.subTest(publisher=name):
+                    work = Path(raw) / name
+                    work.mkdir()
+                    pid_file = work / "writer.pid"
+                    entered = work / "entered"
+                    release = work / "release"
+                    if name == "python":
+                        script = (
+                            "import os, time\n"
+                            "def hold():\n"
+                            f"    open({str(entered)!r}, 'w').close()\n"
+                            f"    while not os.path.exists({str(release)!r}):\n"
+                            "        time.sleep(0.01)\n"
+                        ) + python_pid_publisher(pid_file, before_write="hold()")
+                        command = [sys.executable, "-c", script]
+                    else:
+                        hold = (
+                            f"touch {shlex.quote(str(entered))}; "
+                            f"while [[ ! -e {shlex.quote(str(release))} ]]; do sleep 0.01; done"
+                        )
+                        command = ["bash", "-c", bash_pid_publisher(pid_file, before_write=hold)]
+                    writer = subprocess.Popen(command)
+                    try:
+                        deadline = time.monotonic() + 10
+                        while not entered.exists() and writer.poll() is None and time.monotonic() < deadline:
+                            time.sleep(0.01)
+                        self.assertTrue(entered.exists(), "the writer never reached the point between create and write")
+                        self.assertFalse(pid_file.exists(), "the PID file was visible before the PID was written")
+                        release.touch()
+                        self.assertEqual(writer.pid, self.wait_for_pid(pid_file))
+                        self.assertEqual(0, writer.wait(timeout=10))
+                    finally:
+                        if writer.poll() is None:
+                            writer.kill()
+                            writer.wait()
 
     @unittest.skipUnless(os.name == "posix", "managed compiler server is a POSIX dev contract")
     def test_compiler_server_is_owned_and_closed(self) -> None:
@@ -317,6 +478,11 @@ class DevWatchContractTest(unittest.TestCase):
 
     @unittest.skipUnless(os.name == "posix", "startup signal lifecycle is POSIX-only")
     def test_signal_during_server_startup_cleans_the_owned_server(self) -> None:
+        # The fake server ignores SIGTERM, so the watcher must wait its stop grace
+        # and then SIGKILL its own process group. A short grace keeps that forced
+        # wait small next to the time allowed for the watcher to exit; with the
+        # default 3 s grace a starved machine used the whole 5 s budget.
+        grace = 0.25
         with tempfile.TemporaryDirectory(prefix="haxe-go-watch-startup-signal-") as raw:
             root = Path(raw)
             hxml = root / "compile.hxml"
@@ -332,51 +498,74 @@ class DevWatchContractTest(unittest.TestCase):
             )
             wrapper.chmod(0o755)
             server_pid = root / "server.pid"
+            bystander_pid = root / "bystander.pid"
             fake_haxe = root / "fake-haxe"
+            # Ignore SIGTERM before publishing the PID, so the watcher always meets
+            # a server that resists SIGTERM. The watcher runs it as `--wait PORT`;
+            # the test runs the same program as an unrelated bystander.
             fake_haxe.write_text(
                 "#!/usr/bin/env python3\n"
-                "import pathlib,signal,sys,time\n"
-                f"pathlib.Path({str(server_pid)!r}).write_text(str(__import__('os').getpid()))\n"
+                "import signal, sys, time\n"
                 "signal.signal(signal.SIGTERM, signal.SIG_IGN)\n"
-                "time.sleep(60)\n",
+                "if sys.argv[1:2] == ['--wait']:\n"
+                + textwrap.indent(python_pid_publisher(server_pid), "    ")
+                + "else:\n"
+                + textwrap.indent(python_pid_publisher(bystander_pid), "    ")
+                + "time.sleep(60)\n",
                 encoding="utf-8",
             )
             fake_haxe.chmod(0o755)
-            watcher = subprocess.Popen(
-                [
-                    sys.executable,
-                    str(WATCHER),
-                    "--project",
-                    str(root),
-                    "--wrapper",
-                    str(wrapper),
-                    "--haxe-bin",
-                    str(fake_haxe),
-                    "--action",
-                    "compile",
-                ],
-                cwd=ROOT,
+            bystander = subprocess.Popen(
+                [str(fake_haxe), "--bystander"],
+                start_new_session=True,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
+            watcher: subprocess.Popen | None = None
             owned_pid: int | None = None
             try:
-                deadline = time.monotonic() + 5
-                while not server_pid.exists() and time.monotonic() < deadline:
-                    time.sleep(0.01)
-                self.assertTrue(server_pid.exists())
-                owned_pid = int(server_pid.read_text(encoding="utf-8"))
+                self.wait_for_pid(bystander_pid)
+                watcher = subprocess.Popen(
+                    [
+                        sys.executable,
+                        str(WATCHER),
+                        "--project",
+                        str(root),
+                        "--wrapper",
+                        str(wrapper),
+                        "--haxe-bin",
+                        str(fake_haxe),
+                        "--action",
+                        "compile",
+                        "--stop-grace-ms",
+                        str(int(grace * 1000)),
+                    ],
+                    cwd=ROOT,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+                owned_pid = self.wait_for_pid(server_pid)
+                signalled = time.monotonic()
                 watcher.send_signal(signal.SIGTERM)
                 watcher.wait(timeout=5)
+                elapsed = time.monotonic() - signalled
                 self.assertEqual(0, watcher.returncode)
                 self.assert_pid_gone(owned_pid)
+                self.assertGreaterEqual(elapsed, grace, "the watcher sent SIGKILL before its grace ended")
+                self.assertIsNone(bystander.poll(), "cleanup reached a process outside the watcher's group")
             finally:
-                self.stop_watcher(watcher)
+                if watcher is not None:
+                    self.stop_watcher(watcher)
                 if owned_pid is not None:
                     try:
                         os.kill(owned_pid, signal.SIGKILL)
                     except ProcessLookupError:
                         pass
+                try:
+                    os.killpg(bystander.pid, signal.SIGKILL)
+                except (PermissionError, ProcessLookupError):
+                    pass
+                bystander.wait()
 
     @unittest.skipUnless(os.name == "posix", "active-build signal lifecycle is POSIX-only")
     def test_signal_during_active_build_stops_the_owned_build_process(self) -> None:
@@ -395,8 +584,8 @@ class DevWatchContractTest(unittest.TestCase):
                 "for arg in \"$@\"; do\n"
                 f"  if [[ \"$arg\" == --print-plan-json ]]; then printf '%s\\n' {shlex.quote(plan)}; exit 0; fi\n"
                 "done\n"
-                f"printf '%s' \"$$\" > {shlex.quote(str(build_pid))}\n"
-                "exec sleep 60\n",
+                + bash_pid_publisher(build_pid)
+                + "exec sleep 60\n",
                 encoding="utf-8",
             )
             wrapper.chmod(0o755)
@@ -419,11 +608,7 @@ class DevWatchContractTest(unittest.TestCase):
             )
             owned_pid: int | None = None
             try:
-                deadline = time.monotonic() + 5
-                while not build_pid.exists() and time.monotonic() < deadline:
-                    time.sleep(0.01)
-                self.assertTrue(build_pid.exists())
-                owned_pid = int(build_pid.read_text(encoding="utf-8"))
+                owned_pid = self.wait_for_pid(build_pid)
                 watcher.send_signal(signal.SIGTERM)
                 watcher.wait(timeout=3)
                 self.assertEqual(0, watcher.returncode)

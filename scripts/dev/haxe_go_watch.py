@@ -28,6 +28,10 @@ TOOL_DIR = Path(__file__).resolve().parent
 DEFAULT_WRAPPER = TOOL_DIR / "go-hx.sh"
 SOURCE_SUFFIXES = {".hx"}
 CONFIG_NAMES = {"haxelib.json", ".haxerc"}
+# How long an owned process group may take to exit after SIGTERM before the
+# watcher sends SIGKILL. Every owned stop (program, build, compiler server)
+# uses the same session value so callers and tests can reason about one bound.
+DEFAULT_STOP_GRACE_SECONDS = 3.0
 
 
 @dataclass(frozen=True)
@@ -205,7 +209,9 @@ def start_owned_process(command: Sequence[str], cwd: Path) -> subprocess.Popen:
     return subprocess.Popen(list(command), **kwargs)
 
 
-def stop_owned_process(process: subprocess.Popen, timeout: float = 3.0) -> None:
+def stop_owned_process(
+    process: subprocess.Popen, timeout: float = DEFAULT_STOP_GRACE_SECONDS
+) -> None:
     """Stop a child and its descendants, escalating only after a grace period."""
 
     if os.name != "posix":
@@ -242,7 +248,11 @@ def stop_owned_process(process: subprocess.Popen, timeout: float = 3.0) -> None:
             process.wait(timeout=max(0.0, deadline - time.monotonic()))
     except subprocess.TimeoutExpired:
         signal_group(signal.SIGKILL)
-        process.wait(timeout=max(0.1, timeout))
+        # SIGKILL cannot be caught or ignored, so this wait ends once the kernel
+        # has torn the leader down. It must not reuse the SIGTERM grace as a
+        # limit: on a loaded machine teardown can outlast a short grace, and a
+        # timeout here would abandon an owned child instead of reaping it.
+        process.wait()
 
     # The leader can exit on SIGTERM while a descendant ignores it. Wait only
     # within the same bounded grace period, then kill the remaining owned group.
@@ -285,9 +295,15 @@ class RunLifecycle:
 class CompilerServer:
     """Own one opt-in Haxe ``--wait`` process for this watch session."""
 
-    def __init__(self, haxe_bin: str, project: Path) -> None:
+    def __init__(
+        self,
+        haxe_bin: str,
+        project: Path,
+        stop_grace: float = DEFAULT_STOP_GRACE_SECONDS,
+    ) -> None:
         self.haxe_bin = haxe_bin
         self.project = project
+        self.stop_grace = stop_grace
         self.process: subprocess.Popen | None = None
         self.port: int | None = None
 
@@ -316,7 +332,7 @@ class CompilerServer:
 
     def close(self) -> None:
         if self.process is not None:
-            stop_owned_process(self.process)
+            stop_owned_process(self.process, timeout=self.stop_grace)
             self.process = None
 
 
@@ -331,14 +347,17 @@ def _run(command: Sequence[str], cwd: Path, *, capture: bool = False) -> subproc
 
 
 def _run_interruptible(
-    command: Sequence[str], cwd: Path, cancelled: Callable[[], bool]
+    command: Sequence[str],
+    cwd: Path,
+    cancelled: Callable[[], bool],
+    stop_grace: float = DEFAULT_STOP_GRACE_SECONDS,
 ) -> subprocess.CompletedProcess:
     """Run one build as an owned group so watcher shutdown can interrupt it."""
 
     process = start_owned_process(command, cwd)
     while process.poll() is None:
         if cancelled():
-            stop_owned_process(process)
+            stop_owned_process(process, timeout=stop_grace)
             return subprocess.CompletedProcess(list(command), 130)
         time.sleep(0.03)
     return subprocess.CompletedProcess(list(command), process.returncode)
@@ -406,6 +425,14 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--server", choices=("off", "on"), default="on")
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--max-cycles", type=int, help=argparse.SUPPRESS)
+    # SIGTERM-to-SIGKILL grace for owned process groups. Tests shorten it so a
+    # child that ignores SIGTERM does not spend most of their time budget.
+    parser.add_argument(
+        "--stop-grace-ms",
+        type=int,
+        default=int(DEFAULT_STOP_GRACE_SECONDS * 1000),
+        help=argparse.SUPPRESS,
+    )
     parser.add_argument("--wrapper", type=Path, default=DEFAULT_WRAPPER, help=argparse.SUPPRESS)
     return parser
 
@@ -415,6 +442,8 @@ def _validate_durations(args: argparse.Namespace, parser: argparse.ArgumentParse
         parser.error("--debounce-ms must be non-negative")
     if args.poll_ms <= 0:
         parser.error("--poll-ms must be positive")
+    if args.stop_grace_ms < 0:
+        parser.error("--stop-grace-ms must be non-negative")
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -438,6 +467,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _run(command, Path.cwd()).returncode
 
     stop_requested = False
+    stop_grace = args.stop_grace_ms / 1000.0
+
+    def stop_owned(process: subprocess.Popen) -> None:
+        stop_owned_process(process, timeout=stop_grace)
 
     def request_stop(_signum, _frame) -> None:
         nonlocal stop_requested
@@ -469,7 +502,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             if go_args:
                 command.extend(["--", *go_args])
         started = time.monotonic()
-        result = _run_interruptible(command, Path.cwd(), lambda: stop_requested)
+        result = _run_interruptible(command, Path.cwd(), lambda: stop_requested, stop_grace)
         if (
             result.returncode != 0
             and connect_args
@@ -483,7 +516,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             server.close()
             server = None
             connect_args = []
-            result = _run_interruptible(command, Path.cwd(), lambda: stop_requested)
+            result = _run_interruptible(command, Path.cwd(), lambda: stop_requested, stop_grace)
         elapsed = time.monotonic() - started
         if result.returncode == 0:
             print(f"[hx-go-watch] build succeeded in {elapsed:.2f}s")
@@ -502,7 +535,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     try:
         if args.server == "on":
-            server = CompilerServer(args.haxe_bin, plan.project)
+            server = CompilerServer(args.haxe_bin, plan.project, stop_grace)
             try:
                 port = server.start(lambda: stop_requested)
                 connect_args = ["--connect", str(port)]
@@ -523,7 +556,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         temp = tempfile.TemporaryDirectory(prefix="haxe-go-watch-")
         executable = Path(temp.name) / ("app.exe" if os.name == "nt" else "app")
         if args.action == "run":
-            lifecycle = RunLifecycle(build=build, start=start_program, stop=stop_owned_process)
+            lifecycle = RunLifecycle(build=build, start=start_program, stop=stop_owned)
 
         print(f"[hx-go-watch] project={plan.project}")
         print(f"[hx-go-watch] hxml={plan.hxml}")
