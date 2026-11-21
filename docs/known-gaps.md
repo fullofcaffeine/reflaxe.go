@@ -114,6 +114,17 @@ current honest contract remains snapshot/runtime evidence.
   A virtual call made during the superclass constructor still cannot observe a
   not-yet-bound derived receiver; that is separate constructor-dispatch work,
   not part of the [generated class dispatch ABI](class-dispatch-abi.md) claim.
+- An early `return`, `break` or `continue` inside a value `if`, `switch` or
+  `try` works when that value initializes a local, is assigned to a variable,
+  or is returned, for example `final v = switch x { case A if (c): return y; case _: 1; }`
+  or `final x = try f() catch (e:Dynamic) return z;`. When the same value is
+  used directly as a call argument, an operand or a loop condition, the
+  compiler evaluates it inside a generated Go closure: a `return` there stops
+  compilation with `Unsupported return inside a value expression`, and a
+  `break` or `continue` there fails the Go build. Assign the value to a local
+  first. Evidence:
+  `test/snapshot/negative/return_in_closure_value_if` and
+  `test/snapshot/negative/return_in_closure_value_switch`.
 - These remaining lowering guards are invariant checks, not open supported-language gaps.
 - No currently supported Haxe source construct is expected to hit them in normal typed lowering.
 - Current invariant inventory is summarized in the [feature support matrix](feature-support-matrix.md):

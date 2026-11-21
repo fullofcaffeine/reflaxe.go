@@ -122,6 +122,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | Arrays and indexing | Supported | `core/array_basic`, `core/array_push_pop`, `core/array_constructor_new` |
 | Loops (`for`, `while`, `do-while`, break/continue) | Supported | `core/loops_array_iter`, `core/loops_range`, `core/do_while_semantics`, `core/loop_break_continue` |
 | Expression-form control flow in value positions (`if`, `switch`, `try`) | Supported | `core/if_expr_call_arg`, `core/switch_expr_call_arg`, `core/try_expr_value` |
+| Early `return`/`break`/`continue` from a value `if`, `switch` (including guarded cases) or `try` that initializes a local, is assigned, or is returned | Supported; the same `return` inside a call argument, operand or loop condition is rejected at compile time (see [known gaps](known-gaps.md)) | `core/switch_expr_early_return`, `core/value_expression_early_exit`, `value_expression_early_exit_contract`, `negative/return_in_closure_value_if`, `negative/return_in_closure_value_switch` |
 | Functions, function values, closures | Supported | `core/function_values`, `core/closures_capture` |
 | Default arguments and varargs | Supported | `core/default_args`, `core/varargs`, `core/varargs_foreach` |
 | Prefix/postfix call argument order | Supported | `core/prefix_call_arg`, `core/postfix_call_arg` |

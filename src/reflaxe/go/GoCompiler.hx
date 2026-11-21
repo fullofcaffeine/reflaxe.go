@@ -261,6 +261,25 @@ private typedef ReturnRedirect = {
 	final valueType:Null<Type>;
 }
 
+/**
+	What: The return redirect used by one try/catch and the statements it declares.
+	Why: A try nested in another try body already runs inside a Go closure, so its
+	own flag could only leave that closure and the function result would be lost.
+	How: The outermost try declares the flag and value slot. A nested try reuses
+	them (`nested`) and, after its closures run, only leaves the enclosing closure.
+**/
+private typedef TryReturnRoute = {
+	final redirect:ReturnRedirect;
+	final declarations:Array<GoStmt>;
+	final nested:Bool;
+}
+
+/** One Go `return` emitted for a Haxe `return`, with its source position. */
+private typedef HaxeReturnStmt = {
+	final stmt:GoStmt;
+	final pos:Position;
+}
+
 private typedef LoopBreakTarget = {
 	var label:Null<String>;
 }
@@ -325,6 +344,7 @@ class GoCompiler {
 	final localNeverReassignedScopes:Array<Map<Int, Bool>>;
 	final functionReturnTypeScopes:Array<Type>;
 	final returnRedirectScopes:Array<Null<ReturnRedirect>>;
+	final haxeReturnStmts:Array<HaxeReturnStmt>;
 	final constructorReturnScopes:Array<Bool>;
 	final loopBreakTargetScopes:Array<LoopBreakTarget>;
 	var switchDepth:Int;
@@ -419,6 +439,7 @@ class GoCompiler {
 		localNeverReassignedScopes = [];
 		functionReturnTypeScopes = [];
 		returnRedirectScopes = [];
+		haxeReturnStmts = [];
 		constructorReturnScopes = [];
 		loopBreakTargetScopes = [];
 		switchDepth = 0;
@@ -3916,17 +3937,19 @@ class GoCompiler {
 						}
 					}
 					redirected.push(GoStmt.GoAssign(GoExpr.GoIdent(redirect.flagName), GoExpr.GoBoolLiteral(true)));
-					redirected.push(GoStmt.GoReturn(null));
+					redirected.push(recordHaxeReturn(GoStmt.GoReturn(null), expr.pos));
 					redirected;
 				} else if (value == null) {
 					[
-						GoStmt.GoReturn(inConstructorReturnScope() && currentFunctionReturnType() == null ? GoExpr.GoIdent("self") : null)
+						recordHaxeReturn(GoStmt.GoReturn(inConstructorReturnScope()
+							&& currentFunctionReturnType() == null ? GoExpr.GoIdent("self") : null),
+							expr.pos)
 					];
 				} else {
 					var expectedReturnType = currentFunctionReturnType();
 					var loweredReturn = expectedReturnType == null ? lowerExprWithPrefix(value) : lowerReturnedExprWithExpectedType(value, expectedReturnType);
 					var returnExpr = loweredReturn.expr;
-					var returnStmt = GoStmt.GoReturn(returnExpr);
+					var returnStmt = recordHaxeReturn(GoStmt.GoReturn(returnExpr), expr.pos);
 					if (loweredReturn.prefix.length > 0) {
 						loweredReturn.prefix.concat([returnStmt]);
 					} else {
@@ -4218,14 +4241,86 @@ class GoCompiler {
 	function lowerFunctionBody(expr:TypedExpr):Array<GoStmt> {
 		pushLocalScope();
 		pushReturnRedirectMask();
+		var firstReturn = haxeReturnStmts.length;
 		var out = lowerToStatements(expr);
 		var returnType = currentFunctionReturnType();
 		if (returnType != null && !isVoidType(returnType) && endsWithTryReturnRedirect(out)) {
 			out = out.concat(unreachableReturnFallbackStmts(returnType));
 		}
+		requireOwnedHaxeReturns(firstReturn, out);
 		popReturnRedirect();
 		popLocalScope();
 		return out;
+	}
+
+	/** Records a Go `return` that implements a Haxe `return` (directly or through a try redirect). */
+	function recordHaxeReturn(stmt:GoStmt, pos:Position):GoStmt {
+		haxeReturnStmts.push({stmt: stmt, pos: pos});
+		return stmt;
+	}
+
+	/**
+		What: Checks that every Haxe `return` lowered for one Go body is still part of
+		that body's own statements.
+
+		Why: Lowering builds statements bottom-up, and many value positions (call
+		arguments, operands, conditions) run a sub-expression's statements inside a
+		generated `func() T { ... }()`. A `return` captured there would leave only that
+		closure: the program would continue with a wrong value instead of leaving the
+		function. Failing at compile time is the only safe result.
+
+		How: Each Go function body and each try/catch closure body that owns returns
+		records the index of the first return lowered for it. When the body is
+		complete, every later return must be reachable through statement nesting
+		alone (if/switch/loop bodies), never inside an expression closure. Checked
+		returns are then forgotten, so an enclosing body only checks its own.
+	**/
+	function requireOwnedHaxeReturns(firstReturn:Int, body:Array<GoStmt>):Void {
+		if (haxeReturnStmts.length <= firstReturn)
+			return;
+		var owned = new Array<GoStmt>();
+		collectStatementReturns(body, owned);
+		for (index in firstReturn...haxeReturnStmts.length) {
+			var record = haxeReturnStmts[index];
+			// GoStmt values compare by identity here, so a structurally equal
+			// return elsewhere in the body cannot hide a captured one.
+			if (owned.indexOf(record.stmt) < 0)
+				Context.fatalError("Unsupported return inside a value expression: haxe.go evaluates this expression inside a generated Go closure, "
+					+ "so the return cannot leave the enclosing function. Assign the value to a local variable first.",
+					record.pos);
+		}
+		haxeReturnStmts.resize(firstReturn);
+	}
+
+	function collectStatementReturns(stmts:Array<GoStmt>, out:Array<GoStmt>):Void {
+		for (stmt in stmts) {
+			switch (stmt) {
+				case GoReturn(_) | GoReturnValues(_):
+					out.push(stmt);
+				case GoIf(_, thenBody, elseBody):
+					collectStatementReturns(thenBody, out);
+					if (elseBody != null)
+						collectStatementReturns(elseBody, out);
+				case GoSwitch(_, cases, defaultBody):
+					for (entry in cases)
+						collectStatementReturns(entry.body, out);
+					if (defaultBody != null)
+						collectStatementReturns(defaultBody, out);
+				case GoTypeSwitch(_, _, cases, defaultBody):
+					for (entry in cases)
+						collectStatementReturns(entry.body, out);
+					if (defaultBody != null)
+						collectStatementReturns(defaultBody, out);
+				case GoSelect(cases):
+					for (entry in cases)
+						collectStatementReturns(entry.body, out);
+				case GoWhile(_, body) | GoFor(_, _, _, body) | GoRangeStmt(_, _, _, _, body):
+					collectStatementReturns(body, out);
+				case GoLabeled(_, inner):
+					collectStatementReturns([inner], out);
+				case _:
+			}
+		}
 	}
 
 	/**
@@ -4293,16 +4388,18 @@ class GoCompiler {
 	/**
 		What: Lowers one branch of a value-producing switch into statements.
 
-		Why: Haxe permits a case to return from the enclosing function instead of
-		producing the switch value. Treating that `TReturn` as an ordinary value asks
-		the expression lowerer to compile control flow and fails before Go is emitted.
+		Why: Haxe permits a case to return from the enclosing function, or to break or
+		continue the enclosing loop, instead of producing the switch value. Treating
+		that exit as an ordinary value asks the expression lowerer to compile control
+		flow and fails before Go is emitted.
 
-		How: Preserve an escaping branch as function-level statements. Every branch
-		that can produce a value is projected through the shared expected-type path
-		before it enters the existing typed temporary assignment.
+		How: Preserve a leaving branch as statements (`break` still targets the loop
+		label because the branch is lowered in switch context). Every branch that can
+		produce a value is projected through the shared expected-type path before it
+		enters the existing typed temporary assignment.
 	**/
 	function lowerSwitchValueBranch(expr:TypedExpr, resultType:Type, temp:String):Array<GoStmt> {
-		if (switchBranchEndsWithReturn(expr))
+		if (valueBranchLeaves(expr))
 			return lowerInSwitchContext(function() return lowerToStatements(expr));
 		var lowered = lowerInSwitchContext(function() return lowerCallableBranch(expr, resultType,
 			function() return lowerExprWithExpectedUpcast(expr, resultType)));
@@ -4310,19 +4407,23 @@ class GoCompiler {
 	}
 
 	/**
-		What: Detects a switch branch whose final operation returns from the function.
+		What: Detects a value branch whose final operation is `return`, `break` or
+		`continue`, so the branch never produces a value.
 
-		Why: The typer can wrap a source-level returning case in transparent nodes or a
-		block, so testing only the branch's outer expression misses valid return cases.
+		Why: The typer can wrap a source-level exit in transparent nodes or a block,
+		and a guarded case (`case A if (cond): return x;`) arrives as a value `if`
+		whose taken branch exits. Testing only the outer expression misses both.
 
 		How: Follow only transparent wrappers and the final block expression. Earlier
-		conditional returns still fall through to a real branch value and remain false.
+		conditional exits still fall through to a real branch value and remain false.
+		A branch that ends in `throw` also stays false: the typed throw lowering
+		already gives it the expected result type.
 	**/
-	function switchBranchEndsWithReturn(expr:TypedExpr):Bool {
+	function valueBranchLeaves(expr:TypedExpr):Bool {
 		return switch expr.expr {
-			case TReturn(_): true;
-			case TBlock(exprs): exprs.length > 0 && switchBranchEndsWithReturn(exprs[exprs.length - 1]);
-			case TParenthesis(inner) | TMeta(_, inner) | TCast(inner, _): switchBranchEndsWithReturn(inner);
+			case TReturn(_) | TBreak | TContinue: true;
+			case TBlock(exprs): exprs.length > 0 && valueBranchLeaves(exprs[exprs.length - 1]);
+			case TParenthesis(inner) | TMeta(_, inner) | TCast(inner, _): valueBranchLeaves(inner);
 			case _: false;
 		};
 	}
@@ -4381,30 +4482,50 @@ class GoCompiler {
 
 		var loweredCondition = lowerReturnedExprWithExpectedType(condition, Context.getType("Bool"));
 		var facts = conditionNonNullFacts(condition);
-		var loweredThen = lowerWithNonNullPrimitiveFacts(facts.thenFacts,
-			function() return lowerCallableBranch(thenBranch, resultType, function() return lowerExprWithExpectedUpcast(thenBranch, resultType)));
-		var loweredElse = lowerWithNonNullPrimitiveFacts(facts.elseFacts,
-			function() return lowerCallableBranch(elseExpr, resultType, function() return lowerExprWithExpectedUpcast(elseExpr, resultType)));
+		var thenLeaves = valueBranchLeaves(thenBranch);
+		var elseLeaves = valueBranchLeaves(elseExpr);
+		var loweredThen = lowerWithNonNullPrimitiveFacts(facts.thenFacts, function() return lowerIfValueBranch(thenBranch, thenLeaves, resultType));
+		var loweredElse = lowerWithNonNullPrimitiveFacts(facts.elseFacts, function() return lowerIfValueBranch(elseExpr, elseLeaves, resultType));
 		var temp = freshTempName("hx_if");
 		var loweredThenValue = loweredThen.expr;
 		var loweredElseValue = loweredElse.expr;
 		var thenKnownNonNullPrimitive = nonNullPrimitiveExprGoTypeWithFacts(thenBranch, facts.thenFacts) != null;
 		var elseKnownNonNullPrimitive = nonNullPrimitiveExprGoTypeWithFacts(elseExpr, facts.elseFacts) != null;
-		loweredThenValue = coerceAnyExprToType(loweredThenValue, thenBranch.t, resultType, !thenKnownNonNullPrimitive && (exprBackedByAny(thenBranch)
-			|| shouldForceAnyCoerce(thenBranch.t, resultType)));
-		loweredElseValue = coerceAnyExprToType(loweredElseValue, elseExpr.t, resultType, !elseKnownNonNullPrimitive && (exprBackedByAny(elseExpr)
-			|| shouldForceAnyCoerce(elseExpr.t, resultType)));
+		if (!thenLeaves)
+			loweredThenValue = coerceAnyExprToType(loweredThenValue, thenBranch.t, resultType, !thenKnownNonNullPrimitive && (exprBackedByAny(thenBranch)
+				|| shouldForceAnyCoerce(thenBranch.t, resultType)));
+		if (!elseLeaves)
+			loweredElseValue = coerceAnyExprToType(loweredElseValue, elseExpr.t, resultType, !elseKnownNonNullPrimitive && (exprBackedByAny(elseExpr)
+				|| shouldForceAnyCoerce(elseExpr.t, resultType)));
 
 		var prefix = [GoStmt.GoVarDecl(temp, valueStorageGoType(resultType), null, false)].concat(loweredCondition.prefix);
+		var thenBody = thenLeaves ? loweredThen.prefix : loweredThen.prefix.concat([GoStmt.GoAssign(GoExpr.GoIdent(temp), loweredThenValue)]);
+		var elseBody = elseLeaves ? loweredElse.prefix : loweredElse.prefix.concat([GoStmt.GoAssign(GoExpr.GoIdent(temp), loweredElseValue)]);
 
-		prefix.push(GoStmt.GoIf(loweredCondition.expr, loweredThen.prefix.concat([GoStmt.GoAssign(GoExpr.GoIdent(temp), loweredThenValue)]),
-			loweredElse.prefix.concat([GoStmt.GoAssign(GoExpr.GoIdent(temp), loweredElseValue)])));
+		prefix.push(GoStmt.GoIf(loweredCondition.expr, thenBody, elseBody));
 
 		return {
 			prefix: prefix,
 			expr: GoExpr.GoIdent(temp),
 			isStringLike: isStringType(resultType)
 		};
+	}
+
+	/**
+		What: Lowers one branch of a value `if`, either as a value or, when it leaves
+		through `return`, `break` or `continue`, as statements.
+
+		Why: A leaving branch has no value to store. Its statements must run in place
+		so the exit happens before the rest of the enclosing statement. Haxe also
+		lowers a guarded switch case (`case A if (cond): return x;`) to this shape.
+
+		How: A leaving branch keeps its statements in `prefix`; its placeholder `expr`
+		is never read because the caller skips the temporary assignment.
+	**/
+	function lowerIfValueBranch(branch:TypedExpr, leaves:Bool, resultType:Type):LoweredExprWithPrefix {
+		if (leaves)
+			return {prefix: lowerToStatements(branch), expr: GoExpr.GoNil, isStringLike: false};
+		return lowerCallableBranch(branch, resultType, function() return lowerExprWithExpectedUpcast(branch, resultType));
 	}
 
 	/** Resolve source-owned exception policy through the normal stdlib discovery queue. */
@@ -4458,33 +4579,15 @@ class GoCompiler {
 	}
 
 	function lowerTryCatchStmt(tryExpr:TypedExpr, catches:Array<{v:TVar, expr:TypedExpr}>):Array<GoStmt> {
-		var redirect:Null<ReturnRedirect> = null;
-		var redirectPrefix = new Array<GoStmt>();
-		var outerReturnType = currentFunctionReturnType();
-		if (outerReturnType != null && tryCatchContainsReturn(tryExpr, catches)) {
-			var flagName = freshTempName("hx_try_return");
-			var valueName:Null<String> = null;
-			var valueType:Null<Type> = null;
-
-			redirectPrefix.push(GoStmt.GoVarDecl(flagName, "bool", GoExpr.GoBoolLiteral(false), true));
-			if (!isVoidType(outerReturnType)) {
-				valueName = freshTempName("hx_try_value");
-				valueType = outerReturnType;
-				redirectPrefix.push(GoStmt.GoVarDecl(valueName, typeToGoType(outerReturnType), null, false));
-			}
-
-			redirect = {
-				flagName: flagName,
-				valueName: valueName,
-				valueType: valueType
-			};
-		}
+		var route = openTryReturnRoute(tryExpr, catches);
+		var redirect = route == null ? null : route.redirect;
+		var redirectPrefix = route == null ? new Array<GoStmt>() : route.declarations;
 
 		if (catches.length == 0) {
 			var tryBody = lowerStatementsWithReturnType(tryExpr, voidType(), redirect);
 			var out = redirectPrefix.concat([GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoFuncLiteral([], [], tryBody), []))]);
-			if (redirect != null) {
-				out.push(tryReturnRedirectStmt(redirect));
+			if (route != null) {
+				out.push(closeTryReturnRoute(route, tryExpr.pos));
 			}
 			return out;
 		}
@@ -4509,15 +4612,62 @@ class GoCompiler {
 				], [], catchBody)
 			]))
 		]);
-		if (redirect != null) {
-			out.push(tryReturnRedirectStmt(redirect));
+		if (route != null) {
+			out.push(closeTryReturnRoute(route, tryExpr.pos));
 		}
 		return out;
 	}
 
-	function tryReturnRedirectStmt(redirect:ReturnRedirect):GoStmt {
-		var returnStmt = redirect.valueName == null ? GoStmt.GoReturn(null) : GoStmt.GoReturn(GoExpr.GoIdent(redirect.valueName));
-		return GoStmt.GoIf(GoExpr.GoIdent(redirect.flagName), [returnStmt], null);
+	/**
+		What: Chooses how a `return` inside a try/catch reaches the enclosing function.
+
+		Why: Try and catch bodies run as Go closures, so a Haxe `return` there records
+		its value, sets a flag and leaves the closure. A try inside another try body is
+		already in a closure: a second flag would only leave the outer closure and the
+		returned value would be lost.
+
+		How: Return null when the try has no `return`. The outermost try declares the
+		flag and (for a non-Void function) the value slot. A try nested inside an
+		active redirect reuses it and declares nothing.
+	**/
+	function openTryReturnRoute(tryExpr:TypedExpr, catches:Array<{v:TVar, expr:TypedExpr}>):Null<TryReturnRoute> {
+		var outerReturnType = currentFunctionReturnType();
+		if (outerReturnType == null || !tryCatchContainsReturn(tryExpr, catches)) {
+			return null;
+		}
+		var active = currentReturnRedirect();
+		if (active != null) {
+			return {redirect: active, declarations: [], nested: true};
+		}
+		var flagName = freshTempName("hx_try_return");
+		var valueName:Null<String> = null;
+		var valueType:Null<Type> = null;
+		var declarations = [GoStmt.GoVarDecl(flagName, "bool", GoExpr.GoBoolLiteral(false), true)];
+		if (!isVoidType(outerReturnType)) {
+			valueName = freshTempName("hx_try_value");
+			valueType = outerReturnType;
+			declarations.push(GoStmt.GoVarDecl(valueName, typeToGoType(outerReturnType), null, false));
+		}
+		return {
+			redirect: {
+				flagName: flagName,
+				valueName: valueName,
+				valueType: valueType
+			},
+			declarations: declarations,
+			nested: false
+		};
+	}
+
+	/**
+		What: The statement that runs after a try/catch whose closures may have returned.
+		How: The outermost try returns the recorded value from the function. A nested
+		try only leaves its enclosing closure; the outermost check then returns.
+	**/
+	function closeTryReturnRoute(route:TryReturnRoute, pos:Position):GoStmt {
+		var valueName = route.nested ? null : route.redirect.valueName;
+		var returnStmt = valueName == null ? GoStmt.GoReturn(null) : GoStmt.GoReturn(GoExpr.GoIdent(valueName));
+		return GoStmt.GoIf(GoExpr.GoIdent(route.redirect.flagName), [recordHaxeReturn(returnStmt, pos)], null);
 	}
 
 	function tryCatchContainsReturn(tryExpr:TypedExpr, catches:Array<{v:TVar, expr:TypedExpr}>):Bool {
@@ -4688,45 +4838,76 @@ class GoCompiler {
 
 	function lowerTryCatchExpr(tryExpr:TypedExpr, catches:Array<{v:TVar, expr:TypedExpr}>, resultType:Type):LoweredExprWithPrefix {
 		var temp = freshTempName("hx_try");
-		var loweredTry = lowerCallableBranch(tryExpr, resultType, function() return lowerExprWithExpectedUpcast(tryExpr, resultType));
-		var loweredTryValue = loweredTry.expr;
+		var route = openTryReturnRoute(tryExpr, catches);
 		var tempExpr = GoExpr.GoIdent(temp);
+		var tryBody = lowerTryValueBody(tryExpr, resultType, tempExpr, route);
 
-		if (catches.length == 0) {
-			return {
-				prefix: [
-					GoStmt.GoVarDecl(temp, valueStorageGoType(resultType), null, false),
-					GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoFuncLiteral([], [], loweredTry.prefix.concat([GoStmt.GoAssign(tempExpr, loweredTryValue)])), []))
-				],
-				expr: tempExpr,
-				isStringLike: isStringType(resultType)
-			};
+		var tryCall = if (catches.length == 0) {
+			GoExpr.GoCall(GoExpr.GoFuncLiteral([], [], tryBody), []);
+		} else {
+			var caughtName = freshTempName("hx_caught");
+			var catchBody = lowerCatchDispatch(caughtName, [
+				for (entry in catches)
+					{variable: entry.v, body: lowerTryValueBody(entry.expr, resultType, tempExpr, route)}
+			]);
+			GoExpr.GoCall(GoExpr.GoIdent("hxrt.TryCatch"), [
+				GoExpr.GoFuncLiteral([], [], tryBody),
+				GoExpr.GoFuncLiteral([
+					{
+						name: caughtName,
+						typeName: "any"
+					}
+				], [], catchBody)
+			]);
+		};
+
+		var prefix = [GoStmt.GoVarDecl(temp, valueStorageGoType(resultType), null, false)];
+		if (route != null) {
+			prefix = prefix.concat(route.declarations);
 		}
-
-		var caughtName = freshTempName("hx_caught");
-		var catchBody = lowerCatchDispatch(caughtName, [
-			for (entry in catches) {
-				var loweredCatch = lowerCallableBranch(entry.expr, resultType, function() return lowerExprWithExpectedUpcast(entry.expr, resultType));
-				{variable: entry.v, body: loweredCatch.prefix.concat([GoStmt.GoAssign(tempExpr, loweredCatch.expr)])};
-			}
-		]);
-
+		prefix.push(GoStmt.GoExprStmt(tryCall));
+		if (route != null) {
+			prefix.push(closeTryReturnRoute(route, tryExpr.pos));
+		}
 		return {
-			prefix: [
-				GoStmt.GoVarDecl(temp, valueStorageGoType(resultType), null, false),
-				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.TryCatch"), [
-					GoExpr.GoFuncLiteral([], [], loweredTry.prefix.concat([GoStmt.GoAssign(tempExpr, loweredTryValue)])),
-					GoExpr.GoFuncLiteral([
-						{
-							name: caughtName,
-							typeName: "any"
-						}
-					], [], catchBody)
-				]))
-			],
+			prefix: prefix,
 			expr: tempExpr,
 			isStringLike: isStringType(resultType)
 		};
+	}
+
+	/**
+		What: Lowers the try body or one catch body of a value `try` into the
+		statements of its Go closure.
+
+		Why: The closure stores the branch value in the shared temporary. When the try
+		contains a Haxe `return` (`final x = try f() catch (e:Dynamic) return 0;`),
+		a plain Go `return` would leave only the closure, so the closure must use the
+		same return route as a statement try.
+
+		How: Without a route the value lowering is unchanged. With a route, the body
+		is lowered as a Void closure with the redirect active; a branch that leaves
+		is lowered as statements instead of a value. The closure owns the returns
+		lowered inside it.
+	**/
+	function lowerTryValueBody(branch:TypedExpr, resultType:Type, tempExpr:GoExpr, route:Null<TryReturnRoute>):Array<GoStmt> {
+		if (route == null) {
+			var lowered = lowerCallableBranch(branch, resultType, function() return lowerExprWithExpectedUpcast(branch, resultType));
+			return lowered.prefix.concat([GoStmt.GoAssign(tempExpr, lowered.expr)]);
+		}
+		pushFunctionReturnType(voidType());
+		pushReturnRedirect(route.redirect);
+		var firstReturn = haxeReturnStmts.length;
+		var body = if (valueBranchLeaves(branch)) {
+			lowerToStatements(branch);
+		} else {
+			var lowered = lowerCallableBranch(branch, resultType, function() return lowerExprWithExpectedUpcast(branch, resultType));
+			lowered.prefix.concat([GoStmt.GoAssign(tempExpr, lowered.expr)]);
+		};
+		requireOwnedHaxeReturns(firstReturn, body);
+		popReturnRedirect();
+		popFunctionReturnType();
+		return body;
 	}
 
 	function lowerObjectDeclExpr(fields:Array<{name:String, expr:TypedExpr}>):LoweredExprWithPrefix {
@@ -5096,8 +5277,11 @@ class GoCompiler {
 		if (redirect != null) {
 			pushReturnRedirect(redirect);
 		}
+		var firstReturn = haxeReturnStmts.length;
 		var lowered = lowerToStatements(expr);
 		if (redirect != null) {
+			// A try/catch closure owns the redirected returns lowered inside it.
+			requireOwnedHaxeReturns(firstReturn, lowered);
 			popReturnRedirect();
 		}
 		popFunctionReturnType();
