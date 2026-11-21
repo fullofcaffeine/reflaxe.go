@@ -432,26 +432,44 @@ abstract GoType(GoTypeKind) {
 		return [for (key in keys) found.get(key)];
 	}
 
-	/** Traverse structural type nodes to discover use of an imported package. */
-	public function usesPackage(alias:String):Bool {
-		return switch (this) {
-			case Builtin(_): false;
-			case Named(packageName, _): packageName != null && packageName.value() == alias;
-			case Pointer(element), Slice(element), ArrayType(_, element), Channel(_, element), Variadic(element): element.usesPackage(alias);
-			case MapType(key, value): key.usesPackage(alias) || value.usesPackage(alias);
-			case FunctionType(params, result): anyUsesPackage(params, alias) || (result != null && result.usesPackage(alias));
+	/**
+		What: Add the package qualifier of every named type inside this type to `found`.
+		Why: Import filtering asks which packages a file's types use; collecting them
+		in one traversal answers that for every candidate import at once.
+		How: Visit the same nested positions as `namedDependencies`, including
+		signatures and generic arguments, and record only package qualifiers.
+	**/
+	public function addPackageNames(found:Map<String, Bool>):Void {
+		switch (this) {
+			case Builtin(_):
+			case Named(packageName, _):
+				if (packageName != null)
+					found.set(packageName.value(), true);
+			case Pointer(element), Slice(element), ArrayType(_, element), Channel(_, element), Variadic(element):
+				element.addPackageNames(found);
+			case MapType(key, value):
+				key.addPackageNames(found);
+				value.addPackageNames(found);
+			case FunctionType(params, result):
+				for (param in params)
+					param.addPackageNames(found);
+				if (result != null)
+					result.addPackageNames(found);
 			case InterfaceType(methods):
-				var used = false;
 				for (method in methods) {
-					if (anyUsesPackage(method.params, alias) || anyUsesPackage(method.results, alias)) {
-						used = true;
-						break;
-					}
+					for (param in method.params)
+						param.addPackageNames(found);
+					for (result in method.results)
+						result.addPackageNames(found);
 				}
-				used;
-			case GenericType(base, arguments): base.usesPackage(alias) || anyUsesPackage(arguments, alias);
-			case MultiResult(results): anyUsesPackage(results, alias);
-		};
+			case GenericType(base, arguments):
+				base.addPackageNames(found);
+				for (argument in arguments)
+					argument.addPackageNames(found);
+			case MultiResult(results):
+				for (result in results)
+					result.addPackageNames(found);
+		}
 	}
 
 	/**
@@ -489,15 +507,6 @@ abstract GoType(GoTypeKind) {
 			case MultiResult(results): results.copy();
 			case _: [result];
 		};
-	}
-
-	static function anyUsesPackage(types:Array<GoType>, alias:String):Bool {
-		for (type in types) {
-			if (type.usesPackage(alias)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	static function validateNested(type:GoType, role:String):Void {

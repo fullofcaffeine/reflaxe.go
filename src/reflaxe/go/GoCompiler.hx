@@ -64,6 +64,7 @@ import reflaxe.go.ast.GoCompositeElement;
 import reflaxe.go.ast.GoImportPath;
 import reflaxe.go.ast.GoPackageName;
 import reflaxe.go.ast.GoSimpleStmt;
+import reflaxe.go.ast.GoSymbolUsage;
 import reflaxe.go.ast.GoType;
 import reflaxe.go.ast.GoUnaryOperator;
 import reflaxe.go.naming.GoNaming;
@@ -365,9 +366,6 @@ class GoCompiler {
 	/** Keyed by module path; see `instanceMemberDeclarations`. */
 	final buildConstraintEntriesByModule:Map<String, Array<Array<MetadataEntry>>>;
 
-	/** Compiled symbol-scan patterns keyed by pattern source; see `symbolPattern`. */
-	final symbolPatterns:Map<String, EReg>;
-
 	final generatedMethodMetadataByClassName:Map<String, GeneratedMethodMetadataSeed>;
 	final generatedFieldMetadataByClassName:Map<String, GeneratedFieldMetadataSeed>;
 	var generatedMethodMetadataPlan:Array<GeneratedMethodClassMetadata>;
@@ -446,7 +444,6 @@ class GoCompiler {
 		instanceMemberDeclarations = new Map<String, Bool>();
 		optionalArgumentMethods = new Map<String, Bool>();
 		buildConstraintEntriesByModule = new Map<String, Array<Array<MetadataEntry>>>();
-		symbolPatterns = new Map<String, EReg>();
 		generatedMethodMetadataByClassName = new Map<String, GeneratedMethodMetadataSeed>();
 		generatedFieldMetadataByClassName = new Map<String, GeneratedFieldMetadataSeed>();
 		generatedMethodMetadataPlan = [];
@@ -866,8 +863,9 @@ class GoCompiler {
 			decls: decls
 		};
 		var transformed = GoASTTransformer.transform(file, compilationContext);
-		noteTransformedRuntimeFeatures(transformed.decls);
-		var filtered = filterImportsByUsage(transformed);
+		final usage = GoSymbolUsage.collect(transformed.decls);
+		noteTransformedRuntimeFeatures(usage);
+		var filtered = filterImportsByUsage(transformed, usage);
 		final source = GoASTPrinter.printFile(filtered);
 		return {
 			relativePath: relativePath,
@@ -995,7 +993,7 @@ class GoCompiler {
 				buildConstrainedEnumNames.set(fullEnumName(enumType), true);
 	}
 
-	function noteTransformedRuntimeFeatures(decls:Array<GoDecl>):Void {
+	function noteTransformedRuntimeFeatures(usage:GoSymbolUsage):Void {
 		for (symbol in [
 			"hxrt.NativeErrorValue",
 			"hxrt.RawError",
@@ -1004,7 +1002,7 @@ class GoCompiler {
 			"hxrt.ExportLegacyError",
 			"hxrt.ExportErrors"
 		])
-			if (declsUseRuntimeSymbol(decls, symbol)) {
+			if (usage.uses(symbol)) {
 				requireGeneratedRuntimeFeature(GoHxrtFeatureAnalyzer.FEATURE_NATIVE_ERROR, "lowered_go_ast:" + symbol);
 				break;
 			}
@@ -1018,7 +1016,7 @@ class GoCompiler {
 			"hxrt.AnonymousGet",
 			"hxrt.AnonymousSet"
 		]) {
-			if (declsUseRuntimeSymbol(decls, symbol)) {
+			if (usage.uses(symbol)) {
 				requireGeneratedRuntimeFeature(GoHxrtFeatureAnalyzer.FEATURE_ANONYMOUS, "lowered_go_ast:" + symbol);
 				break;
 			}
@@ -1039,32 +1037,23 @@ class GoCompiler {
 			"hxrt.ReadDynamicFunction",
 			"hxrt.ReadStoredField"
 		]) {
-			if (declsUseRuntimeSymbol(decls, symbol)) {
+			if (usage.uses(symbol)) {
 				requireGeneratedRuntimeFeature(GoHxrtFeatureAnalyzer.FEATURE_FUNCTION, "lowered_go_ast:" + symbol);
 				break;
 			}
 		}
 		for (symbol in ["hxrt.ReflectIsFunction", "hxrt.ReflectCallMethod"])
-			if (declsUseRuntimeSymbol(decls, symbol))
+			if (usage.uses(symbol))
 				requireGeneratedRuntimeFeature(GoHxrtFeatureAnalyzer.FEATURE_REFLECTION, "lowered_go_ast:" + symbol);
-		if (declsUseRuntimeSymbol(decls, "hxrt.ArraySort")) {
+		if (usage.uses("hxrt.ArraySort")) {
 			requireGeneratedRuntimeFeature(GoHxrtFeatureAnalyzer.FEATURE_ARRAY_SORT, "lowered_go_ast:hxrt.ArraySort");
 		}
-		if (declsUseRuntimeSymbol(decls, "hxrt.StringCompareStringPtr")) {
+		if (usage.uses("hxrt.StringCompareStringPtr")) {
 			requireGeneratedRuntimeFeature(GoHxrtFeatureAnalyzer.FEATURE_STRING_COMPARE, "lowered_go_ast:hxrt.StringCompareStringPtr");
 		}
 	}
 
-	function declsUseRuntimeSymbol(decls:Array<GoDecl>, symbol:String):Bool {
-		for (decl in decls) {
-			if (declUsesImportAlias(decl, symbol)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	function filterImportsByUsage(file:GoFile):GoFile {
+	function filterImportsByUsage(file:GoFile, usage:GoSymbolUsage):GoFile {
 		var dedup = new Map<String, Bool>();
 		var filtered = new Array<GoImportPath>();
 		for (path in file.imports) {
@@ -1076,7 +1065,7 @@ class GoCompiler {
 				continue;
 			}
 			var alias = importAliasForPath(trimmed);
-			if (alias == "" || fileUsesImportAlias(file, alias)) {
+			if (alias == "" || usage.uses(alias)) {
 				dedup.set(trimmed, true);
 				filtered.push(trimmed);
 			}
@@ -1102,15 +1091,6 @@ class GoCompiler {
 		return alias == null || alias == "" ? "" : normalizeIdent(alias);
 	}
 
-	function fileUsesImportAlias(file:GoFile, alias:String):Bool {
-		for (decl in file.decls) {
-			if (declUsesImportAlias(decl, alias)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	/**
 		Finds retained shared-Array references in the typed Go AST.
 
@@ -1133,452 +1113,8 @@ class GoCompiler {
 	}
 
 	function declsUseSharedArraySurface(decls:Array<GoDecl>):Bool {
-		var symbols = ["hxrt.Array", "hxrt.NewArray", "hxrt.ArrayFromValues"];
-		for (decl in decls) {
-			for (symbol in symbols) {
-				if (declUsesImportAlias(decl, symbol)) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	function declUsesImportAlias(decl:GoDecl, alias:String):Bool {
-		return switch (decl) {
-			case GoInterfaceDecl(_, methods):
-				var used = false;
-				for (method in methods) {
-					for (param in method.params) {
-						if (typeNameUsesImportAlias(param.typeName, alias)) {
-							used = true;
-							break;
-						}
-					}
-					if (used) {
-						break;
-					}
-					for (result in method.results) {
-						if (typeNameUsesImportAlias(result, alias)) {
-							used = true;
-							break;
-						}
-					}
-					if (used) {
-						break;
-					}
-				}
-				used;
-			case GoStructDecl(_, fields):
-				var used = false;
-				for (field in fields) {
-					if (typeNameUsesImportAlias(field.typeName, alias)) {
-						used = true;
-						break;
-					}
-				}
-				used;
-			case GoGlobalVarDecl(_, typeName, value): typeNameUsesImportAlias(typeName, alias) || (value != null && exprUsesImportAlias(value, alias));
-			case GoFuncDecl(_, receiver, params, results, body):
-				if (receiver != null && typeNameUsesImportAlias(receiver.typeName, alias)) {
-					true;
-				} else {
-					var used = false;
-					for (param in params) {
-						if (typeNameUsesImportAlias(param.typeName, alias)) {
-							used = true;
-							break;
-						}
-					}
-					if (!used) {
-						for (result in results) {
-							if (typeNameUsesImportAlias(result, alias)) {
-								used = true;
-								break;
-							}
-						}
-					}
-					if (!used) {
-						for (stmt in body) {
-							if (stmtUsesImportAlias(stmt, alias)) {
-								used = true;
-								break;
-							}
-						}
-					}
-					used;
-				}
-		};
-	}
-
-	function stmtUsesImportAlias(stmt:GoStmt, alias:String):Bool {
-		return switch (stmt) {
-			case GoVarDecl(_, typeName, value, useShort): // A short declaration prints only `name := value`; its retained Haxe
-				// type guides lowering but does not create a Go import reference.
-				(!useShort
-					&& typeName != null
-					&& typeNameUsesImportAlias(typeName, alias)) || (value != null && exprUsesImportAlias(value, alias));
-			case GoMultiAssign(_, value, _): exprUsesImportAlias(value, alias);
-			case GoAssign(left, right, _): exprUsesImportAlias(left, alias) || exprUsesImportAlias(right, alias);
-			case GoIncDec(target, _): exprUsesImportAlias(target, alias);
-			case GoExprStmt(expr):
-				exprUsesImportAlias(expr, alias);
-			case GoGoStmt(call):
-				exprUsesImportAlias(call, alias);
-			case GoDeferStmt(call):
-				exprUsesImportAlias(call, alias);
-			case GoSendStmt(channel, value): exprUsesImportAlias(channel, alias) || exprUsesImportAlias(value, alias);
-			case GoRaw(code):
-				rawCodeUsesImportAlias(code, alias);
-			case GoWhile(cond, body):
-				if (exprUsesImportAlias(cond, alias)) {
-					true;
-				} else {
-					var used = false;
-					for (child in body) {
-						if (stmtUsesImportAlias(child, alias)) {
-							used = true;
-							break;
-						}
-					}
-					used;
-				}
-			case GoFor(initializer, condition, post, body):
-				(initializer != null && simpleStmtUsesImportAlias(initializer, alias))
-				|| (condition != null && exprUsesImportAlias(condition, alias))
-				|| (post != null && simpleStmtUsesImportAlias(post, alias))
-				|| stmtListUsesImportAlias(body, alias);
-			case GoLabeled(_, child):
-				stmtUsesImportAlias(child, alias);
-			case GoRangeStmt(_, _, source, _, body):
-				if (exprUsesImportAlias(source, alias)) {
-					true;
-				} else {
-					var used = false;
-					for (child in body) {
-						if (stmtUsesImportAlias(child, alias)) {
-							used = true;
-							break;
-						}
-					}
-					used;
-				}
-			case GoIf(cond, thenBody, elseBody):
-				if (exprUsesImportAlias(cond, alias)) {
-					true;
-				} else {
-					var used = false;
-					for (child in thenBody) {
-						if (stmtUsesImportAlias(child, alias)) {
-							used = true;
-							break;
-						}
-					}
-					if (!used && elseBody != null) {
-						for (child in elseBody) {
-							if (stmtUsesImportAlias(child, alias)) {
-								used = true;
-								break;
-							}
-						}
-					}
-					used;
-				}
-			case GoSwitch(value, cases, defaultBody):
-				if (exprUsesImportAlias(value, alias)) {
-					true;
-				} else {
-					var used = false;
-					for (switchCase in cases) {
-						for (caseValue in switchCase.values) {
-							if (exprUsesImportAlias(caseValue, alias)) {
-								used = true;
-								break;
-							}
-						}
-						if (used) {
-							break;
-						}
-						for (child in switchCase.body) {
-							if (stmtUsesImportAlias(child, alias)) {
-								used = true;
-								break;
-							}
-						}
-						if (used) {
-							break;
-						}
-					}
-					if (!used && defaultBody != null) {
-						for (child in defaultBody) {
-							if (stmtUsesImportAlias(child, alias)) {
-								used = true;
-								break;
-							}
-						}
-					}
-					used;
-				}
-			case GoTypeSwitch(value, _, cases, defaultBody):
-				if (exprUsesImportAlias(value, alias)) {
-					true;
-				} else {
-					var used = false;
-					for (typeCase in cases) {
-						if (typeNameUsesImportAlias(typeCase.typeName, alias)) {
-							used = true;
-							break;
-						}
-						for (child in typeCase.body) {
-							if (stmtUsesImportAlias(child, alias)) {
-								used = true;
-								break;
-							}
-						}
-						if (used) {
-							break;
-						}
-					}
-					if (!used && defaultBody != null) {
-						for (child in defaultBody) {
-							if (stmtUsesImportAlias(child, alias)) {
-								used = true;
-								break;
-							}
-						}
-					}
-					used;
-				}
-			case GoSelect(cases):
-				var used = false;
-				for (selectCase in cases) {
-					if (selectClauseUsesImportAlias(selectCase.clause, alias)) {
-						used = true;
-						break;
-					}
-					for (child in selectCase.body) {
-						if (stmtUsesImportAlias(child, alias)) {
-							used = true;
-							break;
-						}
-					}
-					if (used) {
-						break;
-					}
-				}
-				used;
-			case GoBreak(_), GoContinue:
-				false;
-			case GoReturn(expr): expr != null && exprUsesImportAlias(expr, alias);
-			case GoReturnValues(values):
-				var used = false;
-				for (value in values)
-					if (exprUsesImportAlias(value, alias)) {
-						used = true;
-						break;
-					}
-				used;
-		};
-	}
-
-	function stmtListUsesImportAlias(stmts:Array<GoStmt>, alias:String):Bool {
-		for (stmt in stmts) {
-			if (stmtUsesImportAlias(stmt, alias)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	function simpleStmtUsesImportAlias(stmt:GoSimpleStmt, alias:String):Bool {
-		return switch (stmt) {
-			case GoSimpleDeclare(_, value): exprUsesImportAlias(value, alias);
-			case GoSimpleAssign(left, right, _): exprUsesImportAlias(left, alias) || exprUsesImportAlias(right, alias);
-			case GoSimpleIncDec(target, _): exprUsesImportAlias(target, alias);
-			case GoSimpleExpr(expr): exprUsesImportAlias(expr, alias);
-			case GoSimpleSend(channel, value): exprUsesImportAlias(channel, alias) || exprUsesImportAlias(value, alias);
-		};
-	}
-
-	function selectClauseUsesImportAlias(clause:GoSelectClause, alias:String):Bool {
-		return switch (clause) {
-			case GoSelectSend(channel, value): exprUsesImportAlias(channel, alias) || exprUsesImportAlias(value, alias);
-			case GoSelectRecv(recv):
-				exprUsesImportAlias(recv, alias);
-			case GoSelectRecvAssign(target, recv, _): exprUsesImportAlias(target, alias) || exprUsesImportAlias(recv, alias);
-			case GoSelectRecvAssignOk(target, okTarget, recv, _): exprUsesImportAlias(target,
-					alias) || exprUsesImportAlias(okTarget, alias) || exprUsesImportAlias(recv, alias);
-			case GoSelectDefault:
-				false;
-		};
-	}
-
-	function exprUsesImportAlias(expr:GoExpr, alias:String):Bool {
-		return switch (expr) {
-			// A standalone identifier can be a local variable with the same name as
-			// a package. Package use is represented by a selector (`pkg.Member`).
-			case GoIdent(name): rawCodeUsesImportAlias(name, alias);
-			case GoIntLiteral(_), GoFloatLiteral(_), GoBoolLiteral(_), GoStringLiteral(_), GoNil:
-				false;
-			case GoSelector(target, field): selectorTargetUsesImportAlias(target,
-					alias) || selectorMatchesQualifiedSymbol(target, field, alias) || exprUsesImportAlias(target, alias);
-			case GoInstantiate(target, arguments):
-				var used = exprUsesImportAlias(target, alias);
-				for (argument in arguments) {
-					if (used) {
-						break;
-					}
-					used = typeNameUsesImportAlias(argument, alias);
-				}
-				used;
-			case GoIndex(target, index): exprUsesImportAlias(target, alias) || exprUsesImportAlias(index, alias);
-			case GoSlice(target, start, end): exprUsesImportAlias(target,
-					alias) || (start != null && exprUsesImportAlias(start, alias)) || (end != null && exprUsesImportAlias(end, alias));
-			case GoCompositeLiteral(typeName, elements):
-				if (typeNameUsesImportAlias(typeName, alias)) {
-					true;
-				} else {
-					var used = false;
-					for (element in elements) {
-						if (compositeElementUsesImportAlias(element, alias)) {
-							used = true;
-							break;
-						}
-					}
-					used;
-				}
-			case GoMakeSlice(elementType, length, capacity): typeNameUsesImportAlias(elementType,
-					alias) || exprUsesImportAlias(length, alias) || (capacity != null && exprUsesImportAlias(capacity, alias));
-			case GoFuncLiteral(params, results, body):
-				var used = false;
-				for (param in params) {
-					if (typeNameUsesImportAlias(param.typeName, alias)) {
-						used = true;
-						break;
-					}
-				}
-				if (!used) {
-					for (result in results) {
-						if (typeNameUsesImportAlias(result, alias)) {
-							used = true;
-							break;
-						}
-					}
-				}
-				if (!used) {
-					for (stmt in body) {
-						if (stmtUsesImportAlias(stmt, alias)) {
-							used = true;
-							break;
-						}
-					}
-				}
-				used;
-			case GoRaw(code):
-				rawCodeUsesImportAlias(code, alias);
-			case GoTypeAssert(inner, typeName): exprUsesImportAlias(inner, alias) || typeNameUsesImportAlias(typeName, alias);
-			case GoRecvExpr(channel):
-				exprUsesImportAlias(channel, alias);
-			case GoUnary(_, inner):
-				exprUsesImportAlias(inner, alias);
-			case GoBinary(_, left, right): exprUsesImportAlias(left, alias) || exprUsesImportAlias(right, alias);
-			case GoCall(callee, args) | GoVariadicCall(callee, args):
-				if (exprUsesImportAlias(callee, alias)) {
-					true;
-				} else {
-					var used = false;
-					for (arg in args) {
-						if (exprUsesImportAlias(arg, alias)) {
-							used = true;
-							break;
-						}
-					}
-					used;
-				}
-		};
-	}
-
-	/**
-		What: Detect a package identifier in the target of a selector.
-		Why: A standalone local identifier can have the same name as a Go package.
-		How: Count the identifier only when the AST prints it before a selector field.
-	**/
-	function selectorTargetUsesImportAlias(target:GoExpr, alias:String):Bool {
-		return switch (target) {
-			case GoIdent(name): name == alias;
-			case _: false;
-		};
-	}
-
-	function compositeElementUsesImportAlias(element:GoCompositeElement, alias:String):Bool {
-		return switch (element) {
-			case GoCompositeValue(value), GoCompositeField(_, value): exprUsesImportAlias(value, alias);
-			case GoCompositeKeyValue(key, value): exprUsesImportAlias(key, alias) || exprUsesImportAlias(value, alias);
-		};
-	}
-
-	function typeNameUsesImportAlias(typeName:GoType, alias:String):Bool {
-		if (typeName == null) {
-			return false;
-		}
-		return alias.indexOf(".") >= 0 ? rawCodeUsesQualifiedSymbol(typeName.render(), alias) : typeName.usesPackage(alias);
-	}
-
-	function rawCodeUsesImportAlias(code:String, alias:String):Bool {
-		if (code == null || code == "") {
-			return false;
-		}
-		if (alias.indexOf(".") >= 0) {
-			return rawCodeUsesQualifiedSymbol(code, alias);
-		}
-		// The pattern can only match where the alias text occurs.
-		if (code.indexOf(alias) < 0) {
-			return false;
-		}
-		return symbolPattern("\\b" + EReg.escape(alias) + "\\s*\\.").match(code);
-	}
-
-	/**
-		What: Returns the compiled regular expression for one symbol-scan pattern.
-		Why: Import filtering and runtime-feature detection test every identifier
-		and raw Go snippet against each candidate package or symbol. Building a new
-		`EReg` for each test compiled the same few patterns millions of times.
-		How: Keep one compiled `EReg` per pattern text for this compilation. The
-		key is the exact pattern source, and these patterns use no flags, so a
-		reused `EReg` matches exactly like a new one.
-	**/
-	function symbolPattern(source:String):EReg {
-		final cached = symbolPatterns.get(source);
-		if (cached != null) {
-			return cached;
-		}
-		final pattern = new EReg(source, "");
-		symbolPatterns.set(source, pattern);
-		return pattern;
-	}
-
-	function selectorMatchesQualifiedSymbol(target:GoExpr, field:String, symbol:String):Bool {
-		return switch (target) {
-			case GoIdent(packageName): symbol == packageName + "." + field;
-			case _: false;
-		};
-	}
-
-	function rawCodeUsesQualifiedSymbol(code:String, symbol:String):Bool {
-		if (code == null || code == "") {
-			return false;
-		}
-		var separator = symbol.indexOf(".");
-		if (separator <= 0 || separator == symbol.length - 1) {
-			return false;
-		}
-		var packageName = symbol.substr(0, separator);
-		var memberName = symbol.substr(separator + 1);
-		// The pattern can only match where both names occur.
-		if (code.indexOf(memberName) < 0 || code.indexOf(packageName) < 0) {
-			return false;
-		}
-		return symbolPattern("\\b" + EReg.escape(packageName) + "\\s*\\.\\s*" + EReg.escape(memberName) + "\\b").match(code);
+		final usage = GoSymbolUsage.collect(decls);
+		return usage.uses("hxrt.Array") || usage.uses("hxrt.NewArray") || usage.uses("hxrt.ArrayFromValues");
 	}
 
 	function collectProjectClasses(types:Array<ModuleType>):Array<ClassType> {
