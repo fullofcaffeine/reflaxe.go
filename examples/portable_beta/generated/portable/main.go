@@ -216,11 +216,6 @@ func (self *_Main__Delivery) HxClassName() string {
 func hxrt__generated_method_field(obj any, key string) any {
 	var receiver any
 	switch value := hxrt.ObjectSource(obj).(type) {
-	case *Date:
-		if (value == nil) || (value.__hx_this == nil) {
-			return nil
-		}
-		receiver = value.__hx_this
 	case *haxe__Exception:
 		if (value == nil) || (value.__hx_this == nil) {
 			return nil
@@ -300,8 +295,6 @@ func hxrt__generated_method_field(obj any, key string) any {
 		return nil
 	}
 	switch value := receiver.(type) {
-	case *Date:
-		return hxrt__generated_method_field__Date(value, key)
 	case *haxe__Exception:
 		return hxrt__generated_method_field__haxe__Exception(value, key)
 	case *haxe__ValueException:
@@ -335,186 +328,6 @@ func hxrt__generated_method_field(obj any, key string) any {
 	default:
 		return nil
 	}
-}
-
-func hxrt__generated_method_field__Date(value *Date, key string) any {
-	if value == nil {
-		return nil
-	}
-	switch key {
-	case "getDate":
-		return func() *hxrt.Function[func() int] {
-			hx_receiver_1 := value
-			return hxrt.BoundFunction(func() int {
-				return hx_receiver_1.__hx_this.getDate()
-			}, func() any {
-				return hx_receiver_1.__hx_this
-			}, "getDate")
-		}()
-	case "getDay":
-		return func() *hxrt.Function[func() int] {
-			hx_receiver_1 := value
-			return hxrt.BoundFunction(func() int {
-				return hx_receiver_1.__hx_this.getDay()
-			}, func() any {
-				return hx_receiver_1.__hx_this
-			}, "getDay")
-		}()
-	case "getFullYear":
-		return func() *hxrt.Function[func() int] {
-			hx_receiver_1 := value
-			return hxrt.BoundFunction(func() int {
-				return hx_receiver_1.__hx_this.getFullYear()
-			}, func() any {
-				return hx_receiver_1.__hx_this
-			}, "getFullYear")
-		}()
-	case "getHours":
-		return func() *hxrt.Function[func() int] {
-			hx_receiver_1 := value
-			return hxrt.BoundFunction(func() int {
-				return hx_receiver_1.__hx_this.getHours()
-			}, func() any {
-				return hx_receiver_1.__hx_this
-			}, "getHours")
-		}()
-	case "getMinutes":
-		return func() *hxrt.Function[func() int] {
-			hx_receiver_1 := value
-			return hxrt.BoundFunction(func() int {
-				return hx_receiver_1.__hx_this.getMinutes()
-			}, func() any {
-				return hx_receiver_1.__hx_this
-			}, "getMinutes")
-		}()
-	case "getMonth":
-		return func() *hxrt.Function[func() int] {
-			hx_receiver_1 := value
-			return hxrt.BoundFunction(func() int {
-				return hx_receiver_1.__hx_this.getMonth()
-			}, func() any {
-				return hx_receiver_1.__hx_this
-			}, "getMonth")
-		}()
-	case "getSeconds":
-		return func() *hxrt.Function[func() int] {
-			hx_receiver_1 := value
-			return hxrt.BoundFunction(func() int {
-				return hx_receiver_1.__hx_this.getSeconds()
-			}, func() any {
-				return hx_receiver_1.__hx_this
-			}, "getSeconds")
-		}()
-	case "getTime":
-		return func() *hxrt.Function[func() float64] {
-			hx_receiver_1 := value
-			return hxrt.BoundFunction(func() float64 {
-				return hx_receiver_1.__hx_this.getTime()
-			}, func() any {
-				return hx_receiver_1.__hx_this
-			}, "getTime")
-		}()
-	case "getTimezoneOffset":
-		return func() *hxrt.Function[func() int] {
-			hx_receiver_1 := value
-			return hxrt.BoundFunction(func() int {
-				return hx_receiver_1.__hx_this.getTimezoneOffset()
-			}, func() any {
-				return hx_receiver_1.__hx_this
-			}, "getTimezoneOffset")
-		}()
-	case "getUTCDate":
-		return func() *hxrt.Function[func() int] {
-			hx_receiver_1 := value
-			return hxrt.BoundFunction(func() int {
-				return hx_receiver_1.__hx_this.getUTCDate()
-			}, func() any {
-				return hx_receiver_1.__hx_this
-			}, "getUTCDate")
-		}()
-	case "getUTCDay":
-		return func() *hxrt.Function[func() int] {
-			hx_receiver_1 := value
-			return hxrt.BoundFunction(func() int {
-				return hx_receiver_1.__hx_this.getUTCDay()
-			}, func() any {
-				return hx_receiver_1.__hx_this
-			}, "getUTCDay")
-		}()
-	case "getUTCFullYear":
-		return func() *hxrt.Function[func() int] {
-			hx_receiver_1 := value
-			return hxrt.BoundFunction(func() int {
-				return hx_receiver_1.__hx_this.getUTCFullYear()
-			}, func() any {
-				return hx_receiver_1.__hx_this
-			}, "getUTCFullYear")
-		}()
-	case "getUTCHours":
-		return func() *hxrt.Function[func() int] {
-			hx_receiver_1 := value
-			return hxrt.BoundFunction(func() int {
-				return hx_receiver_1.__hx_this.getUTCHours()
-			}, func() any {
-				return hx_receiver_1.__hx_this
-			}, "getUTCHours")
-		}()
-	case "getUTCMinutes":
-		return func() *hxrt.Function[func() int] {
-			hx_receiver_1 := value
-			return hxrt.BoundFunction(func() int {
-				return hx_receiver_1.__hx_this.getUTCMinutes()
-			}, func() any {
-				return hx_receiver_1.__hx_this
-			}, "getUTCMinutes")
-		}()
-	case "getUTCMonth":
-		return func() *hxrt.Function[func() int] {
-			hx_receiver_1 := value
-			return hxrt.BoundFunction(func() int {
-				return hx_receiver_1.__hx_this.getUTCMonth()
-			}, func() any {
-				return hx_receiver_1.__hx_this
-			}, "getUTCMonth")
-		}()
-	case "getUTCSeconds":
-		return func() *hxrt.Function[func() int] {
-			hx_receiver_1 := value
-			return hxrt.BoundFunction(func() int {
-				return hx_receiver_1.__hx_this.getUTCSeconds()
-			}, func() any {
-				return hx_receiver_1.__hx_this
-			}, "getUTCSeconds")
-		}()
-	case "localParts":
-		return func() *hxrt.Function[func() *hxrt.DateParts] {
-			hx_receiver_1 := value
-			return hxrt.BoundFunction(func() *hxrt.DateParts {
-				return hx_receiver_1.__hx_this.localParts()
-			}, func() any {
-				return hx_receiver_1.__hx_this
-			}, "localParts")
-		}()
-	case "toString":
-		return func() *hxrt.Function[func() *string] {
-			hx_receiver_1 := value
-			return hxrt.BoundFunction(func() *string {
-				return hx_receiver_1.__hx_this.toString()
-			}, func() any {
-				return hx_receiver_1.__hx_this
-			}, "toString")
-		}()
-	case "utcParts":
-		return func() *hxrt.Function[func() *hxrt.DateParts] {
-			hx_receiver_1 := value
-			return hxrt.BoundFunction(func() *hxrt.DateParts {
-				return hx_receiver_1.__hx_this.utcParts()
-			}, func() any {
-				return hx_receiver_1.__hx_this
-			}, "utcParts")
-		}()
-	}
-	return nil
 }
 
 func hxrt__generated_method_field__haxe__Exception(value *haxe__Exception, key string) any {
@@ -1680,11 +1493,6 @@ func reflaxe__go___internal__CompilerReflect_generatedField(object any, field *s
 	key := *hxrt.StdString(field)
 	var receiver any
 	switch value := hxrt.ObjectSource(object).(type) {
-	case *Date:
-		if (value == nil) || (value.__hx_this == nil) {
-			return nil
-		}
-		receiver = value.__hx_this
 	case *_Main__Delivery:
 		if (value == nil) || (value.__hx_this == nil) {
 			return nil
@@ -1774,8 +1582,6 @@ func reflaxe__go___internal__CompilerReflect_generatedField(object any, field *s
 		return nil
 	}
 	switch value := receiver.(type) {
-	case *Date:
-		return hxrt__generated_field_lookup__Date(value, key)
 	case *_Main__Delivery:
 		return hxrt__generated_field_lookup___Main__Delivery(value, key)
 	case *haxe__Exception:
@@ -1819,11 +1625,6 @@ func reflaxe__go___internal__CompilerReflect_hasGeneratedField(object any, field
 	key := *hxrt.StdString(field)
 	var receiver any
 	switch value := hxrt.ObjectSource(object).(type) {
-	case *Date:
-		if (value == nil) || (value.__hx_this == nil) {
-			return false
-		}
-		receiver = value.__hx_this
 	case *_Main__Delivery:
 		if (value == nil) || (value.__hx_this == nil) {
 			return false
@@ -1913,8 +1714,6 @@ func reflaxe__go___internal__CompilerReflect_hasGeneratedField(object any, field
 		return false
 	}
 	switch value := receiver.(type) {
-	case *Date:
-		return hxrt__generated_field_has__Date(value, key)
 	case *_Main__Delivery:
 		return hxrt__generated_field_has___Main__Delivery(value, key)
 	case *haxe__Exception:
@@ -1958,11 +1757,6 @@ func reflaxe__go___internal__CompilerReflect_setGeneratedField(object any, field
 	key := *hxrt.StdString(field)
 	var receiver any
 	switch value := hxrt.ObjectSource(object).(type) {
-	case *Date:
-		if (value == nil) || (value.__hx_this == nil) {
-			return false
-		}
-		receiver = value.__hx_this
 	case *_Main__Delivery:
 		if (value == nil) || (value.__hx_this == nil) {
 			return false
@@ -2052,8 +1846,6 @@ func reflaxe__go___internal__CompilerReflect_setGeneratedField(object any, field
 		return false
 	}
 	switch value := receiver.(type) {
-	case *Date:
-		return hxrt__generated_field_set__Date(value, key, incoming)
 	case *_Main__Delivery:
 		return hxrt__generated_field_set___Main__Delivery(value, key, incoming)
 	case *haxe__Exception:
@@ -2096,11 +1888,6 @@ func reflaxe__go___internal__CompilerReflect_setGeneratedField(object any, field
 func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.Array {
 	var receiver any
 	switch value := hxrt.ObjectSource(object).(type) {
-	case *Date:
-		if (value == nil) || (value.__hx_this == nil) {
-			return nil
-		}
-		receiver = value.__hx_this
 	case *_Main__Delivery:
 		if (value == nil) || (value.__hx_this == nil) {
 			return nil
@@ -2195,8 +1982,6 @@ func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.A
 		return nil
 	}
 	switch receiver.(type) {
-	case *Date:
-		return hxrt.NewArray(hxrt.StringFromLiteral("ms"))
 	case *_Main__Delivery:
 		return hxrt.NewArray(hxrt.StringFromLiteral("name"), hxrt.StringFromLiteral("state"))
 	case *haxe__Exception:
@@ -2236,53 +2021,6 @@ func reflaxe__go___internal__CompilerReflect_generatedFields(object any) *hxrt.A
 	default:
 		return nil
 	}
-}
-
-func hxrt__generated_field_lookup__Date(value *Date, key string) any {
-	if value == nil {
-		return nil
-	}
-	switch key {
-	case "ms":
-		return hxrt.ReadStoredField(value.ms)
-	}
-	return nil
-}
-
-func hxrt__generated_field_has__Date(value *Date, key string) bool {
-	if value == nil {
-		return false
-	}
-	switch key {
-	case "ms":
-		return true
-	}
-	return false
-}
-
-func hxrt__generated_field_set__Date(value *Date, key string, incoming any) bool {
-	if value == nil {
-		return false
-	}
-	switch key {
-	case "ms":
-		if incoming == nil {
-			var zero float64
-			value.ms = zero
-			return true
-		}
-		switch typed := incoming.(type) {
-		case float64:
-			value.ms = typed
-			return true
-		case int:
-			value.ms = float64(typed)
-			return true
-		default:
-			return false
-		}
-	}
-	return false
 }
 
 func hxrt__generated_field_lookup___Main__Delivery(value *_Main__Delivery, key string) any {
@@ -3382,12 +3120,6 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 			}
 		}
 		return hxrt.FunctionCall(source)(argument_0...)
-	case *hxrt.Function[func() int]:
-		return hxrt.FunctionCall(source)()
-	case *hxrt.Function[func() float64]:
-		return hxrt.FunctionCall(source)()
-	case *hxrt.Function[func() *hxrt.DateParts]:
-		return hxrt.FunctionCall(source)()
 	case *hxrt.Function[func() *haxe__Exception]:
 		return hxrt.FunctionCall(source)()
 	case *hxrt.Function[func()]:
@@ -3808,6 +3540,8 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 		return nil
 	case *hxrt.Function[func() *haxe__io__Bytes]:
 		return hxrt.FunctionCall(source)()
+	case *hxrt.Function[func() int]:
+		return hxrt.FunctionCall(source)()
 	case *hxrt.Function[func(int) *haxe__io__Bytes]:
 		var argument_0 any = nil
 		if 0 < len(arguments) {
@@ -3852,6 +3586,8 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 			}
 			return hx_value_67.(int)
 		}(argument_2))
+	case *hxrt.Function[func() float64]:
+		return hxrt.FunctionCall(source)()
 	case *hxrt.Function[func(int, *haxe__io__Encoding) *string]:
 		var argument_0 any = nil
 		if 0 < len(arguments) {
@@ -3992,7 +3728,7 @@ func hx_recover_callable_b9d17ba0(value any) *hxrt.Function[func() *string] {
 				return hx_value_7.(*string)
 			}(hxrt.FunctionCall(source)())
 		})
-	case *hxrt.Function[func() int]:
+	case *hxrt.Function[func() *haxe__Exception]:
 		return hxrt.ProjectFunction(source, func() *string {
 			return func(hx_value_9 any) *string {
 				if hx_value_9 == nil {
@@ -4002,17 +3738,18 @@ func hx_recover_callable_b9d17ba0(value any) *hxrt.Function[func() *string] {
 				return hx_value_9.(*string)
 			}(hxrt.FunctionCall(source)())
 		})
-	case *hxrt.Function[func() float64]:
+	case *hxrt.Function[func()]:
 		return hxrt.ProjectFunction(source, func() *string {
+			hxrt.FunctionCall(source)()
 			return func(hx_value_11 any) *string {
 				if hx_value_11 == nil {
 					var hx_zero_12 *string
 					return hx_zero_12
 				}
 				return hx_value_11.(*string)
-			}(hxrt.FunctionCall(source)())
+			}(nil)
 		})
-	case *hxrt.Function[func() *hxrt.DateParts]:
+	case *hxrt.Function[func() *haxe__ds__StringMap]:
 		return hxrt.ProjectFunction(source, func() *string {
 			return func(hx_value_13 any) *string {
 				if hx_value_13 == nil {
@@ -4022,7 +3759,7 @@ func hx_recover_callable_b9d17ba0(value any) *hxrt.Function[func() *string] {
 				return hx_value_13.(*string)
 			}(hxrt.FunctionCall(source)())
 		})
-	case *hxrt.Function[func() *haxe__Exception]:
+	case *hxrt.Function[func() haxe__IMap]:
 		return hxrt.ProjectFunction(source, func() *string {
 			return func(hx_value_15 any) *string {
 				if hx_value_15 == nil {
@@ -4032,18 +3769,17 @@ func hx_recover_callable_b9d17ba0(value any) *hxrt.Function[func() *string] {
 				return hx_value_15.(*string)
 			}(hxrt.FunctionCall(source)())
 		})
-	case *hxrt.Function[func()]:
+	case *hxrt.Function[func() *hxrt.ByteView]:
 		return hxrt.ProjectFunction(source, func() *string {
-			hxrt.FunctionCall(source)()
 			return func(hx_value_17 any) *string {
 				if hx_value_17 == nil {
 					var hx_zero_18 *string
 					return hx_zero_18
 				}
 				return hx_value_17.(*string)
-			}(nil)
+			}(hxrt.FunctionCall(source)())
 		})
-	case *hxrt.Function[func() *haxe__ds__StringMap]:
+	case *hxrt.Function[func() []int]:
 		return hxrt.ProjectFunction(source, func() *string {
 			return func(hx_value_19 any) *string {
 				if hx_value_19 == nil {
@@ -4053,7 +3789,7 @@ func hx_recover_callable_b9d17ba0(value any) *hxrt.Function[func() *string] {
 				return hx_value_19.(*string)
 			}(hxrt.FunctionCall(source)())
 		})
-	case *hxrt.Function[func() haxe__IMap]:
+	case *hxrt.Function[func() *haxe__io__Bytes]:
 		return hxrt.ProjectFunction(source, func() *string {
 			return func(hx_value_21 any) *string {
 				if hx_value_21 == nil {
@@ -4063,7 +3799,7 @@ func hx_recover_callable_b9d17ba0(value any) *hxrt.Function[func() *string] {
 				return hx_value_21.(*string)
 			}(hxrt.FunctionCall(source)())
 		})
-	case *hxrt.Function[func() *hxrt.ByteView]:
+	case *hxrt.Function[func() int]:
 		return hxrt.ProjectFunction(source, func() *string {
 			return func(hx_value_23 any) *string {
 				if hx_value_23 == nil {
@@ -4073,7 +3809,7 @@ func hx_recover_callable_b9d17ba0(value any) *hxrt.Function[func() *string] {
 				return hx_value_23.(*string)
 			}(hxrt.FunctionCall(source)())
 		})
-	case *hxrt.Function[func() []int]:
+	case *hxrt.Function[func() float64]:
 		return hxrt.ProjectFunction(source, func() *string {
 			return func(hx_value_25 any) *string {
 				if hx_value_25 == nil {
@@ -4081,16 +3817,6 @@ func hx_recover_callable_b9d17ba0(value any) *hxrt.Function[func() *string] {
 					return hx_zero_26
 				}
 				return hx_value_25.(*string)
-			}(hxrt.FunctionCall(source)())
-		})
-	case *hxrt.Function[func() *haxe__io__Bytes]:
-		return hxrt.ProjectFunction(source, func() *string {
-			return func(hx_value_27 any) *string {
-				if hx_value_27 == nil {
-					var hx_zero_28 *string
-					return hx_zero_28
-				}
-				return hx_value_27.(*string)
 			}(hxrt.FunctionCall(source)())
 		})
 	default:
@@ -4130,18 +3856,6 @@ func hx_recover_callable_c5309b43(value any) *hxrt.Function[func() any] {
 		return hxrt.ProjectFunction(source, func() any {
 			return hxrt.FunctionCall(source)()
 		})
-	case *hxrt.Function[func() int]:
-		return hxrt.ProjectFunction(source, func() any {
-			return hxrt.FunctionCall(source)()
-		})
-	case *hxrt.Function[func() float64]:
-		return hxrt.ProjectFunction(source, func() any {
-			return hxrt.FunctionCall(source)()
-		})
-	case *hxrt.Function[func() *hxrt.DateParts]:
-		return hxrt.ProjectFunction(source, func() any {
-			return hxrt.FunctionCall(source)()
-		})
 	case *hxrt.Function[func() *haxe__Exception]:
 		return hxrt.ProjectFunction(source, func() any {
 			return hxrt.FunctionCall(source)()
@@ -4168,6 +3882,14 @@ func hx_recover_callable_c5309b43(value any) *hxrt.Function[func() any] {
 			return hxrt.FunctionCall(source)()
 		})
 	case *hxrt.Function[func() *haxe__io__Bytes]:
+		return hxrt.ProjectFunction(source, func() any {
+			return hxrt.FunctionCall(source)()
+		})
+	case *hxrt.Function[func() int]:
+		return hxrt.ProjectFunction(source, func() any {
+			return hxrt.FunctionCall(source)()
+		})
+	case *hxrt.Function[func() float64]:
 		return hxrt.ProjectFunction(source, func() any {
 			return hxrt.FunctionCall(source)()
 		})
@@ -4232,7 +3954,7 @@ func hx_recover_callable_cf6928b1(value any) *hxrt.Function[func() bool] {
 				return hx_value_7.(bool)
 			}(hxrt.FunctionCall(source)())
 		})
-	case *hxrt.Function[func() int]:
+	case *hxrt.Function[func() *haxe__Exception]:
 		return hxrt.ProjectFunction(source, func() bool {
 			return func(hx_value_9 any) bool {
 				if hx_value_9 == nil {
@@ -4242,17 +3964,18 @@ func hx_recover_callable_cf6928b1(value any) *hxrt.Function[func() bool] {
 				return hx_value_9.(bool)
 			}(hxrt.FunctionCall(source)())
 		})
-	case *hxrt.Function[func() float64]:
+	case *hxrt.Function[func()]:
 		return hxrt.ProjectFunction(source, func() bool {
+			hxrt.FunctionCall(source)()
 			return func(hx_value_11 any) bool {
 				if hx_value_11 == nil {
 					var hx_zero_12 bool
 					return hx_zero_12
 				}
 				return hx_value_11.(bool)
-			}(hxrt.FunctionCall(source)())
+			}(nil)
 		})
-	case *hxrt.Function[func() *hxrt.DateParts]:
+	case *hxrt.Function[func() *haxe__ds__StringMap]:
 		return hxrt.ProjectFunction(source, func() bool {
 			return func(hx_value_13 any) bool {
 				if hx_value_13 == nil {
@@ -4262,7 +3985,7 @@ func hx_recover_callable_cf6928b1(value any) *hxrt.Function[func() bool] {
 				return hx_value_13.(bool)
 			}(hxrt.FunctionCall(source)())
 		})
-	case *hxrt.Function[func() *haxe__Exception]:
+	case *hxrt.Function[func() haxe__IMap]:
 		return hxrt.ProjectFunction(source, func() bool {
 			return func(hx_value_15 any) bool {
 				if hx_value_15 == nil {
@@ -4272,18 +3995,17 @@ func hx_recover_callable_cf6928b1(value any) *hxrt.Function[func() bool] {
 				return hx_value_15.(bool)
 			}(hxrt.FunctionCall(source)())
 		})
-	case *hxrt.Function[func()]:
+	case *hxrt.Function[func() *hxrt.ByteView]:
 		return hxrt.ProjectFunction(source, func() bool {
-			hxrt.FunctionCall(source)()
 			return func(hx_value_17 any) bool {
 				if hx_value_17 == nil {
 					var hx_zero_18 bool
 					return hx_zero_18
 				}
 				return hx_value_17.(bool)
-			}(nil)
+			}(hxrt.FunctionCall(source)())
 		})
-	case *hxrt.Function[func() *haxe__ds__StringMap]:
+	case *hxrt.Function[func() []int]:
 		return hxrt.ProjectFunction(source, func() bool {
 			return func(hx_value_19 any) bool {
 				if hx_value_19 == nil {
@@ -4293,7 +4015,7 @@ func hx_recover_callable_cf6928b1(value any) *hxrt.Function[func() bool] {
 				return hx_value_19.(bool)
 			}(hxrt.FunctionCall(source)())
 		})
-	case *hxrt.Function[func() haxe__IMap]:
+	case *hxrt.Function[func() *haxe__io__Bytes]:
 		return hxrt.ProjectFunction(source, func() bool {
 			return func(hx_value_21 any) bool {
 				if hx_value_21 == nil {
@@ -4303,7 +4025,7 @@ func hx_recover_callable_cf6928b1(value any) *hxrt.Function[func() bool] {
 				return hx_value_21.(bool)
 			}(hxrt.FunctionCall(source)())
 		})
-	case *hxrt.Function[func() *hxrt.ByteView]:
+	case *hxrt.Function[func() int]:
 		return hxrt.ProjectFunction(source, func() bool {
 			return func(hx_value_23 any) bool {
 				if hx_value_23 == nil {
@@ -4313,7 +4035,7 @@ func hx_recover_callable_cf6928b1(value any) *hxrt.Function[func() bool] {
 				return hx_value_23.(bool)
 			}(hxrt.FunctionCall(source)())
 		})
-	case *hxrt.Function[func() []int]:
+	case *hxrt.Function[func() float64]:
 		return hxrt.ProjectFunction(source, func() bool {
 			return func(hx_value_25 any) bool {
 				if hx_value_25 == nil {
@@ -4321,16 +4043,6 @@ func hx_recover_callable_cf6928b1(value any) *hxrt.Function[func() bool] {
 					return hx_zero_26
 				}
 				return hx_value_25.(bool)
-			}(hxrt.FunctionCall(source)())
-		})
-	case *hxrt.Function[func() *haxe__io__Bytes]:
-		return hxrt.ProjectFunction(source, func() bool {
-			return func(hx_value_27 any) bool {
-				if hx_value_27 == nil {
-					var hx_zero_28 bool
-					return hx_zero_28
-				}
-				return hx_value_27.(bool)
 			}(hxrt.FunctionCall(source)())
 		})
 	default:

@@ -16,7 +16,11 @@ import hxrt.fs.NativeFileSystem;
 	- Delegate native operations through the typed `hxrt.fs.NativeFileSystem`
 	  binding. Convert its typed metadata carrier into the unchanged upstream
 	  `sys.FileStat` record and construct Haxe `Date` values in source.
+	- `@:dce` lets Haxe drop methods a program never reaches. Haxe's default
+	  `--dce std` treats this staged override as user code, so one `exists` call
+	  would otherwise emit `stat` and copy the `date` runtime slice.
 **/
+@:dce
 class FileSystem {
 	public static function exists(path:String):Bool {
 		return NativeFileSystem.exists(path);

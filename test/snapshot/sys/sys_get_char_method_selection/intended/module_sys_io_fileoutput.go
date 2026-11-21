@@ -1,0 +1,119 @@
+package main
+
+import "snapshot/hxrt"
+
+type I_sys__io__FileOutput interface {
+	writeByte(value int)
+	writeBytes(bytes *haxe__io__Bytes, pos int, length int) int
+	flush()
+	close()
+	set_bigEndian(value bool) bool
+	write(bytes *haxe__io__Bytes)
+	writeFullBytes(bytes *haxe__io__Bytes, pos int, len int)
+	writeFloat(value float64)
+	writeDouble(value float64)
+	writeInt8(value int)
+	writeInt16(value int)
+	writeUInt16(value int)
+	writeInt24(value int)
+	writeUInt24(value int)
+	writeInt32(value int)
+	prepare(nbytes int)
+	writeInput(input *haxe__io__Input, bufsize any)
+	writeString(value *string, encoding *haxe__io__Encoding)
+	seek(p int, pos *sys__io__FileSeek)
+	tell() int
+}
+
+type sys__io__FileOutput struct {
+	*haxe__io__Output
+	__hx_this I_sys__io__FileOutput
+	handle    *hxrt.FileOutput
+}
+
+func (self *sys__io__FileOutput) HxFunctionReceiver() any {
+	return self.__hx_this
+}
+
+func New_sys__io__FileOutput(handle *hxrt.FileOutput) *sys__io__FileOutput {
+	return hx_init_sys__io__FileOutput(hx_alloc_sys__io__FileOutput(nil), handle)
+}
+
+func hx_alloc_sys__io__FileOutput(owner any) *sys__io__FileOutput {
+	self := &sys__io__FileOutput{}
+	if owner == nil {
+		self.__hx_this = self
+	} else {
+		self.__hx_this = owner.(I_sys__io__FileOutput)
+	}
+	self.haxe__io__Output = hx_alloc_haxe__io__Output(self.__hx_this)
+	return self
+}
+
+func hx_init_sys__io__FileOutput(self *sys__io__FileOutput, handle *hxrt.FileOutput) *sys__io__FileOutput {
+	hx_init_haxe__io__Output(self.haxe__io__Output)
+	self.handle = handle
+	return self
+}
+
+func (self *sys__io__FileOutput) writeByte(value int) {
+	hxrt.FileOutputWriteByteValue(self.handle, value)
+}
+
+func (self *sys__io__FileOutput) writeBytes(bytes *haxe__io__Bytes, pos int, length int) int {
+	if ((pos < 0) || (length < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(length))) > bytes.length) {
+		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
+	}
+	if length == 0 {
+		return 0
+	}
+	values := hxrt.NewArray()
+	_g := 0
+	_g1 := length
+	for _g < _g1 {
+		hx_post_1 := _g
+		_g = int(int32((_g + 1)))
+		index := hx_post_1
+		values.Push(bytes.b[int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(index)))])
+	}
+	return hxrt.FileOutputWriteValues(self.handle, func(hx_lambda_raw_3 []any) []int {
+		hx_lambda_out_4 := make([]int, 0, len(hx_lambda_raw_3))
+		for _, hx_lambda_item_5 := range hx_lambda_raw_3 {
+			hx_lambda_out_4 = append(hx_lambda_out_4, func(hx_value_6 any) int {
+				if hx_value_6 == nil {
+					var hx_zero_7 int
+					return hx_zero_7
+				}
+				return hx_value_6.(int)
+			}(hx_lambda_item_5))
+		}
+		return hx_lambda_out_4
+	}(values.Values()), 0, length)
+}
+
+func (self *sys__io__FileOutput) seek(p int, pos *sys__io__FileSeek) {
+	switch pos.tag {
+	case 0:
+		hxrt.FileOutputSeek(self.handle, p, 0)
+	case 1:
+		hxrt.FileOutputSeek(self.handle, p, 1)
+	case 2:
+		hxrt.FileOutputSeek(self.handle, p, 2)
+	}
+}
+
+func (self *sys__io__FileOutput) tell() int {
+	return hxrt.FileOutputTell(self.handle)
+}
+
+func (self *sys__io__FileOutput) flush() {
+	hxrt.FileOutputFlush(self.handle)
+}
+
+func (self *sys__io__FileOutput) close() {
+	hxrt.FileOutputClose(self.handle)
+}
+
+func (self *sys__io__FileOutput) HxClassName() string {
+	return "sys.io.FileOutput"
+}

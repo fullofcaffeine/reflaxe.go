@@ -110,6 +110,15 @@ footprint-explicit even in ordinary full-copy mode so unrelated output never
 acquires the POSIX unsafe boundary. Explicitly disabling feature inference
 retains the traditional all-files full-copy escape.
 
+Feature inference sees only the methods that are emitted, so the staged `Sys`,
+`sys.io.File`, and `sys.FileSystem` classes carry `@:dce`. Haxe's default
+`--dce std` trims only classes from Haxe's own standard-library directory and
+treats these staged overrides as user code. Without `@:dce`, one
+`Sys.environment()` call emitted every `Sys` method, including `getChar`, and
+so copied the terminal files. Likewise, one `FileSystem.exists` call emitted
+`stat` and copied the `date` slice. `sys/sys_environment_method_selection` and
+its paired control `sys/sys_get_char_method_selection` lock both sides.
+
 `sys.net.Host`, `sys.net.Socket`, `sys.net.UdpSocket`, and their typed
 `hxrt.net` bindings infer `socket`, which copies `runtime/hxrt/socket.go`, its
 build-tagged `socket_broadcast_*.go` option adapters,

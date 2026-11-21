@@ -264,6 +264,7 @@ MODULE_NOTES_OVERRIDES = {
 		"handles in file.go, and terminal state in footprint-explicit terminal*.go files. "
 		"Evidence: root_sys_contract, root_sys_portable_contract, sys_command_contract, "
 		"sys_sleep_contract, sys/root_sys_portable, sys/sys_get_char_terminal, "
+		"sys/sys_environment_method_selection, sys/sys_get_char_method_selection, "
 		"test_sys_get_char_terminal.py, core/runtime_hxrt_infer_sys, and "
 		"negative/sys_cpu_time_unsupported."
 	),

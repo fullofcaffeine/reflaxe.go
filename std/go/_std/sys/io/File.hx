@@ -18,7 +18,11 @@ import hxrt.fs.NativeFile;
 	- Delegate OS operations to `hxrt.fs.NativeFile`, convert typed integer byte
 	  arrays through the public `Bytes` API, and wrap opaque native handles in the
 	  staged `FileInput` and `FileOutput` classes.
+	- `@:dce` lets Haxe drop static methods a program never reaches. Haxe's
+	  default `--dce std` treats this staged override as user code and would
+	  otherwise emit every method.
 **/
+@:dce
 class File {
 	public static function getContent(path:String):String {
 		return NativeFile.readContent(path);

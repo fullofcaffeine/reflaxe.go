@@ -9,7 +9,7 @@
     "toolchain_policy": "docs/toolchain-policy.json",
     "toolchain_policy_sha256": "f17f048f2cce333b97a12a0b6e3824532d4514c14ed8e35dbadbdd3081f1d4a8",
     "portable_stdlib_inventory": "test/portable_stdlib_inventory.json",
-    "portable_stdlib_inventory_sha256": "cc41a979e3a0caee1020c19f0e9c28536f752a388699b5d3479c0afa42c824ac"
+    "portable_stdlib_inventory_sha256": "8483b2dc6a4cfadf0ba94fdcaea2036f6c58ceef63f7a977ec702c0b0ff2cf35"
   },
   "release_claim": {
     "lifecycle": "pre-1.0 beta",
@@ -2198,7 +2198,7 @@
           "upstream_sweep:strict_go_test",
           "semantic_diff"
         ],
-        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. The supported Haxe 4.3.7 root API is canonical staged source in std/go/_std/Sys.hx over typed std/hxrt bindings. Public map construction, fallbacks, aliases, standard-stream wrappers, getChar EOF, and requested echo stay in Haxe; native process capabilities live in runtime/hxrt/sys.go, standard handles in file.go, and terminal state in footprint-explicit terminal*.go files. Evidence: root_sys_contract, root_sys_portable_contract, sys_command_contract, sys_sleep_contract, sys/root_sys_portable, sys/sys_get_char_terminal, test_sys_get_char_terminal.py, core/runtime_hxrt_infer_sys, and negative/sys_cpu_time_unsupported."
+        "notes": "Covered by semantic-diff/runtime contracts in test/semantic_diff and documented in docs/feature-support-matrix.md. The supported Haxe 4.3.7 root API is canonical staged source in std/go/_std/Sys.hx over typed std/hxrt bindings. Public map construction, fallbacks, aliases, standard-stream wrappers, getChar EOF, and requested echo stay in Haxe; native process capabilities live in runtime/hxrt/sys.go, standard handles in file.go, and terminal state in footprint-explicit terminal*.go files. Evidence: root_sys_contract, root_sys_portable_contract, sys_command_contract, sys_sleep_contract, sys/root_sys_portable, sys/sys_get_char_terminal, sys/sys_environment_method_selection, sys/sys_get_char_method_selection, test_sys_get_char_terminal.py, core/runtime_hxrt_infer_sys, and negative/sys_cpu_time_unsupported."
       },
       {
         "module": "Type",

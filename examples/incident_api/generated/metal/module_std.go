@@ -57,8 +57,6 @@ func Std_downcast(value any, c any) any {
 						return false
 					}
 				}(hx_value)
-			case "Date":
-				return hx_is_nominal_Date(hx_value)
 			case "Dynamic":
 				return (hx_value != nil)
 			case "Enum":
@@ -260,8 +258,6 @@ func Std_instance(value any, c any) any {
 							return false
 						}
 					}(hx_value)
-				case "Date":
-					return hx_is_nominal_Date(hx_value)
 				case "Dynamic":
 					return (hx_value != nil)
 				case "Enum":
@@ -470,8 +466,6 @@ func Std_is(v any, t any) bool {
 						return false
 					}
 				}(hx_value)
-			case "Date":
-				return hx_is_nominal_Date(hx_value)
 			case "Dynamic":
 				return (hx_value != nil)
 			case "Enum":

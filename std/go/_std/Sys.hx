@@ -24,7 +24,14 @@ import sys.io.FileOutput;
 	  explicit compiler diagnostic instead of substituting wall-clock time. Simple
 	  one-step capabilities are inline so direct calls retain Go-shaped output while
 	  first-class function references still materialize the source-owned contract.
+	- `@:dce` lets Haxe drop the methods a program never reaches. Haxe's default
+	  `--dce std` trims only files under Haxe's own standard-library directory, so
+	  without it this staged override counted as user code and every method was
+	  emitted. One `Sys.environment()` call then also emitted `getChar`, which
+	  copied the terminal runtime (and its `unsafe` system calls) into programs
+	  that never read a character.
 **/
+@:dce
 class Sys {
 	/**
 		What: Print one Haxe value without a newline.
