@@ -140,7 +140,7 @@ func (self *sys__thread__ElasticThreadPool) workerResolveWait(worker *sys__threa
 	self.mutex.__hx_this.acquire()
 	hasToken := woke
 	if !hasToken {
-		hasToken = self.available.__hx_this.wait(0)
+		hasToken = self.available.__hx_this.wait(0.0)
 	}
 	if hasToken {
 		nextTask := hx_recover_callable_2d8d0a91(self.queue.__hx_this.pop(false))

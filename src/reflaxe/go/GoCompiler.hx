@@ -2996,7 +2996,7 @@ class GoCompiler {
 	**/
 	function lowerStaticInitializer(valueExpr:TypedExpr, fieldType:Type):GoExpr {
 		pushFunctionVarNameScope();
-		var lowered = materializeExprWithPrefix(lowerStoredExprWithExpectedType(valueExpr, fieldType), fieldType).expr;
+		var lowered = materializeExprWithPrefix(lowerStoredExprWithExpectedType(valueExpr, fieldType, fieldType), fieldType).expr;
 		popFunctionVarNameScope();
 		return lowered;
 	}
@@ -3187,9 +3187,10 @@ class GoCompiler {
 		if (superClass != null) {
 			var superTypeName = classTypeName(superClass);
 			var superCarrier = GoExpr.GoSelector(GoExpr.GoIdent("self"), superTypeName);
+			var superParams = classType.superClass == null ? null : classType.superClass.params;
 			var superCtorArgs = loweredCtorBody.superArgs == null ? [] : [
 				for (index in 0...loweredCtorBody.superArgs.length)
-					lowerConstructorArg(superClass, loweredCtorBody.superArgs[index], index)
+					lowerConstructorArg(superClass, loweredCtorBody.superArgs[index], index, superParams)
 			];
 			var superCtor = resolveConstructorInfo(superClass);
 			if (superCtor != null) {
@@ -3197,7 +3198,7 @@ class GoCompiler {
 					var fallback = superCtor.defaults[index];
 					if (fallback == null)
 						Context.fatalError("Missing required superclass constructor argument at position " + index, classType.pos);
-					superCtorArgs.push(lowerConstructorArg(superClass, fallback, index));
+					superCtorArgs.push(lowerConstructorArg(superClass, fallback, index, superParams));
 				}
 			}
 			body.push(GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hx_init_" + superTypeName), [superCarrier].concat(superCtorArgs))));
@@ -3714,12 +3715,20 @@ class GoCompiler {
 		Why: Constructors previously bypassed structural and prefix-aware expected-type
 		coercion even though ordinary calls used it.
 		How: Reuse `lowerStoredExprWithExpectedType` and materialize any ordered prefix into
-		one expression suitable for the generated Go constructor call.
+		one expression suitable for the generated Go constructor call. An Int argument
+		for a parameter that `typeParams` applies as Float is converted first, using
+		the declared parameter as its storage (see `lowerIntToFloatSlot`).
 	**/
-	function lowerConstructorArg(classType:ClassType, arg:TypedExpr, index:Int):GoExpr {
+	function lowerConstructorArg(classType:ClassType, arg:TypedExpr, index:Int, ?typeParams:Array<Type>):GoExpr {
 		var paramType = emittedConstructorParamType(classType, index);
 		if (paramType == null) {
 			return lowerExpr(arg).expr;
+		}
+		var appliedType = typeParams == null
+			|| typeParams.length != classType.params.length ? paramType : TypeTools.applyTypeParameters(paramType, classType.params, typeParams);
+		var widened = lowerIntToFloatSlot(arg, appliedType, paramType);
+		if (widened != null) {
+			return materializeExprWithPrefix(widened, appliedType).expr;
 		}
 		return materializeExprWithPrefix(lowerStoredExprWithExpectedType(arg, paramType), paramType).expr;
 	}
@@ -3786,7 +3795,10 @@ class GoCompiler {
 				}
 				var storageOverride = localArrayStorageOverrides.exists(variable.id) ? localArrayStorageOverrides.get(variable.id) : null;
 				var goType = storageOverride == null ? valueStorageGoType(variable.t) : typeToGoType(storageOverride);
-				var narrowedStorageGoType = value == null ? null : nonNullPrimitiveExprGoType(value);
+				// A proven non-null value narrows to the local's own primitive: an Int value
+				// stored in a `Null<Float>` local is converted to float64 first.
+				var narrowedStorageGoType = value == null
+					|| nonNullPrimitiveExprGoType(value) == null ? null : nullablePrimitiveValueGoType(variable.t);
 				// Keep storage narrowing local to immutable-after-declaration vars; reassigned
 				// nullable primitives still need nil-capable storage for later writes.
 				if (narrowedStorageGoType != null && isNullablePrimitiveType(variable.t) && localNeverReassigned(variable)) {
@@ -3815,7 +3827,7 @@ class GoCompiler {
 						if (indexedArrayAssign != null) {
 							indexedArrayAssign;
 						} else {
-							var loweredRight = lowerStoredExprWithExpectedType(right, assignmentStorageType(left));
+							var loweredRight = lowerStoredExprWithExpectedType(right, assignmentStorageType(left), declaredAssignmentStorage(left, right));
 							var assignmentValue = normalizeNativeStorageAssignment(left, loweredRight.expr);
 							var lengthAssignStmts = lowerArrayLengthAssign(left, assignmentValue);
 							var assignStmts = if (lengthAssignStmts != null) {
@@ -3928,7 +3940,8 @@ class GoCompiler {
 					var redirected = new Array<GoStmt>();
 					if (value != null) {
 						var loweredReturn = redirect.valueName != null
-							&& redirect.valueType != null ? lowerReturnedExprWithExpectedType(value, redirect.valueType) : lowerExprWithPrefix(value);
+							&& redirect.valueType != null ? lowerReturnedExprWithExpectedType(value, redirect.valueType,
+								redirect.valueType) : lowerExprWithPrefix(value);
 						var returnExpr = loweredReturn.expr;
 						redirected = redirected.concat(loweredReturn.prefix);
 						if (redirect.valueName != null && redirect.valueType != null) {
@@ -3948,7 +3961,8 @@ class GoCompiler {
 					];
 				} else {
 					var expectedReturnType = currentFunctionReturnType();
-					var loweredReturn = expectedReturnType == null ? lowerExprWithPrefix(value) : lowerReturnedExprWithExpectedType(value, expectedReturnType);
+					var loweredReturn = expectedReturnType == null ? lowerExprWithPrefix(value) : lowerReturnedExprWithExpectedType(value, expectedReturnType,
+						expectedReturnType);
 					var returnExpr = loweredReturn.expr;
 					var returnStmt = recordHaxeReturn(GoStmt.GoReturn(returnExpr), expr.pos);
 					if (loweredReturn.prefix.length > 0) {
@@ -3968,7 +3982,7 @@ class GoCompiler {
 						var pushArgs = usesSharedArrayCarrier(arrayCall.target) ? [] : [site.tempExpr];
 						var body = site.prefix.copy();
 						for (arg in args) {
-							var loweredArg = lowerExprWithPrefix(arg);
+							var loweredArg = lowerArrayElementValueWithPrefix(arg, arrayCall.target.t);
 							body = body.concat(loweredArg.prefix);
 							var appendValue = loweredArg.expr;
 							if (shouldMaskToByte) {
@@ -4139,7 +4153,8 @@ class GoCompiler {
 				var rightExpr = stringAppendFromSharedArray ? lowerSharedArrayElementStorageExpr(right) : upcastIfNeeded(loweredRight.expr, right.t, left.t,
 					right);
 				if (!stringAppendFromSharedArray && isSharedArrayElementExpr(right)) {
-					rightExpr = coerceStoredArrayElementExpr(rightExpr, left.t);
+					// An Int element added to a Float element is read as Int; the operator widens it.
+					rightExpr = coerceStoredArrayElementExpr(rightExpr, isIntToFloatWidening(right.t, left.t) ? right.t : left.t);
 				}
 				var assignedExpr = lowerAssignOpExpr(op, GoExpr.GoIdent(currentName), rightExpr, left.t, right.t, sourcePos, stringAppendFromSharedArray);
 				var resultGoType = valueStorageGoType(left.t);
@@ -4426,7 +4441,7 @@ class GoCompiler {
 		if (valueBranchLeaves(expr))
 			return lowerInSwitchContext(function() return lowerToStatements(expr));
 		var lowered = lowerInSwitchContext(function() return lowerCallableBranch(expr, resultType,
-			function() return lowerExprWithExpectedUpcast(expr, resultType)));
+			function() return lowerExprWithExpectedUpcast(expr, resultType, resultType)));
 		return lowered.prefix.concat([GoStmt.GoAssign(GoExpr.GoIdent(temp), lowered.expr)]);
 	}
 
@@ -4549,7 +4564,7 @@ class GoCompiler {
 	function lowerIfValueBranch(branch:TypedExpr, leaves:Bool, resultType:Type):LoweredExprWithPrefix {
 		if (leaves)
 			return {prefix: lowerToStatements(branch), expr: GoExpr.GoNil, isStringLike: false};
-		return lowerCallableBranch(branch, resultType, function() return lowerExprWithExpectedUpcast(branch, resultType));
+		return lowerCallableBranch(branch, resultType, function() return lowerExprWithExpectedUpcast(branch, resultType, resultType));
 	}
 
 	/** Resolve source-owned exception policy through the normal stdlib discovery queue. */
@@ -4916,7 +4931,7 @@ class GoCompiler {
 	**/
 	function lowerTryValueBody(branch:TypedExpr, resultType:Type, tempExpr:GoExpr, route:Null<TryReturnRoute>):Array<GoStmt> {
 		if (route == null) {
-			var lowered = lowerCallableBranch(branch, resultType, function() return lowerExprWithExpectedUpcast(branch, resultType));
+			var lowered = lowerCallableBranch(branch, resultType, function() return lowerExprWithExpectedUpcast(branch, resultType, resultType));
 			return lowered.prefix.concat([GoStmt.GoAssign(tempExpr, lowered.expr)]);
 		}
 		pushFunctionReturnType(voidType());
@@ -4925,7 +4940,7 @@ class GoCompiler {
 		var body = if (valueBranchLeaves(branch)) {
 			lowerToStatements(branch);
 		} else {
-			var lowered = lowerCallableBranch(branch, resultType, function() return lowerExprWithExpectedUpcast(branch, resultType));
+			var lowered = lowerCallableBranch(branch, resultType, function() return lowerExprWithExpectedUpcast(branch, resultType, resultType));
 			lowered.prefix.concat([GoStmt.GoAssign(tempExpr, lowered.expr)]);
 		};
 		requireOwnedHaxeReturns(firstReturn, body);
@@ -6075,7 +6090,10 @@ class GoCompiler {
 		if (operation.unit != null) {
 			result = unitStepExpr(GoExpr.GoIdent(oldName), operation.unit, operation.left.t, expr.pos);
 		} else {
-			var right = lowerStoredExprWithExpectedType(operation.right, operation.left.t);
+			// An Int operand of a compound update on a Float field is widened by the
+			// operator itself, so lower it at its own type instead of the field's.
+			var compoundIntOperand = operation.op != null && isIntToFloatWidening(operation.right.t, operation.left.t);
+			var right = lowerStoredExprWithExpectedType(operation.right, compoundIntOperand ? operation.right.t : operation.left.t);
 			body = body.concat(right.prefix);
 			result = operation.op == null ? right.expr : lowerAssignOpExpr(operation.op, GoExpr.GoIdent(oldName), right.expr, operation.left.t,
 				operation.right.t, expr.pos, false);
@@ -6153,6 +6171,22 @@ class GoCompiler {
 			case _:
 				{prefix: [], expr: lowerLValue(expr), isStringLike: isStringType(expr.t)};
 		};
+	}
+
+	/**
+		What: The explicitly typed Go storage written by a plain assignment, or null.
+		Why: An Int constant assigned to a declared float64 local or field can stay
+		an untyped Go constant, but a generic field erased to `any` would store an
+		`int` (see `lowerIntToFloatSlot`).
+		How: Only for an Int value entering a Float target, use the assignment
+		storage type unless the target is an erased field.
+	**/
+	function declaredAssignmentStorage(left:TypedExpr, right:TypedExpr):Null<Type> {
+		var storage = assignmentStorageType(left);
+		if (!isIntToFloatWidening(implicitIntToFloatSource(right).t, storage) || isErasedFieldRead(left)) {
+			return null;
+		}
+		return storage;
 	}
 
 	/** Resolves a local's representation-only array type for assignments. */
@@ -6265,8 +6299,10 @@ class GoCompiler {
 			case TArrayDecl(values):
 				{
 					expr: isHaxeArrayType(expr.t) ? GoExpr.GoCall(GoExpr.GoIdent("hxrt.NewArray"),
-						[for (value in values) lowerExpr(value).expr]) : GoExpr.GoCompositeLiteral(GoType.slice(arrayElementGoType(expr.t)),
-							[for (value in values) GoCompositeElement.GoCompositeValue(lowerExpr(value).expr)]),
+						[for (value in values) lowerArrayElementValue(value, expr.t)]) : GoExpr.GoCompositeLiteral(GoType.slice(arrayElementGoType(expr.t)), [
+							for (value in values)
+								GoCompositeElement.GoCompositeValue(lowerArrayElementValue(value, expr.t))
+						]),
 					isStringLike: false
 				};
 			case TObjectDecl(fields):
@@ -6301,12 +6337,12 @@ class GoCompiler {
 						expr.t) : GoExpr.GoTypeAssert(payload, payloadType),
 					isStringLike: isStringType(expr.t)
 				};
-			case TNew(classRef, _, args):
+			case TNew(classRef, typeParams, args):
 				var classType = classRef.get();
 				noteSourceOwnedStdlibUsage(classType);
 				var loweredArgs = [
 					for (index in 0...args.length)
-						lowerConstructorArg(classType, args[index], index)
+						lowerConstructorArg(classType, args[index], index, typeParams)
 				];
 				var ctorInfo = resolveConstructorInfo(classType);
 				if (ctorInfo != null
@@ -6317,7 +6353,7 @@ class GoCompiler {
 						if (defaultValue == null) {
 							Context.fatalError("Missing required constructor argument at position " + i, expr.pos);
 						}
-						loweredArgs.push(lowerConstructorArg(classType, defaultValue, i));
+						loweredArgs.push(lowerConstructorArg(classType, defaultValue, i, typeParams));
 					}
 				}
 				if (isNativeGoStructExtern(classType)) {
@@ -6402,6 +6438,11 @@ class GoCompiler {
 			case TMeta(_, inner):
 				lowerExpr(inner);
 			case TCast(inner, _):
+				// The typer's unsafe Int-to-Float cast (inlined Float parameters and
+				// structure fields) converts the value; its destination is unknown here.
+				var widenedCast = lowerIntToFloatSlot(expr, expr.t);
+				if (widenedCast != null)
+					return materializeExprWithPrefix(widenedCast, expr.t);
 				// Array storage has no source-retaining structural member view yet.
 				// Check the cast itself: inlining can erase its surrounding API call.
 				if (isArrayType(inner.t) && isAnonymousObjectType(expr.t))
@@ -6462,7 +6503,7 @@ class GoCompiler {
 						} else {
 							var loweredTarget = lowerNativeValueFieldAssignmentTarget(left);
 							var targetExpr = loweredTarget.expr;
-							var loweredRight = lowerStoredExprWithExpectedType(right, assignmentStorageType(left));
+							var loweredRight = lowerStoredExprWithExpectedType(right, assignmentStorageType(left), declaredAssignmentStorage(left, right));
 							var rightExpr = normalizeNativeStorageAssignment(left, loweredRight.expr);
 							var resultExpr = normalizeNativeStorageAssignmentResult(left, targetExpr);
 							{
@@ -7768,7 +7809,7 @@ class GoCompiler {
 				continue;
 			}
 			var emittedParamType = emittedCallParamType(callee, index);
-			var loweredArg = lowerCallArgForParamType(arg, paramType);
+			var loweredArg = lowerCallArgForParamType(arg, paramType, declaredCallParamStorage(callee, index, emittedParamType, paramType));
 			// Generated Haxe generic parameters erase to their declared storage. Imported
 			// Go generics instead infer the applied native signature; erasing first would
 			// feed a different callback type into the native export adapter below.
@@ -8582,9 +8623,10 @@ class GoCompiler {
 					var loweredArgs = new Array<GoExpr>();
 					for (index in 1...args.length) {
 						var arg = args[index];
-						var loweredArg = lowerCallArgExpr(arg);
 						var paramType = callParamType(callee.t, index);
-						if (paramType != null) {
+						var widened = paramType == null ? null : lowerIntToFloatSlot(arg, paramType, paramType);
+						var loweredArg = widened == null ? lowerCallArgExpr(arg) : materializeExprWithPrefix(widened, paramType).expr;
+						if (paramType != null && widened == null) {
 							loweredArg = upcastIfNeeded(loweredArg, arg.t, paramType, arg);
 						}
 						loweredArg = normalizeExternCallArg(callee, loweredArg, paramType, index);
@@ -8811,11 +8853,19 @@ class GoCompiler {
 		Why: Ordinary arguments and the values packed into an imported extern's
 		`Rest<T>` must cross the same boundary: nullable storage, upcasts, and
 		recovery from `any` all depend on the receiving type, not on the argument.
-		How: Keep nullable primitive storage when the parameter is nullable, lower
-		the value against callable expectations, then upcast and coerce it to the
-		parameter type. A null parameter type leaves the plain lowering unchanged.
+		How: Convert an Int argument for a Float parameter first (`declaredStorage`
+		is the parameter's declared type; see `lowerIntToFloatSlot`). Otherwise keep
+		nullable primitive storage when the parameter is nullable, lower the value
+		against callable expectations, then upcast and coerce it to the parameter
+		type. A null parameter type leaves the plain lowering unchanged.
 	**/
-	function lowerCallArgForParamType(arg:TypedExpr, paramType:Null<Type>):GoExpr {
+	function lowerCallArgForParamType(arg:TypedExpr, paramType:Null<Type>, ?declaredStorage:Type):GoExpr {
+		if (paramType != null) {
+			var widened = lowerIntToFloatSlot(arg, paramType, declaredStorage);
+			if (widened != null) {
+				return materializeExprWithPrefix(widened, paramType).expr;
+			}
+		}
 		var nullablePrimitiveArg = paramType != null && isNullablePrimitiveType(paramType) ? lowerNullablePrimitiveStorageExpr(arg) : null;
 		var loweredArg = nullablePrimitiveArg == null ? (paramType == null ? lowerCallArgExpr(arg) : lowerCallArgExprForExpectedType(arg,
 			paramType)) : nullablePrimitiveArg;
@@ -10974,6 +11024,26 @@ class GoCompiler {
 	}
 
 	/**
+		What: The declared type of one call parameter, for an Int constant passed to
+		a Float parameter.
+		Why: A generic parameter applied as `Float` is still erased to `any` in the
+		generated declaration, so an untyped Int constant there would store an
+		`int`. Enum constructors are declared functions too, but have no class field.
+		How: Prefer the emitted class method parameter, then the enum constructor's
+		declared argument, and otherwise trust the applied parameter type.
+	**/
+	function declaredCallParamStorage(callee:TypedExpr, index:Int, emittedParamType:Null<Type>, paramType:Null<Type>):Null<Type> {
+		if (emittedParamType != null) {
+			return emittedParamType;
+		}
+		return switch (callee.expr) {
+			case TField(_, FEnum(_, enumField)): callParamType(enumField.type, index);
+			case TMeta(_, inner) | TParenthesis(inner): declaredCallParamStorage(inner, index, null, paramType);
+			case _: paramType;
+		};
+	}
+
+	/**
 		What
 		- Finds the parameter type used by the emitted class method declaration before
 		  Haxe substitutes concrete receiver type arguments at the call site.
@@ -11356,7 +11426,120 @@ class GoCompiler {
 		return typeToGoType(toType) != "any";
 	}
 
+	/**
+		What: Reports whether an `Int` (or `Null<Int>`) value enters a `Float` (or
+		`Null<Float>`) slot.
+		Why: Haxe unifies Int with Float implicitly. The typed AST keeps the value's
+		Int type and adds no cast node, so only the slot's expected type shows that
+		Go needs a `float64` conversion. Go never converts `int` to `float64` by
+		itself.
+		How: Compare the Haxe types only. Both predicates follow `Null<T>`, so
+		nullable values and slots are included; they do not map types to Go, so the
+		check has no side effects at the many boundaries that call it.
+	**/
+	function isIntToFloatWidening(sourceType:Type, targetType:Type):Bool {
+		return isIntType(sourceType) && isFloatType(targetType);
+	}
+
+	/**
+		What: Finds the Int value behind an unsafe `cast` that the typer inserted to
+		turn it into a Float.
+		Why: Haxe adds `cast value` (with no target type) when it inlines a call
+		with a Float parameter or types a structure field against a Float field.
+		Seeing through that cast lets the receiving slot decide how an Int
+		constant is written, so already-correct output keeps its plain constants.
+		How: Match only a direct `TCast(value, null)` from Int to Float; return the
+		expression itself otherwise.
+	**/
+	function implicitIntToFloatSource(source:TypedExpr):TypedExpr {
+		return switch (source.expr) {
+			case TCast(inner, null) if (isIntToFloatWidening(inner.t, source.t)): inner;
+			case _: source;
+		};
+	}
+
+	/**
+		What: Lowers an Int value that enters a Float slot, returning null when the
+		value is not an Int or the slot is not a Float.
+		Why: This is the one conversion point for every typed slot that receives a
+		value: returns, assignments, locals, call and constructor arguments,
+		collection writes, structure fields, value branches and casts. Without it
+		Go rejects `int` where `float64` is required, or an erased slot stores an
+		`int` that a later `float64` read rejects at run time.
+		How: Lower the value at its own Int type first, so existing storage recovery
+		(for example an erased Array element) still applies, then widen it with
+		`widenIntToFloat`. A `Null<Float>` slot keeps null. Pass `declaredStorage`
+		only when the destination is declared with an explicit Go type (a return,
+		a plain assignment, a typed parameter): Go converts an untyped Int constant
+		there, so the constant stays as written. Otherwise (`:=` and `any`
+		storage) a constant becomes a Float constant.
+	**/
+	function lowerIntToFloatSlot(source:TypedExpr, targetType:Type, ?declaredStorage:Type):Null<LoweredExprWithPrefix> {
+		var value = implicitIntToFloatSource(source);
+		if (!isIntToFloatWidening(value.t, targetType)) {
+			return null;
+		}
+		if (isNullablePrimitiveType(targetType)) {
+			var stored = lowerExprWithExpectedUpcast(value, value.t);
+			var erased = isNullablePrimitiveType(value.t) && nonNullPrimitiveExprGoType(value) == null;
+			return {prefix: stored.prefix, expr: widenIntToFloat(stored.expr, erased, true, false), isStringLike: false};
+		}
+		var intType = Context.follow(value.t);
+		var lowered = lowerExprWithExpectedUpcast(value, intType);
+		var erased = !isSharedArrayElementExpr(value)
+			&& nonNullPrimitiveExprGoType(value) == null
+			&& (exprBackedByAny(value) || shouldForceAnyCoerce(value.t, intType));
+		var typedSlot = declaredStorage != null && isFloatType(declaredStorage) && !isNullablePrimitiveType(declaredStorage);
+		return {prefix: lowered.prefix, expr: widenIntToFloat(lowered.expr, erased, false, typedSlot), isStringLike: false};
+	}
+
+	/**
+		What: Converts one lowered Int value to the Go storage of a Float slot.
+		Why: Keeping the conversion rules in one place keeps every slot consistent:
+		which values need `float64(...)`, how null is handled and how constants
+		are written.
+		How: An erased value (Go `any`) is first recovered with
+		`hxrt.IntFromNullableAny`, which raises Haxe's null error like an Int slot
+		does. A `Null<Float>` slot keeps null instead. A typed Int value gets
+		`float64(...)`. An Int constant stays an untyped Go constant only in a
+		declared float64 slot (`typedSlot`); elsewhere it becomes a Float constant
+		such as `1.0`, so `:=` and `any` storage hold a float64.
+	**/
+	function widenIntToFloat(value:GoExpr, erased:Bool, nullableSlot:Bool, typedSlot:Bool):GoExpr {
+		if (erased) {
+			if (!nullableSlot) {
+				return GoExpr.GoCall(GoExpr.GoIdent("float64"), [GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [value])]);
+			}
+			var valueName = freshTempName("hx_value");
+			return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: valueName, typeName: "any"}], ["any"], [
+				GoStmt.GoIf(GoExpr.GoBinary(GoBinaryOperator.Equal, GoExpr.GoIdent(valueName), GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null),
+				GoStmt.GoReturn(GoExpr.GoCall(GoExpr.GoIdent("float64"), [
+					GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [GoExpr.GoIdent(valueName)])
+				]))
+			]), [value]);
+		}
+		var constant = intConstantText(value);
+		if (constant != null) {
+			return typedSlot && !nullableSlot ? value : GoExpr.GoFloatLiteral(constant + ".0");
+		}
+		return GoExpr.GoCall(GoExpr.GoIdent("float64"), [value]);
+	}
+
+	/** Returns the decimal text of an Int constant (`7`, `-7`), or null for other expressions. */
+	function intConstantText(value:GoExpr):Null<String> {
+		return switch (value) {
+			case GoIntLiteral(number): Std.string(number);
+			case GoUnary(op, GoIntLiteral(number)) if (op == GoUnaryOperator.Negate): "-" + number;
+			case _: null;
+		};
+	}
+
 	function coerceAnyExprToType(expr:GoExpr, fromType:Type, toType:Type, ?fromAnyOverride:Bool = false):GoExpr {
+		// An Int value entering a Float slot was already recovered and converted by
+		// lowerIntToFloatSlot; recovering it again as an erased float64 would be wrong.
+		if (isIntToFloatWidening(fromType, toType)) {
+			return expr;
+		}
 		if (isAnonymousObjectType(toType) && (fromAnyOverride || typeToGoType(fromType) == "any"))
 			return structuralObjectLowering.recover(expr, toType);
 		var fromGoType = typeToGoType(fromType);
@@ -11512,11 +11695,17 @@ class GoCompiler {
 		Why: A direct array iterator adapter must replace the original inline
 		expression and its prefixes; adapting only the final Go expression can leave
 		behind erased `ArrayIterator` construction state or duplicate cursor locals.
-		How: Ask the iterable owner for the pre-lowering array-cursor plan first,
-		then fall back to ordinary expression lowering plus nominal or concrete-class
-		structural upcasting.
+		How: Convert an Int value entering a Float slot first (`declaredStorage`
+		names an explicitly typed destination; see `lowerIntToFloatSlot`). Then ask
+		the iterable owner for the pre-lowering array-cursor plan, and fall back to
+		ordinary expression lowering plus nominal or concrete-class structural
+		upcasting.
 	**/
-	function lowerExprWithExpectedUpcast(source:TypedExpr, targetType:Type):LoweredExprWithPrefix {
+	function lowerExprWithExpectedUpcast(source:TypedExpr, targetType:Type, ?declaredStorage:Type):LoweredExprWithPrefix {
+		var widened = lowerIntToFloatSlot(source, targetType, declaredStorage);
+		if (widened != null) {
+			return widened;
+		}
 		if (isNullablePrimitiveType(targetType)) {
 			var stored = lowerNullablePrimitiveStorageExpr(source);
 			if (stored != null) {
@@ -11557,9 +11746,11 @@ class GoCompiler {
 		value in an Int, Float or Bool return. Nullable results must keep that storage.
 		How: Reuse stored-value lowering, then recover only an erased, non-narrowed
 		primitive source when the destination promises a concrete primitive.
+		`declaredStorage` marks an explicitly typed destination for Int constants
+		entering a Float slot (see `lowerIntToFloatSlot`).
 	**/
-	function lowerReturnedExprWithExpectedType(source:TypedExpr, targetType:Type):LoweredExprWithPrefix {
-		var lowered = lowerStoredExprWithExpectedType(source, targetType);
+	function lowerReturnedExprWithExpectedType(source:TypedExpr, targetType:Type, ?declaredStorage:Type):LoweredExprWithPrefix {
+		var lowered = lowerStoredExprWithExpectedType(source, targetType, declaredStorage);
 		var recoverPrimitive = !isNullablePrimitiveType(targetType)
 			&& (isIntType(targetType) || isFloatType(targetType) || isBoolType(targetType))
 			&& !isSharedArrayElementExpr(source)
@@ -11584,9 +11775,10 @@ class GoCompiler {
 
 		How: Apply carrier-aware adapters to function literals, ordinary named methods,
 		and stable local functions at every typed crossing, then use ordinary
-		expected-type lowering for every other expression.
+		expected-type lowering for every other expression. `declaredStorage` marks an
+		explicitly typed destination for Int constants entering a Float slot.
 	**/
-	function lowerStoredExprWithExpectedType(source:TypedExpr, targetType:Type):LoweredExprWithPrefix {
+	function lowerStoredExprWithExpectedType(source:TypedExpr, targetType:Type, ?declaredStorage:Type):LoweredExprWithPrefix {
 		var expectedFunction = lowerFunctionLiteralForExpectedType(source, targetType);
 		if (expectedFunction != null) {
 			return expectedFunction;
@@ -11605,7 +11797,7 @@ class GoCompiler {
 					expr: adaptErasedFunctionCallArg(lowered.expr, source.t, targetType),
 					isStringLike: false
 				};
-			case _: lowerExprWithExpectedUpcast(source, targetType);
+			case _: lowerExprWithExpectedUpcast(source, targetType, declaredStorage);
 		};
 	}
 
@@ -11688,7 +11880,8 @@ class GoCompiler {
 			var sourceUsesCarrier = isOptionalPrimitiveFunctionArg(funcArg, sourceArg, false)
 				|| isNullablePrimitiveParamType(funcArg.v.t, sourceArg);
 			if (targetUsesCarrier && !sourceUsesCarrier) {
-				actual = coerceAnyExprToType(actual, targetArg.t, funcArg.v.t, true);
+				actual = isIntToFloatWidening(targetArg.t,
+					funcArg.v.t) ? widenIntToFloat(actual, true, false, false) : coerceAnyExprToType(actual, targetArg.t, funcArg.v.t, true);
 			}
 			actuals.push(actual);
 		}
@@ -11810,7 +12003,7 @@ class GoCompiler {
 					prefix: [],
 					expr: GoExpr.GoCompositeLiteral(GoType.slice(arrayElementGoType(targetType)), [
 						for (value in values)
-							GoCompositeElement.GoCompositeValue(normalizeNativeSliceStoredElement(targetType, lowerExpr(value).expr))
+							GoCompositeElement.GoCompositeValue(normalizeNativeSliceStoredElement(targetType, lowerArrayElementValue(value, targetType)))
 					]),
 					isStringLike: false
 				};
@@ -11819,6 +12012,33 @@ class GoCompiler {
 			case _:
 				null;
 		};
+	}
+
+	/**
+		What: Lowers one value written into an array element: a literal entry or a
+		pushed or inserted value.
+		Why: Haxe types `[1, n]` as `Array<Float>` while each entry keeps its Int
+		type. The shared Array stores elements as `any`, so an unconverted entry is
+		an `int` that a later `float64` read rejects; a typed slice rejects it at
+		build time.
+		How: Convert an Int value for a Float element (see `lowerIntToFloatSlot`);
+		only a typed Go slice counts as declared float64 storage. Other values keep
+		the plain lowering.
+	**/
+	function lowerArrayElementValue(value:TypedExpr, arrayType:Type):GoExpr {
+		var widened = lowerIntToFloatArrayElement(value, arrayType);
+		return widened == null ? lowerExpr(value).expr : materializeExprWithPrefix(widened, value.t).expr;
+	}
+
+	/** Prefix-preserving form of `lowerArrayElementValue` for pushed and inserted values. */
+	function lowerArrayElementValueWithPrefix(value:TypedExpr, arrayType:Type):LoweredExprWithPrefix {
+		var widened = lowerIntToFloatArrayElement(value, arrayType);
+		return widened == null ? lowerExprWithPrefix(value) : widened;
+	}
+
+	function lowerIntToFloatArrayElement(value:TypedExpr, arrayType:Type):Null<LoweredExprWithPrefix> {
+		var elementType = arrayElementType(arrayType);
+		return elementType == null ? null : lowerIntToFloatSlot(value, elementType, isHaxeArrayType(arrayType) ? null : elementType);
 	}
 
 	/** Projects one Haxe carrier into the exact element stored by a native slice. */
@@ -12470,8 +12690,10 @@ class GoCompiler {
 				case TBinop(OpAssign, _, right):
 					switch (right.expr) {
 						case TArrayDecl(values):
-							return GoExpr.GoCompositeLiteral(GoType.slice(arrayElementGoType(right.t)),
-								[for (value in values) GoCompositeElement.GoCompositeValue(lowerExpr(value).expr)]);
+							return GoExpr.GoCompositeLiteral(GoType.slice(arrayElementGoType(right.t)), [
+								for (value in values)
+									GoCompositeElement.GoCompositeValue(lowerArrayElementValue(value, right.t))
+							]);
 						case _:
 					}
 				case _:
@@ -12974,7 +13196,7 @@ class GoCompiler {
 			positionPrefix = loweredPosition.prefix;
 			positionValue = recoverErasedArrayPosition(position, loweredPosition.expr);
 		}
-		var loweredValue = lowerExprWithPrefix(value);
+		var loweredValue = lowerArrayElementValueWithPrefix(value, target.t);
 		var prefix = site.prefix.copy();
 		var positionExpr:GoExpr = GoExpr.GoIntLiteral(0);
 		if (positionValue != null) {
@@ -13324,7 +13546,7 @@ class GoCompiler {
 				var shouldMaskToByte = isBytesBufferStorageArray(methodCall.target);
 				var prefix = site.prefix.copy();
 				for (arg in args) {
-					var loweredArg = lowerExprWithPrefix(arg);
+					var loweredArg = lowerArrayElementValueWithPrefix(arg, methodCall.target.t);
 					prefix = prefix.concat(loweredArg.prefix);
 					var appendValue = loweredArg.expr;
 					if (shouldMaskToByte) {
