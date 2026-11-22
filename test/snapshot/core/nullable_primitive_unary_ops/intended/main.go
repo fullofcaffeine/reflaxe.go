@@ -32,7 +32,7 @@ func attempt(action *hxrt.Function[func()]) *string {
 
 func bump(start any) int {
 	start = int(int32((hxrt.IntFromNullableAny(start) + 1)))
-	return hxrt.IntFromNullableAny(start.(int))
+	return hxrt.IntFromNullableAny(start)
 }
 
 func flip(value bool) *string {

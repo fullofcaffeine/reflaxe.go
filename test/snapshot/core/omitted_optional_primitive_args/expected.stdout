@@ -1,0 +1,22 @@
+static.float=null,true,false,null,threw,threw,false,false,false:null,true,false,null,threw,threw,false,false,false:0.5,false,true,0.5,1.5,1,true,true,true
+static.int=null,true,false,null,threw,threw,false,false,false:null,true,false,null,threw,threw,false,false,false:3,false,true,3,4,1,false,true,false
+static.bool=null,true,false,null,no,false,false:null,true,false,null,no,false,false:true,false,true,true,yes,true,false:false,false,true,false,no,false,true
+nullable.param=null,true,threw,false:2.5,false,1.5,true:null,true,threw,false:-2,false,-6,true
+forward=null,true,false,null,threw,threw,false,false,false|null,true,threw,false:null,true,false,null,threw,threw,false,false,false|null,true,threw,false:1.25,false,true,1.25,2.25,2.5,false,true,false|1.25,false,0.25,true:null,true,false,null,threw,threw,false,false,false|null,true,threw,false:7,false,true,7,8,5,false,true,false|7,false,21,false:null,true,false,null,no,false,false:false,false,true,false,no,false,true
+defaults=1.5,4,true,2.5,8,on,true:0.25,4,true,1.25,8,on,true:0.25,1,false,1.25,2,off,true
+defaults.forward=3.5,5,false,4.5,10,off,true:0.5,1,true,1.5,2,on,true
+mixed=a:null:null:b:1.5:null:c:null:2:d:0.5:6
+method=null/null:threw:threw:null/null:threw:threw:2.5/null:12.5:threw:1.5/3:11.5:30
+constructor=null,true,false,null,threw,threw,false,false,false|null,true,false,null,threw,threw,false,false,false|null,true,false,null,no,false,false:null,true,false,null,threw,threw,false,false,false|null,true,false,null,threw,threw,false,false,false|null,true,false,null,no,false,false:4.5,false,true,4.5,5.5,9,false,true,false|2,false,true,2,3,0,false,true,false|true,false,true,true,yes,true,false
+local=null,null,null,true,threw,false:null,null,null,true,threw,false:1.5,2,false,false,3.5,true
+local.defaults=1.5,4,true,5.5:0.5,4,true,4.5:2.5,1,false,3.5
+closure=null,null,null,true,threw,false:null,null,null,true,threw,false:0.5,9,true,false,8,true
+interface=base(null,true,false,null,threw,threw,false,false,false,null,true,false,null,threw,threw,false,false,false,null,true,false,null,no,false,false):base(null,true,false,null,threw,threw,false,false,false,null,true,false,null,threw,threw,false,false,false,null,true,false,null,no,false,false):base(2.5,false,true,2.5,3.5,5,false,true,false,3,false,true,3,4,1,false,true,false,true,false,true,true,yes,true,false)
+override=child(null,null,null)>base(null,true,false,null,threw,threw,false,false,false,null,true,false,null,threw,threw,false,false,false,null,true,false,null,no,false,false):child(1.5,null,null)>base(1.5,false,true,1.5,2.5,3,false,true,false,null,true,false,null,threw,threw,false,false,false,null,true,false,null,no,false,false):child(null,null,null)>base(null,true,false,null,threw,threw,false,false,false,null,true,false,null,threw,threw,false,false,false,null,true,false,null,no,false,false):child(0.5,1,false)>base(0.5,false,true,0.5,1.5,1,true,true,true,1,false,true,1,2,-1,true,true,true,false,false,true,false,no,false,true)
+captured=null/null/null:null/null/null:1.5/2/true
+updated=null/null>2.5/3>5.5:null/4>2.5/4>6.5:0.5/1>0.5/1>1.5
+compound=threw,threw,null,null:threw,threw,null,null:stepped,stepped,2.5,4
+interpolated=x=null y=null z=null:x=1.5 y=2 z=true
+narrowed=none,none:2.5,3
+typed.slots=2,1.5,false,2,1.5,2,1.5,2-2,2,c,cd,99,B:3,0.25,true,3,0.25,3,0.25,3-3,0,d,def,100,C
+constructor.fields=1,0.5,true,1,0.5:4,2.5,false,4,2.5

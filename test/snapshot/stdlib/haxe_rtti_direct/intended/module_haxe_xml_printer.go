@@ -253,7 +253,13 @@ func (self *haxe__xml__Printer) HxClassName() string {
 }
 
 func haxe__xml__Printer_print(xml *Xml, pretty bool) *string {
-	printer := New_haxe__xml__Printer(pretty)
+	printer := New_haxe__xml__Printer(func(hx_value_7 any) bool {
+		if hx_value_7 == nil {
+			var hx_zero_8 bool
+			return hx_zero_8
+		}
+		return hx_value_7.(bool)
+	}(pretty))
 	printer.__hx_this.writeNode(xml, hxrt.StringFromLiteral(""))
 	return printer.output.b
 }

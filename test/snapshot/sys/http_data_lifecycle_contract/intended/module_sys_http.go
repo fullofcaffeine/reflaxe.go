@@ -78,7 +78,7 @@ func (self *sys__Http) request(post any) {
 			hxrt.FunctionCall(hx_callable_1)(hx_argument_2)
 		}()
 	})
-	usePost := (((((post != nil) && (post.(bool) == true)) || (self.postBytes != nil)) || !hxrt.StringEqualStringPtr(self.postData, nil)) || (self.file != nil))
+	usePost := (((((post != nil) && (post == true)) || (self.postBytes != nil)) || !hxrt.StringEqualStringPtr(self.postData, nil)) || (self.file != nil))
 	self.__hx_this.customRequest(usePost, func(hx_value *haxe__io__BytesOutput) *haxe__io__Output {
 		if hx_value == nil {
 			return nil

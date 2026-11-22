@@ -36,7 +36,7 @@ func hx_alloc_haxe__zip__Uncompress(owner any) *haxe__zip__Uncompress {
 }
 
 func hx_init_haxe__zip__Uncompress(self *haxe__zip__Uncompress, windowBits any) *haxe__zip__Uncompress {
-	self.raw = ((windowBits != nil) && (hxrt.IntFromNullableAny(windowBits.(int)) < 0))
+	self.raw = ((windowBits != nil) && (hxrt.IntFromNullableAny(windowBits) < 0))
 	self.handle = hxrt.ZipInflateCreate(self.raw)
 	self.flushMode = hxrt.ZipFlushNo
 	self.closed = false

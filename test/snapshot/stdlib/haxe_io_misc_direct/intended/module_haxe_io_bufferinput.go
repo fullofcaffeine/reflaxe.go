@@ -56,8 +56,8 @@ func hx_init_haxe__io__BufferInput(self *haxe__io__BufferInput, input *haxe__io_
 	hx_init_haxe__io__Input(self.haxe__io__Input)
 	self.i = input
 	self.buf = buffer
-	self.pos = pos
-	self.available = available
+	self.pos = hxrt.IntFromNullableAny(pos)
+	self.available = hxrt.IntFromNullableAny(available)
 	return self
 }
 

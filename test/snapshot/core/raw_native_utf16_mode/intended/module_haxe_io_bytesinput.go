@@ -62,15 +62,15 @@ func hx_init_haxe__io__BytesInput(self *haxe__io__BytesInput, bytes *haxe__io__B
 		pos = 0
 	}
 	if len == nil {
-		len = int((hxrt.Int32Wrap(bytes.length) - hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(pos.(int))))))
+		len = int((hxrt.Int32Wrap(bytes.length) - hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(pos)))))
 	}
-	if ((hxrt.IntFromNullableAny(pos.(int)) < 0) || (hxrt.IntFromNullableAny(len.(int)) < 0)) || (int((hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(pos.(int)))) + hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(len.(int)))))) > bytes.length) {
+	if ((hxrt.IntFromNullableAny(pos) < 0) || (hxrt.IntFromNullableAny(len) < 0)) || (int((hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(pos))) + hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(len))))) > bytes.length) {
 		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	self.b = bytes.__hx_this.getData()
-	self.pos = pos.(int)
-	self.len = len.(int)
-	self.totlen = len.(int)
+	self.pos = hxrt.IntFromNullableAny(pos)
+	self.len = hxrt.IntFromNullableAny(len)
+	self.totlen = hxrt.IntFromNullableAny(len)
 	return self
 }
 

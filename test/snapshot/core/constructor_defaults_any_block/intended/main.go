@@ -29,7 +29,7 @@ func hx_alloc_Base(owner any) *Base {
 }
 
 func hx_init_Base(self *Base, label *string, number any, suffix *string) *Base {
-	self.state = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(label, hxrt.StringFromLiteral(":")), hxrt.StdString(number.(int))), hxrt.StringFromLiteral(":")), hxrt.StdString(suffix))
+	self.state = hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(label, hxrt.StringFromLiteral(":")), hxrt.StdString(number)), hxrt.StringFromLiteral(":")), hxrt.StdString(suffix))
 	return self
 }
 

@@ -104,11 +104,11 @@ func (self *haxe__io__Input) readAll(bufsize any) *haxe__io__Bytes {
 	if bufsize == nil {
 		bufsize = 16384
 	}
-	buffer := haxe__io__Bytes_alloc(hxrt.IntFromNullableAny(bufsize.(int)))
+	buffer := haxe__io__Bytes_alloc(hxrt.IntFromNullableAny(bufsize))
 	total := New_haxe__io__BytesBuffer()
 	hxrt.TryCatch(func() {
 		for true {
-			count := self.__hx_this.readBytes(buffer, 0, hxrt.IntFromNullableAny(bufsize.(int)))
+			count := self.__hx_this.readBytes(buffer, 0, hxrt.IntFromNullableAny(bufsize))
 			if count == 0 {
 				hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_Blocked))
 			}

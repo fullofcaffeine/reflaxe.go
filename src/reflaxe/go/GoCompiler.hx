@@ -3727,7 +3727,9 @@ class GoCompiler {
 		How: Reuse `lowerStoredExprWithExpectedType` and materialize any ordered prefix into
 		one expression suitable for the generated Go constructor call. An Int argument
 		for a parameter that `typeParams` applies as Float is converted first, using
-		the declared parameter as its storage (see `lowerIntToFloatSlot`).
+		the declared parameter as its storage (see `lowerIntToFloatSlot`). A nullable
+		primitive value for an Int, Float or Bool parameter is recovered from its Go
+		`any` storage, as at returns and assignments (`recoverErasedPrimitiveForSlot`).
 	**/
 	function lowerConstructorArg(classType:ClassType, arg:TypedExpr, index:Int, ?typeParams:Array<Type>):GoExpr {
 		var paramType = emittedConstructorParamType(classType, index);
@@ -3740,7 +3742,8 @@ class GoCompiler {
 		if (widened != null) {
 			return materializeExprWithPrefix(widened, appliedType).expr;
 		}
-		return materializeExprWithPrefix(lowerStoredExprWithExpectedType(arg, paramType), paramType).expr;
+		var stored = lowerStoredExprWithExpectedType(arg, paramType);
+		return materializeExprWithPrefix(recoverErasedPrimitiveForSlot(arg, paramType, stored), paramType).expr;
 	}
 
 	function lowerFunctionResults(returnType:Type):Array<GoType> {
@@ -3837,7 +3840,7 @@ class GoCompiler {
 						if (indexedArrayAssign != null) {
 							indexedArrayAssign;
 						} else {
-							var loweredRight = lowerStoredExprWithExpectedType(right, assignmentStorageType(left), declaredAssignmentStorage(left, right));
+							var loweredRight = lowerReturnedExprWithExpectedType(right, assignmentStorageType(left), declaredAssignmentStorage(left, right));
 							var assignmentValue = normalizeNativeStorageAssignment(left, loweredRight.expr);
 							var lengthAssignStmts = lowerArrayLengthAssign(left, assignmentValue);
 							var assignStmts = if (lengthAssignStmts != null) {
@@ -6119,7 +6122,11 @@ class GoCompiler {
 			// An Int operand of a compound update on a Float field is widened by the
 			// operator itself, so lower it at its own type instead of the field's.
 			var compoundIntOperand = operation.op != null && isIntToFloatWidening(operation.right.t, operation.left.t);
-			var right = lowerStoredExprWithExpectedType(operation.right, compoundIntOperand ? operation.right.t : operation.left.t);
+			// A plain `=` recovers a nullable primitive value for a typed field, like
+			// any other assignment; compound operators read it themselves.
+			var rightType = compoundIntOperand ? operation.right.t : operation.left.t;
+			var right = operation.op == null ? lowerReturnedExprWithExpectedType(operation.right,
+				rightType) : lowerStoredExprWithExpectedType(operation.right, rightType);
 			body = body.concat(right.prefix);
 			result = operation.op == null ? right.expr : lowerAssignOpExpr(operation.op, GoExpr.GoIdent(oldName), right.expr, operation.left.t,
 				operation.right.t, expr.pos, false);
@@ -6442,7 +6449,12 @@ class GoCompiler {
 				} else if (nonNullPrimitiveGoType != null && variableGoType == "any") {
 					localExpr = GoExpr.GoTypeAssert(localExpr, nonNullPrimitiveGoType);
 				} else if (optionalPrimitiveGoType != null) {
-					localExpr = GoExpr.GoTypeAssert(localExpr, optionalPrimitiveGoType);
+					// A nil-capable primitive parameter (`?x:Int`, `x:Null<Float>`, or a
+					// carrier-ABI default) is stored as Go `any`. Like a `Null<T>` local, a
+					// read typed `Null<T>` keeps that storage so an omitted argument is Haxe
+					// null; only a read typed as the plain primitive asserts the value.
+					if (exprGoType != "any")
+						localExpr = GoExpr.GoTypeAssert(localExpr, optionalPrimitiveGoType);
 				} else if (variableGoType == "any" && exprGoType != "any") {
 					localExpr = GoExpr.GoTypeAssert(localExpr, exprGoType);
 				} else if (variableGoType != exprGoType) {
@@ -6529,7 +6541,7 @@ class GoCompiler {
 						} else {
 							var loweredTarget = lowerNativeValueFieldAssignmentTarget(left);
 							var targetExpr = loweredTarget.expr;
-							var loweredRight = lowerStoredExprWithExpectedType(right, assignmentStorageType(left), declaredAssignmentStorage(left, right));
+							var loweredRight = lowerReturnedExprWithExpectedType(right, assignmentStorageType(left), declaredAssignmentStorage(left, right));
 							var rightExpr = normalizeNativeStorageAssignment(left, loweredRight.expr);
 							var resultExpr = normalizeNativeStorageAssignmentResult(left, targetExpr);
 							{
@@ -7724,6 +7736,10 @@ class GoCompiler {
 	}
 
 	function lowerCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):LoweredExpr {
+		// Compiler-owned lowerings below expect typed primitive arguments; the
+		// generated-call path after them recovers nullable arguments itself.
+		var sourceArgs = args;
+		args = intrinsicCallArgs(callee, args);
 		var injectedCall = lowerTargetCodeInjectionCall(callee, args, returnType);
 		if (injectedCall != null) {
 			return injectedCall;
@@ -7891,6 +7907,7 @@ class GoCompiler {
 			return lowerStdIsOfTypeCall(args);
 		}
 
+		args = sourceArgs;
 		var loweredArgs = new Array<GoExpr>();
 		for (index in 0...args.length) {
 			var arg = args[index];
@@ -8920,6 +8937,63 @@ class GoCompiler {
 				lowerStringInstanceCall(inner, args, returnType);
 			case TCast(inner, _):
 				lowerStringInstanceCall(inner, args, returnType);
+			case _:
+				null;
+		};
+	}
+
+	/**
+		What: The arguments that compiler-owned call lowerings (String methods,
+		`go.*` helpers, typed externs and similar) receive. A nil-capable
+		primitive parameter (`?x:Int`, `x:Null<Float>`) passed where the callee
+		parameter is a Go `int`, `float64` or `bool` is read at its plain
+		primitive type.
+		Why: Such a parameter is stored as Go `any`, and its `Null<Int>`-typed
+		read keeps that storage so that it can be null. Haxe adds no cast when the
+		value is passed to an `Int` parameter, and these lowerings put the
+		argument straight into typed Go code such as
+		`hxrt.StringCharAtStringPtr(s, index)`. Before reads kept the storage,
+		every parameter read asserted its primitive, so this keeps their output
+		at these boundaries. Generated calls instead recover the value in
+		`lowerCallArgForParamType`. `Null<T>` locals keep their existing read:
+		some lowerings (typed `go.Chan` sends) assert such a local themselves.
+		How: Retype only a direct parameter read (through parentheses and
+		metadata) whose callee parameter maps to a Go primitive, so the read
+		asserts the stored value. Other arguments, `Dynamic` parameters and type
+		parameters are returned unchanged, and the input array is reused when
+		nothing changes.
+	**/
+	function intrinsicCallArgs(callee:TypedExpr, args:Array<TypedExpr>):Array<TypedExpr> {
+		var out:Null<Array<TypedExpr>> = null;
+		for (index in 0...args.length) {
+			var paramType = callParamType(callee.t, index);
+			var retyped = paramType == null ? null : nullablePrimitiveLocalAtPrimitiveType(args[index], typeToGoType(paramType));
+			if (retyped != null) {
+				if (out == null) {
+					out = args.copy();
+				}
+				out[index] = retyped;
+			}
+		}
+		return out == null ? args : out;
+	}
+
+	/** Retypes a nil-capable primitive parameter read as its plain primitive when `slotGoType` is a Go primitive; null otherwise. */
+	function nullablePrimitiveLocalAtPrimitiveType(arg:TypedExpr, slotGoType:String):Null<TypedExpr> {
+		if (slotGoType != "int" && slotGoType != "float64" && slotGoType != "bool") {
+			return null;
+		}
+		return switch (arg.expr) {
+			case TLocal(variable) if (isNullablePrimitiveType(arg.t) && registeredOptionalPrimitiveParamGoType(variable) != null):
+				var plainType = switch (nullablePrimitiveValueGoType(arg.t)) {
+					case "int": intType();
+					case "float64": Context.getType("Float");
+					case "bool": Context.getType("Bool");
+					case _: null;
+				};
+				plainType == null ? null : {expr: arg.expr, pos: arg.pos, t: plainType};
+			case TParenthesis(inner) | TMeta(_, inner):
+				nullablePrimitiveLocalAtPrimitiveType(inner, slotGoType);
 			case _:
 				null;
 		};
@@ -11998,16 +12072,23 @@ class GoCompiler {
 	}
 
 	/**
-		What: Restores primitive storage at ordinary and redirected return boundaries.
-		Why: An inferred nullable local can remain Go any even when Haxe permits its
-		value in an Int, Float or Bool return. Nullable results must keep that storage.
+		What: Restores primitive storage at return boundaries (ordinary and
+		redirected) and at `=` assignments.
+		Why: A nullable local or parameter is Go `any` even when Haxe permits its
+		value in an Int, Float or Bool return, local, field or static. Haxe adds no
+		cast there, so Go would reject `self.pos = pos` for a `?pos:Int` argument.
+		Nullable destinations must keep that storage.
 		How: Reuse stored-value lowering, then recover only an erased, non-narrowed
 		primitive source when the destination promises a concrete primitive.
 		`declaredStorage` marks an explicitly typed destination for Int constants
 		entering a Float slot (see `lowerIntToFloatSlot`).
 	**/
 	function lowerReturnedExprWithExpectedType(source:TypedExpr, targetType:Type, ?declaredStorage:Type):LoweredExprWithPrefix {
-		var lowered = lowerStoredExprWithExpectedType(source, targetType, declaredStorage);
+		return recoverErasedPrimitiveForSlot(source, targetType, lowerStoredExprWithExpectedType(source, targetType, declaredStorage));
+	}
+
+	/** Recovers an erased, non-narrowed primitive `source` already lowered for a concrete Int, Float or Bool `targetType`. */
+	function recoverErasedPrimitiveForSlot(source:TypedExpr, targetType:Type, lowered:LoweredExprWithPrefix):LoweredExprWithPrefix {
 		var recoverPrimitive = !isNullablePrimitiveType(targetType)
 			&& (isIntType(targetType) || isFloatType(targetType) || isBoolType(targetType))
 			&& !isSharedArrayElementExpr(source)

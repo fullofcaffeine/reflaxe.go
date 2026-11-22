@@ -185,10 +185,10 @@ func (self *haxe__io__Output) writeInput(input *haxe__io__Input, bufsize any) {
 	if bufsize == nil {
 		bufsize = 4096
 	}
-	buffer := haxe__io__Bytes_alloc(hxrt.IntFromNullableAny(bufsize.(int)))
+	buffer := haxe__io__Bytes_alloc(hxrt.IntFromNullableAny(bufsize))
 	hxrt.TryCatch(func() {
 		for true {
-			count := input.__hx_this.readBytes(buffer, 0, hxrt.IntFromNullableAny(bufsize.(int)))
+			count := input.__hx_this.readBytes(buffer, 0, hxrt.IntFromNullableAny(bufsize))
 			if count == 0 {
 				hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_Blocked))
 			}
