@@ -370,7 +370,7 @@ class LambdaIterableLoweringOwnershipContract(unittest.TestCase):
         constructor_arg = function_block(compiler_source, "lowerConstructorArg", "lowerFunctionResults")
         self.assertIn("lowerStoredExprWithExpectedType", constructor_arg)
         stored_arg = function_block(compiler_source, "lowerStoredExprWithExpectedType", "lowerFunctionLiteralForExpectedType")
-        self.assertIn("lowerExprWithExpectedUpcast(source, targetType)", stored_arg)
+        self.assertIn("lowerExprWithExpectedUpcast(source, targetType, declaredStorage)", stored_arg)
         self.assertIn("materializeExprWithPrefix", constructor_arg)
         self.assertGreaterEqual(compiler_source.count("lowerConstructorArg(classType"), 3)
 
