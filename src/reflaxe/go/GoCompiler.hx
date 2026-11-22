@@ -225,6 +225,7 @@ private typedef GeneratedFieldMetadataSeed = {
 		final lookupKey:String;
 		final selector:String;
 		final typeName:GoType;
+		final nullable:Bool;
 	}>;
 }
 
@@ -237,6 +238,7 @@ private typedef GeneratedFieldClassMetadata = {
 		final lookupKey:String;
 		final selector:String;
 		final typeName:GoType;
+		final nullable:Bool;
 	}>;
 }
 
@@ -352,6 +354,7 @@ class GoCompiler {
 	var throwFallbackSuppressionDepth:Int;
 	final throwFallbackSuppressionDepthScopes:Array<Int>;
 	var cachedVoidType:Null<Type>;
+	var cachedIntType:Null<Type>;
 	var requiresEqualitySurface:Bool;
 	var requiresReflectTypeFieldMetadata:Bool;
 	var requiresReflectEnumValueMetadata:Bool;
@@ -447,6 +450,7 @@ class GoCompiler {
 		throwFallbackSuppressionDepth = 0;
 		throwFallbackSuppressionDepthScopes = [];
 		cachedVoidType = null;
+		cachedIntType = null;
 		requiresEqualitySurface = false;
 		requiresReflectTypeFieldMetadata = false;
 		requiresReflectEnumValueMetadata = false;
@@ -1495,20 +1499,26 @@ class GoCompiler {
 			final lookupKey:String;
 			final selector:String;
 			final typeName:GoType;
+			final nullable:Bool;
 		}>();
 		for (field in classType.fields.get()) {
 			switch (field.kind) {
 				case FVar(readAccess, writeAccess) if (hasReflectableGeneratedFieldStorage(readAccess, writeAccess)):
+					// A `Null<Int|Float|Bool>` field is stored as `any` (`valueStorageGoType`).
+					// Record its value type so a write is still checked, and mark it nullable
+					// so a null write stores nil instead of the zero value.
 					ownFields.push({
 						lookupKey: field.name,
 						selector: normalizeIdent(field.name),
-						typeName: scalarGoType(field.type)
+						typeName: scalarGoType(field.type),
+						nullable: isNullablePrimitiveType(field.type)
 					});
 				case FMethod(MethDynamic):
 					ownFields.push({
 						lookupKey: field.name,
 						selector: normalizeIdent(field.name),
-						typeName: scalarGoType(field.type)
+						typeName: scalarGoType(field.type),
+						nullable: false
 					});
 				case _:
 			}
@@ -2860,7 +2870,7 @@ class GoCompiler {
 				case FVar(_, _):
 					instanceDataFields.push({
 						name: normalizeIdent(field.name),
-						typeName: scalarGoType(field.type)
+						typeName: valueStorageGoType(field.type)
 					});
 				case FMethod(MethDynamic):
 					// Haxe dynamic methods are mutable per-instance function values, not
@@ -2960,7 +2970,7 @@ class GoCompiler {
 						var valueExpr = field.expr();
 						valueExpr == null ? null : lowerStaticInitializer(valueExpr, field.type);
 					}
-					decls.push(GoDecl.GoGlobalVarDecl(symbol, scalarGoType(field.type), loweredValue));
+					decls.push(GoDecl.GoGlobalVarDecl(symbol, valueStorageGoType(field.type), loweredValue));
 				case FMethod(MethDynamic):
 					// Static dynamic methods are mutable function values just like their
 					// instance counterparts. A named Go function is not assignable and
@@ -5332,6 +5342,13 @@ class GoCompiler {
 			cachedVoidType = Context.getType("Void");
 		}
 		return cachedVoidType;
+	}
+
+	function intType():Type {
+		if (cachedIntType == null) {
+			cachedIntType = Context.getType("Int");
+		}
+		return cachedIntType;
 	}
 
 	function nonVoidThrowFallbackReturnStmts():Array<GoStmt> {
@@ -11442,20 +11459,36 @@ class GoCompiler {
 	}
 
 	/**
-		What: Finds the Int value behind an unsafe `cast` that the typer inserted to
-		turn it into a Float.
+		What: Finds the Int value that the typer presents as a Float: the value
+		behind an unsafe `cast` it inserted, or the Int literal behind a Float
+		constant spelled as a whole number.
 		Why: Haxe adds `cast value` (with no target type) when it inlines a call
 		with a Float parameter or types a structure field against a Float field.
-		Seeing through that cast lets the receiving slot decide how an Int
-		constant is written, so already-correct output keeps its plain constants.
-		How: Match only a direct `TCast(value, null)` from Int to Float; return the
-		expression itself otherwise.
+		For a field initializer such as `var rate:Null<Float> = 2` it instead
+		rewrites the literal as the Float constant `2`, which Go reads as an
+		untyped integer constant: a declared float64 slot converts it, but `any`
+		storage (a `Null<Float>` field) would hold a Go `int`. Seeing the Int value
+		lets the receiving slot decide how the constant is written, so
+		already-correct output keeps its plain constants.
+		How: Match a direct `TCast(value, null)` from Int to Float, or a Float
+		constant whose text is exactly a 32-bit Int, which becomes that Int
+		literal. Return the expression itself otherwise.
 	**/
 	function implicitIntToFloatSource(source:TypedExpr):TypedExpr {
 		return switch (source.expr) {
 			case TCast(inner, null) if (isIntToFloatWidening(inner.t, source.t)): inner;
+			case TConst(TFloat(text)) if (isFloatType(source.t)): wholeFloatConstantAsInt(source, text);
 			case _: source;
 		};
+	}
+
+	/** Retypes a Float constant spelled as a 32-bit Int (`2`) as that Int literal; returns `source` otherwise. */
+	function wholeFloatConstantAsInt(source:TypedExpr, text:String):TypedExpr {
+		var whole = Std.parseInt(text);
+		if (whole == null || Std.string(whole) != text) {
+			return source;
+		}
+		return {expr: TConst(TInt(whole)), pos: source.pos, t: intType()};
 	}
 
 	/**
@@ -12201,9 +12234,17 @@ class GoCompiler {
 		return mapped;
 	}
 
+	/**
+		What: The Go storage type of a Haxe value slot: locals, expression temps and
+		generated class variables (instance and static).
+		Why: `Null<Int>`, `Null<Float>` and `Null<Bool>` slots must be able to hold
+		Go nil. Field reads, writes and null comparisons already treat these fields
+		as erased `any` storage (see `isErasedFieldRead`), so a field declared with
+		the scalar type rejected `null` and broke Go type checking.
+		How: Use `any` for nullable primitives and keep the broader type mapper
+		unchanged otherwise, so signatures and eligibility stay stable.
+	**/
 	function valueStorageGoType(type:Type):String {
-		// Nullable primitive expression temps must be able to hold Go nil; keep the
-		// broader type mapper unchanged so signatures and eligibility stay stable.
 		return isNullablePrimitiveType(type) ? "any" : typeToGoType(type);
 	}
 

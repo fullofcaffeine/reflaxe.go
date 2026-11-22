@@ -29,7 +29,7 @@ type I_sys__ssl__Socket interface {
 type sys__ssl__Socket struct {
 	*sys__net__Socket
 	__hx_this  I_sys__ssl__Socket
-	verifyCert bool
+	verifyCert any
 	caCert     *sys__ssl__Certificate
 	hostname   *string
 	ownCert    *sys__ssl__Certificate
@@ -197,4 +197,4 @@ func (self *sys__ssl__Socket) HxClassName() string {
 
 var sys__ssl__Socket_DEFAULT_CA *sys__ssl__Certificate
 
-var sys__ssl__Socket_DEFAULT_VERIFY_CERT bool = true
+var sys__ssl__Socket_DEFAULT_VERIFY_CERT any = true

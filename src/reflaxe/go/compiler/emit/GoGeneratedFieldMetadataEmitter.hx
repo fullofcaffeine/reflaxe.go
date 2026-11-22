@@ -19,7 +19,10 @@ private typedef GeneratedFieldEntry = {
 	final ownFields:Array<{
 		final lookupKey:String;
 		final selector:String;
+		/** The value type a write accepts (the scalar type of a nullable field). **/
 		final typeName:GoType;
+		/** The field is `Null<Int|Float|Bool>` stored as `any`; a null write stores nil. **/
+		final nullable:Bool;
 	}>;
 }
 
@@ -182,7 +185,7 @@ class GoGeneratedFieldMetadataEmitter {
 			for (field in entry.ownFields) {
 				fieldCases.push({
 					values: [GoExpr.GoStringLiteral(field.lookupKey)],
-					body: fieldCaseBody(value, field.selector, field.typeName, operation, recoverStored)
+					body: fieldCaseBody(value, field.selector, field.typeName, field.nullable, operation, recoverStored)
 				});
 			}
 			body.push(GoStmt.GoSwitch(GoExpr.GoIdent("key"), fieldCases, null));
@@ -210,7 +213,7 @@ class GoGeneratedFieldMetadataEmitter {
 		return GoDecl.GoFuncDecl(classResolverSymbol(entry.goTypeName, operation), null, params, [resultType(operation)], body);
 	}
 
-	static function fieldCaseBody(value:GoExpr, selector:String, typeName:GoType, operation:GeneratedFieldOperation,
+	static function fieldCaseBody(value:GoExpr, selector:String, typeName:GoType, nullable:Bool, operation:GeneratedFieldOperation,
 			recoverStored:(GoExpr, GoType) -> GoExpr):Array<GoStmt> {
 		return switch (operation) {
 			case Lookup:
@@ -257,14 +260,17 @@ class GoGeneratedFieldMetadataEmitter {
 						]
 					});
 				}
-				[
-					GoStmt.GoIf(GoExpr.GoBinary(GoBinaryOperator.Equal, incoming, GoExpr.GoNil), [
-						GoStmt.GoVarDecl("zero", typeName, null, false),
-						GoStmt.GoAssign(target, GoExpr.GoIdent("zero")),
-						GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))
-					], null),
-					GoStmt.GoTypeSwitch(incoming, "typed", typedCases, [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))])
+				// Null stores the zero value in scalar storage, but stays null in a
+				// nullable field's `any` storage.
+				var storeNull = nullable ? [GoStmt.GoAssign(target, GoExpr.GoNil)] : [
+					GoStmt.GoVarDecl("zero", typeName, null, false),
+					GoStmt.GoAssign(target, GoExpr.GoIdent("zero"))
 				];
+					[
+						GoStmt.GoIf(GoExpr.GoBinary(GoBinaryOperator.Equal, incoming, GoExpr.GoNil),
+							storeNull.concat([GoStmt.GoReturn(GoExpr.GoBoolLiteral(true))]), null),
+						GoStmt.GoTypeSwitch(incoming, "typed", typedCases, [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))])
+					];
 		};
 	}
 
