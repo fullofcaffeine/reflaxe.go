@@ -392,6 +392,9 @@ func hx_alloc__Main__TrackingInput(owner any) *_Main__TrackingInput {
 }
 
 func hx_init__Main__TrackingInput(self *_Main__TrackingInput, mode *string, payload *string) *_Main__TrackingInput {
+	if payload == nil {
+		payload = hxrt.StringFromLiteral("")
+	}
 	hx_init_haxe__io__Input(self.haxe__io__Input)
 	self.position = 0
 	self.requestReturned = false

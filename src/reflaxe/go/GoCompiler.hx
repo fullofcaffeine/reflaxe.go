@@ -3132,9 +3132,7 @@ class GoCompiler {
 		var results = lowerFunctionResults(func.t);
 		pushFunctionReturnType(func.t);
 		var body = lowerFunctionBody(func.expr);
-		if (useCarrierOptionalAbi) {
-			body = lowerCarrierOptionalDefaultPrelude(func, typedArgs).concat(body);
-		}
+		body = lowerParameterDefaultPrelude(func, typedArgs, params).concat(body);
 		prependLineDirective(body, func.expr.pos, sourceModule);
 		popFunctionReturnType();
 		popFunctionVarNameScope();
@@ -3192,6 +3190,8 @@ class GoCompiler {
 			pushConstructorReturnScope();
 			loweredCtorBody = lowerConstructorBody(ctorFunc.expr);
 			popConstructorReturnScope();
+			// Defaults apply before the superclass call, which may pass the parameters on.
+			body = lowerParameterDefaultPrelude(ctorFunc, typedFunctionArgs(ctorType == null ? ctorFunc.t : ctorType), params.slice(1));
 		}
 
 		if (superClass != null) {
@@ -3628,24 +3628,34 @@ class GoCompiler {
 	}
 
 	/**
-		What: Apply implementation-owned non-null optional defaults at method entry.
+		What: Apply implementation-owned non-null parameter defaults at function entry.
 
-		Why: An interface call does not know which override will receive the call, and
-		Haxe selects the concrete override's default. The nil carrier must therefore
-		reach the implementation before becoming its declared default value.
+		Why: Haxe applies a parameter's default whenever the incoming value is null,
+		not only when the argument is omitted, and the called implementation owns
+		that default. An interface call does not know which override will receive
+		the call, and a function value or a `null` String argument reaches the body
+		as nil. The nil value must therefore reach the implementation before
+		becoming its declared default value.
 
-		How: For a method or function literal reached through an optional carrier, test
-		the raw missing-argument carrier before typed body lowering reads it, then
-		replace nil with the implementation's typed default expression. Primitive
-		parameters use `any`; reference-shaped parameters retain their ordinary
-		nil-capable Go type.
+		How: For each parameter of `params` (the emitted Go parameters of `func`)
+		whose Go type can hold nil, test the raw value before typed body lowering
+		reads it, then replace nil with the implementation's typed default
+		expression. Optional primitives reached through a carrier use `any`;
+		String, enum, class and other reference parameters keep their ordinary
+		nil-capable Go type. A parameter emitted as plain `int`, `float64` or `bool`
+		cannot receive nil, so its callers select the default instead (see
+		`lowerNullablePrimitiveArgForDefault`).
 	**/
-	function lowerCarrierOptionalDefaultPrelude(func:TFunc, typedArgs:Array<{name:String, opt:Bool, t:Type}>):Array<GoStmt> {
+	function lowerParameterDefaultPrelude(func:TFunc, typedArgs:Array<{name:String, opt:Bool, t:Type}>, params:Array<GoParam>):Array<GoStmt> {
 		var out = new Array<GoStmt>();
 		for (index in 0...func.args.length) {
 			var arg = func.args[index];
 			var typedArg = index < typedArgs.length ? typedArgs[index] : null;
 			if (typedArg == null || !typedArg.opt || arg.value == null || isGoNilDefaultValue(arg.value)) {
+				continue;
+			}
+			var paramGoType = index < params.length ? params[index].typeName.render() : null;
+			if (paramGoType == null || (paramGoType != "any" && !enumPayloadGoTypeCanBeNil(arg.v.t, paramGoType))) {
 				continue;
 			}
 			var name = localVarName(arg.v);
@@ -3676,9 +3686,7 @@ class GoCompiler {
 		var loweredResults = lowerFunctionResults(resultType);
 		pushFunctionReturnType(resultType);
 		var loweredBody = lowerFunctionBody(func.expr);
-		if (typedArgs != null) {
-			loweredBody = lowerCarrierOptionalDefaultPrelude(func, typedArgs).concat(loweredBody);
-		}
+		loweredBody = lowerParameterDefaultPrelude(func, typedArgs == null ? typedFunctionArgs(func.t) : typedArgs, loweredParams).concat(loweredBody);
 		popFunctionReturnType();
 		popFunctionVarNameScope();
 		var value = freshFunctionValue(GoExpr.GoFuncLiteral(loweredParams, loweredResults, loweredBody));
@@ -3725,7 +3733,9 @@ class GoCompiler {
 		Why: Constructors previously bypassed structural and prefix-aware expected-type
 		coercion even though ordinary calls used it.
 		How: Reuse `lowerStoredExprWithExpectedType` and materialize any ordered prefix into
-		one expression suitable for the generated Go constructor call. An Int argument
+		one expression suitable for the generated Go constructor call. A possibly-null
+		argument for an Int, Float or Bool parameter with a default value selects that
+		default when it is null (`lowerNullablePrimitiveArgForDefault`). An Int argument
 		for a parameter that `typeParams` applies as Float is converted first, using
 		the declared parameter as its storage (see `lowerIntToFloatSlot`). A nullable
 		primitive value for an Int, Float or Bool parameter is recovered from its Go
@@ -3735,6 +3745,15 @@ class GoCompiler {
 		var paramType = emittedConstructorParamType(classType, index);
 		if (paramType == null) {
 			return lowerExpr(arg).expr;
+		}
+		var ctorInfo = GoStdlibOwnership.isCompilerOwnedAuthority(fullClassName(classType)) ? null : resolveConstructorInfo(classType);
+		if (ctorInfo != null && classType.constructor != null) {
+			var ctorArgs = typedFunctionArgs(classType.constructor.get().type);
+			var defaulted = lowerNullablePrimitiveArgForDefault(arg, index < ctorArgs.length ? ctorArgs[index] : null, false,
+				index < ctorInfo.defaults.length ? ctorInfo.defaults[index] : null, value -> lowerConstructorArg(classType, value, index, typeParams));
+			if (defaulted != null) {
+				return defaulted;
+			}
 		}
 		var appliedType = typeParams == null
 			|| typeParams.length != classType.params.length ? paramType : TypeTools.applyTypeParameters(paramType, classType.params, typeParams);
@@ -7118,7 +7137,7 @@ class GoCompiler {
 				}
 				// Interface implementations own their defaults; direct scalar signatures
 				// need the missing-argument conversion in this bound value instead.
-				var body = implementation == null || useCarrierAbi ? [] : lowerCarrierOptionalDefaultPrelude(implementation, args);
+				var body = implementation == null || useCarrierAbi ? [] : lowerParameterDefaultPrelude(implementation, args, params);
 				var call = GoExpr.GoCall(GoExpr.GoSelector(dispatch, selector), actuals);
 				body.push(isVoidType(result) ? GoStmt.GoExprStmt(call) : GoStmt.GoReturn(call));
 				var callable = GoExpr.GoFuncLiteral(params, lowerFunctionResults(result), body);
@@ -7908,6 +7927,7 @@ class GoCompiler {
 		}
 
 		args = sourceArgs;
+		var functionInfo = resolveFunctionInfo(callee);
 		var loweredArgs = new Array<GoExpr>();
 		for (index in 0...args.length) {
 			var arg = args[index];
@@ -7915,6 +7935,11 @@ class GoCompiler {
 			var variadicPack = lowerExternVariadicRestArg(callee, arg, paramType, index);
 			if (variadicPack != null) {
 				loweredArgs.push(variadicPack);
+				continue;
+			}
+			var defaultedArg = lowerNullableCallArgForDefault(callee, functionInfo, index, arg);
+			if (defaultedArg != null) {
+				loweredArgs.push(defaultedArg);
 				continue;
 			}
 			var emittedParamType = emittedCallParamType(callee, index);
@@ -7932,7 +7957,6 @@ class GoCompiler {
 			loweredArg = normalizeExternCallArg(callee, loweredArg, paramType, index);
 			loweredArgs.push(loweredArg);
 		}
-		var functionInfo = resolveFunctionInfo(callee);
 		if (functionInfo != null && shouldApplySourceDefaultArgPadding(callee) && loweredArgs.length < functionInfo.defaults.length) {
 			for (i in loweredArgs.length...functionInfo.defaults.length) {
 				var defaultValue = functionInfo.defaults[i];
@@ -9011,6 +9035,113 @@ class GoCompiler {
 		}
 		body.push(GoStmt.GoReturn(GoExpr.GoNil));
 		return GoExpr.GoCall(GoExpr.GoFuncLiteral([], ["any"], body), []);
+	}
+
+	/**
+		What: Lowers a possibly-null Int, Float or Bool argument for an optional
+		parameter that has a default value. Returns null to keep the ordinary
+		argument lowering.
+
+		Why: Haxe applies a parameter's default whenever the argument is null, not
+		only when it is omitted: `f(maybeNull)` for `function f(x:Float = 1.5)`
+		gives 1.5. Generated named functions, methods and constructors keep a plain
+		Go parameter (`x float64`) for such a parameter, so a null argument became
+		0 or false (an Int raised the null error), and a `null` passed to a
+		`?x:Float = 1.5` or `x:Null<Int> = 9` parameter did not compile.
+
+		How: Only a `null` literal or a nullable primitive value that is not proven
+		non-null takes this path. When `receivesNil` says the Go parameter is an
+		`any` carrier, pass the raw value: the called implementation applies its own
+		default (`lowerParameterDefaultPrelude`), so an override keeps its default.
+		Otherwise read the value, and select `defaultValue` (lowered by
+		`lowerDefault`) when it is nil. Defaults are constants in Haxe, so selecting
+		one at the call cannot reorder effects.
+	**/
+	function lowerNullablePrimitiveArgForDefault(arg:TypedExpr, typedArg:Null<{name:String, opt:Bool, t:Type}>, receivesNil:Bool,
+			defaultValue:Null<TypedExpr>, lowerDefault:TypedExpr->GoExpr):Null<GoExpr> {
+		if (typedArg == null || !typedArg.opt) {
+			return null;
+		}
+		var goType = nullablePrimitiveValueGoType(typedArg.t);
+		if (goType == null || scalarGoType(typedArg.t) != goType) {
+			return null;
+		}
+		var nullLiteral = isNullLiteralExpr(arg);
+		var argGoType = nullablePrimitiveValueGoType(arg.t);
+		// A `Null<Int>` argument may fill a Float parameter; it is widened after the nil test.
+		var widensInt = argGoType == "int" && goType == "float64";
+		if (!nullLiteral
+			&& (!isNullablePrimitiveType(arg.t) || nonNullPrimitiveExprGoType(arg) != null || (argGoType != goType && !widensInt))) {
+			return null;
+		}
+		if (receivesNil) {
+			if (nullLiteral) {
+				return GoExpr.GoNil;
+			}
+			var raw = lowerCallArgForParamType(arg, arg.t);
+			return widensInt ? widenIntToFloat(raw, true, true, false) : raw;
+		}
+		if (defaultValue == null || isGoNilDefaultValue(defaultValue)) {
+			return null;
+		}
+		var fallback = lowerDefault(defaultValue);
+		if (nullLiteral) {
+			return fallback;
+		}
+		var valueName = freshTempName("hx_value");
+		var value = GoExpr.GoIdent(valueName);
+		var read = argGoType == "int" ? GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [value]) : GoExpr.GoTypeAssert(value, goType);
+		if (widensInt) {
+			read = GoExpr.GoCall(GoExpr.GoIdent("float64"), [read]);
+		}
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: valueName, typeName: "any"}], [goType], [
+			GoStmt.GoIf(GoExpr.GoBinary(GoBinaryOperator.Equal, value, GoExpr.GoNil), [GoStmt.GoReturn(fallback)], null),
+			GoStmt.GoReturn(read)
+		]), [lowerCallArgForParamType(arg, arg.t)]);
+	}
+
+	/**
+		What: Applies `lowerNullablePrimitiveArgForDefault` to one ordinary call
+		argument.
+		Why: The receiving Go parameter decides who applies the default. Function
+		values and interface method families take optional primitives in `any`, so
+		their implementation sees the nil; other declarations take a plain scalar.
+		How: Take the default from the stable declaration that already pads
+		omitted arguments (`functionInfo`), and leave imported Go externs alone.
+	**/
+	function lowerNullableCallArgForDefault(callee:TypedExpr, functionInfo:Null<FunctionInfo>, index:Int, arg:TypedExpr):Null<GoExpr> {
+		if (isGoImportExternCall(callee)) {
+			return null;
+		}
+		var typedArgs = typedFunctionArgs(callee.t);
+		if (index >= typedArgs.length) {
+			return null;
+		}
+		var typedArg = typedArgs[index];
+		var defaultValue = functionInfo != null
+			&& shouldApplySourceDefaultArgPadding(callee)
+			&& index < functionInfo.defaults.length ? functionInfo.defaults[index] : null;
+		return lowerNullablePrimitiveArgForDefault(arg, typedArg, callArgReceivesNilCarrier(callee, typedArg), defaultValue, value -> lowerExpr(value).expr);
+	}
+
+	/** True when the Go parameter receiving `typedArg` in a call to `callee` is the nil-capable `any` carrier. */
+	function callArgReceivesNilCarrier(callee:TypedExpr, typedArg:{name:String, opt:Bool, t:Type}):Bool {
+		if (isFunctionValueCall(callee)) {
+			return functionParameterStorageGoType(typedArg) == "any";
+		}
+		return switch (callee.expr) {
+			case TField(_, FInstance(classRef, _, field)):
+				methodReceivesNilCarrier(classRef.get(), field.get().name);
+			case TMeta(_, inner) | TParenthesis(inner):
+				callArgReceivesNilCarrier(inner, typedArg);
+			case _:
+				false;
+		};
+	}
+
+	/** True when a generated interface method, or a class method of an interface family, takes optional primitives in `any`. */
+	function methodReceivesNilCarrier(owner:ClassType, methodName:String):Bool {
+		return !owner.isExtern && (owner.isInterface || methodUsesCarrierOptionalAbi(owner, methodName));
 	}
 
 	/**
@@ -12207,7 +12338,7 @@ class GoCompiler {
 
 		pushFunctionVarNameScope();
 		var params = lowerFunctionParams(func, targetArgs, true);
-		var body = lowerCarrierOptionalDefaultPrelude(func, targetArgs);
+		var body = lowerParameterDefaultPrelude(func, targetArgs, params);
 		var actuals = new Array<GoExpr>();
 		for (index in 0...func.args.length) {
 			var funcArg = func.args[index];

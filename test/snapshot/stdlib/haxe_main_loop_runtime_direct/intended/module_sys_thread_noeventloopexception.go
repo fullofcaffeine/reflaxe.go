@@ -1,5 +1,7 @@
 package main
 
+import "snapshot/hxrt"
+
 type I_sys__thread__NoEventLoopException interface {
 	get_message() *string
 	get_stack() any
@@ -35,6 +37,9 @@ func hx_alloc_sys__thread__NoEventLoopException(owner any) *sys__thread__NoEvent
 }
 
 func hx_init_sys__thread__NoEventLoopException(self *sys__thread__NoEventLoopException, msg *string, previous *haxe__Exception) *sys__thread__NoEventLoopException {
+	if msg == nil {
+		msg = hxrt.StringFromLiteral("Event loop is not available. Refer to sys.thread.Thread.runWithEventLoop.")
+	}
 	hx_init_haxe__Exception(self.haxe__Exception, msg, previous, nil)
 	return self
 }

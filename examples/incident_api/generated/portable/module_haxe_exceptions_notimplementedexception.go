@@ -37,6 +37,9 @@ func hx_alloc_haxe__exceptions__NotImplementedException(owner any) *haxe__except
 }
 
 func hx_init_haxe__exceptions__NotImplementedException(self *haxe__exceptions__NotImplementedException, message *string, previous *haxe__Exception, pos hxrt.Anonymous) *haxe__exceptions__NotImplementedException {
+	if message == nil {
+		message = hxrt.StringFromLiteral("Not implemented")
+	}
 	hx_init_haxe__exceptions__PosException(self.haxe__exceptions__PosException, func() *string {
 		var hx_if_1 *string
 		if hxrt.StringEqualStringPtr(message, nil) {

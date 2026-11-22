@@ -91,10 +91,16 @@ func (self *sys__Http) request(post any) {
 }
 
 func (self *sys__Http) fileTransfert(argname *string, filename *string, file *haxe__io__Input, size int, mimeType *string) {
+	if mimeType == nil {
+		mimeType = hxrt.StringFromLiteral("application/octet-stream")
+	}
 	self.__hx_this.fileTransfer(argname, filename, file, size, mimeType)
 }
 
 func (self *sys__Http) fileTransfer(argname *string, filename *string, file *haxe__io__Input, size int, mimeType *string) {
+	if mimeType == nil {
+		mimeType = hxrt.StringFromLiteral("application/octet-stream")
+	}
 	hx_obj_3 := map[string]any{}
 	hx_obj_3["param"] = argname
 	hx_obj_3["filename"] = filename

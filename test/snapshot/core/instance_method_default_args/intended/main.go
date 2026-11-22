@@ -34,10 +34,22 @@ func hx_init_Greeter(self *Greeter) *Greeter {
 }
 
 func (self *Greeter) greet(name *string, punct *string) *string {
+	if name == nil {
+		name = hxrt.StringFromLiteral("world")
+	}
+	if punct == nil {
+		punct = hxrt.StringFromLiteral("!")
+	}
 	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("hello "), name), punct)
 }
 
 func (self *Greeter) wrap(prefix *string, suffix *string) *string {
+	if prefix == nil {
+		prefix = hxrt.StringFromLiteral("[")
+	}
+	if suffix == nil {
+		suffix = hxrt.StringFromLiteral("]")
+	}
 	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(prefix, hxrt.StringFromLiteral("go")), suffix)
 }
 
