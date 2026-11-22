@@ -286,6 +286,7 @@ class GoRuntimeCapabilityManifest {
 			case GoHxrtFeatureAnalyzer.FEATURE_ARRAY_SORT: GoHxrtFeatureId.HxrtArraySort;
 			case GoHxrtFeatureAnalyzer.FEATURE_STRING: GoHxrtFeatureId.HxrtString;
 			case GoHxrtFeatureAnalyzer.FEATURE_STRING_COMPARE: GoHxrtFeatureId.HxrtStringCompare;
+			case GoHxrtFeatureAnalyzer.FEATURE_NULLABLE_COMPARE: GoHxrtFeatureId.HxrtNullableCompare;
 			case GoHxrtFeatureAnalyzer.FEATURE_EQUALITY: GoHxrtFeatureId.HxrtEquality;
 			case GoHxrtFeatureAnalyzer.FEATURE_PRINT: GoHxrtFeatureId.HxrtPrint;
 			case GoHxrtFeatureAnalyzer.FEATURE_EXCEPTION: GoHxrtFeatureId.HxrtException;

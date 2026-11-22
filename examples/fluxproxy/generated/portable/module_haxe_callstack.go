@@ -309,8 +309,10 @@ func haxe___CallStack__CallStack_Impl__itemToString(item *haxe__StackItem) *stri
 		}
 		rendered := hx_if_48
 		rendered = hxrt.StringConcatStringPtr(rendered, hxrt.StringConcatAny(hxrt.StringFromLiteral(" line "), line))
-		if hxrt.IntFromNullableAny(column) > 0 {
-			rendered = hxrt.StringConcatStringPtr(rendered, hxrt.StringConcatAny(hxrt.StringFromLiteral(" column "), column))
+		if column != nil {
+			if column.(int) > 0 {
+				rendered = hxrt.StringConcatStringPtr(rendered, hxrt.StringConcatAny(hxrt.StringFromLiteral(" column "), column.(int)))
+			}
 		}
 		if inner != nil {
 			rendered = hxrt.StringConcatStringPtr(rendered, hxrt.StringFromLiteral(")"))

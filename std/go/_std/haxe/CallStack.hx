@@ -168,8 +168,13 @@ abstract CallStack(Array<StackItem>) from Array<StackItem> {
 			case FilePos(inner, file, line, column):
 				var rendered = inner == null ? file : itemToString(inner) + " (" + file;
 				rendered += " line " + line;
-				if (column > 0) {
-					rendered += " column " + column;
+				// `column` is optional (`Null<Int>`). Checking null first lets haxe.go
+				// read it as a plain Int below, so this path, which most programs
+				// include, needs no nullable-comparison runtime helper.
+				if (column != null) {
+					if (column > 0) {
+						rendered += " column " + column;
+					}
 				}
 				if (inner != null) {
 					rendered += ")";

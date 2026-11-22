@@ -133,6 +133,7 @@
         "array_sort",
         "string",
         "string_compare",
+        "nullable_compare",
         "equality",
         "print",
         "exception",

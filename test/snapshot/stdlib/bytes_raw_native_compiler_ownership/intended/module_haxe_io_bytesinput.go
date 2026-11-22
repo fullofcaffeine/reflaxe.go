@@ -64,7 +64,7 @@ func hx_init_haxe__io__BytesInput(self *haxe__io__BytesInput, bytes *haxe__io__B
 	if len == nil {
 		len = int((hxrt.Int32Wrap(bytes.length) - hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(pos)))))
 	}
-	if ((hxrt.IntFromNullableAny(pos) < 0) || (hxrt.IntFromNullableAny(len) < 0)) || (int((hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(pos))) + hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(len))))) > bytes.length) {
+	if (hxrt.NullableIntLess(pos, 0) || hxrt.NullableIntLess(len, 0)) || (int((hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(pos))) + hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(len))))) > bytes.length) {
 		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	self.b = bytes.__hx_this.getData()

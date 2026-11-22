@@ -36,7 +36,7 @@ func hx_alloc_haxe__zip__Uncompress(owner any) *haxe__zip__Uncompress {
 }
 
 func hx_init_haxe__zip__Uncompress(self *haxe__zip__Uncompress, windowBits any) *haxe__zip__Uncompress {
-	self.raw = ((windowBits != nil) && (hxrt.IntFromNullableAny(windowBits) < 0))
+	self.raw = ((windowBits != nil) && hxrt.NullableIntLess(windowBits, 0))
 	self.handle = hxrt.ZipInflateCreate(self.raw)
 	self.flushMode = hxrt.ZipFlushNo
 	self.closed = false
@@ -134,7 +134,7 @@ func haxe__zip__Uncompress_run(src *haxe__io__Bytes, bufsize any) *haxe__io__Byt
 		hx_if_7 = bufsize.(int)
 	}
 	var resolvedBufferSize any = hx_if_7
-	if hxrt.IntFromNullableAny(resolvedBufferSize) <= 0 {
+	if hxrt.NullableIntLessEqual(resolvedBufferSize, 0) {
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatAny(hxrt.StringFromLiteral("Invalid zlib buffer size: "), resolvedBufferSize)))
 	}
 	return haxe__zip__Uncompress_fromValues(hxrt.ZipUncompress(haxe__zip__Uncompress_toValues(src), false, hxrt.IntFromNullableAny(resolvedBufferSize)))

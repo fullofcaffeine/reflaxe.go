@@ -398,21 +398,15 @@ func main() {
 				}
 				return hx_value_37.(float64)
 			}(x) + float64(hxrt.IntFromNullableAny(y))))
-		}))), hxrt.StringFromLiteral(",")), hxrt.StdString((func(hx_value_38 any) float64 {
-			if hx_value_38 == nil {
-				var hx_zero_39 float64
-				return (0 / hx_zero_39)
-			}
-			return hx_value_38.(float64)
-		}(x) < func(hx_value_40 any) float64 {
-			if hx_value_40 == nil {
-				var hx_zero_41 float64
-				return (0 / hx_zero_41)
-			}
-			return float64(hxrt.IntFromNullableAny(hx_value_40))
-		}(y))))
+		}))), hxrt.StringFromLiteral(",")), hxrt.StdString(hxrt.NullableFloatsLess(x, y)))
 	})
 	row(hxrt.StringFromLiteral("local"), hxrt.NewArray(func() *string {
+		var hx_callable_38 *hxrt.Function[func(any, any, any) *string] = localFloat
+		var hx_argument_39 any = nil
+		var hx_argument_40 any = nil
+		var hx_argument_41 any = nil
+		return hxrt.FunctionCall(hx_callable_38)(hx_argument_39, hx_argument_40, hx_argument_41)
+	}(), func() *string {
 		var hx_callable_42 *hxrt.Function[func(any, any, any) *string] = localFloat
 		var hx_argument_43 any = nil
 		var hx_argument_44 any = nil
@@ -420,16 +414,10 @@ func main() {
 		return hxrt.FunctionCall(hx_callable_42)(hx_argument_43, hx_argument_44, hx_argument_45)
 	}(), func() *string {
 		var hx_callable_46 *hxrt.Function[func(any, any, any) *string] = localFloat
-		var hx_argument_47 any = nil
-		var hx_argument_48 any = nil
-		var hx_argument_49 any = nil
+		var hx_argument_47 any = 1.5
+		var hx_argument_48 any = 2
+		var hx_argument_49 any = false
 		return hxrt.FunctionCall(hx_callable_46)(hx_argument_47, hx_argument_48, hx_argument_49)
-	}(), func() *string {
-		var hx_callable_50 *hxrt.Function[func(any, any, any) *string] = localFloat
-		var hx_argument_51 any = 1.5
-		var hx_argument_52 any = 2
-		var hx_argument_53 any = false
-		return hxrt.FunctionCall(hx_callable_50)(hx_argument_51, hx_argument_52, hx_argument_53)
 	}()))
 	var localDefaults *hxrt.Function[func(any, any, any) *string] = hxrt.NewFunction(func(ratio any, count any, flag any) *string {
 		if ratio == nil {
@@ -445,44 +433,50 @@ func main() {
 	})
 	var relay *hxrt.Function[func(any, any, any) *string] = hxrt.NewFunction(func(ratio any, count any, flag any) *string {
 		return func() *string {
-			var hx_callable_54 *hxrt.Function[func(any, any, any) *string] = localDefaults
-			var hx_argument_55 any = ratio
-			var hx_argument_56 any = count
-			var hx_argument_57 any = flag
-			return hxrt.FunctionCall(hx_callable_54)(hx_argument_55, hx_argument_56, hx_argument_57)
+			var hx_callable_50 *hxrt.Function[func(any, any, any) *string] = localDefaults
+			var hx_argument_51 any = ratio
+			var hx_argument_52 any = count
+			var hx_argument_53 any = flag
+			return hxrt.FunctionCall(hx_callable_50)(hx_argument_51, hx_argument_52, hx_argument_53)
 		}()
 	})
 	row(hxrt.StringFromLiteral("local.defaults"), hxrt.NewArray(func() *string {
+		var hx_callable_54 *hxrt.Function[func(any, any, any) *string] = localDefaults
+		var hx_argument_55 any = 1.5
+		var hx_argument_56 any = 4
+		var hx_argument_57 any = true
+		return hxrt.FunctionCall(hx_callable_54)(hx_argument_55, hx_argument_56, hx_argument_57)
+	}(), func() *string {
 		var hx_callable_58 *hxrt.Function[func(any, any, any) *string] = localDefaults
-		var hx_argument_59 any = 1.5
+		var hx_argument_59 any = 0.5
 		var hx_argument_60 any = 4
 		var hx_argument_61 any = true
 		return hxrt.FunctionCall(hx_callable_58)(hx_argument_59, hx_argument_60, hx_argument_61)
 	}(), func() *string {
-		var hx_callable_62 *hxrt.Function[func(any, any, any) *string] = localDefaults
-		var hx_argument_63 any = 0.5
-		var hx_argument_64 any = 4
-		var hx_argument_65 any = true
+		var hx_callable_62 *hxrt.Function[func(any, any, any) *string] = relay
+		var hx_argument_63 any = 2.5
+		var hx_argument_64 any = 1
+		var hx_argument_65 any = false
 		return hxrt.FunctionCall(hx_callable_62)(hx_argument_63, hx_argument_64, hx_argument_65)
-	}(), func() *string {
-		var hx_callable_66 *hxrt.Function[func(any, any, any) *string] = relay
-		var hx_argument_67 any = 2.5
-		var hx_argument_68 any = 1
-		var hx_argument_69 any = false
-		return hxrt.FunctionCall(hx_callable_66)(hx_argument_67, hx_argument_68, hx_argument_69)
 	}()))
 	var closure *hxrt.Function[func(any, any, any) *string] = hxrt.NewFunction(func(x any, y any, z any) *string {
 		return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatAny(x, hxrt.StringFromLiteral(",")), y), hxrt.StringFromLiteral(",")), hxrt.StdString(z)), hxrt.StringFromLiteral(",")), hxrt.StdString((y == nil))), hxrt.StringFromLiteral(",")), attempt(hxrt.NewFunction(func() *string {
 			return hxrt.StringConcatAny(hxrt.StringFromLiteral(""), int((hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(y))) - hxrt.Int32Wrap(1))))
-		}))), hxrt.StringFromLiteral(",")), hxrt.StdString((func(hx_value_70 any) float64 {
-			if hx_value_70 == nil {
-				var hx_zero_71 float64
-				return (0 / hx_zero_71)
+		}))), hxrt.StringFromLiteral(",")), hxrt.StdString((func(hx_value_66 any) float64 {
+			if hx_value_66 == nil {
+				var hx_zero_67 float64
+				return (0 / hx_zero_67)
 			}
-			return float64(hxrt.IntFromNullableAny(hx_value_70))
+			return float64(hxrt.IntFromNullableAny(hx_value_66))
 		}(y) > 0.5)))
 	})
 	row(hxrt.StringFromLiteral("closure"), hxrt.NewArray(func() *string {
+		var hx_callable_68 *hxrt.Function[func(any, any, any) *string] = closure
+		var hx_argument_69 any = nil
+		var hx_argument_70 any = nil
+		var hx_argument_71 any = nil
+		return hxrt.FunctionCall(hx_callable_68)(hx_argument_69, hx_argument_70, hx_argument_71)
+	}(), func() *string {
 		var hx_callable_72 *hxrt.Function[func(any, any, any) *string] = closure
 		var hx_argument_73 any = nil
 		var hx_argument_74 any = nil
@@ -490,16 +484,10 @@ func main() {
 		return hxrt.FunctionCall(hx_callable_72)(hx_argument_73, hx_argument_74, hx_argument_75)
 	}(), func() *string {
 		var hx_callable_76 *hxrt.Function[func(any, any, any) *string] = closure
-		var hx_argument_77 any = nil
-		var hx_argument_78 any = nil
-		var hx_argument_79 any = nil
+		var hx_argument_77 any = 0.5
+		var hx_argument_78 any = 9
+		var hx_argument_79 any = true
 		return hxrt.FunctionCall(hx_callable_76)(hx_argument_77, hx_argument_78, hx_argument_79)
-	}(), func() *string {
-		var hx_callable_80 *hxrt.Function[func(any, any, any) *string] = closure
-		var hx_argument_81 any = 0.5
-		var hx_argument_82 any = 9
-		var hx_argument_83 any = true
-		return hxrt.FunctionCall(hx_callable_80)(hx_argument_81, hx_argument_82, hx_argument_83)
 	}()))
 	var scaler Scaler = New_BaseScaler()
 	var child Scaler = New_ChildScaler()
@@ -520,49 +508,49 @@ func mixed(label *string, x any, y any) *string {
 }
 
 func narrowed(x any, y any) *string {
-	var hx_if_84 *string
+	var hx_if_80 *string
 	if x != nil {
-		hx_if_84 = hxrt.StringConcatAny(hxrt.StringFromLiteral(""), (x.(float64) + float64(1)))
+		hx_if_80 = hxrt.StringConcatAny(hxrt.StringFromLiteral(""), (x.(float64) + float64(1)))
 	} else {
-		hx_if_84 = hxrt.StringFromLiteral("none")
+		hx_if_80 = hxrt.StringFromLiteral("none")
 	}
-	left := hx_if_84
-	var hx_if_85 *string
+	left := hx_if_80
+	var hx_if_81 *string
 	if y == nil {
-		hx_if_85 = hxrt.StringFromLiteral("none")
+		hx_if_81 = hxrt.StringFromLiteral("none")
 	} else {
-		hx_if_85 = hxrt.StringConcatAny(hxrt.StringFromLiteral(""), int((hxrt.Int32Wrap(y.(int)) + hxrt.Int32Wrap(1))))
+		hx_if_81 = hxrt.StringConcatAny(hxrt.StringFromLiteral(""), int((hxrt.Int32Wrap(y.(int)) + hxrt.Int32Wrap(1))))
 	}
-	right := hx_if_85
+	right := hx_if_81
 	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(left, hxrt.StringFromLiteral(",")), right)
 }
 
 func nullableFloat(x any) *string {
 	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral(""), x), hxrt.StringFromLiteral(",")), hxrt.StdString((x == nil))), hxrt.StringFromLiteral(",")), attempt(hxrt.NewFunction(func() *string {
-		return hxrt.StringConcatAny(hxrt.StringFromLiteral(""), (func(hx_value_86 any) float64 {
-			if hx_value_86 == nil {
+		return hxrt.StringConcatAny(hxrt.StringFromLiteral(""), (func(hx_value_82 any) float64 {
+			if hx_value_82 == nil {
 				hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
 			}
-			return hx_value_86.(float64)
+			return hx_value_82.(float64)
 		}(x) - float64(1)))
-	}))), hxrt.StringFromLiteral(",")), hxrt.StdString((func(hx_value_87 any) float64 {
-		if hx_value_87 == nil {
-			var hx_zero_88 float64
-			return (0 / hx_zero_88)
+	}))), hxrt.StringFromLiteral(",")), hxrt.StdString((func(hx_value_83 any) float64 {
+		if hx_value_83 == nil {
+			var hx_zero_84 float64
+			return (0 / hx_zero_84)
 		}
-		return hx_value_87.(float64)
+		return hx_value_83.(float64)
 	}(x) > 0)))
 }
 
 func nullableInt(x any) *string {
 	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral(""), x), hxrt.StringFromLiteral(",")), hxrt.StdString((x == nil))), hxrt.StringFromLiteral(",")), attempt(hxrt.NewFunction(func() *string {
 		return hxrt.StringConcatAny(hxrt.StringFromLiteral(""), int((hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(x))) * hxrt.Int32Wrap(3))))
-	}))), hxrt.StringFromLiteral(",")), hxrt.StdString((func(hx_value_89 any) float64 {
-		if hx_value_89 == nil {
-			var hx_zero_90 float64
-			return (0 / hx_zero_90)
+	}))), hxrt.StringFromLiteral(",")), hxrt.StdString((func(hx_value_85 any) float64 {
+		if hx_value_85 == nil {
+			var hx_zero_86 float64
+			return (0 / hx_zero_86)
 		}
-		return float64(hxrt.IntFromNullableAny(hx_value_89))
+		return float64(hxrt.IntFromNullableAny(hx_value_85))
 	}(x) <= 0.5)))
 }
 
@@ -584,61 +572,61 @@ func slots(p any, r any, f any) *string {
 	n := 0
 	n = hxrt.IntFromNullableAny(p)
 	ratio := 0.0
-	ratio = func(hx_value_91 any) float64 {
+	ratio = func(hx_value_87 any) float64 {
+		if hx_value_87 == nil {
+			var hx_zero_88 float64
+			return hx_zero_88
+		}
+		return hx_value_87.(float64)
+	}(r)
+	flag := true
+	flag = func(hx_value_89 any) bool {
+		if hx_value_89 == nil {
+			var hx_zero_90 bool
+			return hx_zero_90
+		}
+		return hx_value_89.(bool)
+	}(f)
+	lastPos = hxrt.IntFromNullableAny(p)
+	lastScale = func(hx_value_91 any) float64 {
 		if hx_value_91 == nil {
 			var hx_zero_92 float64
 			return hx_zero_92
 		}
 		return hx_value_91.(float64)
 	}(r)
-	flag := true
-	flag = func(hx_value_93 any) bool {
-		if hx_value_93 == nil {
-			var hx_zero_94 bool
-			return hx_zero_94
-		}
-		return hx_value_93.(bool)
-	}(f)
-	lastPos = hxrt.IntFromNullableAny(p)
-	lastScale = func(hx_value_95 any) float64 {
-		if hx_value_95 == nil {
-			var hx_zero_96 float64
-			return hx_zero_96
-		}
-		return hx_value_95.(float64)
-	}(r)
 	var record_w float64
 	var record_v int
 	record_v = 0
 	record_w = 0
 	record_v = hxrt.IntFromNullableAny(p)
-	record_w = func(hx_value_97 any) float64 {
-		if hx_value_97 == nil {
-			var hx_zero_98 float64
-			return hx_zero_98
+	record_w = func(hx_value_93 any) float64 {
+		if hx_value_93 == nil {
+			var hx_zero_94 float64
+			return hx_zero_94
 		}
-		return hx_value_97.(float64)
+		return hx_value_93.(float64)
 	}(r)
 	cells := hxrt.NewArray(0, 0)
-	hx_array_target_99 := cells
-	hx_array_index_100 := 0
-	hx_array_target_99.Set(hx_array_index_100, p)
-	hx_array_target_101 := cells
-	hx_array_index_102 := 1
-	hx_array_target_101.Set(hx_array_index_102, asInt(hxrt.IntFromNullableAny(p)))
-	var hx_if_105 int
-	if func(hx_value_103 any) bool {
-		if hx_value_103 == nil {
-			var hx_zero_104 bool
-			return hx_zero_104
+	hx_array_target_95 := cells
+	hx_array_index_96 := 0
+	hx_array_target_95.Set(hx_array_index_96, p)
+	hx_array_target_97 := cells
+	hx_array_index_98 := 1
+	hx_array_target_97.Set(hx_array_index_98, asInt(hxrt.IntFromNullableAny(p)))
+	var hx_if_101 int
+	if func(hx_value_99 any) bool {
+		if hx_value_99 == nil {
+			var hx_zero_100 bool
+			return hx_zero_100
 		}
-		return hx_value_103.(bool)
+		return hx_value_99.(bool)
 	}(f) {
-		hx_if_105 = 0
+		hx_if_101 = 0
 	} else {
-		hx_if_105 = hxrt.IntFromNullableAny(p)
+		hx_if_101 = hxrt.IntFromNullableAny(p)
 	}
-	picked := hx_if_105
+	picked := hx_if_101
 	return hxrt.StringJoinAny(hxrt.NewArray(hxrt.StringConcatAny(hxrt.StringFromLiteral(""), n), hxrt.StringConcatAny(hxrt.StringFromLiteral(""), ratio), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), hxrt.StdString(flag)), hxrt.StringConcatAny(hxrt.StringFromLiteral(""), lastPos), hxrt.StringConcatAny(hxrt.StringFromLiteral(""), lastScale), hxrt.StringConcatAny(hxrt.StringFromLiteral(""), record_v), hxrt.StringConcatAny(hxrt.StringFromLiteral(""), record_w), hxrt.StringJoinAny(cells.Values(), hxrt.StringFromLiteral("-")), hxrt.StringConcatAny(hxrt.StringFromLiteral(""), picked), hxrt.StringCharAtStringPtr(hxrt.StringFromLiteral("abcdef"), p.(int)), hxrt.StringSubstrStringPtr(hxrt.StringFromLiteral("abcdef"), p.(int), p.(int), true), hxrt.StringConcatAny(hxrt.StringFromLiteral(""), hxrt.StringCharCodeAtAnyStringPtr(hxrt.StringFromLiteral("abcdef"), p.(int))), hxrt.StringFromCharCode(int((hxrt.Int32Wrap(64)+hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(p))))))).Values(), hxrt.StringFromLiteral(","))
 }
 
@@ -650,11 +638,11 @@ func updated(x any, y any) *string {
 	if y == nil {
 		y = 3
 	}
-	return hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(before, hxrt.StringFromLiteral(">")), x), hxrt.StringFromLiteral("/")), y), hxrt.StringFromLiteral(">")), (func(hx_value_106 any) float64 {
-		if hx_value_106 == nil {
+	return hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(before, hxrt.StringFromLiteral(">")), x), hxrt.StringFromLiteral("/")), y), hxrt.StringFromLiteral(">")), (func(hx_value_102 any) float64 {
+		if hx_value_102 == nil {
 			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
 		}
-		return hx_value_106.(float64)
+		return hx_value_102.(float64)
 	}(x) + float64(hxrt.IntFromNullableAny(y))))
 }
 
@@ -694,11 +682,11 @@ func (self *Meter) read(extra any, times any) *string {
 	_gthis := self
 	shown := hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral(""), extra), hxrt.StringFromLiteral("/")), times)
 	total := attempt(hxrt.NewFunction(func() *string {
-		return hxrt.StringConcatAny(hxrt.StringFromLiteral(""), (_gthis.offset + func(hx_value_107 any) float64 {
-			if hx_value_107 == nil {
+		return hxrt.StringConcatAny(hxrt.StringFromLiteral(""), (_gthis.offset + func(hx_value_103 any) float64 {
+			if hx_value_103 == nil {
 				hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
 			}
-			return hx_value_107.(float64)
+			return hx_value_103.(float64)
 		}(extra)))
 	}))
 	scaled := attempt(hxrt.NewFunction(func() *string {

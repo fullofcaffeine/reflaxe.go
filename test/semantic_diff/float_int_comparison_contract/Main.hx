@@ -33,12 +33,11 @@ class Meter {
 	`Null<Int>` and `Null<Float>` operands follow the null rules of
 	`--interp`: an ordered comparison with one null operand is false, and
 	`==` is true only when both sides are null or both hold the same number.
-	(`--interp` gives `true` for `<=` and `>=` when both sides are null;
-	haxe.go gives `false`, as for two null `Null<Float>` values, so this file
-	leaves that case out.) The comparisons also run inside `if`, ternaries,
-	`while`, `do`-`while`, `switch` guards, `&&` and `||`, and their operands
-	run in source order. `UInt` and `haxe.Int32` operands are compared the
-	same way.
+	(Two null operands are covered by
+	`nullable_int_ordered_comparison_contract`.) The comparisons also run
+	inside `if`, ternaries, `while`, `do`-`while`, `switch` guards, `&&` and
+	`||`, and their operands run in source order. `UInt` and `haxe.Int32`
+	operands are compared the same way.
 
 	Each row prints one `t` (true) or `f` (false) per comparison.
 **/

@@ -1077,6 +1077,12 @@ class GoCompiler {
 		if (usage.uses("hxrt.StringCompareStringPtr")) {
 			requireGeneratedRuntimeFeature(GoHxrtFeatureAnalyzer.FEATURE_STRING_COMPARE, "lowered_go_ast:hxrt.StringCompareStringPtr");
 		}
+		for (symbol in NULLABLE_ORDERED_COMPARISON_HELPERS) {
+			if (usage.uses(symbol)) {
+				requireGeneratedRuntimeFeature(GoHxrtFeatureAnalyzer.FEATURE_NULLABLE_COMPARE, "lowered_go_ast:" + symbol);
+				break;
+			}
+		}
 	}
 
 	function filterImportsByUsage(file:GoFile, usage:GoSymbolUsage):GoFile {
@@ -11467,6 +11473,14 @@ class GoCompiler {
 		if (floatMode) {
 			int32Mode = false;
 		}
+		var leftNullableNumber = isErasedNullableNumberExpr(left);
+		var rightNullableNumber = isErasedNullableNumberExpr(right);
+		// Two null-capable operands need the both-null rule. In an Int comparison,
+		// one null-capable operand next to an Int needs a nil check too. A Float
+		// comparison with one such operand reads null as NaN instead.
+		var nullableOrderedComparison = (leftNullableNumber && rightNullableNumber && (floatMode || int32Mode))
+			|| (int32Mode
+				&& ((leftNullableNumber && isInt32SemanticType(right.t)) || (rightNullableNumber && isInt32SemanticType(left.t))));
 
 		return switch (op) {
 			case OpAdd if (stringMode):
@@ -11570,6 +11584,17 @@ class GoCompiler {
 						floatOperandExpr(leftExprForOperator, left.t, left),
 						floatOperandExpr(rightExprForOperator, right.t, right)
 					]),
+					isStringLike: false
+				};
+			case OpLt | OpLte | OpGt | OpGte if (nullableOrderedComparison):
+				// Like the Float case below, a null-capable operand takes the plain
+				// read, not the operator's `Null<Int>` coercion, which raises an
+				// error on null.
+				{
+					expr: lowerNullableOrderedComparisonExpr(op,
+						leftNullableNumber ? (leftStoredArrayElement ? leftExprForOperator : leftLowered.expr) : leftExprForOperator, leftNullableNumber,
+						rightNullableNumber ? (rightStoredArrayElement ? rightExprForOperator : rightLowered.expr) : rightExprForOperator,
+						rightNullableNumber, floatMode),
 					isStringLike: false
 				};
 			case OpLt | OpLte | OpGt | OpGte if (floatMode):
@@ -11968,9 +11993,11 @@ class GoCompiler {
 		returned unchanged.
 		Why: Haxe types a comparison of a Float with an Int as Float, and Go
 		compares only operands of one type. `--interp`, neko and the JVM target
-		give `false` for an ordered comparison with null and raise no error. Go
-		gives `false` for every ordered comparison with NaN, so the comparison
-		stays one Go operator and both operands still run in source order.
+		give `false` for an ordered comparison with one null operand and raise
+		no error. Go gives `false` for every ordered comparison with NaN, so the
+		comparison stays one Go operator and both operands still run in source
+		order. Two operands that can both be null take
+		`lowerNullableOrderedComparisonExpr` instead.
 		How: Keep an operand already proven non-null (a narrowed local or a
 		non-null fact). Otherwise read nullable storage with
 		`lowerNilNaNFloatAssertExpr`. Go converts an untyped Int constant to
@@ -12030,6 +12057,71 @@ class GoCompiler {
 			&& !exprUsesNarrowedPrimitiveStorage(operand)
 			&& nonNullPrimitiveExprGoType(operand) == null;
 	}
+
+	/** Reports whether an operand is a `Null<Int>` or `Null<Float>` read from Go `any` storage, so it can be null. */
+	function isErasedNullableNumberExpr(operand:TypedExpr):Bool {
+		return (isNullableIntType(operand.t) || isNullableFloatType(operand.t)) && isErasedNullablePrimitiveExpr(operand);
+	}
+
+	/**
+		What: An ordered comparison (`<`, `<=`, `>` or `>=`) with a `Null<Int>`
+		or `Null<Float>` operand that can be null: two such operands, or (in an
+		Int comparison) one such operand next to an Int. It becomes a call such
+		as `hxrt.NullableIntLess(n, 1)` or `hxrt.NullableIntsLessEqual(a, b)`.
+		Why: `--interp` and neko give `false` when exactly one operand is null,
+		and raise no error. When both operands are null, `<=` and `>=` give
+		`true` and `<` and `>` give `false`. The NaN read of a Float comparison
+		(`floatComparisonOperandExpr`) gives `false` for both nulls, and an Int
+		comparison has no NaN, so `hxrt.IntFromNullableAny` raised an error.
+		How: Pass both operands as arguments, so each runs once and in source
+		order, to the `runtime/hxrt/nullable_compare.go` helper for this
+		operator and operand shape (`nullableOrderedComparisonHelper`). The
+		helpers are small enough for the Go compiler to inline, and using one
+		packages the `nullable_compare` runtime slice. Comparisons whose operands
+		cannot be null never reach this function and keep the Go operator.
+	**/
+	function lowerNullableOrderedComparisonExpr(op:Binop, left:GoExpr, leftNullable:Bool, right:GoExpr, rightNullable:Bool, floatMode:Bool):GoExpr {
+		var operatorName = switch (op) {
+			case OpLt: "Less";
+			case OpLte: "LessEqual";
+			case OpGt: "Greater";
+			case _: "GreaterEqual";
+		};
+		return GoExpr.GoCall(GoExpr.GoIdent(nullableOrderedComparisonHelper(operatorName, leftNullable, rightNullable, floatMode)), [left, right]);
+	}
+
+	/**
+		What: The name of the `hxrt` helper for one nullable ordered comparison.
+		Why: The generated call and the runtime-slice check
+		(`NULLABLE_ORDERED_COMPARISON_HELPERS`) must name the same functions.
+		How: Two nullable operands in a Float comparison use `NullableFloats*`,
+		two in an Int comparison `NullableInts*`, a nullable left operand next to
+		an Int `NullableInt*`, and an Int next to a nullable right operand
+		`Int*Nullable`.
+	**/
+	static function nullableOrderedComparisonHelper(operatorName:String, leftNullable:Bool, rightNullable:Bool, floatMode:Bool):String {
+		return "hxrt." + (if (floatMode) {
+			"NullableFloats" + operatorName;
+		} else if (leftNullable && rightNullable) {
+			"NullableInts" + operatorName;
+		} else if (leftNullable) {
+			"NullableInt" + operatorName;
+		} else {
+			"Int" + operatorName + "Nullable";
+		});
+	}
+
+	/** Every helper `lowerNullableOrderedComparisonExpr` can call; any of them requires the `nullable_compare` runtime slice. */
+	static final NULLABLE_ORDERED_COMPARISON_HELPERS:Array<String> = [
+		for (operatorName in ["Less", "LessEqual", "Greater", "GreaterEqual"])
+			for (shape in [
+				[true, true, true],
+				[true, true, false],
+				[true, false, false],
+				[false, true, false]
+			])
+				nullableOrderedComparisonHelper(operatorName, shape[0], shape[1], shape[2])
+	];
 
 	function unitStepExpr(target:GoExpr, opSymbol:GoBinaryOperator, valueType:Type, ?sourcePos:haxe.macro.Expr.Position):GoExpr {
 		return GoExprOperatorOps.unitStepExpr(target, opSymbol, isInt32SemanticType(valueType, sourcePos));

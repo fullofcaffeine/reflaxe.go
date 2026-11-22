@@ -25,6 +25,7 @@ enum abstract GoHxrtFeatureId(String) to String {
 	var HxrtArraySort = "array_sort";
 	var HxrtString = "string";
 	var HxrtStringCompare = "string_compare";
+	var HxrtNullableCompare = "nullable_compare";
 	var HxrtEquality = "equality";
 	var HxrtPrint = "print";
 	var HxrtException = "exception";
@@ -83,6 +84,7 @@ class GoHxrtFeatureAnalyzer {
 	public static inline final FEATURE_ARRAY_SORT:GoHxrtFeatureId = GoHxrtFeatureId.HxrtArraySort;
 	public static inline final FEATURE_STRING:GoHxrtFeatureId = GoHxrtFeatureId.HxrtString;
 	public static inline final FEATURE_STRING_COMPARE:GoHxrtFeatureId = GoHxrtFeatureId.HxrtStringCompare;
+	public static inline final FEATURE_NULLABLE_COMPARE:GoHxrtFeatureId = GoHxrtFeatureId.HxrtNullableCompare;
 	public static inline final FEATURE_EQUALITY:GoHxrtFeatureId = GoHxrtFeatureId.HxrtEquality;
 	public static inline final FEATURE_PRINT:GoHxrtFeatureId = GoHxrtFeatureId.HxrtPrint;
 	public static inline final FEATURE_EXCEPTION:GoHxrtFeatureId = GoHxrtFeatureId.HxrtException;
@@ -123,6 +125,7 @@ class GoHxrtFeatureAnalyzer {
 		FEATURE_ARRAY_SORT,
 		FEATURE_STRING,
 		FEATURE_STRING_COMPARE,
+		FEATURE_NULLABLE_COMPARE,
 		FEATURE_EQUALITY,
 		FEATURE_PRINT,
 		FEATURE_EXCEPTION,
@@ -443,6 +446,8 @@ class GoHxrtFeatureAnalyzer {
 				[FEATURE_CORE];
 			case FEATURE_STRING_COMPARE:
 				[FEATURE_STRING];
+			case FEATURE_NULLABLE_COMPARE:
+				[FEATURE_CORE];
 			case FEATURE_EQUALITY:
 				[FEATURE_STRING, FEATURE_FUNCTION];
 			case FEATURE_PRINT:
@@ -520,6 +525,8 @@ class GoHxrtFeatureAnalyzer {
 				["string.go"];
 			case FEATURE_STRING_COMPARE:
 				["string_compare.go"];
+			case FEATURE_NULLABLE_COMPARE:
+				["nullable_compare.go"];
 			case FEATURE_EQUALITY:
 				["equality.go"];
 			case FEATURE_PRINT:
