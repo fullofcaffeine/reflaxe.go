@@ -11,5 +11,5 @@ func main() {
 	hxrt.Println(v)
 	var v_1 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("snapshot.compare="), addr.__hx_this.compare(addr.__hx_this.clone())))
 	hxrt.Println(v_1)
-	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("snapshot.alg="), any(hxrt.StringFromLiteral("SHA224"))), hxrt.StringFromLiteral(",")), any(hxrt.StringFromLiteral("SHA384"))), hxrt.StringFromLiteral(",")), any(hxrt.StringFromLiteral("RIPEMD160")))))
+	hxrt.Println(any(hxrt.StringFromLiteral("snapshot.alg=SHA224,SHA384,RIPEMD160")))
 }

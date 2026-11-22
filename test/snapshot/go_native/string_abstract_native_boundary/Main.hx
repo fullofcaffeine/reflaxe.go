@@ -7,7 +7,10 @@ extern class NativeNumber {}
 abstract NumberToken(NativeNumber) {}
 abstract NestedNumber(NumberToken) {}
 
-/** Extern abstracts must retain their existing representation boundary. */
+/**
+	An extern abstract only has no generated implementation class. Its values
+	are still Haxe strings, so it uses the string pointer carrier (haxe_go-uvri).
+**/
 extern abstract ForeignText(String) {}
 
 abstract WrappedForeign(ForeignText) {}

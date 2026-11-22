@@ -626,7 +626,7 @@ class GoTypeMapper {
 				|| abstractType.name == "Float64Array")) {
 			return "*haxe__io__ArrayBufferViewImpl";
 		}
-		if ((abstractType.impl != null && abstractType.impl.get().isExtern) || abstractType.meta.has(":coreType")) {
+		if (abstractType.meta.has(":coreType")) {
 			return null;
 		}
 		var backingType = TypeTools.applyTypeParameters(abstractType.type, abstractType.params, params);
@@ -634,12 +634,29 @@ class GoTypeMapper {
 	}
 
 	/**
-		What: Proves that an ordinary abstract stores a Haxe string.
-		Why: String's pointer carrier retains null without boxing, while native/core
-		abstracts may have a different carrier even when their backing type is String.
-		How: Substitute applied parameters along ordinary abstract chains, stopping at
-		native boundaries and repeated applied types. Haxe records an extern abstract
-		on its implementation class, not AbstractType.isExtern. Other storage is unchanged.
+		What: Proves that an abstract stores a Haxe string.
+
+		Why: Haxe stores an abstract's value as its underlying type, so an
+		abstract over String must share String's pointer carrier in every
+		position (parameters, returns, locals, fields, Array elements, Map
+		values). The callers that convert values between String and the abstract
+		assume that carrier. When the abstract fell back to `any`, a function
+		like `function f(n:Name):String return n;` produced Go that did not
+		compile. Only `@:coreType` abstracts choose their own carrier.
+
+		The implementation class's `isExtern` flag does not mark a native
+		boundary. Haxe's dead code elimination sets it on every implementation
+		class that has no fields left (for example
+		`abstract Name(String) from String to String {}`) and on every enum
+		abstract whose fields are all enum values. It runs even with `-dce no`.
+		An `extern abstract` is also only an abstract whose implementation class
+		is not generated; its values are still values of the underlying type.
+		A typed Go-native carrier comes from `externBackedAbstractGoType`.
+
+		How: Substitute applied parameters along abstract chains, stopping at
+		`@:coreType` abstracts and repeated applied types. Abstracts over Int,
+		Float, Bool, Dynamic or an unapplied type parameter are not String-backed
+		and keep their storage.
 	**/
 	static function hasOrdinaryStringBacking(type:Type, seen:Map<String, Bool>):Bool {
 		return switch (type) {
@@ -660,7 +677,7 @@ class GoTypeMapper {
 				} else if (abstractType.pack.length == 0 && abstractType.name == "Null" && params.length == 1) {
 					seen.set(identity, true);
 					hasOrdinaryStringBacking(params[0], seen);
-				} else if ((abstractType.impl != null && abstractType.impl.get().isExtern) || abstractType.meta.has(":coreType")) {
+				} else if (abstractType.meta.has(":coreType")) {
 					false;
 				} else {
 					seen.set(identity, true);

@@ -2,6 +2,13 @@
 private abstract Id(String) {}
 private typedef Row = {id:Int};
 
+/**
+	Haxe marks the implementation class of an `extern abstract` as extern, and
+	dead code elimination later does the same for every empty implementation
+	class. Neither changes how a value is stored, so this stays a String.
+**/
+private extern abstract ExternText(String) from String to String {}
+
 enum GoTypeMapperContractKind {
 	Plain;
 }
@@ -14,6 +21,7 @@ class GoTypeMapperContractFixture<T:{x:Int}, U> {
 	public var structural:T;
 	public var nominal:U;
 	public var text:String;
+	public var externText:ExternText;
 	public var kind:GoTypeMapperContractKind;
 	public var nullableInt:Null<Int>;
 	public var nullableBool:Null<Bool>;

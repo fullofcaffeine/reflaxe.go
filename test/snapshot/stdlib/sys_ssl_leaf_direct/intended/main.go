@@ -8,7 +8,7 @@ func main() {
 	cert := sys__ssl__Certificate_fromString(certPem)
 	key := sys__ssl__Key_readPEM(keyPem, false, nil)
 	payload := haxe__io__Bytes_ofString(hxrt.StringFromLiteral("digest-payload"), nil)
-	sig := sys__ssl__Digest_sign(payload, key, any(hxrt.StringFromLiteral("SHA256")))
+	sig := sys__ssl__Digest_sign(payload, key, hxrt.StringFromLiteral("SHA256"))
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("cert.cn="), cert.__hx_this.get_commonName()))
 	hxrt.Println(v)
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("cert.subject.cn="), cert.__hx_this.subject(hxrt.StringFromLiteral("CN"))))
@@ -19,11 +19,11 @@ func main() {
 	hxrt.Println(v_3)
 	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("cert.next="), hxrt.StdString((cert.__hx_this.next() == nil))))
 	hxrt.Println(v_4)
-	var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("digest.sha256="), sys__ssl__Digest_make(payload, any(hxrt.StringFromLiteral("SHA256"))).__hx_this.toHex()))
+	var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("digest.sha256="), sys__ssl__Digest_make(payload, hxrt.StringFromLiteral("SHA256")).__hx_this.toHex()))
 	hxrt.Println(v_5)
-	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("digest.sha512="), sys__ssl__Digest_make(payload, any(hxrt.StringFromLiteral("SHA512"))).__hx_this.toHex()))
+	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("digest.sha512="), sys__ssl__Digest_make(payload, hxrt.StringFromLiteral("SHA512")).__hx_this.toHex()))
 	hxrt.Println(v_6)
-	var v_7 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("digest.verify="), hxrt.StdString(sys__ssl__Digest_verify(payload, sig, key, any(hxrt.StringFromLiteral("SHA256"))))))
+	var v_7 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("digest.verify="), hxrt.StdString(sys__ssl__Digest_verify(payload, sig, key, hxrt.StringFromLiteral("SHA256")))))
 	hxrt.Println(v_7)
 }
 

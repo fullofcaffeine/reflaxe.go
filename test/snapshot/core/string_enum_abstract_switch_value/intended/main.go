@@ -2,7 +2,7 @@ package main
 
 import "snapshot/hxrt"
 
-func describe(mode any) *string {
+func describe(mode *string) *string {
 	var hx_switch_1 *string
 	switch *hxrt.StdString(mode) {
 	case *hxrt.StdString(hxrt.StringFromLiteral("human")):
@@ -14,14 +14,14 @@ func describe(mode any) *string {
 }
 
 func main() {
-	if !hxrt.StringEqualStringPtr(describe(any(hxrt.StringFromLiteral("human"))), hxrt.StringFromLiteral("human")) {
+	if !hxrt.StringEqualStringPtr(describe(hxrt.StringFromLiteral("human")), hxrt.StringFromLiteral("human")) {
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("human enum-abstract switch mismatch")))
 	}
-	if !hxrt.StringEqualStringPtr(describe(any(hxrt.StringFromLiteral("json"))), hxrt.StringFromLiteral("json")) {
+	if !hxrt.StringEqualStringPtr(describe(hxrt.StringFromLiteral("json")), hxrt.StringFromLiteral("json")) {
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("json enum-abstract switch mismatch")))
 	}
 	statementMatched := false
-	var _g any = any(hxrt.StringFromLiteral("json"))
+	_g := hxrt.StringFromLiteral("json")
 	switch *hxrt.StdString(_g) {
 	case *hxrt.StdString(hxrt.StringFromLiteral("human")):
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("statement switch matched the wrong string value")))

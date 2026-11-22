@@ -27,7 +27,13 @@ func main() {
 				return hx_zero_4
 			}
 			return hx_value_3.(*string)
-		}(hxrt.AnonymousGet(field, "tag"))), hxrt.StringFromLiteral(":")), hxrt.AnonymousGet(field, "kind")))
+		}(hxrt.AnonymousGet(field, "tag"))), hxrt.StringFromLiteral(":")), func(hx_value_5 any) *string {
+			if hx_value_5 == nil {
+				var hx_zero_6 *string
+				return hx_zero_6
+			}
+			return hx_value_5.(*string)
+		}(hxrt.AnonymousGet(field, "kind"))))
 		hxrt.Println(v)
 	}
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("nested="), hxrt.StringJoinAny(nestedPairs.Values(), hxrt.StringFromLiteral(","))))
@@ -40,8 +46,8 @@ func main() {
 			getter := hx_recover_callable_b9d17ba0(_g2.Get(_g1_1))
 			_g1_1 = int(int32((_g1_1 + 1)))
 			_g_1.Push(func() *string {
-				var hx_callable_6 *hxrt.Function[func() *string] = getter
-				return hxrt.FunctionCall(hx_callable_6)()
+				var hx_callable_8 *hxrt.Function[func() *string] = getter
+				return hxrt.FunctionCall(hx_callable_8)()
 			}())
 		}
 		return _g_1
@@ -55,8 +61,8 @@ func main() {
 			getter_1 := hx_recover_callable_e273723c(_g2_1.Get(_g1_2))
 			_g1_2 = int(int32((_g1_2 + 1)))
 			_g_2.Push(func() int {
-				var hx_callable_8 *hxrt.Function[func() int] = getter_1
-				return hxrt.FunctionCall(hx_callable_8)()
+				var hx_callable_10 *hxrt.Function[func() int] = getter_1
+				return hxrt.FunctionCall(hx_callable_10)()
 			}())
 		}
 		return _g_2
@@ -107,15 +113,15 @@ var shadowedBlocks *string = func() *string {
 var _Main__Main_Fields__moduleFields *hxrt.Array = func() *hxrt.Array {
 	_g := hxrt.NewArray()
 	tag := hxrt.StringFromLiteral("a")
-	hx_obj_18 := map[string]any{}
-	hx_obj_18["tag"] = tag
-	hx_obj_18["kind"] = any(hxrt.StringFromLiteral("text"))
-	_g.Push(hxrt.AnonymousFromMap(hx_obj_18))
-	tag_1 := hxrt.StringFromLiteral("b")
 	hx_obj_20 := map[string]any{}
-	hx_obj_20["tag"] = tag_1
-	hx_obj_20["kind"] = any(hxrt.StringFromLiteral("text"))
+	hx_obj_20["tag"] = tag
+	hx_obj_20["kind"] = hxrt.StringFromLiteral("text")
 	_g.Push(hxrt.AnonymousFromMap(hx_obj_20))
+	tag_1 := hxrt.StringFromLiteral("b")
+	hx_obj_22 := map[string]any{}
+	hx_obj_22["tag"] = tag_1
+	hx_obj_22["kind"] = hxrt.StringFromLiteral("text")
+	_g.Push(hxrt.AnonymousFromMap(hx_obj_22))
 	return _g
 }()
 

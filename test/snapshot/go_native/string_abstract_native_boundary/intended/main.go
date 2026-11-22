@@ -5,7 +5,7 @@ import (
 	"snapshot/hxrt"
 )
 
-func keepForeign(value any) any {
+func keepForeign(value *string) *string {
 	return value
 }
 
@@ -17,7 +17,7 @@ func main() {
 	if keepNumber(nil) != nil {
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("native carrier null changed")))
 	}
-	if !hxrt.AnyEqualsNull(keepForeign(nil)) {
+	if keepForeign(nil) != nil {
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("extern abstract null changed")))
 	}
 	hxrt.Println(any(hxrt.StringFromLiteral("string abstract native boundary: PASS")))

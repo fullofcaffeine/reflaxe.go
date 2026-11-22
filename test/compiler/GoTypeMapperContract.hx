@@ -184,6 +184,7 @@ class GoTypeMapperContract {
 
 		require(GoTypeMapper.isStringType(get(fixture, "text")), "String");
 		require(goType(get(fixture, "text")) == "*string", "String carrier");
+		require(goType(get(fixture, "externText")) == "*string", "extern abstract over String carrier");
 		require(goType(get(fixture, "kind")) == "*GoTypeMapperContractKind", "enum carrier");
 		require(GoTypeMapper.isNullableIntType(get(fixture, "nullableInt")), "Null<Int>");
 		require(!GoTypeMapper.isNullableIntType(get(fixture, "nullableBool")), "Null<Bool> is not Null<Int>");
