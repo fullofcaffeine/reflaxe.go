@@ -3913,7 +3913,7 @@ class GoCompiler {
 						} else {
 							var target = lowerLValue(value);
 							[
-								GoStmt.GoAssign(target, unitStepExpr(target, GoBinaryOperator.Add, value.t, expr.pos))
+								GoStmt.GoAssign(target, unitStepExpr(nullableNumericStorageRead(target, value.t), GoBinaryOperator.Add, value.t, expr.pos))
 							];
 						}
 					case OpDecrement:
@@ -3923,7 +3923,7 @@ class GoCompiler {
 						} else {
 							var target = lowerLValue(value);
 							[
-								GoStmt.GoAssign(target, unitStepExpr(target, GoBinaryOperator.Subtract, value.t, expr.pos))
+								GoStmt.GoAssign(target, unitStepExpr(nullableNumericStorageRead(target, value.t), GoBinaryOperator.Subtract, value.t, expr.pos))
 							];
 						}
 					case _:
@@ -4207,9 +4207,13 @@ class GoCompiler {
 				var nextName = freshTempName("hx_array_next");
 				var targetExpr = GoExpr.GoIdent(targetName);
 				var indexExpr = GoExpr.GoIdent(indexName);
-				var currentExpr = coerceStoredArrayElementExpr(GoExpr.GoCall(GoExpr.GoSelector(targetExpr, "Get"), [indexExpr]), value.t);
+				var storedExpr = GoExpr.GoCall(GoExpr.GoSelector(targetExpr, "Get"), [indexExpr]);
+				// A `Null<Int>` element is stepped as a typed `int`, the operator's value type;
+				// other element types keep their stored-element recovery.
+				var currentExpr = isNullablePrimitiveType(value.t) ? nullableNumericStorageRead(storedExpr,
+					value.t) : coerceStoredArrayElementExpr(storedExpr, value.t);
 				var opSymbol = op == OpIncrement ? GoBinaryOperator.Add : GoBinaryOperator.Subtract;
-				var resultGoType = valueStorageGoType(value.t);
+				var resultGoType = typeToGoType(value.t);
 				var body = loweredTarget.prefix.concat([
 					GoStmt.GoVarDecl(targetName, "*hxrt.Array", recoverSharedArrayReceiver(target, loweredTarget.expr), true)
 				]).concat(loweredIndex.prefix).concat([
@@ -6099,9 +6103,14 @@ class GoCompiler {
 		var body = loweredTarget.prefix.concat([GoStmt.GoVarDecl(objectName, "hxrt.Anonymous", loweredTarget.expr, true)]);
 		var oldName = freshTempName("hx_structural_old");
 		var resultName = freshTempName("hx_structural_value");
-		var storage = valueStorageGoType(operation.left.t);
+		// `++` and `--` produce the field's value type (`Int` for a `Null<Int>`
+		// field), so they step a typed copy instead of the nil-capable storage.
+		var storage = operation.unit != null ? typeToGoType(operation.left.t) : valueStorageGoType(operation.left.t);
 		if (operation.op != null || operation.unit != null) {
-			body.push(GoStmt.GoVarDecl(oldName, storage, lowerAnonymousFieldRead(objectExpr, field.name, operation.left.t), true));
+			var oldValue = operation.unit != null
+				&& isNullablePrimitiveType(operation.left.t) ? nullableNumericStorageRead(anonymousFieldStorageRead(objectExpr, field.name),
+					operation.left.t) : lowerAnonymousFieldRead(objectExpr, field.name, operation.left.t);
+			body.push(GoStmt.GoVarDecl(oldName, storage, oldValue, true));
 		}
 		var result:GoExpr;
 		if (operation.unit != null) {
@@ -6573,8 +6582,8 @@ class GoCompiler {
 							var opSymbol = op == OpIncrement ? GoBinaryOperator.Add : GoBinaryOperator.Subtract;
 							{
 								expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(value.t)], [
-									GoStmt.GoVarDecl(temp, null, target, true),
-									GoStmt.GoAssign(target, unitStepExpr(target, opSymbol, value.t, expr.pos)),
+									GoStmt.GoVarDecl(temp, null, nullableNumericStorageRead(target, value.t), true),
+									GoStmt.GoAssign(target, unitStepExpr(unitStepSource(target, temp, value.t), opSymbol, value.t, expr.pos)),
 									GoStmt.GoReturn(GoExpr.GoIdent(temp))
 								]), []),
 								isStringLike: isStringType(expr.t)
@@ -6584,6 +6593,19 @@ class GoCompiler {
 					};
 				}
 				return switch (op) {
+					case OpIncrement, OpDecrement if (isNullablePrimitiveType(value.t)):
+						// Read the nil-capable storage once; the operator's value is the typed result.
+						var target = lowerLValue(value);
+						var next = freshTempName("hx_pre");
+						var opSymbol = op == OpIncrement ? GoBinaryOperator.Add : GoBinaryOperator.Subtract;
+						{
+							expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(value.t)], [
+								GoStmt.GoVarDecl(next, null, unitStepExpr(nullableNumericStorageRead(target, value.t), opSymbol, value.t, expr.pos), true),
+								GoStmt.GoAssign(target, GoExpr.GoIdent(next)),
+								GoStmt.GoReturn(GoExpr.GoIdent(next))
+							]), []),
+							isStringLike: false
+						};
 					case OpIncrement, OpDecrement:
 						var target = lowerLValue(value);
 						var opSymbol = op == OpIncrement ? GoBinaryOperator.Add : GoBinaryOperator.Subtract;
@@ -6595,7 +6617,7 @@ class GoCompiler {
 							isStringLike: isStringType(expr.t)
 						};
 					case _:
-						var loweredValue = lowerExpr(value).expr;
+						var loweredValue = nullableUnaryOperandExpr(lowerExpr(value).expr, value);
 						var unaryExpr = if (isInt32SemanticType(expr.t, expr.pos) && (op == OpNeg || op == OpNegBits)) {
 							GoExprOperatorOps.widenNativeInt32Expr(GoExpr.GoUnary(unopSymbol(op), GoExpr.GoCall(GoExpr.GoIdent("int32"), [loweredValue])));
 						} else {
@@ -6885,8 +6907,8 @@ class GoCompiler {
 							var opSymbol = op == OpIncrement ? GoBinaryOperator.Add : GoBinaryOperator.Subtract;
 							{
 								prefix: [
-									GoStmt.GoVarDecl(temp, null, target, true),
-									GoStmt.GoAssign(target, unitStepExpr(target, opSymbol, value.t, expr.pos))
+									GoStmt.GoVarDecl(temp, null, nullableNumericStorageRead(target, value.t), true),
+									GoStmt.GoAssign(target, unitStepExpr(unitStepSource(target, temp, value.t), opSymbol, value.t, expr.pos))
 								],
 								expr: GoExpr.GoIdent(temp),
 								isStringLike: false
@@ -7562,7 +7584,12 @@ class GoCompiler {
 	}
 
 	function lowerAnonymousFieldRead(targetExpr:GoExpr, fieldName:String, fieldType:Type):GoExpr {
-		return lowerNullableAwareTypeAssertExpr(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousGet"), [targetExpr, GoExpr.GoStringLiteral(fieldName)]), fieldType);
+		return lowerNullableAwareTypeAssertExpr(anonymousFieldStorageRead(targetExpr, fieldName), fieldType);
+	}
+
+	/** The erased `any` value of one structural field, before any typed recovery. */
+	function anonymousFieldStorageRead(targetExpr:GoExpr, fieldName:String):GoExpr {
+		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousGet"), [targetExpr, GoExpr.GoStringLiteral(fieldName)]);
 	}
 
 	function lowerNilSafeTypeAssertExpr(expr:GoExpr, assertedType:String):GoExpr {
@@ -7572,6 +7599,27 @@ class GoCompiler {
 			GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent(valueName), GoExpr.GoNil), [
 				GoStmt.GoVarDecl(zeroName, assertedType, null, false),
 				GoStmt.GoReturn(GoExpr.GoIdent(zeroName))
+			], null),
+			GoStmt.GoReturn(GoExpr.GoTypeAssert(GoExpr.GoIdent(valueName), assertedType))
+		]), [expr]);
+	}
+
+	/**
+		What: Asserts an erased value to `assertedType` and raises Haxe's
+		"Invalid operation: null" error when the value is nil.
+		Why: Arithmetic on a null `Null<Float>` fails in `--interp`, but
+		`lowerNilSafeTypeAssertExpr` would read null as `0`.
+		How: Throw through `hxrt.Throw` with the message of
+		`hxrt.IntFromNullableAny`, so generated Haxe `try`/`catch` handles it the
+		same way; otherwise assert the value.
+	**/
+	function lowerNilThrowingTypeAssertExpr(expr:GoExpr, assertedType:String):GoExpr {
+		var valueName = freshTempName("hx_value");
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: valueName, typeName: "any"}], [assertedType], [
+			GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent(valueName), GoExpr.GoNil), [
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [
+					GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("Invalid operation: null")])
+				]))
 			], null),
 			GoStmt.GoReturn(GoExpr.GoTypeAssert(GoExpr.GoIdent(valueName), assertedType))
 		]), [expr]);
@@ -11655,6 +11703,56 @@ class GoCompiler {
 
 	function unitStepExpr(target:GoExpr, opSymbol:GoBinaryOperator, valueType:Type, ?sourcePos:haxe.macro.Expr.Position):GoExpr {
 		return GoExprOperatorOps.unitStepExpr(target, opSymbol, isInt32SemanticType(valueType, sourcePos));
+	}
+
+	/**
+		What: Reads `Null<Int>` or `Null<Float>` storage as the Go `int` or
+		`float64` operand of `++`, `--`, unary `-` or `~`. Other types return
+		`stored` unchanged.
+		Why: These slots are Go `any` so that they can hold null (see
+		`valueStorageGoType`), and Go has no arithmetic on `any`. Haxe types the
+		operator's result as the plain `Int` or `Float`. On a null operand
+		`--interp` (and neko and python) raise an error, so a Float must not use
+		the nil-safe zero read of other Float uses.
+		How: An Int uses `hxrt.IntFromNullableAny`, the read that compound
+		assignment (`+=`) already uses; it raises Haxe's null error. A Float uses
+		`lowerNilThrowingTypeAssertExpr`, which raises the same error.
+	**/
+	function nullableNumericStorageRead(stored:GoExpr, valueType:Type):GoExpr {
+		if (isNullableIntType(valueType)) {
+			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [stored]);
+		}
+		if (isNullableFloatType(valueType)) {
+			return lowerNilThrowingTypeAssertExpr(stored, "float64");
+		}
+		return stored;
+	}
+
+	/**
+		The operand that a postfix `++`/`--` steps: the typed copy `temp` of
+		nullable storage (`nullableNumericStorageRead`), or the target itself for
+		other types, so their output stays as before.
+	**/
+	function unitStepSource(target:GoExpr, temp:String, valueType:Type):GoExpr {
+		return isNullablePrimitiveType(valueType) ? GoExpr.GoIdent(temp) : target;
+	}
+
+	/**
+		What: Gives unary `-`, `~` and `!` a typed operand when the operand is a
+		`Null<Int>`, `Null<Float>` or `Null<Bool>` value held in Go `any`.
+		Why: Go defines `-`, `^` and `!` only on typed numbers and booleans. Haxe
+		reads `!null` as `true`, and `-null` or `~null` raise an error.
+		How: Keep operands already proven non-null (narrowed locals, non-null
+		facts). A Bool uses the nil-safe read (`null` becomes `false`), as the
+		other Bool uses do; numbers use `nullableNumericStorageRead`.
+	**/
+	function nullableUnaryOperandExpr(lowered:GoExpr, operand:TypedExpr):GoExpr {
+		if (!isNullablePrimitiveType(operand.t)
+			|| exprUsesNarrowedPrimitiveStorage(operand)
+			|| nonNullPrimitiveExprGoType(operand) != null) {
+			return lowered;
+		}
+		return isNullableBoolType(operand.t) ? lowerNilSafeTypeAssertExpr(lowered, "bool") : nullableNumericStorageRead(lowered, operand.t);
 	}
 
 	function binopSymbol(op:Binop):GoBinaryOperator {
