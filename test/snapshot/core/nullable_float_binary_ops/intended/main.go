@@ -383,7 +383,7 @@ func main() {
 		}
 		return hx_if_86
 	}()))
-	row(hxrt.StringFromLiteral("equal"), hxrt.NewArray(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), hxrt.StdString((empty == nil))), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), hxrt.StdString((empty != nil))), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), hxrt.StdString((empty == 1))), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), hxrt.StdString((empty != 1))), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), hxrt.StdString((half == nil))), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), hxrt.StdString((half == 0.5))), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), hxrt.StdString((half != 0.5)))))
+	row(hxrt.StringFromLiteral("equal"), hxrt.NewArray(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), hxrt.StdString((empty == nil))), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), hxrt.StdString((empty != nil))), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), hxrt.StdString((empty == 1.0))), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), hxrt.StdString((empty != 1.0))), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), hxrt.StdString((half == nil))), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), hxrt.StdString((half == 0.5))), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), hxrt.StdString((half != 0.5)))))
 	var sum any = none()
 	var diff any = none()
 	var product any = none()

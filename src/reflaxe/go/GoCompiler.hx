@@ -7626,23 +7626,29 @@ class GoCompiler {
 	}
 
 	/**
-		What: Asserts an erased value to `float64` and reads nil as NaN.
-		Why: An ordered comparison with a null `Null<Float>` is `false` in
-		`--interp`, and Go compares NaN as `false` (see
+		What: Reads an erased `Null<Float>` (or, with `fromInt`, `Null<Int>`)
+		value as `float64`, with nil read as NaN.
+		Why: An ordered comparison with a null `Null<Float>` or `Null<Int>` is
+		`false` in `--interp`, and Go compares NaN as `false` (see
 		`floatComparisonOperandExpr`).
 		How: Return `0 / zero` for nil, the IEEE 754 NaN. A lowering cannot add
 		Go's `math` import to the generated file, and `zero / zero` would trip
 		staticcheck's SA4000 check, so the dividend is the constant `0`.
+		Otherwise assert `float64`, or for an Int convert the value that
+		`hxrt.IntFromNullableAny` reads.
 	**/
-	function lowerNilNaNFloatAssertExpr(expr:GoExpr):GoExpr {
+	function lowerNilNaNFloatAssertExpr(expr:GoExpr, fromInt:Bool = false):GoExpr {
 		var valueName = freshTempName("hx_value");
 		var zeroName = freshTempName("hx_zero");
+		var value = fromInt ? GoExpr.GoCall(GoExpr.GoIdent("float64"), [
+			GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [GoExpr.GoIdent(valueName)])
+		]) : GoExpr.GoTypeAssert(GoExpr.GoIdent(valueName), "float64");
 		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: valueName, typeName: "any"}], ["float64"], [
 			GoStmt.GoIf(GoExpr.GoBinary(GoBinaryOperator.Equal, GoExpr.GoIdent(valueName), GoExpr.GoNil), [
 				GoStmt.GoVarDecl(zeroName, "float64", null, false),
 				GoStmt.GoReturn(GoExpr.GoBinary(GoBinaryOperator.Divide, GoExpr.GoIntLiteral(0), GoExpr.GoIdent(zeroName)))
 			], null),
-			GoStmt.GoReturn(GoExpr.GoTypeAssert(GoExpr.GoIdent(valueName), "float64"))
+			GoStmt.GoReturn(value)
 		]), [expr]);
 	}
 
@@ -11362,9 +11368,18 @@ class GoCompiler {
 					isStringLike: false
 				};
 			case OpLt | OpLte | OpGt | OpGte if (floatMode):
+				// The comparison reads `Null<Int>` storage itself (null compares
+				// false), so it takes the plain read rather than the operator's
+				// `Null<Int>` coercion, which raises an error on null.
 				{
-					expr: GoExpr.GoBinary(binopSymbol(op), floatComparisonOperandExpr(leftExprForOperator, left),
-						floatComparisonOperandExpr(rightExprForOperator, right)),
+					expr: GoExpr.GoBinary(binopSymbol(op), floatComparisonOperandExpr(leftStoredArrayElement ? leftExprForOperator : leftLowered.expr, left),
+						floatComparisonOperandExpr(rightStoredArrayElement ? rightExprForOperator : rightLowered.expr, right)),
+					isStringLike: false
+				};
+			case OpEq | OpNotEq if (!nullComparison && isIntFloatMix(left.t, right.t)):
+				{
+					expr: GoExpr.GoBinary(binopSymbol(op), floatEqualityOperandExpr(leftLowered.expr, left, right),
+						floatEqualityOperandExpr(rightLowered.expr, right, left)),
 					isStringLike: false
 				};
 			case OpUShr if (int32Mode):
@@ -11491,7 +11506,8 @@ class GoCompiler {
 		would read the storage twice.
 		How: The operator reads a `Null<Float>` itself: arithmetic through
 		`floatOperandExpr`, ordered comparisons through
-		`floatComparisonOperandExpr`.
+		`floatComparisonOperandExpr`. A Float ordered comparison does not use
+		this read for a `Null<Int>` either, because null compares `false` there.
 	**/
 	function coerceNullablePrimitiveOperandForUse(expr:GoExpr, operand:TypedExpr):GoExpr {
 		if (!isNullablePrimitiveType(operand.t)) {
@@ -11741,21 +11757,73 @@ class GoCompiler {
 	}
 
 	/**
-		What: The `float64` operand of `<`, `<=`, `>` or `>=` when the operand
-		is a `Null<Float>`, with null read as NaN. Other operands are returned
-		unchanged.
-		Why: `--interp`, neko and the JVM target give `false` for an ordered
-		comparison with null and raise no error. Go gives `false` for every
-		ordered comparison with NaN, so the comparison stays one Go operator and
-		both operands still run in source order.
-		How: Keep an operand already proven non-null. Otherwise read the storage
-		with `lowerNilNaNFloatAssertExpr`.
+		What: The `float64` operand of a Float `<`, `<=`, `>` or `>=`. A
+		`Null<Float>` or `Null<Int>` operand is read with null as NaN, and an
+		Int operand becomes `float64(...)`. Float operands and Int constants are
+		returned unchanged.
+		Why: Haxe types a comparison of a Float with an Int as Float, and Go
+		compares only operands of one type. `--interp`, neko and the JVM target
+		give `false` for an ordered comparison with null and raise no error. Go
+		gives `false` for every ordered comparison with NaN, so the comparison
+		stays one Go operator and both operands still run in source order.
+		How: Keep an operand already proven non-null (a narrowed local or a
+		non-null fact). Otherwise read nullable storage with
+		`lowerNilNaNFloatAssertExpr`. Go converts an untyped Int constant to
+		`float64` itself, so a constant stays as written.
 	**/
 	function floatComparisonOperandExpr(expr:GoExpr, operand:TypedExpr):GoExpr {
-		if (!isNullableFloatType(operand.t) || exprUsesNarrowedPrimitiveStorage(operand) || nonNullPrimitiveExprGoType(operand) != null) {
+		if (isErasedNullablePrimitiveExpr(operand)) {
+			if (isNullableFloatType(operand.t)) {
+				return lowerNilNaNFloatAssertExpr(expr);
+			}
+			if (isNullableIntType(operand.t)) {
+				return lowerNilNaNFloatAssertExpr(expr, true);
+			}
+		}
+		if (isInt32SemanticType(operand.t) && intConstantText(expr) == null) {
+			return GoExpr.GoCall(GoExpr.GoIdent("float64"), [expr]);
+		}
+		return expr;
+	}
+
+	/**
+		What: Reports whether one operand is an Int (`Int`, `UInt`, `haxe.Int32`
+		or `Null<Int>`) and the other a Float or `Null<Float>`.
+		Why: Haxe types `==` and `!=` between them as Float, so the Int operand
+		must be converted before Go compares the two values.
+		How: Compare the Haxe types only; both predicates follow `Null<T>`.
+	**/
+	function isIntFloatMix(leftType:Type, rightType:Type):Bool {
+		return (isInt32SemanticType(leftType) && isFloatType(rightType)) || (isFloatType(leftType) && isInt32SemanticType(rightType));
+	}
+
+	/**
+		What: One operand of `==` or `!=` between a Float and an Int. The Int
+		operand is converted to Float; the Float operand is returned unchanged.
+		Why: Go rejects `float64 == int`. A `Null<Float>` or `Null<Int>` operand
+		is Go `any`, and Go compares `any` values by type and value, so a
+		`float64` never equals an `int` there: `Null<Float>` 2.0 compared with
+		the constant `2` was `false`. Haxe compares the numbers, and two nulls
+		are equal.
+		How: Convert the Int operand as an Int value entering a Float slot
+		(`widenIntToFloat`). An erased `Null<Int>` stays nil or becomes a
+		`float64` in `any`. An Int constant compared with `any` becomes a Float
+		constant such as `2.0`; compared with a typed `float64` it stays as
+		written.
+	**/
+	function floatEqualityOperandExpr(expr:GoExpr, operand:TypedExpr, other:TypedExpr):GoExpr {
+		if (!isInt32SemanticType(operand.t)) {
 			return expr;
 		}
-		return lowerNilNaNFloatAssertExpr(expr);
+		var erased = isErasedNullablePrimitiveExpr(operand);
+		return widenIntToFloat(expr, erased, erased, !isErasedNullablePrimitiveExpr(other));
+	}
+
+	/** Reports whether a `Null<T>` primitive operand is read from Go `any` storage, not from a narrowed or non-null local. */
+	function isErasedNullablePrimitiveExpr(operand:TypedExpr):Bool {
+		return isNullablePrimitiveType(operand.t)
+			&& !exprUsesNarrowedPrimitiveStorage(operand)
+			&& nonNullPrimitiveExprGoType(operand) == null;
 	}
 
 	function unitStepExpr(target:GoExpr, opSymbol:GoBinaryOperator, valueType:Type, ?sourcePos:haxe.macro.Expr.Position):GoExpr {
