@@ -208,8 +208,8 @@
   "portfolio": {
     "method": "Count stable behavior owners, not files, assertions, or CI minutes. Overlapping owners are not forced into a percentage.",
     "currentInventory": {
-      "snapshotOwners": 458,
-      "portableSemanticDiffOwners": 223,
+      "snapshotOwners": 459,
+      "portableSemanticDiffOwners": 224,
       "laneSemanticDiffOwners": 1,
       "exampleProfileOwners": 13,
       "strictStdlibModules": 55,

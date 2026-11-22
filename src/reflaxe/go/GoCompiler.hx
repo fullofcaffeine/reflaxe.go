@@ -7625,6 +7625,27 @@ class GoCompiler {
 		]), [expr]);
 	}
 
+	/**
+		What: Asserts an erased value to `float64` and reads nil as NaN.
+		Why: An ordered comparison with a null `Null<Float>` is `false` in
+		`--interp`, and Go compares NaN as `false` (see
+		`floatComparisonOperandExpr`).
+		How: Return `0 / zero` for nil, the IEEE 754 NaN. A lowering cannot add
+		Go's `math` import to the generated file, and `zero / zero` would trip
+		staticcheck's SA4000 check, so the dividend is the constant `0`.
+	**/
+	function lowerNilNaNFloatAssertExpr(expr:GoExpr):GoExpr {
+		var valueName = freshTempName("hx_value");
+		var zeroName = freshTempName("hx_zero");
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: valueName, typeName: "any"}], ["float64"], [
+			GoStmt.GoIf(GoExpr.GoBinary(GoBinaryOperator.Equal, GoExpr.GoIdent(valueName), GoExpr.GoNil), [
+				GoStmt.GoVarDecl(zeroName, "float64", null, false),
+				GoStmt.GoReturn(GoExpr.GoBinary(GoBinaryOperator.Divide, GoExpr.GoIntLiteral(0), GoExpr.GoIdent(zeroName)))
+			], null),
+			GoStmt.GoReturn(GoExpr.GoTypeAssert(GoExpr.GoIdent(valueName), "float64"))
+		]), [expr]);
+	}
+
 	function lowerNilPreservingTypeAssertExpr(expr:GoExpr, assertedType:String):GoExpr {
 		var valueName = freshTempName("hx_value");
 		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: valueName, typeName: "any"}], ["any"], [
@@ -11340,6 +11361,12 @@ class GoCompiler {
 					]),
 					isStringLike: false
 				};
+			case OpLt | OpLte | OpGt | OpGte if (floatMode):
+				{
+					expr: GoExpr.GoBinary(binopSymbol(op), floatComparisonOperandExpr(leftExprForOperator, left),
+						floatComparisonOperandExpr(rightExprForOperator, right)),
+					isStringLike: false
+				};
 			case OpUShr if (int32Mode):
 				var int32Left = coerceNullableIntOperandExpr(leftExprForOperator, left.t, left);
 				var int32Right = coerceNullableIntOperandExpr(rightExprForOperator, right.t, right);
@@ -11455,15 +11482,23 @@ class GoCompiler {
 		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [expr]);
 	}
 
+	/**
+		What: Gives a binary operator (other than `==` and `!=`) a typed operand
+		when the operand is a `Null<Int>` or `Null<Bool>` value held in Go `any`.
+		A `Null<Float>` operand is returned unchanged.
+		Why: A null `Null<Float>` must raise an error in arithmetic but compare as
+		`false`, so its read depends on the operator. Reading it here as well
+		would read the storage twice.
+		How: The operator reads a `Null<Float>` itself: arithmetic through
+		`floatOperandExpr`, ordered comparisons through
+		`floatComparisonOperandExpr`.
+	**/
 	function coerceNullablePrimitiveOperandForUse(expr:GoExpr, operand:TypedExpr):GoExpr {
 		if (!isNullablePrimitiveType(operand.t)) {
 			return expr;
 		}
 		if (isNullableIntType(operand.t)) {
 			return coerceNullableIntOperandExpr(expr, operand.t, operand);
-		}
-		if (isNullableFloatType(operand.t)) {
-			return coerceNullableFloatOperandExpr(expr, operand.t, operand);
 		}
 		if (isNullableBoolType(operand.t)) {
 			if (exprUsesNarrowedPrimitiveStorage(operand) || nonNullPrimitiveExprGoType(operand) != null) {
@@ -11472,16 +11507,6 @@ class GoCompiler {
 			return lowerNilSafeTypeAssertExpr(expr, "bool");
 		}
 		return expr;
-	}
-
-	function coerceNullableFloatOperandExpr(expr:GoExpr, operandType:Type, ?operand:TypedExpr):GoExpr {
-		if (!isNullableFloatType(operandType)) {
-			return expr;
-		}
-		if (operand != null && (exprUsesNarrowedPrimitiveStorage(operand) || nonNullPrimitiveExprGoType(operand) != null)) {
-			return expr;
-		}
-		return lowerNilSafeTypeAssertExpr(expr, "float64");
 	}
 
 	function shouldForceAnyCoerce(fromType:Type, toType:Type):Bool {
@@ -11694,11 +11719,43 @@ class GoCompiler {
 		return GoExprOperatorOps.wrapInt32Expr(expr);
 	}
 
+	/**
+		What: The `float64` operand of a Float `+`, `-`, `*`, `/` or `%`, in a
+		binary operation or a compound assignment. An Int operand becomes
+		`float64(...)`.
+		Why: A `Null<Float>` operand is Go `any`. Arithmetic on a null
+		`Null<Float>` raises an error in `--interp`, neko and python, so its read
+		must not turn null into `0`.
+		How: Keep an operand already proven non-null (a narrowed local or a
+		non-null fact). Otherwise read the storage with
+		`nullableNumericStorageRead`, the read of `++`, `--` and unary `-`.
+	**/
 	function floatOperandExpr(expr:GoExpr, operandType:Type, ?operand:TypedExpr):GoExpr {
 		if (isNullableFloatType(operandType)) {
-			return coerceNullableFloatOperandExpr(expr, operandType, operand);
+			if (operand != null && (exprUsesNarrowedPrimitiveStorage(operand) || nonNullPrimitiveExprGoType(operand) != null)) {
+				return expr;
+			}
+			return nullableNumericStorageRead(expr, operandType);
 		}
 		return GoExprOperatorOps.floatOperandExpr(expr, isFloatType(operandType));
+	}
+
+	/**
+		What: The `float64` operand of `<`, `<=`, `>` or `>=` when the operand
+		is a `Null<Float>`, with null read as NaN. Other operands are returned
+		unchanged.
+		Why: `--interp`, neko and the JVM target give `false` for an ordered
+		comparison with null and raise no error. Go gives `false` for every
+		ordered comparison with NaN, so the comparison stays one Go operator and
+		both operands still run in source order.
+		How: Keep an operand already proven non-null. Otherwise read the storage
+		with `lowerNilNaNFloatAssertExpr`.
+	**/
+	function floatComparisonOperandExpr(expr:GoExpr, operand:TypedExpr):GoExpr {
+		if (!isNullableFloatType(operand.t) || exprUsesNarrowedPrimitiveStorage(operand) || nonNullPrimitiveExprGoType(operand) != null) {
+			return expr;
+		}
+		return lowerNilNaNFloatAssertExpr(expr);
 	}
 
 	function unitStepExpr(target:GoExpr, opSymbol:GoBinaryOperator, valueType:Type, ?sourcePos:haxe.macro.Expr.Position):GoExpr {
@@ -11707,7 +11764,8 @@ class GoCompiler {
 
 	/**
 		What: Reads `Null<Int>` or `Null<Float>` storage as the Go `int` or
-		`float64` operand of `++`, `--`, unary `-` or `~`. Other types return
+		`float64` operand of `++`, `--`, unary `-` or `~`, and (for a Float) of
+		binary and compound `+`, `-`, `*`, `/` and `%`. Other types return
 		`stored` unchanged.
 		Why: These slots are Go `any` so that they can hold null (see
 		`valueStorageGoType`), and Go has no arithmetic on `any`. Haxe types the

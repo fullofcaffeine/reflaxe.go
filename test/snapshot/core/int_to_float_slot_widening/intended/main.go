@@ -379,26 +379,27 @@ func main() {
 		return false
 	}())), hxrt.StringFromLiteral(" optional=")), (func(hx_value_50 any) float64 {
 		if hx_value_50 == nil {
-			var hx_zero_51 float64
-			return hx_zero_51
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
 		}
 		return hx_value_50.(float64)
-	}(optional.Get(0))/float64(2))), hxrt.StringFromLiteral(":")), optional.Get(1)), hxrt.StringFromLiteral(":")), (func(hx_value_52 any) float64 {
+	}(optional.Get(0))/float64(2))), hxrt.StringFromLiteral(":")), optional.Get(1)), hxrt.StringFromLiteral(":")), (func(hx_value_51 any) float64 {
+		if hx_value_51 == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
+		}
+		return hx_value_51.(float64)
+	}(optional.Get(2))/float64(4))), hxrt.StringFromLiteral(" vector=")), (vector[0]/float64(2))), hxrt.StringFromLiteral(":")), (vector[1]/float64(4))), hxrt.StringFromLiteral(" map=")), (func(hx_value_53 any) float64 {
+		if hx_value_53 == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
+		}
+		return hx_value_53.(float64)
+	}(func(hx_value_52 any) any {
 		if hx_value_52 == nil {
-			var hx_zero_53 float64
-			return hx_zero_53
+			return nil
 		}
 		return hx_value_52.(float64)
-	}(optional.Get(2))/float64(4))), hxrt.StringFromLiteral(" vector=")), (vector[0]/float64(2))), hxrt.StringFromLiteral(":")), (vector[1]/float64(4))), hxrt.StringFromLiteral(" map=")), (func(hx_value_57 any) float64 {
-		if hx_value_57 == nil {
-			var hx_zero_58 float64
-			return hx_zero_58
-		}
-		return hx_value_57.(float64)
-	}(func(hx_value_55 any) float64 {
+	}(weights.__hx_this.get(hxrt.StringFromLiteral("a"))))/float64(2))), hxrt.StringFromLiteral(":")), (func(hx_value_55 any) float64 {
 		if hx_value_55 == nil {
-			var hx_zero_56 float64
-			return hx_zero_56
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
 		}
 		return hx_value_55.(float64)
 	}(func(hx_value_54 any) any {
@@ -406,80 +407,42 @@ func main() {
 			return nil
 		}
 		return hx_value_54.(float64)
-	}(weights.__hx_this.get(hxrt.StringFromLiteral("a")))))/float64(2))), hxrt.StringFromLiteral(":")), (func(hx_value_62 any) float64 {
-		if hx_value_62 == nil {
-			var hx_zero_63 float64
-			return hx_zero_63
+	}(weights.__hx_this.get(hxrt.StringFromLiteral("b"))))*1.5)), hxrt.StringFromLiteral(":")), (func(hx_value_57 any) float64 {
+		if hx_value_57 == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
 		}
-		return hx_value_62.(float64)
-	}(func(hx_value_60 any) float64 {
-		if hx_value_60 == nil {
-			var hx_zero_61 float64
-			return hx_zero_61
-		}
-		return hx_value_60.(float64)
-	}(func(hx_value_59 any) any {
-		if hx_value_59 == nil {
+		return hx_value_57.(float64)
+	}(func(hx_value_56 any) any {
+		if hx_value_56 == nil {
 			return nil
+		}
+		return hx_value_56.(float64)
+	}(weights.__hx_this.get(hxrt.StringFromLiteral("c"))))/float64(4))), hxrt.StringFromLiteral(":")), (func(hx_value_59 any) float64 {
+		if hx_value_59 == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
 		}
 		return hx_value_59.(float64)
-	}(weights.__hx_this.get(hxrt.StringFromLiteral("b")))))*1.5)), hxrt.StringFromLiteral(":")), (func(hx_value_67 any) float64 {
-		if hx_value_67 == nil {
-			var hx_zero_68 float64
-			return hx_zero_68
-		}
-		return hx_value_67.(float64)
-	}(func(hx_value_65 any) float64 {
-		if hx_value_65 == nil {
-			var hx_zero_66 float64
-			return hx_zero_66
-		}
-		return hx_value_65.(float64)
-	}(func(hx_value_64 any) any {
-		if hx_value_64 == nil {
+	}(func(hx_value_58 any) any {
+		if hx_value_58 == nil {
 			return nil
 		}
-		return hx_value_64.(float64)
-	}(weights.__hx_this.get(hxrt.StringFromLiteral("c")))))/float64(4))), hxrt.StringFromLiteral(":")), (func(hx_value_72 any) float64 {
-		if hx_value_72 == nil {
-			var hx_zero_73 float64
-			return hx_zero_73
+		return hx_value_58.(float64)
+	}(literalMap.__hx_this.get(hxrt.StringFromLiteral("d"))))/float64(2))), hxrt.StringFromLiteral(":")), (func(hx_value_61 any) float64 {
+		if hx_value_61 == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
 		}
-		return hx_value_72.(float64)
-	}(func(hx_value_70 any) float64 {
-		if hx_value_70 == nil {
-			var hx_zero_71 float64
-			return hx_zero_71
-		}
-		return hx_value_70.(float64)
-	}(func(hx_value_69 any) any {
-		if hx_value_69 == nil {
+		return hx_value_61.(float64)
+	}(func(hx_value_60 any) any {
+		if hx_value_60 == nil {
 			return nil
 		}
-		return hx_value_69.(float64)
-	}(literalMap.__hx_this.get(hxrt.StringFromLiteral("d")))))/float64(2))), hxrt.StringFromLiteral(":")), (func(hx_value_77 any) float64 {
-		if hx_value_77 == nil {
-			var hx_zero_78 float64
-			return hx_zero_78
-		}
-		return hx_value_77.(float64)
-	}(func(hx_value_75 any) float64 {
-		if hx_value_75 == nil {
-			var hx_zero_76 float64
-			return hx_zero_76
-		}
-		return hx_value_75.(float64)
-	}(func(hx_value_74 any) any {
-		if hx_value_74 == nil {
-			return nil
-		}
-		return hx_value_74.(float64)
-	}(literalMap.__hx_this.get(hxrt.StringFromLiteral("e"))))) / float64(4))))
+		return hx_value_60.(float64)
+	}(literalMap.__hx_this.get(hxrt.StringFromLiteral("e")))) / float64(4))))
 	hxrt.Println(v_4)
-	hx_obj_79 := map[string]any{}
-	hx_obj_79["x"] = float64(n)
-	hx_obj_79["y"] = 1.0
-	p := hxrt.AnonymousFromMap(hx_obj_79)
+	hx_obj_62 := map[string]any{}
+	hx_obj_62["x"] = float64(n)
+	hx_obj_62["y"] = 1.0
+	p := hxrt.AnonymousFromMap(hx_obj_62)
 	made := makePoint(n)
 	var p2_y float64
 	var p2_x float64
@@ -488,149 +451,107 @@ func main() {
 	p2_x = float64(n)
 	p2_y = (p2_y + float64(n))
 	var v_5 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("anon="), norm(p)), hxrt.StringFromLiteral(":")), norm(func() hxrt.Anonymous {
-		hx_obj_80 := map[string]any{}
-		hx_obj_80["x"] = 1.0
-		hx_obj_80["y"] = float64(n)
-		return hxrt.AnonymousFromMap(hx_obj_80)
-	}())), hxrt.StringFromLiteral(":")), norm(made)), hxrt.StringFromLiteral(":")), (func(hx_value_81 any) float64 {
-		if hx_value_81 == nil {
-			var hx_zero_82 float64
-			return hx_zero_82
+		hx_obj_63 := map[string]any{}
+		hx_obj_63["x"] = 1.0
+		hx_obj_63["y"] = float64(n)
+		return hxrt.AnonymousFromMap(hx_obj_63)
+	}())), hxrt.StringFromLiteral(":")), norm(made)), hxrt.StringFromLiteral(":")), (func(hx_value_64 any) float64 {
+		if hx_value_64 == nil {
+			var hx_zero_65 float64
+			return hx_zero_65
 		}
-		return hx_value_81.(float64)
+		return hx_value_64.(float64)
 	}(hxrt.AnonymousGet(made, "x"))/float64(2))), hxrt.StringFromLiteral(":")), (p2_x/float64(2))), hxrt.StringFromLiteral(":")), (p2_y / float64(2))))
 	hxrt.Println(v_5)
-	var hx_if_83 float64
+	var hx_if_66 float64
 	if n > 1 {
-		hx_if_83 = float64(n)
+		hx_if_66 = float64(n)
 	} else {
-		hx_if_83 = 0.5
+		hx_if_66 = 0.5
 	}
-	ternary := hx_if_83
-	var hx_if_84 float64
+	ternary := hx_if_66
+	var hx_if_67 float64
 	if n == 3 {
-		hx_if_84 = float64(n)
+		hx_if_67 = float64(n)
 	} else {
-		hx_if_84 = 0.75
+		hx_if_67 = 0.75
 	}
-	switched := hx_if_84
-	var hx_if_85 float64
+	switched := hx_if_67
+	var hx_if_68 float64
 	if n > 1 {
-		hx_if_85 = float64(n)
+		hx_if_68 = float64(n)
 	} else {
-		hx_if_85 = 0.5
+		hx_if_68 = 0.5
 	}
-	mixed := hx_if_85
+	mixed := hx_if_68
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("arms="), (ternary/float64(2))), hxrt.StringFromLiteral(":")), (switched/float64(2))), hxrt.StringFromLiteral(":")), (mixed / float64(2)))))
 	var nf any = float64(n)
 	var nfLiteral any = 4.0
 	var ni any = n
-	var nfFromNi any = func(hx_value_86 any) any {
-		if hx_value_86 == nil {
+	var nfFromNi any = func(hx_value_69 any) any {
+		if hx_value_69 == nil {
 			return nil
 		}
-		return float64(hxrt.IntFromNullableAny(hx_value_86))
+		return float64(hxrt.IntFromNullableAny(hx_value_69))
 	}(ni)
 	var reassigned any = nil
 	if n > 0 {
 		reassigned = int((hxrt.Int32Wrap(n) + hxrt.Int32Wrap(1)))
 	}
-	var nfFromReassigned any = func(hx_value_87 any) any {
-		if hx_value_87 == nil {
+	var nfFromReassigned any = func(hx_value_70 any) any {
+		if hx_value_70 == nil {
 			return nil
 		}
-		return float64(hxrt.IntFromNullableAny(hx_value_87))
+		return float64(hxrt.IntFromNullableAny(hx_value_70))
 	}(reassigned)
 	var noInt any = nil
-	var nfNull any = func(hx_value_88 any) any {
-		if hx_value_88 == nil {
+	var nfNull any = func(hx_value_71 any) any {
+		if hx_value_71 == nil {
 			return nil
 		}
-		return float64(hxrt.IntFromNullableAny(hx_value_88))
+		return float64(hxrt.IntFromNullableAny(hx_value_71))
 	}(noInt)
 	fromNi := float64(hxrt.IntFromNullableAny(ni))
 	fromReassigned := float64(hxrt.IntFromNullableAny(reassigned))
-	var v_6 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("nullable="), (func(hx_value_91 any) float64 {
-		if hx_value_91 == nil {
-			var hx_zero_92 float64
-			return hx_zero_92
+	var v_6 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("nullable="), (func(hx_value_72 any) float64 {
+		if hx_value_72 == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
 		}
-		return hx_value_91.(float64)
-	}(func(hx_value_89 any) float64 {
-		if hx_value_89 == nil {
-			var hx_zero_90 float64
-			return hx_zero_90
+		return hx_value_72.(float64)
+	}(nf)+0.5)), hxrt.StringFromLiteral(":")), (func(hx_value_73 any) float64 {
+		if hx_value_73 == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
 		}
-		return hx_value_89.(float64)
-	}(nf))+0.5)), hxrt.StringFromLiteral(":")), (func(hx_value_95 any) float64 {
-		if hx_value_95 == nil {
-			var hx_zero_96 float64
-			return hx_zero_96
+		return hx_value_73.(float64)
+	}(nfLiteral)/float64(8))), hxrt.StringFromLiteral(":")), (func(hx_value_74 any) float64 {
+		if hx_value_74 == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
 		}
-		return hx_value_95.(float64)
-	}(func(hx_value_93 any) float64 {
-		if hx_value_93 == nil {
-			var hx_zero_94 float64
-			return hx_zero_94
+		return hx_value_74.(float64)
+	}(nfFromNi)/float64(2))), hxrt.StringFromLiteral(":")), (func(hx_value_75 any) float64 {
+		if hx_value_75 == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
 		}
-		return hx_value_93.(float64)
-	}(nfLiteral))/float64(8))), hxrt.StringFromLiteral(":")), (func(hx_value_99 any) float64 {
-		if hx_value_99 == nil {
-			var hx_zero_100 float64
-			return hx_zero_100
+		return hx_value_75.(float64)
+	}(nfFromReassigned)/float64(2))), hxrt.StringFromLiteral(":")), hxrt.StdString((nfNull == nil))), hxrt.StringFromLiteral(":")), (fromNi/float64(2))), hxrt.StringFromLiteral(":")), (fromReassigned/float64(2))), hxrt.StringFromLiteral(":")), (func(hx_value_76 any) float64 {
+		if hx_value_76 == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
 		}
-		return hx_value_99.(float64)
-	}(func(hx_value_97 any) float64 {
-		if hx_value_97 == nil {
-			var hx_zero_98 float64
-			return hx_zero_98
+		return hx_value_76.(float64)
+	}(maybe(n, true))/float64(2))), hxrt.StringFromLiteral(":")), maybe(n, false)), hxrt.StringFromLiteral(":")), (func(hx_value_77 any) float64 {
+		if hx_value_77 == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
 		}
-		return hx_value_97.(float64)
-	}(nfFromNi))/float64(2))), hxrt.StringFromLiteral(":")), (func(hx_value_103 any) float64 {
-		if hx_value_103 == nil {
-			var hx_zero_104 float64
-			return hx_zero_104
-		}
-		return hx_value_103.(float64)
-	}(func(hx_value_101 any) float64 {
-		if hx_value_101 == nil {
-			var hx_zero_102 float64
-			return hx_zero_102
-		}
-		return hx_value_101.(float64)
-	}(nfFromReassigned))/float64(2))), hxrt.StringFromLiteral(":")), hxrt.StdString((nfNull == nil))), hxrt.StringFromLiteral(":")), (fromNi/float64(2))), hxrt.StringFromLiteral(":")), (fromReassigned/float64(2))), hxrt.StringFromLiteral(":")), (func(hx_value_107 any) float64 {
-		if hx_value_107 == nil {
-			var hx_zero_108 float64
-			return hx_zero_108
-		}
-		return hx_value_107.(float64)
-	}(func(hx_value_105 any) float64 {
-		if hx_value_105 == nil {
-			var hx_zero_106 float64
-			return hx_zero_106
-		}
-		return hx_value_105.(float64)
-	}(maybe(n, true)))/float64(2))), hxrt.StringFromLiteral(":")), maybe(n, false)), hxrt.StringFromLiteral(":")), (func(hx_value_113 any) float64 {
-		if hx_value_113 == nil {
-			var hx_zero_114 float64
-			return hx_zero_114
-		}
-		return hx_value_113.(float64)
-	}(func(hx_value_111 any) float64 {
-		if hx_value_111 == nil {
-			var hx_zero_112 float64
-			return hx_zero_112
-		}
-		return hx_value_111.(float64)
-	}(maybeLiteral())) / float64(4))))
+		return hx_value_77.(float64)
+	}(maybeLiteral()) / float64(4))))
 	hxrt.Println(v_6)
 }
 
 func makePoint(n int) hxrt.Anonymous {
-	hx_obj_115 := map[string]any{}
-	hx_obj_115["x"] = float64(n)
-	hx_obj_115["y"] = 1.0
-	return hxrt.AnonymousFromMap(hx_obj_115)
+	hx_obj_78 := map[string]any{}
+	hx_obj_78["x"] = float64(n)
+	hx_obj_78["y"] = 1.0
+	return hxrt.AnonymousFromMap(hx_obj_78)
 }
 
 func maybe(n int, present bool) any {
@@ -645,24 +566,24 @@ func maybeLiteral() any {
 }
 
 func norm(p hxrt.Anonymous) float64 {
-	return ((func(hx_value_116 any) float64 {
-		if hx_value_116 == nil {
-			var hx_zero_117 float64
-			return hx_zero_117
+	return ((func(hx_value_79 any) float64 {
+		if hx_value_79 == nil {
+			var hx_zero_80 float64
+			return hx_zero_80
 		}
-		return hx_value_116.(float64)
-	}(hxrt.AnonymousGet(p, "x")) * func(hx_value_118 any) float64 {
-		if hx_value_118 == nil {
-			var hx_zero_119 float64
-			return hx_zero_119
+		return hx_value_79.(float64)
+	}(hxrt.AnonymousGet(p, "x")) * func(hx_value_81 any) float64 {
+		if hx_value_81 == nil {
+			var hx_zero_82 float64
+			return hx_zero_82
 		}
-		return hx_value_118.(float64)
-	}(hxrt.AnonymousGet(p, "x"))) + (func(hx_value_120 any) float64 {
-		if hx_value_120 == nil {
-			var hx_zero_121 float64
-			return hx_zero_121
+		return hx_value_81.(float64)
+	}(hxrt.AnonymousGet(p, "x"))) + (func(hx_value_83 any) float64 {
+		if hx_value_83 == nil {
+			var hx_zero_84 float64
+			return hx_zero_84
 		}
-		return hx_value_120.(float64)
+		return hx_value_83.(float64)
 	}(hxrt.AnonymousGet(p, "y")) / float64(2)))
 }
 
@@ -671,39 +592,25 @@ func plain(n int) float64 {
 }
 
 func sum(a float64, b float64, c any) float64 {
-	return ((a + func(hx_value_124 any) float64 {
-		if hx_value_124 == nil {
-			var hx_zero_125 float64
-			return hx_zero_125
+	return ((a + func(hx_value_85 any) float64 {
+		if hx_value_85 == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
 		}
-		return hx_value_124.(float64)
-	}(func(hx_value_122 any) float64 {
-		if hx_value_122 == nil {
-			var hx_zero_123 float64
-			return hx_zero_123
+		return hx_value_85.(float64)
+	}(b)) + func(hx_value_87 any) float64 {
+		if hx_value_87 == nil {
+			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
 		}
-		return hx_value_122.(float64)
-	}(b))) + func(hx_value_129 any) float64 {
-		if hx_value_129 == nil {
-			var hx_zero_130 float64
-			return hx_zero_130
-		}
-		return hx_value_129.(float64)
-	}(func(hx_value_127 any) float64 {
-		if hx_value_127 == nil {
-			var hx_zero_128 float64
-			return hx_zero_128
-		}
-		return hx_value_127.(float64)
+		return hx_value_87.(float64)
 	}(func() any {
-		var hx_if_126 any
+		var hx_if_86 any
 		if c == nil {
-			hx_if_126 = 0.0
+			hx_if_86 = 0.0
 		} else {
-			hx_if_126 = c.(float64)
+			hx_if_86 = c.(float64)
 		}
-		return hx_if_126
-	}())))
+		return hx_if_86
+	}()))
 }
 
 func total(values []float64) float64 {
@@ -711,36 +618,36 @@ func total(values []float64) float64 {
 	var _g_current int
 	var _g_args []float64
 	_g_current = 0
-	_g_args = func(hx_value_131 any) []float64 {
-		if hx_value_131 == nil {
-			var hx_zero_132 []float64
-			return hx_zero_132
+	_g_args = func(hx_value_88 any) []float64 {
+		if hx_value_88 == nil {
+			var hx_zero_89 []float64
+			return hx_zero_89
 		}
-		return hx_value_131.([]float64)
+		return hx_value_88.([]float64)
 	}(any(values))
 	for _g_current < len(_g_args) {
-		this1 := hxrt.ArrayFromValues(func(hx_sort_src_133 []float64) []any {
-			hx_sort_out_135 := make([]any, 0, len(hx_sort_src_133))
-			for _, hx_sort_item_134 := range hx_sort_src_133 {
-				hx_sort_out_135 = append(hx_sort_out_135, hx_sort_item_134)
+		this1 := hxrt.ArrayFromValues(func(hx_sort_src_90 []float64) []any {
+			hx_sort_out_92 := make([]any, 0, len(hx_sort_src_90))
+			for _, hx_sort_item_91 := range hx_sort_src_90 {
+				hx_sort_out_92 = append(hx_sort_out_92, hx_sort_item_91)
 			}
-			return hx_sort_out_135
+			return hx_sort_out_92
 		}(_g_args))
-		hx_post_136 := _g_current
+		hx_post_93 := _g_current
 		_g_current = int(int32((_g_current + 1)))
-		index := hx_post_136
-		value := func(hx_value_139 any) float64 {
-			if hx_value_139 == nil {
-				var hx_zero_140 float64
-				return hx_zero_140
+		index := hx_post_93
+		value := func(hx_value_96 any) float64 {
+			if hx_value_96 == nil {
+				var hx_zero_97 float64
+				return hx_zero_97
 			}
-			return hx_value_139.(float64)
-		}(func(hx_value_137 any) float64 {
-			if hx_value_137 == nil {
-				var hx_zero_138 float64
-				return hx_zero_138
+			return hx_value_96.(float64)
+		}(func(hx_value_94 any) float64 {
+			if hx_value_94 == nil {
+				var hx_zero_95 float64
+				return hx_zero_95
 			}
-			return hx_value_137.(float64)
+			return hx_value_94.(float64)
 		}(this1.Get(index)))
 		out = (out + (value / float64(2)))
 	}
@@ -748,23 +655,23 @@ func total(values []float64) float64 {
 }
 
 func viaIf(n int, flag bool) float64 {
-	var hx_if_141 float64
+	var hx_if_98 float64
 	if flag {
-		hx_if_141 = float64(n)
+		hx_if_98 = float64(n)
 	} else {
-		hx_if_141 = 0.5
+		hx_if_98 = 0.5
 	}
-	return hx_if_141
+	return hx_if_98
 }
 
 func viaSwitch(n int) float64 {
-	var hx_if_142 float64
+	var hx_if_99 float64
 	if n == 0 {
-		hx_if_142 = 0.25
+		hx_if_99 = 0.25
 	} else {
-		hx_if_142 = float64(n)
+		hx_if_99 = float64(n)
 	}
-	return hx_if_142
+	return hx_if_99
 }
 
 type I_Sample interface {
