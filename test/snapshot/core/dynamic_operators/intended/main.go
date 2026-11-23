@@ -166,7 +166,7 @@ func compound() {
 	d = hxrt.DynamicDiv(d, 4)
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("divided "), hxrt.StdString(d)))
 	hxrt.Println(v_1)
-	result := hxrt.StdString(func() any {
+	result := hxrt.DynamicToString(func() any {
 		d = hxrt.DynamicAdd(d, 1)
 		return d
 	}())
@@ -206,7 +206,7 @@ func compound() {
 		Reflect_setField(hx_dynamic_target_17, hxrt.StringFromLiteral("s"), hx_dynamic_value_19)
 		return hx_dynamic_value_19
 	}()
-	fieldResult := hxrt.StdString(func() any {
+	fieldResult := hxrt.DynamicToString(func() any {
 		hx_dynamic_target_20 := o
 		hx_dynamic_old_21 := Reflect_field(hx_dynamic_target_20, hxrt.StringFromLiteral("n"))
 		hx_dynamic_value_22 := hxrt.DynamicSub(hx_dynamic_old_21, 5)
@@ -299,17 +299,11 @@ func conditions() {
 	var high any = dyn(4)
 	sum := 0
 	_g := 0
-	_g1 := hxrt.IntFromNullableAny(func(hx_value_27 any) int {
-		if hx_value_27 == nil {
-			var hx_zero_28 int
-			return hx_zero_28
-		}
-		return hx_value_27.(int)
-	}(high))
+	_g1 := hxrt.IntFromNullableAny(high)
 	for _g < _g1 {
-		hx_post_29 := _g
+		hx_post_27 := _g
 		_g = int(int32((_g + 1)))
-		i := hx_post_29
+		i := hx_post_27
 		sum = int((hxrt.Int32Wrap(sum) + hxrt.Int32Wrap(i)))
 	}
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("for range "), sum)))
@@ -374,41 +368,41 @@ func errors() {
 
 func evaluationOrder() {
 	order = hxrt.StringFromLiteral("")
-	sum := hxrt.StdString(hxrt.DynamicAdd(step(hxrt.StringFromLiteral("a"), 1), step(hxrt.StringFromLiteral("b"), 2)))
+	sum := hxrt.DynamicToString(hxrt.DynamicAdd(step(hxrt.StringFromLiteral("a"), 1), step(hxrt.StringFromLiteral("b"), 2)))
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("operands "), order), hxrt.StringFromLiteral(" ")), sum))
 	hxrt.Println(v)
 	order = hxrt.StringFromLiteral("")
 	less := hxrt.DynamicLess(step(hxrt.StringFromLiteral("l"), 1), step(hxrt.StringFromLiteral("r"), 2))
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("compare "), order), hxrt.StringFromLiteral(" ")), hxrt.StdString(less)))
 	hxrt.Println(v_1)
-	hx_obj_30 := map[string]any{}
-	hx_obj_30["n"] = 1
-	var target any = hxrt.AnonymousFromMap(hx_obj_30)
+	hx_obj_28 := map[string]any{}
+	hx_obj_28["n"] = 1
+	var target any = hxrt.AnonymousFromMap(hx_obj_28)
 	order = hxrt.StringFromLiteral("")
 	var fh any = step(hxrt.StringFromLiteral("t"), target)
 	func() any {
-		hx_dynamic_target_31 := fh
-		hx_dynamic_old_32 := Reflect_field(hx_dynamic_target_31, hxrt.StringFromLiteral("n"))
-		hx_dynamic_value_33 := hxrt.DynamicAdd(hx_dynamic_old_32, step(hxrt.StringFromLiteral("v"), 2))
-		Reflect_setField(hx_dynamic_target_31, hxrt.StringFromLiteral("n"), hx_dynamic_value_33)
-		return hx_dynamic_value_33
+		hx_dynamic_target_29 := fh
+		hx_dynamic_old_30 := Reflect_field(hx_dynamic_target_29, hxrt.StringFromLiteral("n"))
+		hx_dynamic_value_31 := hxrt.DynamicAdd(hx_dynamic_old_30, step(hxrt.StringFromLiteral("v"), 2))
+		Reflect_setField(hx_dynamic_target_29, hxrt.StringFromLiteral("n"), hx_dynamic_value_31)
+		return hx_dynamic_value_31
 	}()
 	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("field compound "), order), hxrt.StringFromLiteral(" ")), hxrt.StdString(Reflect_field(target, hxrt.StringFromLiteral("n")))))
 	hxrt.Println(v_2)
 	order = hxrt.StringFromLiteral("")
 	func() any {
-		hx_dynamic_target_34 := step(hxrt.StringFromLiteral("t"), target)
-		hx_dynamic_old_35 := Reflect_field(hx_dynamic_target_34, hxrt.StringFromLiteral("n"))
-		hx_dynamic_value_36 := hxrt.DynamicAdd(hx_dynamic_old_35, 1)
-		Reflect_setField(hx_dynamic_target_34, hxrt.StringFromLiteral("n"), hx_dynamic_value_36)
-		return hx_dynamic_old_35
+		hx_dynamic_target_32 := step(hxrt.StringFromLiteral("t"), target)
+		hx_dynamic_old_33 := Reflect_field(hx_dynamic_target_32, hxrt.StringFromLiteral("n"))
+		hx_dynamic_value_34 := hxrt.DynamicAdd(hx_dynamic_old_33, 1)
+		Reflect_setField(hx_dynamic_target_32, hxrt.StringFromLiteral("n"), hx_dynamic_value_34)
+		return hx_dynamic_old_33
 	}()
 	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("field increment "), order), hxrt.StringFromLiteral(" ")), hxrt.StdString(Reflect_field(target, hxrt.StringFromLiteral("n")))))
 	hxrt.Println(v_3)
 	var y any = dyn(10)
 	z := func() float64 {
-		hx_dynamic_left_37 := y
-		return hxrt.DynamicToFloat(hxrt.DynamicSub(hx_dynamic_left_37, func() any {
+		hx_dynamic_left_35 := y
+		return hxrt.DynamicToFloat(hxrt.DynamicSub(hx_dynamic_left_35, func() any {
 			y = 3
 			return y
 		}()))
@@ -420,11 +414,11 @@ func evaluationOrder() {
 		w = 100
 		return 1
 	})
-	captured := hxrt.StdString(func() any {
-		hx_dynamic_left_39 := w
-		return hxrt.DynamicAdd(hx_dynamic_left_39, func() int {
-			var hx_callable_38 *hxrt.Function[func() int] = bump
-			return hxrt.FunctionCall(hx_callable_38)()
+	captured := hxrt.DynamicToString(func() any {
+		hx_dynamic_left_37 := w
+		return hxrt.DynamicAdd(hx_dynamic_left_37, func() int {
+			var hx_callable_36 *hxrt.Function[func() int] = bump
+			return hxrt.FunctionCall(hx_callable_36)()
 		}())
 	}())
 	var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("captured left first "), captured), hxrt.StringFromLiteral(" ")), hxrt.StdString(w)))
@@ -438,16 +432,16 @@ func increments() {
 	d = hxrt.DynamicSub(d, 1)
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("local "), hxrt.StdString(d)))
 	hxrt.Println(v)
-	hx_post_40 := d
+	hx_post_38 := d
 	d = hxrt.DynamicAdd(d, 1)
-	post := hxrt.DynamicToFloat(hx_post_40)
+	post := hxrt.DynamicToFloat(hx_post_38)
 	pre := hxrt.DynamicToFloat(func() any {
 		d = hxrt.DynamicAdd(d, 1)
 		return d
 	}())
-	hx_post_41 := d
+	hx_post_39 := d
 	d = hxrt.DynamicSub(d, 1)
-	postDown := hxrt.DynamicToFloat(hx_post_41)
+	postDown := hxrt.DynamicToFloat(hx_post_39)
 	preDown := hxrt.DynamicToFloat(func() any {
 		d = hxrt.DynamicSub(d, 1)
 		return d
@@ -456,9 +450,9 @@ func increments() {
 	hxrt.Println(v_1)
 	var f any = dyn(2.5)
 	f = hxrt.DynamicAdd(f, 1)
-	hx_post_42 := f
+	hx_post_40 := f
 	f = hxrt.DynamicSub(f, 1)
-	floatPost := hxrt.DynamicToFloat(hx_post_42)
+	floatPost := hxrt.DynamicToFloat(hx_post_40)
 	var v_2 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("float "), hxrt.StdString(f)), hxrt.StringFromLiteral(" ")), floatPost))
 	hxrt.Println(v_2)
 	var max any = dyn(2147483647)
@@ -467,53 +461,53 @@ func increments() {
 	text = hxrt.DynamicAdd(text, 1)
 	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("wrap "), hxrt.StdString(max)), hxrt.StringFromLiteral(" text ")), hxrt.StdString(text)))
 	hxrt.Println(v_3)
-	hx_obj_43 := map[string]any{}
-	hx_obj_43["n"] = 1
-	var o any = hxrt.AnonymousFromMap(hx_obj_43)
+	hx_obj_41 := map[string]any{}
+	hx_obj_41["n"] = 1
+	var o any = hxrt.AnonymousFromMap(hx_obj_41)
 	func() any {
-		hx_dynamic_target_44 := o
-		hx_dynamic_old_45 := Reflect_field(hx_dynamic_target_44, hxrt.StringFromLiteral("n"))
-		hx_dynamic_value_46 := hxrt.DynamicAdd(hx_dynamic_old_45, 1)
-		Reflect_setField(hx_dynamic_target_44, hxrt.StringFromLiteral("n"), hx_dynamic_value_46)
-		return hx_dynamic_old_45
+		hx_dynamic_target_42 := o
+		hx_dynamic_old_43 := Reflect_field(hx_dynamic_target_42, hxrt.StringFromLiteral("n"))
+		hx_dynamic_value_44 := hxrt.DynamicAdd(hx_dynamic_old_43, 1)
+		Reflect_setField(hx_dynamic_target_42, hxrt.StringFromLiteral("n"), hx_dynamic_value_44)
+		return hx_dynamic_old_43
 	}()
 	func() any {
-		hx_dynamic_target_47 := o
-		hx_dynamic_old_48 := Reflect_field(hx_dynamic_target_47, hxrt.StringFromLiteral("n"))
-		hx_dynamic_value_49 := hxrt.DynamicAdd(hx_dynamic_old_48, 1)
-		Reflect_setField(hx_dynamic_target_47, hxrt.StringFromLiteral("n"), hx_dynamic_value_49)
-		return hx_dynamic_value_49
+		hx_dynamic_target_45 := o
+		hx_dynamic_old_46 := Reflect_field(hx_dynamic_target_45, hxrt.StringFromLiteral("n"))
+		hx_dynamic_value_47 := hxrt.DynamicAdd(hx_dynamic_old_46, 1)
+		Reflect_setField(hx_dynamic_target_45, hxrt.StringFromLiteral("n"), hx_dynamic_value_47)
+		return hx_dynamic_value_47
 	}()
 	fieldPost := hxrt.DynamicToFloat(func() any {
-		hx_dynamic_target_50 := o
-		hx_dynamic_old_51 := Reflect_field(hx_dynamic_target_50, hxrt.StringFromLiteral("n"))
-		hx_dynamic_value_52 := hxrt.DynamicAdd(hx_dynamic_old_51, 1)
-		Reflect_setField(hx_dynamic_target_50, hxrt.StringFromLiteral("n"), hx_dynamic_value_52)
-		return hx_dynamic_old_51
+		hx_dynamic_target_48 := o
+		hx_dynamic_old_49 := Reflect_field(hx_dynamic_target_48, hxrt.StringFromLiteral("n"))
+		hx_dynamic_value_50 := hxrt.DynamicAdd(hx_dynamic_old_49, 1)
+		Reflect_setField(hx_dynamic_target_48, hxrt.StringFromLiteral("n"), hx_dynamic_value_50)
+		return hx_dynamic_old_49
 	}())
 	fieldPre := hxrt.DynamicToFloat(func() any {
-		hx_dynamic_target_53 := o
-		hx_dynamic_old_54 := Reflect_field(hx_dynamic_target_53, hxrt.StringFromLiteral("n"))
-		hx_dynamic_value_55 := hxrt.DynamicSub(hx_dynamic_old_54, 1)
-		Reflect_setField(hx_dynamic_target_53, hxrt.StringFromLiteral("n"), hx_dynamic_value_55)
-		return hx_dynamic_value_55
+		hx_dynamic_target_51 := o
+		hx_dynamic_old_52 := Reflect_field(hx_dynamic_target_51, hxrt.StringFromLiteral("n"))
+		hx_dynamic_value_53 := hxrt.DynamicSub(hx_dynamic_old_52, 1)
+		Reflect_setField(hx_dynamic_target_51, hxrt.StringFromLiteral("n"), hx_dynamic_value_53)
+		return hx_dynamic_value_53
 	}())
 	var v_4 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("anon field "), hxrt.StdString(Reflect_field(o, hxrt.StringFromLiteral("n")))), hxrt.StringFromLiteral(" ")), fieldPost), hxrt.StringFromLiteral(" ")), fieldPre))
 	hxrt.Println(v_4)
 	h := New_Holder(5)
 	h.n = hxrt.DynamicAdd(h.n, 1)
-	hx_post_56 := h.n
+	hx_post_54 := h.n
 	h.n = hxrt.DynamicSub(h.n, 1)
-	held := hxrt.DynamicToFloat(hx_post_56)
+	held := hxrt.DynamicToFloat(hx_post_54)
 	var v_5 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("class field "), hxrt.StdString(h.n)), hxrt.StringFromLiteral(" ")), held))
 	hxrt.Println(v_5)
 	var viaDynamic any = New_Holder(1.5)
 	func() any {
-		hx_dynamic_target_57 := viaDynamic
-		hx_dynamic_old_58 := Reflect_field(hx_dynamic_target_57, hxrt.StringFromLiteral("n"))
-		hx_dynamic_value_59 := hxrt.DynamicAdd(hx_dynamic_old_58, 1)
-		Reflect_setField(hx_dynamic_target_57, hxrt.StringFromLiteral("n"), hx_dynamic_value_59)
-		return hx_dynamic_old_58
+		hx_dynamic_target_55 := viaDynamic
+		hx_dynamic_old_56 := Reflect_field(hx_dynamic_target_55, hxrt.StringFromLiteral("n"))
+		hx_dynamic_value_57 := hxrt.DynamicAdd(hx_dynamic_old_56, 1)
+		Reflect_setField(hx_dynamic_target_55, hxrt.StringFromLiteral("n"), hx_dynamic_value_57)
+		return hx_dynamic_old_56
 	}()
 	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("class via dynamic "), hxrt.StdString(Reflect_field(viaDynamic, hxrt.StringFromLiteral("n")))))
 	hxrt.Println(v_6)
@@ -526,20 +520,20 @@ func increments() {
 	hxrt.Println(v_7)
 	values := hxrt.NewArray(1, 2.5)
 	func() any {
-		hx_array_target_60 := values
-		hx_array_index_61 := 0
-		var hx_array_current_62 any = hx_array_target_60.Get(hx_array_index_61)
-		var hx_array_next_63 any = hxrt.DynamicAdd(hx_array_current_62, 1)
-		hx_array_target_60.Set(hx_array_index_61, hx_array_next_63)
-		return hx_array_current_62
+		hx_array_target_58 := values
+		hx_array_index_59 := 0
+		var hx_array_current_60 any = hx_array_target_58.Get(hx_array_index_59)
+		var hx_array_next_61 any = hxrt.DynamicAdd(hx_array_current_60, 1)
+		hx_array_target_58.Set(hx_array_index_59, hx_array_next_61)
+		return hx_array_current_60
 	}()
 	elementPost := hxrt.DynamicToFloat(func() any {
-		hx_array_target_64 := values
-		hx_array_index_65 := 1
-		var hx_array_current_66 any = hx_array_target_64.Get(hx_array_index_65)
-		var hx_array_next_67 any = hxrt.DynamicAdd(hx_array_current_66, 1)
-		hx_array_target_64.Set(hx_array_index_65, hx_array_next_67)
-		return hx_array_current_66
+		hx_array_target_62 := values
+		hx_array_index_63 := 1
+		var hx_array_current_64 any = hx_array_target_62.Get(hx_array_index_63)
+		var hx_array_next_65 any = hxrt.DynamicAdd(hx_array_current_64, 1)
+		hx_array_target_62.Set(hx_array_index_63, hx_array_next_65)
+		return hx_array_current_64
 	}())
 	var v_8 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("array "), hxrt.StdString(values)), hxrt.StringFromLiteral(" ")), elementPost))
 	hxrt.Println(v_8)

@@ -98,17 +98,11 @@ func boundTypes() {
 	})))
 	var total any = 0
 	_g_1 := 0
-	_g1 := hxrt.IntFromNullableAny(func(hx_value_10 any) int {
-		if hx_value_10 == nil {
-			var hx_zero_11 int
-			return hx_zero_11
-		}
-		return hx_value_10.(int)
-	}(Reflect_field(a, hxrt.StringFromLiteral("length"))))
+	_g1 := hxrt.IntFromNullableAny(Reflect_field(a, hxrt.StringFromLiteral("length")))
 	for _g_1 < _g1 {
-		hx_post_12 := _g_1
+		hx_post_10 := _g_1
 		_g_1 = int(int32((_g_1 + 1)))
-		k := hx_post_12
+		k := hx_post_10
 		total = hxrt.DynamicAdd(total, hxrt.DynamicIndexGet(a, k))
 	}
 	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("loop "), hxrt.StdString(total)))
@@ -116,143 +110,143 @@ func boundTypes() {
 }
 
 func byValue(a any, b any) int {
-	var hx_if_14 int
+	var hx_if_12 int
 	if hxrt.DynamicToFloat(hxrt.DynamicSub(a, b)) > 0 {
-		hx_if_14 = 1
+		hx_if_12 = 1
 	} else {
-		var hx_if_13 int
+		var hx_if_11 int
 		if hxrt.HaxeEqual(a, b) {
-			hx_if_13 = 0
+			hx_if_11 = 0
 		} else {
-			hx_if_13 = -1
+			hx_if_11 = -1
 		}
-		hx_if_14 = hx_if_13
+		hx_if_12 = hx_if_11
 	}
-	return hx_if_14
+	return hx_if_12
 }
 
 func compound() {
 	var a any = dyn(hxrt.NewArray(10, 2.5, hxrt.StringFromLiteral("s"), nil))
 	func() any {
-		hx_dynamic_target_15 := a
-		hx_dynamic_index_16 := 0
-		hx_dynamic_old_17 := hxrt.DynamicIndexGet(hx_dynamic_target_15, hx_dynamic_index_16)
-		hx_dynamic_value_18 := hxrt.DynamicAdd(hx_dynamic_old_17, 1)
-		hxrt.DynamicIndexSet(hx_dynamic_target_15, hx_dynamic_index_16, hx_dynamic_value_18)
-		return hx_dynamic_value_18
+		hx_dynamic_target_13 := a
+		hx_dynamic_index_14 := 0
+		hx_dynamic_old_15 := hxrt.DynamicIndexGet(hx_dynamic_target_13, hx_dynamic_index_14)
+		hx_dynamic_value_16 := hxrt.DynamicAdd(hx_dynamic_old_15, 1)
+		hxrt.DynamicIndexSet(hx_dynamic_target_13, hx_dynamic_index_14, hx_dynamic_value_16)
+		return hx_dynamic_value_16
 	}()
 	func() any {
-		hx_dynamic_target_19 := a
-		hx_dynamic_index_20 := 1
-		hx_dynamic_old_21 := hxrt.DynamicIndexGet(hx_dynamic_target_19, hx_dynamic_index_20)
-		hx_dynamic_value_22 := hxrt.DynamicMul(hx_dynamic_old_21, 2)
-		hxrt.DynamicIndexSet(hx_dynamic_target_19, hx_dynamic_index_20, hx_dynamic_value_22)
-		return hx_dynamic_value_22
+		hx_dynamic_target_17 := a
+		hx_dynamic_index_18 := 1
+		hx_dynamic_old_19 := hxrt.DynamicIndexGet(hx_dynamic_target_17, hx_dynamic_index_18)
+		hx_dynamic_value_20 := hxrt.DynamicMul(hx_dynamic_old_19, 2)
+		hxrt.DynamicIndexSet(hx_dynamic_target_17, hx_dynamic_index_18, hx_dynamic_value_20)
+		return hx_dynamic_value_20
 	}()
 	func() any {
-		hx_dynamic_target_23 := a
-		hx_dynamic_index_24 := 2
-		hx_dynamic_old_25 := hxrt.DynamicIndexGet(hx_dynamic_target_23, hx_dynamic_index_24)
-		hx_dynamic_value_26 := hxrt.StringConcatAny(hx_dynamic_old_25, hxrt.StringFromLiteral("t"))
-		hxrt.DynamicIndexSet(hx_dynamic_target_23, hx_dynamic_index_24, hx_dynamic_value_26)
-		return hx_dynamic_value_26
+		hx_dynamic_target_21 := a
+		hx_dynamic_index_22 := 2
+		hx_dynamic_old_23 := hxrt.DynamicIndexGet(hx_dynamic_target_21, hx_dynamic_index_22)
+		hx_dynamic_value_24 := hxrt.StringConcatAny(hx_dynamic_old_23, hxrt.StringFromLiteral("t"))
+		hxrt.DynamicIndexSet(hx_dynamic_target_21, hx_dynamic_index_22, hx_dynamic_value_24)
+		return hx_dynamic_value_24
 	}()
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("compound "), hxrt.StdString(a)))
 	hxrt.Println(v)
 	var v_1 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("value "), hxrt.DynamicToFloat(func() any {
-		hx_dynamic_target_27 := a
-		hx_dynamic_index_28 := 0
-		hx_dynamic_old_29 := hxrt.DynamicIndexGet(hx_dynamic_target_27, hx_dynamic_index_28)
-		hx_dynamic_value_30 := hxrt.DynamicSub(hx_dynamic_old_29, 4)
-		hxrt.DynamicIndexSet(hx_dynamic_target_27, hx_dynamic_index_28, hx_dynamic_value_30)
-		return hx_dynamic_value_30
+		hx_dynamic_target_25 := a
+		hx_dynamic_index_26 := 0
+		hx_dynamic_old_27 := hxrt.DynamicIndexGet(hx_dynamic_target_25, hx_dynamic_index_26)
+		hx_dynamic_value_28 := hxrt.DynamicSub(hx_dynamic_old_27, 4)
+		hxrt.DynamicIndexSet(hx_dynamic_target_25, hx_dynamic_index_26, hx_dynamic_value_28)
+		return hx_dynamic_value_28
 	}())), hxrt.StringFromLiteral(" ")), hxrt.DynamicIndexGet(a, 0)))
 	hxrt.Println(v_1)
 	var v_2 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("postfix "), hxrt.DynamicToFloat(func() any {
-		hx_dynamic_target_31 := a
-		hx_dynamic_index_32 := 0
-		hx_dynamic_old_33 := hxrt.DynamicIndexGet(hx_dynamic_target_31, hx_dynamic_index_32)
-		hx_dynamic_value_34 := hxrt.DynamicAdd(hx_dynamic_old_33, 1)
-		hxrt.DynamicIndexSet(hx_dynamic_target_31, hx_dynamic_index_32, hx_dynamic_value_34)
-		return hx_dynamic_old_33
+		hx_dynamic_target_29 := a
+		hx_dynamic_index_30 := 0
+		hx_dynamic_old_31 := hxrt.DynamicIndexGet(hx_dynamic_target_29, hx_dynamic_index_30)
+		hx_dynamic_value_32 := hxrt.DynamicAdd(hx_dynamic_old_31, 1)
+		hxrt.DynamicIndexSet(hx_dynamic_target_29, hx_dynamic_index_30, hx_dynamic_value_32)
+		return hx_dynamic_old_31
 	}())), hxrt.StringFromLiteral(" ")), hxrt.DynamicIndexGet(a, 0)))
 	hxrt.Println(v_2)
 	var v_3 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("prefix "), hxrt.DynamicToFloat(func() any {
-		hx_dynamic_target_35 := a
-		hx_dynamic_index_36 := 0
-		hx_dynamic_old_37 := hxrt.DynamicIndexGet(hx_dynamic_target_35, hx_dynamic_index_36)
-		hx_dynamic_value_38 := hxrt.DynamicAdd(hx_dynamic_old_37, 1)
-		hxrt.DynamicIndexSet(hx_dynamic_target_35, hx_dynamic_index_36, hx_dynamic_value_38)
-		return hx_dynamic_value_38
+		hx_dynamic_target_33 := a
+		hx_dynamic_index_34 := 0
+		hx_dynamic_old_35 := hxrt.DynamicIndexGet(hx_dynamic_target_33, hx_dynamic_index_34)
+		hx_dynamic_value_36 := hxrt.DynamicAdd(hx_dynamic_old_35, 1)
+		hxrt.DynamicIndexSet(hx_dynamic_target_33, hx_dynamic_index_34, hx_dynamic_value_36)
+		return hx_dynamic_value_36
 	}())), hxrt.StringFromLiteral(" ")), hxrt.DynamicIndexGet(a, 0)))
 	hxrt.Println(v_3)
 	func() any {
-		hx_dynamic_target_39 := a
-		hx_dynamic_index_40 := 0
-		hx_dynamic_old_41 := hxrt.DynamicIndexGet(hx_dynamic_target_39, hx_dynamic_index_40)
-		hx_dynamic_value_42 := hxrt.DynamicSub(hx_dynamic_old_41, 1)
-		hxrt.DynamicIndexSet(hx_dynamic_target_39, hx_dynamic_index_40, hx_dynamic_value_42)
-		return hx_dynamic_old_41
+		hx_dynamic_target_37 := a
+		hx_dynamic_index_38 := 0
+		hx_dynamic_old_39 := hxrt.DynamicIndexGet(hx_dynamic_target_37, hx_dynamic_index_38)
+		hx_dynamic_value_40 := hxrt.DynamicSub(hx_dynamic_old_39, 1)
+		hxrt.DynamicIndexSet(hx_dynamic_target_37, hx_dynamic_index_38, hx_dynamic_value_40)
+		return hx_dynamic_old_39
 	}()
 	func() any {
-		hx_dynamic_target_43 := a
-		hx_dynamic_index_44 := 0
-		hx_dynamic_old_45 := hxrt.DynamicIndexGet(hx_dynamic_target_43, hx_dynamic_index_44)
-		hx_dynamic_value_46 := hxrt.DynamicSub(hx_dynamic_old_45, 1)
-		hxrt.DynamicIndexSet(hx_dynamic_target_43, hx_dynamic_index_44, hx_dynamic_value_46)
-		return hx_dynamic_value_46
+		hx_dynamic_target_41 := a
+		hx_dynamic_index_42 := 0
+		hx_dynamic_old_43 := hxrt.DynamicIndexGet(hx_dynamic_target_41, hx_dynamic_index_42)
+		hx_dynamic_value_44 := hxrt.DynamicSub(hx_dynamic_old_43, 1)
+		hxrt.DynamicIndexSet(hx_dynamic_target_41, hx_dynamic_index_42, hx_dynamic_value_44)
+		return hx_dynamic_value_44
 	}()
 	func() any {
-		hx_dynamic_target_47 := a
-		hx_dynamic_index_48 := 0
-		hx_dynamic_old_49 := hxrt.DynamicIndexGet(hx_dynamic_target_47, hx_dynamic_index_48)
-		hx_dynamic_value_50 := hxrt.DynamicAdd(hx_dynamic_old_49, 1)
-		hxrt.DynamicIndexSet(hx_dynamic_target_47, hx_dynamic_index_48, hx_dynamic_value_50)
-		return hx_dynamic_old_49
+		hx_dynamic_target_45 := a
+		hx_dynamic_index_46 := 0
+		hx_dynamic_old_47 := hxrt.DynamicIndexGet(hx_dynamic_target_45, hx_dynamic_index_46)
+		hx_dynamic_value_48 := hxrt.DynamicAdd(hx_dynamic_old_47, 1)
+		hxrt.DynamicIndexSet(hx_dynamic_target_45, hx_dynamic_index_46, hx_dynamic_value_48)
+		return hx_dynamic_old_47
 	}()
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("steps "), hxrt.DynamicIndexGet(a, 0))))
 	func() any {
-		hx_dynamic_target_51 := a
-		hx_dynamic_index_52 := 0
-		hx_dynamic_old_53 := hxrt.DynamicIndexGet(hx_dynamic_target_51, hx_dynamic_index_52)
-		hx_dynamic_value_54 := hxrt.DynamicAdd(hx_dynamic_old_53, hxrt.DynamicToFloat(hxrt.DynamicIndexGet(a, 0)))
-		hxrt.DynamicIndexSet(hx_dynamic_target_51, hx_dynamic_index_52, hx_dynamic_value_54)
-		return hx_dynamic_value_54
+		hx_dynamic_target_49 := a
+		hx_dynamic_index_50 := 0
+		hx_dynamic_old_51 := hxrt.DynamicIndexGet(hx_dynamic_target_49, hx_dynamic_index_50)
+		hx_dynamic_value_52 := hxrt.DynamicAdd(hx_dynamic_old_51, hxrt.DynamicToFloat(hxrt.DynamicIndexGet(a, 0)))
+		hxrt.DynamicIndexSet(hx_dynamic_target_49, hx_dynamic_index_50, hx_dynamic_value_52)
+		return hx_dynamic_value_52
 	}()
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("self "), hxrt.DynamicIndexGet(a, 0))))
 	attempt(hxrt.StringFromLiteral("null element"), hx_recover_callable_c5309b43(hxrt.NewFunction(func() float64 {
 		return hxrt.DynamicToFloat(func() any {
-			hx_dynamic_target_55 := a
-			hx_dynamic_index_56 := 3
-			hx_dynamic_old_57 := hxrt.DynamicIndexGet(hx_dynamic_target_55, hx_dynamic_index_56)
-			hx_dynamic_value_58 := hxrt.DynamicAdd(hx_dynamic_old_57, 1)
-			hxrt.DynamicIndexSet(hx_dynamic_target_55, hx_dynamic_index_56, hx_dynamic_value_58)
-			return hx_dynamic_value_58
+			hx_dynamic_target_53 := a
+			hx_dynamic_index_54 := 3
+			hx_dynamic_old_55 := hxrt.DynamicIndexGet(hx_dynamic_target_53, hx_dynamic_index_54)
+			hx_dynamic_value_56 := hxrt.DynamicAdd(hx_dynamic_old_55, 1)
+			hxrt.DynamicIndexSet(hx_dynamic_target_53, hx_dynamic_index_54, hx_dynamic_value_56)
+			return hx_dynamic_value_56
 		}())
 	})))
 	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("after "), hxrt.StdString(a)))
 	hxrt.Println(v_4)
 	var holder any = dyn(func() hxrt.Anonymous {
-		hx_obj_59 := map[string]any{}
-		hx_obj_59["list"] = hxrt.NewArray(1, 2)
-		return hxrt.AnonymousFromMap(hx_obj_59)
+		hx_obj_57 := map[string]any{}
+		hx_obj_57["list"] = hxrt.NewArray(1, 2)
+		return hxrt.AnonymousFromMap(hx_obj_57)
 	}())
 	var base any = Reflect_field(holder, hxrt.StringFromLiteral("list"))
 	func() any {
-		hx_dynamic_target_60 := base
-		hx_dynamic_index_61 := 0
-		hx_dynamic_old_62 := hxrt.DynamicIndexGet(hx_dynamic_target_60, hx_dynamic_index_61)
-		hx_dynamic_value_63 := hxrt.DynamicAdd(hx_dynamic_old_62, 5)
-		hxrt.DynamicIndexSet(hx_dynamic_target_60, hx_dynamic_index_61, hx_dynamic_value_63)
-		return hx_dynamic_value_63
+		hx_dynamic_target_58 := base
+		hx_dynamic_index_59 := 0
+		hx_dynamic_old_60 := hxrt.DynamicIndexGet(hx_dynamic_target_58, hx_dynamic_index_59)
+		hx_dynamic_value_61 := hxrt.DynamicAdd(hx_dynamic_old_60, 5)
+		hxrt.DynamicIndexSet(hx_dynamic_target_58, hx_dynamic_index_59, hx_dynamic_value_61)
+		return hx_dynamic_value_61
 	}()
 	func() any {
-		hx_dynamic_target_64 := Reflect_field(holder, hxrt.StringFromLiteral("list"))
-		hx_dynamic_index_65 := 1
-		hx_dynamic_old_66 := hxrt.DynamicIndexGet(hx_dynamic_target_64, hx_dynamic_index_65)
-		hx_dynamic_value_67 := hxrt.DynamicAdd(hx_dynamic_old_66, 1)
-		hxrt.DynamicIndexSet(hx_dynamic_target_64, hx_dynamic_index_65, hx_dynamic_value_67)
-		return hx_dynamic_old_66
+		hx_dynamic_target_62 := Reflect_field(holder, hxrt.StringFromLiteral("list"))
+		hx_dynamic_index_63 := 1
+		hx_dynamic_old_64 := hxrt.DynamicIndexGet(hx_dynamic_target_62, hx_dynamic_index_63)
+		hx_dynamic_value_65 := hxrt.DynamicAdd(hx_dynamic_old_64, 1)
+		hxrt.DynamicIndexSet(hx_dynamic_target_62, hx_dynamic_index_63, hx_dynamic_value_65)
+		return hx_dynamic_old_64
 	}()
 	var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("field element "), hxrt.StdString(Reflect_field(holder, hxrt.StringFromLiteral("list")))))
 	hxrt.Println(v_5)
@@ -265,29 +259,29 @@ func dyn(value any) any {
 func evaluationOrder() {
 	var a any = dyn(hxrt.NewArray(1, 2))
 	func() any {
-		hx_dynamic_target_68 := step(hxrt.StringFromLiteral("t"), a)
-		hx_dynamic_index_69 := hxrt.IntFromNullableAny(step(hxrt.StringFromLiteral("i"), 0))
-		hx_dynamic_value_71 := step(hxrt.StringFromLiteral("v"), 10)
-		hxrt.DynamicIndexSet(hx_dynamic_target_68, hx_dynamic_index_69, hx_dynamic_value_71)
-		return hx_dynamic_value_71
+		hx_dynamic_target_66 := step(hxrt.StringFromLiteral("t"), a)
+		hx_dynamic_index_67 := hxrt.IntFromNullableAny(step(hxrt.StringFromLiteral("i"), 0))
+		hx_dynamic_value_69 := step(hxrt.StringFromLiteral("v"), 10)
+		hxrt.DynamicIndexSet(hx_dynamic_target_66, hx_dynamic_index_67, hx_dynamic_value_69)
+		return hx_dynamic_value_69
 	}()
 	var base any = step(hxrt.StringFromLiteral("t"), a)
 	var index any = step(hxrt.StringFromLiteral("i"), 1)
 	func() any {
-		hx_dynamic_target_72 := base
-		hx_dynamic_index_73 := hxrt.IntFromNullableAny(index)
-		hx_dynamic_old_74 := hxrt.DynamicIndexGet(hx_dynamic_target_72, hx_dynamic_index_73)
-		hx_dynamic_value_75 := hxrt.DynamicAdd(hx_dynamic_old_74, step(hxrt.StringFromLiteral("v"), 5))
-		hxrt.DynamicIndexSet(hx_dynamic_target_72, hx_dynamic_index_73, hx_dynamic_value_75)
-		return hx_dynamic_value_75
+		hx_dynamic_target_70 := base
+		hx_dynamic_index_71 := hxrt.IntFromNullableAny(index)
+		hx_dynamic_old_72 := hxrt.DynamicIndexGet(hx_dynamic_target_70, hx_dynamic_index_71)
+		hx_dynamic_value_73 := hxrt.DynamicAdd(hx_dynamic_old_72, step(hxrt.StringFromLiteral("v"), 5))
+		hxrt.DynamicIndexSet(hx_dynamic_target_70, hx_dynamic_index_71, hx_dynamic_value_73)
+		return hx_dynamic_value_73
 	}()
 	old := hxrt.DynamicToFloat(func() any {
-		hx_dynamic_target_76 := step(hxrt.StringFromLiteral("t"), a)
-		hx_dynamic_index_77 := hxrt.IntFromNullableAny(step(hxrt.StringFromLiteral("i"), 0))
-		hx_dynamic_old_78 := hxrt.DynamicIndexGet(hx_dynamic_target_76, hx_dynamic_index_77)
-		hx_dynamic_value_79 := hxrt.DynamicAdd(hx_dynamic_old_78, 1)
-		hxrt.DynamicIndexSet(hx_dynamic_target_76, hx_dynamic_index_77, hx_dynamic_value_79)
-		return hx_dynamic_old_78
+		hx_dynamic_target_74 := step(hxrt.StringFromLiteral("t"), a)
+		hx_dynamic_index_75 := hxrt.IntFromNullableAny(step(hxrt.StringFromLiteral("i"), 0))
+		hx_dynamic_old_76 := hxrt.DynamicIndexGet(hx_dynamic_target_74, hx_dynamic_index_75)
+		hx_dynamic_value_77 := hxrt.DynamicAdd(hx_dynamic_old_76, 1)
+		hxrt.DynamicIndexSet(hx_dynamic_target_74, hx_dynamic_index_75, hx_dynamic_value_77)
+		return hx_dynamic_old_76
 	}())
 	var v any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("order "), order), hxrt.StringFromLiteral(" ")), hxrt.StdString(a)), hxrt.StringFromLiteral(" ")), old))
 	hxrt.Println(v)
@@ -363,48 +357,48 @@ func nonArrays() {
 	}))
 	attempt(hxrt.StringFromLiteral("string write"), hx_recover_callable_c5309b43(hxrt.NewFunction(func() *string {
 		return hxrt.StdString(func() any {
-			hx_dynamic_target_80 := text
-			hx_dynamic_index_81 := 0
-			hx_dynamic_value_83 := hxrt.StringFromLiteral("j")
-			hxrt.DynamicIndexSet(hx_dynamic_target_80, hx_dynamic_index_81, hx_dynamic_value_83)
-			return hx_dynamic_value_83
+			hx_dynamic_target_78 := text
+			hx_dynamic_index_79 := 0
+			hx_dynamic_value_81 := hxrt.StringFromLiteral("j")
+			hxrt.DynamicIndexSet(hx_dynamic_target_78, hx_dynamic_index_79, hx_dynamic_value_81)
+			return hx_dynamic_value_81
 		}())
 	})))
 	var object any = dyn(func() hxrt.Anonymous {
-		hx_obj_84 := map[string]any{}
-		hx_obj_84["x"] = 1
-		return hxrt.AnonymousFromMap(hx_obj_84)
+		hx_obj_82 := map[string]any{}
+		hx_obj_82["x"] = 1
+		return hxrt.AnonymousFromMap(hx_obj_82)
 	}())
 	attempt(hxrt.StringFromLiteral("object read"), hxrt.NewFunction(func() any {
 		return hxrt.DynamicIndexGet(object, 0)
 	}))
 	attempt(hxrt.StringFromLiteral("object write"), hx_recover_callable_c5309b43(hxrt.NewFunction(func() int {
 		return hxrt.IntFromNullableAny(func() any {
-			hx_dynamic_target_85 := object
-			hx_dynamic_index_86 := 0
-			hx_dynamic_value_88 := 3
-			hxrt.DynamicIndexSet(hx_dynamic_target_85, hx_dynamic_index_86, hx_dynamic_value_88)
-			return hx_dynamic_value_88
+			hx_dynamic_target_83 := object
+			hx_dynamic_index_84 := 0
+			hx_dynamic_value_86 := 3
+			hxrt.DynamicIndexSet(hx_dynamic_target_83, hx_dynamic_index_84, hx_dynamic_value_86)
+			return hx_dynamic_value_86
 		}())
 	})))
 	attempt(hxrt.StringFromLiteral("object compound"), hx_recover_callable_c5309b43(hxrt.NewFunction(func() float64 {
 		return hxrt.DynamicToFloat(func() any {
-			hx_dynamic_target_89 := object
-			hx_dynamic_index_90 := 0
-			hx_dynamic_old_91 := hxrt.DynamicIndexGet(hx_dynamic_target_89, hx_dynamic_index_90)
-			hx_dynamic_value_92 := hxrt.DynamicAdd(hx_dynamic_old_91, 1)
-			hxrt.DynamicIndexSet(hx_dynamic_target_89, hx_dynamic_index_90, hx_dynamic_value_92)
-			return hx_dynamic_value_92
+			hx_dynamic_target_87 := object
+			hx_dynamic_index_88 := 0
+			hx_dynamic_old_89 := hxrt.DynamicIndexGet(hx_dynamic_target_87, hx_dynamic_index_88)
+			hx_dynamic_value_90 := hxrt.DynamicAdd(hx_dynamic_old_89, 1)
+			hxrt.DynamicIndexSet(hx_dynamic_target_87, hx_dynamic_index_88, hx_dynamic_value_90)
+			return hx_dynamic_value_90
 		}())
 	})))
 	attempt(hxrt.StringFromLiteral("object step"), hx_recover_callable_c5309b43(hxrt.NewFunction(func() float64 {
 		return hxrt.DynamicToFloat(func() any {
-			hx_dynamic_target_93 := object
-			hx_dynamic_index_94 := 0
-			hx_dynamic_old_95 := hxrt.DynamicIndexGet(hx_dynamic_target_93, hx_dynamic_index_94)
-			hx_dynamic_value_96 := hxrt.DynamicAdd(hx_dynamic_old_95, 1)
-			hxrt.DynamicIndexSet(hx_dynamic_target_93, hx_dynamic_index_94, hx_dynamic_value_96)
-			return hx_dynamic_old_95
+			hx_dynamic_target_91 := object
+			hx_dynamic_index_92 := 0
+			hx_dynamic_old_93 := hxrt.DynamicIndexGet(hx_dynamic_target_91, hx_dynamic_index_92)
+			hx_dynamic_value_94 := hxrt.DynamicAdd(hx_dynamic_old_93, 1)
+			hxrt.DynamicIndexSet(hx_dynamic_target_91, hx_dynamic_index_92, hx_dynamic_value_94)
+			return hx_dynamic_old_93
 		}())
 	})))
 	var nothing any = dyn(nil)
@@ -413,11 +407,11 @@ func nonArrays() {
 	}))
 	attempt(hxrt.StringFromLiteral("null write"), hx_recover_callable_c5309b43(hxrt.NewFunction(func() int {
 		return hxrt.IntFromNullableAny(func() any {
-			hx_dynamic_target_97 := nothing
-			hx_dynamic_index_98 := 0
-			hx_dynamic_value_100 := 1
-			hxrt.DynamicIndexSet(hx_dynamic_target_97, hx_dynamic_index_98, hx_dynamic_value_100)
-			return hx_dynamic_value_100
+			hx_dynamic_target_95 := nothing
+			hx_dynamic_index_96 := 0
+			hx_dynamic_value_98 := 1
+			hxrt.DynamicIndexSet(hx_dynamic_target_95, hx_dynamic_index_96, hx_dynamic_value_98)
+			return hx_dynamic_value_98
 		}())
 	})))
 	var number any = dyn(5)
@@ -433,13 +427,13 @@ func nonArrays() {
 		_g.__hx_this.set(1, hxrt.StringFromLiteral("one"))
 		return _g
 	}())
-	var hx_try_101 *string
+	var hx_try_99 *string
 	hxrt.TryCatch(func() {
-		hx_try_101 = hxrt.StdString(hxrt.DynamicIndexGet(map_, 1))
-	}, func(hx_caught_102 any) {
-		hx_exception_103 := haxe__Exception_caught(hx_caught_102)
-		hx_payload_104 := haxe__Exception_catchValue(hx_caught_102)
-		_ = hx_exception_103
+		hx_try_99 = hxrt.StdString(hxrt.DynamicIndexGet(map_, 1))
+	}, func(hx_caught_100 any) {
+		hx_exception_101 := haxe__Exception_caught(hx_caught_100)
+		hx_payload_102 := haxe__Exception_catchValue(hx_caught_100)
+		_ = hx_exception_101
 		if func(hx_value any) bool {
 			switch hx_value.(type) {
 			case *string:
@@ -447,21 +441,21 @@ func nonArrays() {
 			default:
 				return false
 			}
-		}(hx_payload_104) {
-			var e *string = func(hx_value_105 any) *string {
-				if hx_value_105 == nil {
-					var hx_zero_106 *string
-					return hx_zero_106
+		}(hx_payload_102) {
+			var e *string = func(hx_value_103 any) *string {
+				if hx_value_103 == nil {
+					var hx_zero_104 *string
+					return hx_zero_104
 				}
-				return hx_value_105.(*string)
-			}(hx_payload_104)
+				return hx_value_103.(*string)
+			}(hx_payload_102)
 			_ = e
-			hx_try_101 = hxrt.StringFromLiteral("error")
+			hx_try_99 = hxrt.StringFromLiteral("error")
 		} else {
-			hxrt.Throw(hx_caught_102)
+			hxrt.Throw(hx_caught_100)
 		}
 	})
-	mapText := hx_try_101
+	mapText := hx_try_99
 	hxrt.Println(any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("map read = "), mapText)))
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("unchanged "), hxrt.StdString(text)), hxrt.StringFromLiteral(" ")), hxrt.StdString(Reflect_field(object, hxrt.StringFromLiteral("x")))))
 	hxrt.Println(v)
@@ -472,18 +466,18 @@ var order *string = hxrt.StringFromLiteral("")
 func otherReceivers() {
 	items := hxrt.NewArray()
 	useStack(func() hxrt.Anonymous {
-		hx_obj_107 := map[string]any{}
-		hx_obj_107["push"] = hxrt.NewFunction(func(value int) int {
+		hx_obj_105 := map[string]any{}
+		hx_obj_105["push"] = hxrt.NewFunction(func(value int) int {
 			return func() int {
 				return items.Push(value)
 			}()
 		})
-		hx_obj_107["pop"] = hxrt.NewFunction(func() any {
+		hx_obj_105["pop"] = hxrt.NewFunction(func() any {
 			return func() any {
 				return items.Pop()
 			}()
 		})
-		return hxrt.AnonymousFromMap(hx_obj_107)
+		return hxrt.AnonymousFromMap(hx_obj_105)
 	}())
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("structure "), hxrt.StdString(items)))
 	hxrt.Println(v)
@@ -503,18 +497,18 @@ func reads() {
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("read "), hxrt.DynamicIndexGet(a, 0)), hxrt.StringFromLiteral(" ")), hxrt.DynamicIndexGet(a, 2)), hxrt.StringFromLiteral(" ")), hxrt.DynamicIndexGet(a, hxrt.IntFromNullableAny(i))), hxrt.StringFromLiteral(" ")), hxrt.DynamicIndexGet(a, hxrt.IntFromNullableAny(f))), hxrt.StringFromLiteral(" ")), hxrt.DynamicIndexGet(a, hxrt.IntFromNullableAny(n)))))
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("outside "), hxrt.DynamicIndexGet(a, 3)), hxrt.StringFromLiteral(" ")), hxrt.DynamicIndexGet(a, 100)), hxrt.StringFromLiteral(" ")), hxrt.DynamicIndexGet(a, -1))))
 	var nested any = dyn(hxrt.NewArray(hxrt.NewArray(1, 2), hxrt.NewArray(3, 4)))
-	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("nested "), func(hx_value_114 any) *hxrt.Array {
-		if hx_value_114 == nil {
-			var hx_zero_115 *hxrt.Array
-			return hx_zero_115
+	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("nested "), func(hx_value_112 any) *hxrt.Array {
+		if hx_value_112 == nil {
+			var hx_zero_113 *hxrt.Array
+			return hx_zero_113
 		}
-		return hx_value_114.(*hxrt.Array)
-	}(hxrt.DynamicIndexGet(nested, 1)).Get(0)), hxrt.StringFromLiteral(" ")), func(hx_value_120 any) *hxrt.Array {
-		if hx_value_120 == nil {
-			var hx_zero_121 *hxrt.Array
-			return hx_zero_121
+		return hx_value_112.(*hxrt.Array)
+	}(hxrt.DynamicIndexGet(nested, 1)).Get(0)), hxrt.StringFromLiteral(" ")), func(hx_value_118 any) *hxrt.Array {
+		if hx_value_118 == nil {
+			var hx_zero_119 *hxrt.Array
+			return hx_zero_119
 		}
-		return hx_value_120.(*hxrt.Array)
+		return hx_value_118.(*hxrt.Array)
 	}(hxrt.DynamicIndexGet(nested, 0)).Get(5))))
 	var rows_1 any
 	_ = rows_1
@@ -523,18 +517,18 @@ func reads() {
 	rows_1 = hxrt.StringFromLiteral("x")
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("element "), hxrt.DynamicIndexGet(rows_0, 1))))
 	var json any = hxrt.JsonParse(hxrt.StringFromLiteral("{\"items\":[1,2,3],\"grid\":[[7,8]],\"people\":[{\"name\":\"ann\"}]}"))
-	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("json "), hxrt.DynamicIndexGet(Reflect_field(json, hxrt.StringFromLiteral("items")), 2)), hxrt.StringFromLiteral(" ")), func(hx_value_126 any) *hxrt.Array {
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("json "), hxrt.DynamicIndexGet(Reflect_field(json, hxrt.StringFromLiteral("items")), 2)), hxrt.StringFromLiteral(" ")), func(hx_value_124 any) *hxrt.Array {
+		if hx_value_124 == nil {
+			var hx_zero_125 *hxrt.Array
+			return hx_zero_125
+		}
+		return hx_value_124.(*hxrt.Array)
+	}(hxrt.DynamicIndexGet(Reflect_field(json, hxrt.StringFromLiteral("grid")), 0)).Get(1)), hxrt.StringFromLiteral(" ")), func(hx_value_126 any) *string {
 		if hx_value_126 == nil {
-			var hx_zero_127 *hxrt.Array
+			var hx_zero_127 *string
 			return hx_zero_127
 		}
-		return hx_value_126.(*hxrt.Array)
-	}(hxrt.DynamicIndexGet(Reflect_field(json, hxrt.StringFromLiteral("grid")), 0)).Get(1)), hxrt.StringFromLiteral(" ")), func(hx_value_128 any) *string {
-		if hx_value_128 == nil {
-			var hx_zero_129 *string
-			return hx_zero_129
-		}
-		return hx_value_128.(*string)
+		return hx_value_126.(*string)
 	}(hxrt.AnonymousGet(hx_structural_recover(hxrt.DynamicIndexGet(Reflect_field(json, hxrt.StringFromLiteral("people")), 0)), "name"))))
 	hxrt.Println(v)
 	var keys any = dyn(hxrt.NewArray(0, 2))
@@ -546,8 +540,8 @@ func reads() {
 		return hxrt.StdString(hxrt.DynamicIndexGet(a, 2))
 	})
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("closure "), func() *string {
-		var hx_callable_130 *hxrt.Function[func() *string] = later
-		return hxrt.FunctionCall(hx_callable_130)()
+		var hx_callable_128 *hxrt.Function[func() *string] = later
+		return hxrt.FunctionCall(hx_callable_128)()
 	}()), hxrt.StringConcatAny(hxrt.StringFromLiteral(" "), hxrt.DynamicIndexGet(a, 1))))
 	hxrt.Println(v_1)
 }
@@ -592,23 +586,23 @@ func step(name *string, value any) any {
 
 func useStack(stack hxrt.Anonymous) {
 	func() int {
-		var hx_callable_131 *hxrt.Function[func(int) int] = hx_recover_callable_408c8b7a(hxrt.AnonymousGet(stack, "push"))
-		var hx_argument_132 int = 1
-		return hxrt.FunctionCall(hx_callable_131)(hx_argument_132)
+		var hx_callable_129 *hxrt.Function[func(int) int] = hx_recover_callable_408c8b7a(hxrt.AnonymousGet(stack, "push"))
+		var hx_argument_130 int = 1
+		return hxrt.FunctionCall(hx_callable_129)(hx_argument_130)
 	}()
 	func() int {
-		var hx_callable_133 *hxrt.Function[func(int) int] = hx_recover_callable_408c8b7a(hxrt.AnonymousGet(stack, "push"))
-		var hx_argument_134 int = 2
-		return hxrt.FunctionCall(hx_callable_133)(hx_argument_134)
+		var hx_callable_131 *hxrt.Function[func(int) int] = hx_recover_callable_408c8b7a(hxrt.AnonymousGet(stack, "push"))
+		var hx_argument_132 int = 2
+		return hxrt.FunctionCall(hx_callable_131)(hx_argument_132)
 	}()
 	func() any {
-		var hx_callable_135 *hxrt.Function[func() any] = hx_recover_callable_c5309b43(hxrt.AnonymousGet(stack, "pop"))
-		return hxrt.FunctionCall(hx_callable_135)()
+		var hx_callable_133 *hxrt.Function[func() any] = hx_recover_callable_c5309b43(hxrt.AnonymousGet(stack, "pop"))
+		return hxrt.FunctionCall(hx_callable_133)()
 	}()
 	var v any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("structure push "), func() int {
-		var hx_callable_136 *hxrt.Function[func(int) int] = hx_recover_callable_408c8b7a(hxrt.AnonymousGet(stack, "push"))
-		var hx_argument_137 int = 3
-		return hxrt.FunctionCall(hx_callable_136)(hx_argument_137)
+		var hx_callable_134 *hxrt.Function[func(int) int] = hx_recover_callable_408c8b7a(hxrt.AnonymousGet(stack, "push"))
+		var hx_argument_135 int = 3
+		return hxrt.FunctionCall(hx_callable_134)(hx_argument_135)
 	}()))
 	hxrt.Println(v)
 }
@@ -616,102 +610,102 @@ func useStack(stack hxrt.Anonymous) {
 func writes() {
 	var a any = dyn(hxrt.NewArray(10, 20, 30))
 	func() any {
-		hx_dynamic_target_138 := a
-		hx_dynamic_index_139 := 1
-		hx_dynamic_value_141 := 5
-		hxrt.DynamicIndexSet(hx_dynamic_target_138, hx_dynamic_index_139, hx_dynamic_value_141)
-		return hx_dynamic_value_141
+		hx_dynamic_target_136 := a
+		hx_dynamic_index_137 := 1
+		hx_dynamic_value_139 := 5
+		hxrt.DynamicIndexSet(hx_dynamic_target_136, hx_dynamic_index_137, hx_dynamic_value_139)
+		return hx_dynamic_value_139
 	}()
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("write "), hxrt.StdString(a)), hxrt.StringFromLiteral(" ")), hxrt.StdString(Reflect_field(a, hxrt.StringFromLiteral("length")))))
 	hxrt.Println(v)
 	func() any {
-		hx_dynamic_target_142 := a
-		hx_dynamic_index_143 := 5
-		hx_dynamic_value_145 := 7
-		hxrt.DynamicIndexSet(hx_dynamic_target_142, hx_dynamic_index_143, hx_dynamic_value_145)
-		return hx_dynamic_value_145
+		hx_dynamic_target_140 := a
+		hx_dynamic_index_141 := 5
+		hx_dynamic_value_143 := 7
+		hxrt.DynamicIndexSet(hx_dynamic_target_140, hx_dynamic_index_141, hx_dynamic_value_143)
+		return hx_dynamic_value_143
 	}()
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("grow "), hxrt.StdString(a)), hxrt.StringFromLiteral(" ")), hxrt.StdString(Reflect_field(a, hxrt.StringFromLiteral("length")))))
 	hxrt.Println(v_1)
 	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("value "), hxrt.IntFromNullableAny(func() any {
-		hx_dynamic_target_146 := a
-		hx_dynamic_index_147 := 0
-		hx_dynamic_value_149 := 1
-		hxrt.DynamicIndexSet(hx_dynamic_target_146, hx_dynamic_index_147, hx_dynamic_value_149)
-		return hx_dynamic_value_149
+		hx_dynamic_target_144 := a
+		hx_dynamic_index_145 := 0
+		hx_dynamic_value_147 := 1
+		hxrt.DynamicIndexSet(hx_dynamic_target_144, hx_dynamic_index_145, hx_dynamic_value_147)
+		return hx_dynamic_value_147
 	}())), hxrt.StringFromLiteral(" ")), hxrt.StdString(a)))
 	hxrt.Println(v_2)
 	var i any = dyn(2)
 	func() any {
-		hx_dynamic_target_150 := a
-		hx_dynamic_index_151 := hxrt.IntFromNullableAny(i)
-		hx_dynamic_value_153 := hxrt.StringFromLiteral("s")
-		hxrt.DynamicIndexSet(hx_dynamic_target_150, hx_dynamic_index_151, hx_dynamic_value_153)
-		return hx_dynamic_value_153
+		hx_dynamic_target_148 := a
+		hx_dynamic_index_149 := hxrt.IntFromNullableAny(i)
+		hx_dynamic_value_151 := hxrt.StringFromLiteral("s")
+		hxrt.DynamicIndexSet(hx_dynamic_target_148, hx_dynamic_index_149, hx_dynamic_value_151)
+		return hx_dynamic_value_151
 	}()
 	var f any = dyn(3.9)
 	func() any {
-		hx_dynamic_target_154 := a
-		hx_dynamic_index_155 := hxrt.IntFromNullableAny(f)
-		hx_dynamic_value_157 := 3
-		hxrt.DynamicIndexSet(hx_dynamic_target_154, hx_dynamic_index_155, hx_dynamic_value_157)
-		return hx_dynamic_value_157
+		hx_dynamic_target_152 := a
+		hx_dynamic_index_153 := hxrt.IntFromNullableAny(f)
+		hx_dynamic_value_155 := 3
+		hxrt.DynamicIndexSet(hx_dynamic_target_152, hx_dynamic_index_153, hx_dynamic_value_155)
+		return hx_dynamic_value_155
 	}()
 	func() any {
-		hx_dynamic_target_158 := a
-		hx_dynamic_index_159 := 4
-		hx_dynamic_value_161 := 2.0
-		hxrt.DynamicIndexSet(hx_dynamic_target_158, hx_dynamic_index_159, hx_dynamic_value_161)
-		return hx_dynamic_value_161
+		hx_dynamic_target_156 := a
+		hx_dynamic_index_157 := 4
+		hx_dynamic_value_159 := 2.0
+		hxrt.DynamicIndexSet(hx_dynamic_target_156, hx_dynamic_index_157, hx_dynamic_value_159)
+		return hx_dynamic_value_159
 	}()
 	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("dynamic index "), hxrt.StdString(a)), hxrt.StringFromLiteral(" ")), hxrt.StdString(Type_typeof(hxrt.DynamicIndexGet(a, 4)))))
 	hxrt.Println(v_3)
 	func() any {
-		hx_dynamic_target_162 := a
-		hx_dynamic_index_163 := 0
-		hx_dynamic_value_165 := hxrt.DynamicIndexGet(a, 3)
-		hxrt.DynamicIndexSet(hx_dynamic_target_162, hx_dynamic_index_163, hx_dynamic_value_165)
-		return hx_dynamic_value_165
+		hx_dynamic_target_160 := a
+		hx_dynamic_index_161 := 0
+		hx_dynamic_value_163 := hxrt.DynamicIndexGet(a, 3)
+		hxrt.DynamicIndexSet(hx_dynamic_target_160, hx_dynamic_index_161, hx_dynamic_value_163)
+		return hx_dynamic_value_163
 	}()
 	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("copy "), hxrt.StdString(a)))
 	hxrt.Println(v_4)
 	typed := hxrt.NewArray(1, 2)
 	var alias any = typed
 	func() any {
-		hx_dynamic_target_166 := alias
-		hx_dynamic_index_167 := 0
-		hx_dynamic_value_169 := 100
-		hxrt.DynamicIndexSet(hx_dynamic_target_166, hx_dynamic_index_167, hx_dynamic_value_169)
-		return hx_dynamic_value_169
+		hx_dynamic_target_164 := alias
+		hx_dynamic_index_165 := 0
+		hx_dynamic_value_167 := 100
+		hxrt.DynamicIndexSet(hx_dynamic_target_164, hx_dynamic_index_165, hx_dynamic_value_167)
+		return hx_dynamic_value_167
 	}()
 	func() any {
-		hx_dynamic_target_170 := alias
-		hx_dynamic_index_171 := 3
-		hx_dynamic_value_173 := 300
-		hxrt.DynamicIndexSet(hx_dynamic_target_170, hx_dynamic_index_171, hx_dynamic_value_173)
-		return hx_dynamic_value_173
+		hx_dynamic_target_168 := alias
+		hx_dynamic_index_169 := 3
+		hx_dynamic_value_171 := 300
+		hxrt.DynamicIndexSet(hx_dynamic_target_168, hx_dynamic_index_169, hx_dynamic_value_171)
+		return hx_dynamic_value_171
 	}()
 	var v_5 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("alias "), hxrt.StdString(typed)), hxrt.StringFromLiteral(" ")), typed.Len()))
 	hxrt.Println(v_5)
 	var nested any = dyn(hxrt.NewArray(hxrt.NewArray(1, 2), hxrt.NewArray(3, 4)))
-	hx_array_target_176 := func(hx_value_174 any) *hxrt.Array {
-		if hx_value_174 == nil {
-			var hx_zero_175 *hxrt.Array
-			return hx_zero_175
+	hx_array_target_174 := func(hx_value_172 any) *hxrt.Array {
+		if hx_value_172 == nil {
+			var hx_zero_173 *hxrt.Array
+			return hx_zero_173
 		}
-		return hx_value_174.(*hxrt.Array)
+		return hx_value_172.(*hxrt.Array)
 	}(hxrt.DynamicIndexGet(nested, 1))
-	hx_array_index_177 := 0
-	hx_array_target_176.Set(hx_array_index_177, 9)
+	hx_array_index_175 := 0
+	hx_array_target_174.Set(hx_array_index_175, 9)
 	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("nested "), hxrt.StdString(nested)))
 	hxrt.Println(v_6)
 	var json any = hxrt.JsonParse(hxrt.StringFromLiteral("{\"items\":[1,2,3]}"))
 	func() any {
-		hx_dynamic_target_178 := Reflect_field(json, hxrt.StringFromLiteral("items"))
-		hx_dynamic_index_179 := 0
-		hx_dynamic_value_181 := 7
-		hxrt.DynamicIndexSet(hx_dynamic_target_178, hx_dynamic_index_179, hx_dynamic_value_181)
-		return hx_dynamic_value_181
+		hx_dynamic_target_176 := Reflect_field(json, hxrt.StringFromLiteral("items"))
+		hx_dynamic_index_177 := 0
+		hx_dynamic_value_179 := 7
+		hxrt.DynamicIndexSet(hx_dynamic_target_176, hx_dynamic_index_177, hx_dynamic_value_179)
+		return hx_dynamic_value_179
 	}()
 	var v_7 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("json "), func() *string {
 		var space *string = nil
@@ -720,18 +714,18 @@ func writes() {
 	hxrt.Println(v_7)
 	rows := hxrt.NewArray(dyn(hxrt.NewArray(5, 6)))
 	func() any {
-		hx_dynamic_target_182 := rows.Get(0)
-		hx_dynamic_index_183 := 1
-		hx_dynamic_value_185 := 60
-		hxrt.DynamicIndexSet(hx_dynamic_target_182, hx_dynamic_index_183, hx_dynamic_value_185)
-		return hx_dynamic_value_185
+		hx_dynamic_target_180 := rows.Get(0)
+		hx_dynamic_index_181 := 1
+		hx_dynamic_value_183 := 60
+		hxrt.DynamicIndexSet(hx_dynamic_target_180, hx_dynamic_index_181, hx_dynamic_value_183)
+		return hx_dynamic_value_183
 	}()
 	var v_8 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("element "), hxrt.StdString(rows)))
 	hxrt.Println(v_8)
 	target := hxrt.NewArray(0, 0)
-	hx_array_target_186 := target
-	hx_array_index_187 := 1
-	hx_array_target_186.Set(hx_array_index_187, hxrt.IntFromNullableAny(hxrt.DynamicIndexGet(a, 3)))
+	hx_array_target_184 := target
+	hx_array_index_185 := 1
+	hx_array_target_184.Set(hx_array_index_185, hxrt.IntFromNullableAny(hxrt.DynamicIndexGet(a, 3)))
 	var v_9 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("typed target "), hxrt.StdString(target)))
 	hxrt.Println(v_9)
 }

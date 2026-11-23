@@ -465,6 +465,24 @@ func AnyEqualsNull(value any) bool {
 	return isAnyNil(value)
 }
 
+// DynamicToString converts a `Dynamic` value for a String slot
+// (`var s:String = d`): null stays null, a String stays the same String, and
+// another value becomes its `Std.string` text.
+//
+// Why: a null value must stay null (`s == null` is true in `--interp`), and
+// StdString would turn it into the text "null". `--interp` keeps another
+// value unchanged, and a Go `*string` slot cannot hold it, so the slot stores
+// the text that `--interp` prints for that value. See DynamicToFloatSlot
+// (dynamic_ops.go) for the other slots. It lives here, next to StdString,
+// because the String slot of baseline std code (the Map key bridges) needs
+// it without the dynamic_ops slice.
+func DynamicToString(value any) *string {
+	if isAnyNil(value) {
+		return nil
+	}
+	return StdString(value)
+}
+
 func stringValueOrNullToken(value *string) string {
 	if value == nil {
 		return "null"

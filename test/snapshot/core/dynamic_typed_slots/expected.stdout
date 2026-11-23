@@ -1,0 +1,132 @@
+-- Float slots, 3
+local 3 1.5 3.25 true
+dynamic field 3 1.5 3.25 true
+argument 1.5
+return 3 1.5 3.25 true
+return of call 3 1.5 3.25 true
+constructor 3 1.5 3.25 true
+field write 3 1.5 3.25 true
+static write 3 1.5 3.25 true
+reassign 3 1.5 3.25 true
+array write 3 1.5 3.25 true
+array literal 3 1.5 3.25 true
+map write 3 1.5 3.25 true
+structure 3 1.5 3.25 true
+ternary 3 1.5 3.25 true
+cast 3 1.5 3.25 true
+Array<Dynamic> element 3 1.5 3.25 true
+Reflect.field 3 1.5 3.25 true
+call 3 1.5 3.25 true
+Null<Float> then Float 3 1.5 3.25 true
+lambda argument 1.5
+-- Float slots, 2.5
+local 2.5 1.25 2.75 false
+dynamic field 2.5 1.25 2.75 false
+argument 1.25
+return 2.5 1.25 2.75 false
+return of call 2.5 1.25 2.75 false
+constructor 2.5 1.25 2.75 false
+field write 2.5 1.25 2.75 false
+static write 2.5 1.25 2.75 false
+reassign 2.5 1.25 2.75 false
+array write 2.5 1.25 2.75 false
+array literal 2.5 1.25 2.75 false
+map write 2.5 1.25 2.75 false
+structure 2.5 1.25 2.75 false
+ternary 2.5 1.25 2.75 false
+cast 2.5 1.25 2.75 false
+Array<Dynamic> element 2.5 1.25 2.75 false
+Reflect.field 2.5 1.25 2.75 false
+call 2.5 1.25 2.75 false
+Null<Float> then Float 2.5 1.25 2.75 false
+lambda argument 1.25
+-- Bool slots, true
+local yes
+dynamic field yes
+argument yes
+return yes
+field write yes
+array write yes
+Array<Dynamic> element yes
+-- String slots, null
+local true null
+dynamic field true null
+argument true
+return true null
+return of call true null
+field write true null
+static write true null
+reassign true null
+array write true null
+map write true null
+structure true null
+ternary true null
+cast true null
+Array<Dynamic> element true null
+Reflect.field true null
+call true null
+-- String slots, x
+local false x
+dynamic field false x
+argument false
+return false x
+return of call false x
+field write false x
+static write false x
+reassign false x
+array write false x
+map write false x
+structure false x
+ternary false x
+cast false x
+Array<Dynamic> element false x
+Reflect.field false x
+call false x
+-- Int, Float and Bool values in String slots
+3 3! false
+2.5 2.5! false
+true true! false
+-- Null<Float> and Null<Bool> slots
+Null<Float> 3 3.5 false
+Null<Float> field 3 false
+Null<Float> 2.5 3 false
+Null<Float> field 2.5 false
+Null<Float> null null true
+Null<Float> field null true
+Null<Bool> true false yes
+Null<Bool> false false no
+Null<Bool> null true no
+-- values that the slot cannot hold
+Float local handled
+Float argument handled
+Float return handled
+Null<Float> local handled
+Float local handled
+Float argument handled
+Float return handled
+Null<Float> local handled
+Float local handled
+Float argument handled
+Float return handled
+Null<Float> local handled
+Bool local handled
+Bool argument handled
+Bool return handled
+Bool field write handled
+Null<Bool> local handled
+Bool local handled
+Bool argument handled
+Bool return handled
+Bool field write handled
+Null<Bool> local handled
+Bool local handled
+Bool argument handled
+Bool return handled
+Bool field write handled
+Null<Bool> local handled
+Bool local handled
+Bool argument handled
+Bool return handled
+Bool field write handled
+Null<Bool> local handled
+done

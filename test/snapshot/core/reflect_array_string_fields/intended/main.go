@@ -133,7 +133,7 @@ func dynamicReads() {
 	row(hxrt.StringFromLiteral("s.toUpperCase"), reflaxe__go___internal__CompilerReflect_callMethod(Reflect_field(s, hxrt.StringFromLiteral("toUpperCase")), []any{}))
 	row(hxrt.StringFromLiteral("s.substr"), reflaxe__go___internal__CompilerReflect_callMethod(Reflect_field(s, hxrt.StringFromLiteral("substr")), []any{2}))
 	row(hxrt.StringFromLiteral("s.charCodeAt"), reflaxe__go___internal__CompilerReflect_callMethod(Reflect_field(s, hxrt.StringFromLiteral("charCodeAt")), []any{0}))
-	c := hxrt.StdString(reflaxe__go___internal__CompilerReflect_callMethod(Reflect_field(s, hxrt.StringFromLiteral("charAt")), []any{4}))
+	c := hxrt.DynamicToString(reflaxe__go___internal__CompilerReflect_callMethod(Reflect_field(s, hxrt.StringFromLiteral("charAt")), []any{4}))
 	row(hxrt.StringFromLiteral("typed String"), hxrt.StringConcatStringPtr(c, hxrt.StringFromLiteral("!")))
 	hx_obj_4 := map[string]any{}
 	hx_obj_4["items"] = hxrt.NewArray(1, 2)

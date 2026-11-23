@@ -1733,19 +1733,7 @@ func haxe__Template_valueAsFloat(value any) float64 {
 			return false
 		}
 	}(value) {
-		return func(hx_value_232 any) float64 {
-			if hx_value_232 == nil {
-				var hx_zero_233 float64
-				return hx_zero_233
-			}
-			return hx_value_232.(float64)
-		}(func(hx_value_230 any) float64 {
-			if hx_value_230 == nil {
-				var hx_zero_231 float64
-				return hx_zero_231
-			}
-			return hx_value_230.(float64)
-		}(value))
+		return hxrt.DynamicToFloatSlot(value)
 	}
 	if func(hx_value any) bool {
 		switch hx_value.(type) {
@@ -1757,17 +1745,11 @@ func haxe__Template_valueAsFloat(value any) float64 {
 			return false
 		}
 	}(value) {
-		return haxe__Template_parseFloatLiteral(hxrt.StdString(func(hx_value_234 any) *string {
-			if hx_value_234 == nil {
-				var hx_zero_235 *string
-				return hx_zero_235
-			}
-			return hx_value_234.(*string)
-		}(value)))
+		return haxe__Template_parseFloatLiteral(hxrt.DynamicToString(value))
 	}
 	hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Expected numeric expression value, got "), hxrt.StdString(value))))
-	var hx_throw_zero_236 float64
-	return hx_throw_zero_236
+	var hx_throw_zero_230 float64
+	return hx_throw_zero_230
 }
 
 type haxe___Template__TemplateExpr struct {

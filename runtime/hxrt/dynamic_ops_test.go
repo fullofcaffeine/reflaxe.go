@@ -181,3 +181,51 @@ func TestDynamicIndexFollowsInterp(t *testing.T) {
 		t.Errorf("writes: got %s", got)
 	}
 }
+
+// A `Dynamic` value stored in a typed slot: an Int becomes a Float, null
+// stays null where the slot can hold it, and a value that the slot cannot
+// hold raises a Haxe error (`--interp` keeps such a value unchanged).
+func TestDynamicSlotConversions(t *testing.T) {
+	text := StringFromLiteral("x")
+	var nilText *string
+	var nilArray *Array
+	object := AnonymousFromMap(map[string]any{"a": 1})
+	cases := []struct {
+		name string
+		run  func() any
+		want string
+	}{
+		{"Float slot, Int", func() any { return DynamicToFloatSlot(3) }, "F:3"},
+		{"Float slot, Float", func() any { return DynamicToFloatSlot(2.5) }, "F:2.5"},
+		{"Float slot, null", func() any { return DynamicToFloatSlot(nil) }, "F:0"},
+		{"Float slot, String", func() any { return DynamicToFloatSlot(text) }, "error: Invalid operation: expected Float-compatible value"},
+		{"Float slot, Bool", func() any { return DynamicToFloatSlot(true) }, "error: Invalid operation: expected Float-compatible value"},
+		{"Float slot, object", func() any { return DynamicToFloatSlot(object) }, "error: Invalid operation: expected Float-compatible value"},
+		{"Null<Float> slot, Int", func() any { return DynamicToNullableFloat(3) }, "F:3"},
+		{"Null<Float> slot, null", func() any { return DynamicToNullableFloat(nil) }, "null"},
+		{"Null<Float> slot, String", func() any { return DynamicToNullableFloat(text) }, "error: Invalid operation: expected Float-compatible value"},
+		{"Bool slot, Bool", func() any { return DynamicToBool(true) }, "B:true"},
+		{"Bool slot, null", func() any { return DynamicToBool(nil) }, "B:false"},
+		{"Bool slot, Int", func() any { return DynamicToBool(1) }, "error: Invalid operation: expected Bool value"},
+		{"Bool slot, String", func() any { return DynamicToBool(text) }, "error: Invalid operation: expected Bool value"},
+		{"Null<Bool> slot, Bool", func() any { return DynamicToNullableBool(false) }, "B:false"},
+		{"Null<Bool> slot, null", func() any { return DynamicToNullableBool(nil) }, "null"},
+		{"Null<Bool> slot, Float", func() any { return DynamicToNullableBool(2.5) }, "error: Invalid operation: expected Bool value"},
+		{"String slot, String", func() any { return DynamicToString(text) }, "S:x"},
+		{"String slot, Int", func() any { return DynamicToString(3) }, "S:3"},
+		{"String slot, Float", func() any { return DynamicToString(2.5) }, "S:2.5"},
+		{"String slot, object", func() any { return DynamicToString(object) }, "S:{a: 1}"},
+		{"String slot, Array", func() any { return DynamicToString(NewArray(1, 2)) }, "S:[1,2]"},
+	}
+	for _, c := range cases {
+		if got := dynamicOutcome(c.run); got != c.want {
+			t.Errorf("%s: got %q, want %q", c.name, got, c.want)
+		}
+	}
+	// A null String, also a null pointer stored in the `any`, stays null.
+	for name, value := range map[string]any{"nil": nil, "null String": nilText, "null Array": nilArray} {
+		if got := DynamicToString(value); got != nil {
+			t.Errorf("String slot, %s: got %q, want null", name, *got)
+		}
+	}
+}

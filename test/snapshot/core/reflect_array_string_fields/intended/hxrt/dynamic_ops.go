@@ -41,6 +41,8 @@ import (
 //     a null target raises "Null Access" and any other target raises
 //     "Unexpected value <value>, expected Array". So this slice also copies
 //     the Array carrier (array.go).
+//   - A value stored in a Float, Bool or String slot (`var f:Float = d`)
+//     is converted to the Go type of the slot; see DynamicToFloatSlot.
 
 // dynamicInt reads an Int operand. Go integer types other than `int` can reach
 // a `Dynamic` value through native boundaries; they are read as their low 32
@@ -283,6 +285,70 @@ func DynamicToFloat(value any) float64 {
 	}
 	Throw(StringFromLiteral("Invalid operation: expected Float-compatible value"))
 	return 0
+}
+
+// Slots of a static type that receive a `Dynamic` value.
+//
+// What: DynamicToFloatSlot, DynamicToNullableFloat, DynamicToBool and
+// DynamicToNullableBool convert a `Dynamic` value for a Float,
+// `Null<Float>`, Bool or `Null<Bool>` slot: a local, an argument, a return
+// value, a field, an Array element or a Map value. DynamicToString
+// (string.go) does the same for a String slot.
+// Why: Haxe puts no check or conversion on `var f:Float = d`, so `--interp`
+// keeps the value unchanged: an Int stays an Int, and a String in a Float
+// slot stays a String until an operator rejects it. A Go `float64`, `bool`
+// or `*string` slot cannot hold another kind of value, and a Go type
+// assertion stops the program with a panic that Haxe `try`/`catch` cannot
+// handle. So the helpers convert what the slot can represent and raise a
+// Haxe error for the rest:
+//   - An Int becomes a Float, as Haxe converts an Int typed value into a
+//     Float slot.
+//   - Null stays null in `Null<Float>`, `Null<Bool>` and String slots. In a
+//     Float or Bool slot, which Go cannot set to null, it reads as 0 or
+//     false, the default value of the type on the static Haxe targets.
+//   - A String slot stores another value as its `Std.string` text, which is
+//     what `--interp` prints for the kept value.
+//   - Any other value raises "Invalid operation: expected Float-compatible
+//     value" or "Invalid operation: expected Bool value".
+// How: Null is checked with isAnyNil, so a null pointer stored in the `any`
+// (a null String) also counts as null.
+
+// DynamicToFloatSlot converts a `Dynamic` value for a Float slot.
+func DynamicToFloatSlot(value any) float64 {
+	if isAnyNil(value) {
+		return 0
+	}
+	return DynamicToFloat(value)
+}
+
+// DynamicToNullableFloat converts a `Dynamic` value for a `Null<Float>`
+// slot: null stays null, and a number is stored as a Go float64.
+func DynamicToNullableFloat(value any) any {
+	if isAnyNil(value) {
+		return nil
+	}
+	return DynamicToFloat(value)
+}
+
+// DynamicToBool converts a `Dynamic` value for a Bool slot.
+func DynamicToBool(value any) bool {
+	if isAnyNil(value) {
+		return false
+	}
+	truth, ok := value.(bool)
+	if !ok {
+		Throw(StringFromLiteral("Invalid operation: expected Bool value"))
+	}
+	return truth
+}
+
+// DynamicToNullableBool converts a `Dynamic` value for a `Null<Bool>` slot:
+// null stays null.
+func DynamicToNullableBool(value any) any {
+	if isAnyNil(value) {
+		return nil
+	}
+	return DynamicToBool(value)
 }
 
 // dynamicCompare orders two values. The second result is false when the

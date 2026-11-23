@@ -260,7 +260,7 @@ func (self *haxe__Serializer) serializeBytes(value *haxe__io__Bytes) {
 func (self *haxe__Serializer) serializeClass(value any, declaration any) {
 	className := Type_getClassName(declaration)
 	if hxrt.StringEqualStringPtr(className, hxrt.StringFromLiteral("String")) {
-		self.__hx_this.serializeString(hxrt.StdString(value))
+		self.__hx_this.serializeString(hxrt.DynamicToString(value))
 		return
 	}
 	if self.useCache && self.__hx_this.serializeRef(value) {
@@ -464,26 +464,20 @@ func (self *haxe__Serializer) serialize(value any) {
 			_this_3.b = hxrt.StringConcatStringPtr(_this_3.b, hxrt.StdString(integer))
 		}
 	case 2:
-		number := func(hx_value_31 any) float64 {
-			if hx_value_31 == nil {
-				var hx_zero_32 float64
-				return hx_zero_32
-			}
-			return hx_value_31.(float64)
-		}(value)
+		number := hxrt.DynamicToFloatSlot(value)
 		if math.IsNaN(number) {
 			_this_4 := self.buf
 			_this_4.b = hxrt.StringConcatStringPtr(_this_4.b, hxrt.StringFromLiteral("k"))
 		} else {
 			if !(!math.IsInf(number, 0) && !math.IsNaN(number)) {
 				_this_5 := self.buf
-				var hx_if_33 *string
+				var hx_if_31 *string
 				if number < 0 {
-					hx_if_33 = hxrt.StringFromLiteral("m")
+					hx_if_31 = hxrt.StringFromLiteral("m")
 				} else {
-					hx_if_33 = hxrt.StringFromLiteral("p")
+					hx_if_31 = hxrt.StringFromLiteral("p")
 				}
-				_this_5.b = hxrt.StringConcatStringPtr(_this_5.b, hx_if_33)
+				_this_5.b = hxrt.StringConcatStringPtr(_this_5.b, hx_if_31)
 			} else {
 				_this_6 := self.buf
 				_this_6.b = hxrt.StringConcatStringPtr(_this_6.b, hxrt.StringFromLiteral("d"))
@@ -492,21 +486,15 @@ func (self *haxe__Serializer) serialize(value any) {
 			}
 		}
 	case 3:
-		boolean := func(hx_value_34 any) bool {
-			if hx_value_34 == nil {
-				var hx_zero_35 bool
-				return hx_zero_35
-			}
-			return hx_value_34.(bool)
-		}(value)
+		boolean := hxrt.DynamicToBool(value)
 		_this_8 := self.buf
-		var hx_if_36 *string
+		var hx_if_32 *string
 		if boolean {
-			hx_if_36 = hxrt.StringFromLiteral("t")
+			hx_if_32 = hxrt.StringFromLiteral("t")
 		} else {
-			hx_if_36 = hxrt.StringFromLiteral("f")
+			hx_if_32 = hxrt.StringFromLiteral("f")
 		}
-		_this_8.b = hxrt.StringConcatStringPtr(_this_8.b, hx_if_36)
+		_this_8.b = hxrt.StringConcatStringPtr(_this_8.b, hx_if_32)
 	case 4:
 		if func(hx_value any) bool {
 			switch hx_value.(type) {

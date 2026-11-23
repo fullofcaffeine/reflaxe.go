@@ -173,7 +173,7 @@ func main() {
 	var dynamicText any = hxrt.StringFromLiteral("dyn")
 	var v_13 any = reflaxe__go___internal__CompilerReflect_callMethod(Reflect_field(dynamicText, hxrt.StringFromLiteral("toString")), []any{})
 	hxrt.Println(v_13)
-	typedFromDynamic := hxrt.StdString(dynamicText)
+	typedFromDynamic := hxrt.DynamicToString(dynamicText)
 	var v_14 any = any(func(hx_receiver_16 *string) *string {
 		if hx_receiver_16 == nil {
 			hxrt.Throw(hxrt.StringFromLiteral("Null Access"))

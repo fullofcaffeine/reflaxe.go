@@ -142,19 +142,13 @@ func checkTextAndData() {
 	}(names.__hx_this.exists(hxrt.StringFromLiteral("primary"))), hxrt.StringFromLiteral("StringMap removal contract"))
 	var parsed any = hxrt.JsonParse(hxrt.StringFromLiteral("{\"name\":\"alpha\",\"ready\":true}"))
 	require(Reflect_hasField(parsed, hxrt.StringFromLiteral("name")), hxrt.StringFromLiteral("JSON field contract"))
-	parsedName := func(hx_value_22 any) *string {
-		if hx_value_22 == nil {
-			var hx_zero_23 *string
-			return hx_zero_23
-		}
-		return hx_value_22.(*string)
-	}(Reflect_field(parsed, hxrt.StringFromLiteral("name")))
+	parsedName := hxrt.DynamicToString(Reflect_field(parsed, hxrt.StringFromLiteral("name")))
 	require(hxrt.StringEqualStringPtr(parsedName, hxrt.StringFromLiteral("alpha")), hxrt.StringFromLiteral("JSON value contract"))
 	var space *string = nil
 	encoded := hxrt.StdString(hxrt.JsonStringify(any(func() hxrt.Anonymous {
-		hx_obj_24 := map[string]any{}
-		hx_obj_24["name"] = hxrt.StringFromLiteral("alpha")
-		return hxrt.AnonymousFromMap(hx_obj_24)
+		hx_obj_22 := map[string]any{}
+		hx_obj_22["name"] = hxrt.StringFromLiteral("alpha")
+		return hxrt.AnonymousFromMap(hx_obj_22)
 	}()), space))
 	require(StringTools_contains(encoded, hxrt.StringFromLiteral("\"name\":\"alpha\"")), hxrt.StringFromLiteral("JSON stringify contract"))
 	path := New_haxe__io__Path(haxe__io__Path_join(hxrt.NewArray(hxrt.StringFromLiteral("reports"), hxrt.StringFromLiteral("result.json"))))

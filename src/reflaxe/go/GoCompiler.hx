@@ -6675,7 +6675,13 @@ class GoCompiler {
 				// Convert only when an assignment, call, or return supplies a real expected
 				// type; converting here turns every Vector index/length access into a copy.
 				var storageTransparentArrayCast = isArrayType(inner.t) && isArrayType(expr.t);
-				if (!storageTransparentArrayCast && innerGoType != castGoType) {
+				// `cast d` of a `Dynamic` value to Int, Float, Bool or String (also
+				// `Any` promoted to them) converts like an implicit slot does.
+				var dynamicCast = isDynamicValueType(inner.t)
+					&& !isDynamicValueType(expr.t) ? lowerDynamicSlotExpr(castExpr, expr.t) : null;
+				if (dynamicCast != null) {
+					castExpr = dynamicCast;
+				} else if (!storageTransparentArrayCast && innerGoType != castGoType) {
 					if (castGoType != "any" && innerGoType == "any") {
 						castExpr = lowerNullableAwareTypeAssertExpr(castExpr, expr.t);
 					} else if (castGoType == "any" && innerGoType != "any" && !exprBackedByAny(inner)) {
@@ -9542,7 +9548,12 @@ class GoCompiler {
 			paramType)) : nullablePrimitiveArg;
 		if (paramType != null) {
 			loweredArg = upcastIfNeeded(loweredArg, arg.t, paramType, arg);
-			if (!isNullablePrimitiveType(paramType)) {
+			// A `Dynamic` argument is converted for its parameter, also for a
+			// `Null<Float>` or `Null<Bool>` parameter (see `lowerDynamicSlotExpr`).
+			var dynamicArg = isDynamicValueType(arg.t) ? lowerDynamicSlotExpr(loweredArg, paramType) : null;
+			if (dynamicArg != null) {
+				loweredArg = dynamicArg;
+			} else if (!isNullablePrimitiveType(paramType)) {
 				var argKnownNonNullPrimitive = nonNullPrimitiveExprGoType(arg) != null;
 				if (!argKnownNonNullPrimitive && isSharedArrayElementExpr(arg)) {
 					loweredArg = coerceStoredArrayElementExpr(loweredArg, paramType);
@@ -12293,11 +12304,82 @@ class GoCompiler {
 		};
 	}
 
+	/**
+		What: Reports whether Haxe types a value as `Dynamic` or `Any`, so that
+		only its run-time value says what it holds.
+		Why: Such a value can enter an Int, Float, Bool or String slot with no
+		cast from the typer, and `lowerDynamicSlotExpr` must convert it there.
+		Typed values (also `Null<T>` and type parameters, which are Go `any`
+		too) keep their own recovery, so their generated Go does not change.
+		How: Follow the type to `Dynamic`, or to the `Any` abstract.
+	**/
+	function isDynamicValueType(type:Type):Bool {
+		return isDynamicCatchType(type) || switch (Context.follow(type)) {
+			case TAbstract(abstractRef, _): var abstractType = abstractRef.get(); abstractType.pack.length == 0 && abstractType.name == "Any";
+			case _: false;
+		};
+	}
+
+	/**
+		What: Converts a `Dynamic` value (see `isDynamicValueType`) for an Int,
+		Float, Bool or String slot, or a `Null<Float>` or `Null<Bool>` slot.
+		Returns null for every other slot, which keeps its own recovery.
+		Why: Haxe adds no conversion when a `Dynamic` value enters a typed slot,
+		and `--interp` keeps the value unchanged. haxe.go asserted the Go `any`
+		to `float64` or `bool`, so an Int in a Float slot (`var f:Float = d`
+		with `d = 3`) stopped the program with a Go panic that Haxe `try`/`catch`
+		cannot handle, and the general String conversion turned null into the
+		text "null".
+		How: Call the slot helpers of `runtime/hxrt/dynamic_ops.go` (see
+		`DynamicToFloatSlot` there) and `hxrt.DynamicToString`, which
+		`runtime/hxrt/string.go` owns so that baseline std code (the Map key
+		bridges) does not need the `dynamic_ops` slice: an Int becomes a Float,
+		null stays null in `Null<Float>`, `Null<Bool>` and String slots, and a
+		value that the slot cannot hold raises a Haxe error. An Int slot keeps
+		`hxrt.IntFromNullableAny`, and a `Null<Int>` slot keeps the value. A
+		value that this function already converted for the same slot is
+		returned unchanged, because a value can pass more than one boundary
+		(an Array element read, then its local).
+	**/
+	function lowerDynamicSlotExpr(expr:GoExpr, slotType:Type):Null<GoExpr> {
+		var helper = dynamicSlotHelper(slotType);
+		if (helper == null)
+			return null;
+		return switch (expr) {
+			case GoCall(GoIdent(name), [_]) if (name == helper): expr;
+			case _: GoExpr.GoCall(GoExpr.GoIdent(helper), [expr]);
+		};
+	}
+
+	/** The runtime helper that `lowerDynamicSlotExpr` calls for `slotType`, or null. */
+	function dynamicSlotHelper(slotType:Type):Null<String> {
+		if (isNullableFloatType(slotType))
+			return "hxrt.DynamicToNullableFloat";
+		if (isNullableBoolType(slotType))
+			return "hxrt.DynamicToNullableBool";
+		if (isNullablePrimitiveType(slotType))
+			return null;
+		if (isIntType(slotType) && typeToGoType(slotType) == "int")
+			return "hxrt.IntFromNullableAny";
+		if (isFloatType(slotType))
+			return "hxrt.DynamicToFloatSlot";
+		if (isBoolType(slotType))
+			return "hxrt.DynamicToBool";
+		if (isStringType(slotType) && typeToGoType(slotType) == "*string")
+			return "hxrt.DynamicToString";
+		return null;
+	}
+
 	function coerceAnyExprToType(expr:GoExpr, fromType:Type, toType:Type, ?fromAnyOverride:Bool = false):GoExpr {
 		// An Int value entering a Float slot was already recovered and converted by
 		// lowerIntToFloatSlot; recovering it again as an erased float64 would be wrong.
 		if (isIntToFloatWidening(fromType, toType)) {
 			return expr;
+		}
+		if (isDynamicValueType(fromType)) {
+			var converted = lowerDynamicSlotExpr(expr, toType);
+			if (converted != null)
+				return converted;
 		}
 		if (isAnonymousObjectType(toType) && (fromAnyOverride || typeToGoType(fromType) == "any"))
 			return structuralObjectLowering.recover(expr, toType);
@@ -12568,7 +12650,11 @@ class GoCompiler {
 		"hxrt.DynamicGreater",
 		"hxrt.DynamicGreaterEqual",
 		"hxrt.DynamicIndexGet",
-		"hxrt.DynamicIndexSet"
+		"hxrt.DynamicIndexSet",
+		"hxrt.DynamicToFloatSlot",
+		"hxrt.DynamicToNullableFloat",
+		"hxrt.DynamicToBool",
+		"hxrt.DynamicToNullableBool"
 	];
 
 	/**
@@ -12933,7 +13019,9 @@ class GoCompiler {
 		var lowered = lowerExprWithPrefix(source);
 		var adapted = upcastIfNeeded(lowered.expr, source.t, targetType, source);
 		if (isSharedArrayElementExpr(source)) {
-			adapted = coerceStoredArrayElementExpr(adapted, targetType);
+			// An `Array<Dynamic>` element holds a `Dynamic` value: convert it as one.
+			var dynamicElement = isDynamicValueType(source.t) ? lowerDynamicSlotExpr(adapted, targetType) : null;
+			adapted = dynamicElement != null ? dynamicElement : coerceStoredArrayElementExpr(adapted, targetType);
 		}
 		return {
 			prefix: lowered.prefix,
@@ -12958,13 +13046,21 @@ class GoCompiler {
 		return recoverErasedPrimitiveForSlot(source, targetType, lowerStoredExprWithExpectedType(source, targetType, declaredStorage));
 	}
 
-	/** Recovers an erased, non-narrowed primitive `source` already lowered for a concrete Int, Float or Bool `targetType`. */
+	/**
+		Recovers an erased, non-narrowed primitive `source` already lowered for a
+		concrete Int, Float or Bool `targetType`. A `Dynamic` source is converted
+		for every slot that `lowerDynamicSlotExpr` serves (also String,
+		`Null<Float>` and `Null<Bool>`), whatever expression produced it: a call
+		result is Go `any` too.
+	**/
 	function recoverErasedPrimitiveForSlot(source:TypedExpr, targetType:Type, lowered:LoweredExprWithPrefix):LoweredExprWithPrefix {
-		var recoverPrimitive = !isNullablePrimitiveType(targetType)
-			&& (isIntType(targetType) || isFloatType(targetType) || isBoolType(targetType))
-			&& !isSharedArrayElementExpr(source)
-			&& nonNullPrimitiveExprGoType(source) == null
-			&& (exprBackedByAny(source) || shouldForceAnyCoerce(source.t, targetType));
+		var dynamicSource = isDynamicValueType(source.t) && dynamicSlotHelper(targetType) != null;
+		var recoverPrimitive = dynamicSource
+			|| (!isNullablePrimitiveType(targetType)
+				&& (isIntType(targetType) || isFloatType(targetType) || isBoolType(targetType))
+				&& !isSharedArrayElementExpr(source)
+				&& nonNullPrimitiveExprGoType(source) == null
+				&& (exprBackedByAny(source) || shouldForceAnyCoerce(source.t, targetType)));
 		return {
 			prefix: lowered.prefix,
 			expr: recoverPrimitive ? coerceAnyExprToType(lowered.expr, source.t, targetType, true) : lowered.expr,
@@ -13625,6 +13721,10 @@ class GoCompiler {
 				exprBackedByAny(inner);
 			case TParenthesis(inner):
 				exprBackedByAny(inner);
+			// The cast converts a `Dynamic` value to Int, Float, Bool or String storage.
+			case TCast(inner, _)
+				if (isDynamicValueType(inner.t) && !isDynamicValueType(expr.t) && !isNullablePrimitiveType(expr.t) && dynamicSlotHelper(expr.t) != null):
+				false;
 			case TCast(inner, _):
 				exprBackedByAny(inner);
 			case _:

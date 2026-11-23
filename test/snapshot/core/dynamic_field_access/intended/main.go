@@ -137,7 +137,7 @@ func anonymousReads() {
 	hxrt.Println(v_4)
 	typed := hxrt.IntFromNullableAny(Reflect_field(o, hxrt.StringFromLiteral("to")))
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("typed "), int((hxrt.Int32Wrap(typed) + hxrt.Int32Wrap(1))))))
-	text := hxrt.StdString(Reflect_field(o, hxrt.StringFromLiteral("name")))
+	text := hxrt.DynamicToString(Reflect_field(o, hxrt.StringFromLiteral("name")))
 	var v_5 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("text "), hxrt.StringLengthStringPtr(text)))
 	hxrt.Println(v_5)
 	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("missing "), hxrt.StdString(Reflect_field(o, hxrt.StringFromLiteral("missing")))), hxrt.StringFromLiteral(" ")), hxrt.StdString(hxrt.AnyEqualsNull(Reflect_field(o, hxrt.StringFromLiteral("missing"))))))
@@ -317,7 +317,7 @@ func writes() {
 	}()
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("concat "), hxrt.StdString(Reflect_field(o, hxrt.StringFromLiteral("name")))))
 	hxrt.Println(v_1)
-	assigned := hxrt.StdString(func() any {
+	assigned := hxrt.DynamicToString(func() any {
 		hx_dynamic_target_37 := o
 		hx_dynamic_value_39 := 11
 		Reflect_setField(hx_dynamic_target_37, hxrt.StringFromLiteral("to"), hx_dynamic_value_39)

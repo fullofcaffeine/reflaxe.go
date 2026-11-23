@@ -21,13 +21,7 @@ func main() {
 	var v_1 any = any(hxrt.StdString(hxrt.JsonStringify(pretty, hxrt.StringFromLiteral("  "))))
 	hxrt.Println(v_1)
 	var object any = hxrt.JsonParse(hxrt.StringFromLiteral("{\"name\":\"alpha\"}"))
-	name := func(hx_value_1 any) *string {
-		if hx_value_1 == nil {
-			var hx_zero_2 *string
-			return hx_zero_2
-		}
-		return hx_value_1.(*string)
-	}(Reflect_field(object, hxrt.StringFromLiteral("name")))
+	name := hxrt.DynamicToString(Reflect_field(object, hxrt.StringFromLiteral("name")))
 	hxrt.Println(any(name))
 }
 
