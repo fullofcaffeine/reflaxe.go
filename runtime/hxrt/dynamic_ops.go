@@ -37,6 +37,10 @@ import (
 //     Bools as `false < true`. Two values that Haxe `==` calls equal (null and
 //     null, or one object) compare equal; any other pair is unordered, so
 //     every ordered comparison of it is false.
+//   - `target[index]` reads and writes an Array through the Array carrier;
+//     a null target raises "Null Access" and any other target raises
+//     "Unexpected value <value>, expected Array". So this slice also copies
+//     the Array carrier (array.go).
 
 // dynamicInt reads an Int operand. Go integer types other than `int` can reach
 // a `Dynamic` value through native boundaries; they are read as their low 32
@@ -346,4 +350,34 @@ func DynamicGreater(left any, right any) bool {
 func DynamicGreaterEqual(left any, right any) bool {
 	order, ok := dynamicCompare(left, right)
 	return ok && order >= 0
+}
+
+// dynamicIndexArray reads the Array that `target[index]` indexes when Haxe
+// types `target` as `Dynamic`. `--interp` indexes only an Array this way: a
+// null target raises "Null Access", and any other value (a String, a Map, an
+// anonymous object, a number) raises "Unexpected value <value>, expected
+// Array".
+func dynamicIndexArray(target any) *Array {
+	if isAnyNil(target) {
+		Throw(StringFromLiteral("Null Access"))
+	}
+	array, ok := target.(*Array)
+	if !ok {
+		Throw(StringFromLiteral("Unexpected value " + *StdString(target) + ", expected Array"))
+	}
+	return array
+}
+
+// DynamicIndexGet is `target[index]` on a `Dynamic` target. The compiler
+// converts the index to an Int as it does for a typed Array, and the read is
+// the Array carrier's: an index outside the Array reads null.
+func DynamicIndexGet(target any, index int) any {
+	return dynamicIndexArray(target).Get(index)
+}
+
+// DynamicIndexSet is `target[index] = value` on a `Dynamic` target and returns
+// `value`. The write is the Array carrier's: an index past the end fills the
+// gap with nulls, and a negative index changes nothing, as for a typed Array.
+func DynamicIndexSet(target any, index int, value any) any {
+	return dynamicIndexArray(target).Set(index, value)
 }

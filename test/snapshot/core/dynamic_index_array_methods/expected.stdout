@@ -1,0 +1,70 @@
+read 10 30 20 20 30
+outside null null null
+nested 3 null
+element 6
+json 3 8 ann
+as index 300 10
+nullable 5
+closure 30 20
+typed 11 2.5 CD true
+returns 11 ab
+operators 30 25 20 true true -10
+conditions yes no true true
+int -2147483648 3 10
+switch twenty
+mixed 3.5 5 true
+null operand = error Invalid operation: null * 2
+loop 60
+write [10,5,30] 3
+grow [10,5,30,null,null,7] 6
+value 1 [1,5,30,null,null,7]
+dynamic index [1,5,s,3,2,7] TFloat
+copy [3,5,s,3,2,7]
+alias [100,2,null,300] 4
+nested [[1,2],[9,4]]
+json {"items":[7,2,3]}
+element [[5,60]]
+typed target [0,3]
+compound [11,5,st,null]
+value 7 7
+postfix 7 8
+prefix 9 9
+steps 8
+self 16
+null element = error Invalid operation: null + 1
+after [16,5,st,null]
+field element [6,3]
+string read = error Unexpected value hello, expected Array
+string write = error Unexpected value hello, expected Array
+object read = error Unexpected value {x: 1}, expected Array
+object write = error Unexpected value {x: 1}, expected Array
+object compound = error Unexpected value {x: 1}, expected Array
+object step = error Unexpected value {x: 1}, expected Array
+null read = error Null Access
+null write = error Null Access
+int read = error Unexpected value 5, expected Array
+bool read = error Unexpected value true, expected Array
+map read = error
+unchanged hello 1
+order tivtivti [11,7] 10
+read order ti 7
+statements [4,2,1,3]
+statements [1,2,3,4]
+push 4 [3,1,2,4]
+pop 4 [3,1,2]
+unshift null [0,3,1,2]
+shift 0 [3,1,2]
+insert null [3,9,1,2]
+remove true false [3,1,2]
+reverse null [2,1,3]
+sort null [1,2,3]
+resize null [1,2,3,null]
+splice [null] [1,2,3]
+concat [1,2,3,5] copy [1,2,3]
+filter [2,3] map [2,4,6]
+search 1 1 true false
+join 1-2-3 slice [2,3] text [1,2,3]
+typed 12
+structure push 2
+structure [1,3]
+class 6

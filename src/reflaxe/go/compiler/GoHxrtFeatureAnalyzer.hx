@@ -456,8 +456,9 @@ class GoHxrtFeatureAnalyzer {
 				[FEATURE_STRING];
 			case FEATURE_NULLABLE_COMPARE:
 				[FEATURE_CORE];
+			// `d[i]` on a `Dynamic` value indexes the Array carrier.
 			case FEATURE_DYNAMIC_OPS:
-				[FEATURE_STRING, FEATURE_EQUALITY];
+				[FEATURE_STRING, FEATURE_EQUALITY, FEATURE_ARRAY];
 			case FEATURE_EQUALITY:
 				[FEATURE_STRING, FEATURE_FUNCTION];
 			case FEATURE_PRINT:

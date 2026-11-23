@@ -150,3 +150,34 @@ func TestDynamicToFloatReadsNumbers(t *testing.T) {
 		t.Errorf("null: %q", got)
 	}
 }
+
+// The rows are `--interp` results for the same targets and indexes.
+func TestDynamicIndexFollowsInterp(t *testing.T) {
+	array := NewArray(10, 20, 30)
+	var nilArray *Array
+	cases := []struct {
+		name string
+		run  func() any
+		want string
+	}{
+		{"read", func() any { return DynamicIndexGet(array, 1) }, "I:20"},
+		{"read past the end", func() any { return DynamicIndexGet(array, 3) }, "null"},
+		{"read negative", func() any { return DynamicIndexGet(array, -1) }, "null"},
+		{"write", func() any { return DynamicIndexSet(array, 0, 5) }, "I:5"},
+		{"write past the end", func() any { return DynamicIndexSet(array, 4, 7) }, "I:7"},
+		{"string", func() any { return DynamicIndexGet(StringFromLiteral("hello"), 0) }, "error: Unexpected value hello, expected Array"},
+		{"string write", func() any { return DynamicIndexSet(StringFromLiteral("hello"), 0, 1) }, "error: Unexpected value hello, expected Array"},
+		{"int", func() any { return DynamicIndexGet(5, 0) }, "error: Unexpected value 5, expected Array"},
+		{"bool", func() any { return DynamicIndexGet(true, 0) }, "error: Unexpected value true, expected Array"},
+		{"null", func() any { return DynamicIndexGet(nil, 0) }, "error: Null Access"},
+		{"typed null", func() any { return DynamicIndexSet(nilArray, 0, 1) }, "error: Null Access"},
+	}
+	for _, c := range cases {
+		if got := dynamicOutcome(c.run); got != c.want {
+			t.Errorf("%s: got %q, want %q", c.name, got, c.want)
+		}
+	}
+	if got := *StdString(array); got != "[5,20,30,null,7]" {
+		t.Errorf("writes: got %s", got)
+	}
+}
