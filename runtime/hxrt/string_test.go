@@ -3,6 +3,7 @@ package hxrt
 import (
 	"math"
 	"math/bits"
+	"math/rand"
 	"sort"
 	"strconv"
 	"testing"
@@ -223,5 +224,172 @@ func TestSortAnonymousFieldOrderMatchesStandardSort(t *testing.T) {
 				t.Fatalf("count %d: position %d = %v, want %v", count, index, fields[index], want[index])
 			}
 		}
+	}
+}
+
+// TestStdStringFloatMatchesInterp checks Float text against `haxe --interp`
+// output for the same values (haxe_go-rlvo).
+func TestStdStringFloatMatchesInterp(t *testing.T) {
+	rows := []struct {
+		value float64
+		want  string
+	}{
+		{0, "0"},
+		{math.Copysign(0, -1), "-0"},
+		{1, "1"},
+		{-1, "-1"},
+		{0.5, "0.5"},
+		{3.14159, "3.14159"},
+		{0.1, "0.1"},
+		{0.0001, "0.0001"},
+		{0.000123, "0.000123"},
+		{1e-5, "1e-05"},
+		{1e-7, "1e-07"},
+		{1.5e-7, "1.5e-07"},
+		{1.23e-18, "1.23e-18"},
+		{1e5, "100000"},
+		{1e6, "1000000"},
+		{12345678.9, "12345678.9"},
+		{1e8, "100000000"},
+		{-1e8, "-100000000"},
+		{2147483647, "2147483647"},
+		{-2147483648, "-2147483648"},
+		{4294967296, "4294967296"},
+		{1e9 + 0.5, "1000000000.5"},
+		{123456789.123, "123456789.123"},
+		{100000000000.5, "100000000000.5"},
+		{999999999999, "999999999999"},
+		{1e12, "1e+12"},
+		{-1e12, "-1e+12"},
+		{1e12 + 1, "1000000000001"},
+		{2e12, "2e+12"},
+		{1234567890000, "1.23456789e+12"},
+		{99999999999999, "99999999999999"},
+		{1e14 + 0.25, "100000000000000.25"},
+		{999999999999999, "999999999999999"},
+		{1e15, "1e+15"},
+		{1e15 + 0.5, "1000000000000000.5"},
+		{9007199254740992, "9007199254740992"},
+		{1e16, "1e+16"},
+		{123456789012345678, "123456789012345680"},
+		{1234567890123456789, "1.23456789012345677e+18"},
+		{1e21, "1e+21"},
+		{-1e21, "-1e+21"},
+		{1e100, "1e+100"},
+		{1.5e300, "1.5e+300"},
+		{math.MaxFloat64, "1.79769313486231571e+308"},
+		{2.2250738585072014e-308, "2.22507385850720138e-308"},
+		{5e-324, "4.94065645841e-324"},
+		{1e-300, "1e-300"},
+		{0.30000000000000004, "0.300000000000000044"},
+		{1.0 / 3, "0.333333333333333315"},
+		{-2.0 / 3, "-0.66666666666666663"},
+		{math.NaN(), "nan"},
+		{math.Inf(1), "infinity"},
+		{math.Inf(-1), "neg_infinity"},
+	}
+	for _, row := range rows {
+		if got := *StdString(row.value); got != row.want {
+			t.Errorf("Std.string(%v) = %q, want %q", row.value, got, row.want)
+		}
+	}
+	array := NewArray(1e8, 0.30000000000000004, 1e-7)
+	if got, want := *StdString(array), "[100000000,0.300000000000000044,1e-07]"; got != want {
+		t.Errorf("Std.string(Array<Float>) = %q, want %q", got, want)
+	}
+}
+
+// TestStdStringFloat32KeepsItsShortestDigits covers native Go float32
+// values, which Haxe does not have: they use the same layout with their own
+// shortest digits, so float32(0.1) stays `0.1`.
+func TestStdStringFloat32KeepsItsShortestDigits(t *testing.T) {
+	rows := []struct {
+		value float32
+		want  string
+	}{
+		{0.1, "0.1"},
+		{1e8, "100000000"},
+		{16777217, "16777216"},
+		{1.5e-7, "1.5e-07"},
+		{3e38, "3e+38"},
+	}
+	for _, row := range rows {
+		if got := *StdString(row.value); got != row.want {
+			t.Errorf("Std.string(float32(%v)) = %q, want %q", row.value, got, row.want)
+		}
+	}
+}
+
+// haxeFloatReference is Haxe's own rule, written as plainly as possible: the
+// interpreter prints `Numeric.float_repres`, which keeps the first of C's
+// `%.12g` and `%.15g` that reads back as the same Float, else `%.18g`. Go's
+// `g` format with a precision lays digits out as C's `%g` does.
+func haxeFloatReference(value float64) string {
+	switch {
+	case math.IsNaN(value):
+		return "nan"
+	case math.IsInf(value, 1):
+		return "infinity"
+	case math.IsInf(value, -1):
+		return "neg_infinity"
+	}
+	for _, precision := range []int{12, 15} {
+		text := strconv.FormatFloat(value, 'g', precision, 64)
+		if parsed, _ := strconv.ParseFloat(text, 64); parsed == value {
+			return text
+		}
+	}
+	return strconv.FormatFloat(value, 'g', 18, 64)
+}
+
+// TestStdStringFloatMatchesReferenceRule compares the runtime with
+// haxeFloatReference on random bit patterns, random whole numbers, random
+// short decimals, and the neighbours of every power of ten.
+func TestStdStringFloatMatchesReferenceRule(t *testing.T) {
+	random := rand.New(rand.NewSource(20261123))
+	var values []float64
+	for index := 0; index < 100000; index++ {
+		values = append(values, math.Float64frombits(random.Uint64()))
+		values = append(values, float64(random.Int63n(1<<53))*math.Copysign(1, random.Float64()-0.5))
+		digits := 1 + random.Intn(17)
+		decimal := strconv.FormatInt(random.Int63n(int64(math.Pow10(digits))), 10) + "e" + strconv.Itoa(random.Intn(60)-30)
+		parsed, _ := strconv.ParseFloat(decimal, 64)
+		values = append(values, parsed)
+	}
+	for exponent := -323; exponent <= 308; exponent++ {
+		power := math.Pow10(exponent)
+		values = append(values, power, math.Nextafter(power, 0), math.Nextafter(power, math.Inf(1)), 1.5*power, -power)
+	}
+	for _, value := range values {
+		got, _ := scalarHaxeString(value)
+		if want := haxeFloatReference(value); got != want {
+			t.Fatalf("Std.string(%b) = %q, want %q", value, got, want)
+		}
+	}
+}
+
+// haxeFloatBenchmarkValues is a representative mix of the Floats that string
+// building meets: whole numbers, short decimals, results with 16 or 17
+// significant digits, and values printed in exponent form.
+var haxeFloatBenchmarkValues = map[string][]any{
+	"whole":    {0.0, 1.0, 42.0, -7.0, 2147483647.0, 1e8},
+	"short":    {0.5, 3.14159, 0.1, 123456789.123, 12345678.9, -2.75},
+	"long":     {0.30000000000000004, 1.0 / 3, 2.0 / 3, math.Pi, math.Sqrt2, 1e15 + 0.5},
+	"exponent": {1e15, 1e21, 1e-7, 2.5e-5, 1.5e300, 6.02214076e23},
+}
+
+var haxeFloatBenchmarkSink string
+
+func BenchmarkScalarHaxeStringFloat(b *testing.B) {
+	for _, name := range []string{"whole", "short", "long", "exponent"} {
+		values := haxeFloatBenchmarkValues[name]
+		b.Run(name, func(b *testing.B) {
+			b.ReportAllocs()
+			for iteration := 0; iteration < b.N; iteration++ {
+				for _, value := range values {
+					haxeFloatBenchmarkSink, _ = scalarHaxeString(value)
+				}
+			}
+		})
 	}
 }

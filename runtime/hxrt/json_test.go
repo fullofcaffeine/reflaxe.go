@@ -1,6 +1,9 @@
 package hxrt
 
-import "testing"
+import (
+	"math"
+	"testing"
+)
 
 func TestJsonParseBuildsPortableArrayCarriers(t *testing.T) {
 	decoded := JsonParse(StringFromLiteral(`{"items":[1,[2,3]]}`))
@@ -109,5 +112,18 @@ func TestJsonStringifyHonorsPresentIndentation(t *testing.T) {
 				t.Fatalf("JsonStringify() = %q, want %q", *got, test.want)
 			}
 		})
+	}
+}
+
+// TestJsonStringifyWritesFloatsAsHaxe checks haxe.Json against `--interp`:
+// Haxe's JsonPrinter writes a finite Float as Std.string does and any other
+// Float as null, without dropping the rest of the document (haxe_go-rlvo).
+func TestJsonStringifyWritesFloatsAsHaxe(t *testing.T) {
+	values := NewArray(1e8, 2147483647.0, 0.30000000000000004, 1e15, 1e21, 1e-7, math.Copysign(0, -1), 1.5, math.NaN(), math.Inf(1))
+	if got, want := *JsonStringify(values, nil), "[100000000,2147483647,0.300000000000000044,1e+15,1e+21,1e-07,-0,1.5,null,null]"; got != want {
+		t.Fatalf("JsonStringify(floats) = %s, want %s", got, want)
+	}
+	if got, want := *JsonStringify(map[string]any{"big": 1e8, "count": 3}, nil), `{"big":100000000,"count":3}`; got != want {
+		t.Fatalf("JsonStringify(object) = %s, want %s", got, want)
 	}
 }

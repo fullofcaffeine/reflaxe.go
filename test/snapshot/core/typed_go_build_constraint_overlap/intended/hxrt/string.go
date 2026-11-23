@@ -86,8 +86,10 @@ func scalarHaxeString(value any) (string, bool) {
 		return v, true
 	case bool:
 		return strconv.FormatBool(v), true
-	case float32, float64:
-		return fmt.Sprint(v), true
+	case float64:
+		return formatHaxeFloat(v, 64), true
+	case float32:
+		return formatHaxeFloat(float64(v), 32), true
 	case int:
 		return strconv.FormatInt(int64(v), 10), true
 	case int8:
@@ -113,6 +115,108 @@ func scalarHaxeString(value any) (string, bool) {
 	default:
 		return "", false
 	}
+}
+
+// formatHaxeFloat returns the text Haxe's Std.string gives a Float.
+func formatHaxeFloat(value float64, bitSize int) string {
+	var buffer [32]byte
+	return string(appendHaxeFloat(buffer[:0], value, bitSize))
+}
+
+// appendHaxeFloat appends the text Haxe's Std.string gives a Float.
+//
+// What: NaN and the infinities print `nan`, `infinity` and `neg_infinity`,
+// and negative zero prints `-0`. Other values print with 12 significant
+// digits, or 15, or 18: the first of 12 and 15 that reads back as the same
+// Float, else 18. The layout is C's `%g`: exponent form (`1e+15`, `1e-05`)
+// when the decimal exponent is below -4 or at least the digit count, plain
+// digits otherwise. So 2147483647.0 prints `2147483647`, 1e12 prints
+// `1e+12`, and 0.1 + 0.2 prints `0.300000000000000044`. A Go float32 (bitSize
+// 32), which Haxe does not have, keeps its own shortest digits in this layout.
+// Why: This is how the Haxe interpreter, the semantic reference, prints a
+// Float (`Numeric.float_repres` with OCaml's `%.12g`, `%.15g` and `%.18g`).
+// Go's fmt.Sprint printed 1e8 as `1e+08` and 0.1 + 0.2 as
+// `0.30000000000000004`.
+// How: Whole numbers below 1e12 print as integers, which `%.12g` gives. Else
+// one strconv call gives the shortest digits that read back exactly. For a
+// normal Float, two 12-digit (or 15-digit) decimals are further apart than
+// one Float step, so the 12-digit text reads back exactly if and only if the
+// shortest digits number 12 or fewer, and then both are the same digits; the
+// same holds for 15. The shortest digits are therefore laid out with the
+// precision they select. Only 16 or 17 shortest digits need a second call,
+// for the exact 18-digit text. Subnormal Floats have wider steps and take the
+// three tries literally.
+func appendHaxeFloat(dst []byte, value float64, bitSize int) []byte {
+	switch {
+	case value != value:
+		return append(dst, "nan"...)
+	case value > math.MaxFloat64:
+		return append(dst, "infinity"...)
+	case value < -math.MaxFloat64:
+		return append(dst, "neg_infinity"...)
+	case value == 0 && math.Signbit(value):
+		return append(dst, "-0"...)
+	case value > -1e12 && value < 1e12 && value == math.Trunc(value):
+		return strconv.AppendInt(dst, int64(value), 10)
+	case bitSize == 64 && value > -0x1p-1022 && value < 0x1p-1022:
+		for _, precision := range [...]int{12, 15} {
+			start := len(dst)
+			dst = strconv.AppendFloat(dst, value, 'g', precision, 64)
+			if parsed, _ := strconv.ParseFloat(string(dst[start:]), 64); parsed == value {
+				return dst
+			}
+			dst = dst[:start]
+		}
+		return strconv.AppendFloat(dst, value, 'g', 18, 64)
+	}
+
+	// shortest is `[-]d[.ddd]e±dd[d]`.
+	var scratch [32]byte
+	shortest := strconv.AppendFloat(scratch[:0], value, 'e', -1, bitSize)
+	start := 0
+	if shortest[0] == '-' {
+		start = 1
+	}
+	mark := start + 1
+	for shortest[mark] != 'e' {
+		mark++
+	}
+	var digitBuffer [17]byte
+	digits := append(digitBuffer[:0], shortest[start])
+	if mark > start+1 {
+		digits = append(digits, shortest[start+2:mark]...)
+	}
+	if len(digits) > 15 {
+		return strconv.AppendFloat(dst, value, 'g', 18, 64)
+	}
+	exponent := 0
+	for _, digit := range shortest[mark+2:] {
+		exponent = exponent*10 + int(digit-'0')
+	}
+	if shortest[mark+1] == '-' {
+		exponent = -exponent
+	}
+	precision := 12
+	if len(digits) > 12 {
+		precision = 15
+	}
+	if exponent < -4 || exponent >= precision {
+		return append(dst, shortest...)
+	}
+
+	dst = append(dst, shortest[:start]...)
+	if exponent < 0 {
+		dst = append(dst, "0.0000"[:1-exponent]...)
+		return append(dst, digits...)
+	}
+	whole := exponent + 1
+	if len(digits) <= whole {
+		dst = append(dst, digits...)
+		return append(dst, "000000000000000"[:whole-len(digits)]...)
+	}
+	dst = append(dst, digits[:whole]...)
+	dst = append(dst, '.')
+	return append(dst, digits[whole:]...)
 }
 
 // haxeStringMaxDepth is how deep Std.string looks into nested values.

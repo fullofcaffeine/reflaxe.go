@@ -79,7 +79,11 @@ Key implementation points:
     or else as their class path such as `pack.Point` (through the generated
     `HxClassName()` method), and anonymous objects as `{a: 1, b: x}` in the
     Haxe interpreter's field order. Values nested more than five levels deep
-    print as `<...>`, as in the interpreter.
+    print as `<...>`, as in the interpreter. A Float prints as the interpreter
+    prints it: with 12, 15 or 18 significant digits (the first of 12 and 15
+    that reads back as the same Float), in C's `%g` layout, so `2147483647`,
+    `1e+15` and `0.300000000000000044`; NaN and the infinities print `nan`,
+    `infinity` and `neg_infinity`. `JsonStringify` writes Floats the same way.
   - `StringConcatAny`, `StringEqualAny`
   - `StringConcatStringPtr`, `StringEqualStringPtr`
   - `StringLength`, `StringCharAt`, `StringCharCodeAt`, `StringSubstring`

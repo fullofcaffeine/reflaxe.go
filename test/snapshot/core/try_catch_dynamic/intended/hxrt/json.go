@@ -3,6 +3,7 @@ package hxrt
 import (
 	"bytes"
 	"encoding/json"
+	"math"
 	"reflect"
 )
 
@@ -49,9 +50,16 @@ func jsonToHaxeValue(value any) any {
 // How: Copy only the container graph needed by the encoder and track active maps,
 // slices, and carriers that expose the internal Values protocol, so cyclic Dynamic
 // values retain the previous "null on error" behavior instead of recursing forever.
+// A Float becomes the number text Haxe's JsonPrinter writes: Std.string's text
+// when it is finite, else null (encoding/json would reject the whole document).
 func jsonFromHaxeValue(value any, visiting map[jsonVisit]bool) (any, bool) {
 	value = ObjectSource(value)
 	switch current := value.(type) {
+	case float64:
+		if math.IsNaN(current) || math.IsInf(current, 0) {
+			return nil, true
+		}
+		return json.Number(formatHaxeFloat(current, 64)), true
 	case functionValue:
 		if current.functionIdentity() == nil {
 			return nil, true
