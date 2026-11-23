@@ -1,0 +1,22 @@
+abc
+true
+3 ABC
+n1 1
+statement 2
+abc
+abc!
+q
+field
+anon
+bob BOB
+label:x label:x
+red
+dyn
+dyn
+abc abc
+[]
+5
+null
+null toString threw Null Access
+null statement threw Null Access
+null optional threw Null Access

@@ -7906,6 +7906,27 @@ class GoCompiler {
 		return isDynamicCatchType(index.t) ? GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [lowered]) : recoverErasedArrayPosition(index, lowered);
 	}
 
+	/**
+		What: `value` itself, or Haxe's `Null Access` error when it is nil.
+		Why: A member call on a null receiver fails in `--interp` with
+		`Null Access`, also where the member returns its receiver unchanged
+		(`String.toString`). Returning a nil `value` would let the call succeed.
+		How: Pass `value` as the argument of a function literal, so that it runs
+		once, and throw through `hxrt.Throw` (which Haxe `try`/`catch` handles)
+		when it is nil.
+	**/
+	function lowerNullAccessCheckedExpr(value:GoExpr, goType:String):GoExpr {
+		var valueName = freshTempName("hx_receiver");
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: valueName, typeName: goType}], [goType], [
+			GoStmt.GoIf(GoExpr.GoBinary("==", GoExpr.GoIdent(valueName), GoExpr.GoNil), [
+				GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [
+					GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [GoExpr.GoStringLiteral("Null Access")])
+				]))
+			], null),
+			GoStmt.GoReturn(GoExpr.GoIdent(valueName))
+		]), [value]);
+	}
+
 	function lowerNilSafeTypeAssertExpr(expr:GoExpr, assertedType:String):GoExpr {
 		var valueName = freshTempName("hx_value");
 		var zeroName = freshTempName("hx_zero");
@@ -9102,7 +9123,8 @@ class GoCompiler {
 		`sourceArgs` are the same arguments as Haxe typed them. The optional Int
 		argument of `substr`, `substring`, `indexOf` and `lastIndexOf` is read
 		from `sourceArgs` (see `classifyOptionalIntArg`), so that a null value
-		reads as omitted.
+		reads as omitted. `toString` needs no helper: Haxe returns the receiver
+		itself, so the call is the receiver with a null check.
 	**/
 	function lowerStringInstanceCall(callee:TypedExpr, args:Array<TypedExpr>, sourceArgs:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
 		return switch (callee.expr) {
@@ -9262,6 +9284,13 @@ class GoCompiler {
 							};
 							{
 								expr: GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget]),
+								isStringLike: true
+							};
+						// Haxe returns the receiver itself; a null receiver raises
+						// `Null Access`, as in `--interp`.
+						case "toString" if (args.length == 0):
+							{
+								expr: lowerNullAccessCheckedExpr(loweredTarget, "*string"),
 								isStringLike: true
 							};
 						case _:
