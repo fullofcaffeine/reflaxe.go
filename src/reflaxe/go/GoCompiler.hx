@@ -133,24 +133,26 @@ private enum ArraySearchKind {
 }
 
 /**
-	What: How a String method lowering receives its optional Int argument: the
-	`substr` length, the `substring` end, or the `indexOf`/`lastIndexOf` start.
+	What: How a compiler-owned lowering receives an optional Int argument: the
+	`String.substr` length, the `String.substring` end, or the start of
+	`indexOf`/`lastIndexOf` on a String or an Array.
 	Why: Haxe reads a null optional argument as omitted. An Int that cannot be
-	null goes straight into the typed `hxrt` helper; a value that can be null
-	needs a nil check first.
-	How: `lowerStringOptionalIntArg` picks the case. Each String lowering maps
-	`Omitted` and `Plain` to its typed helper, and `Nullable` to its helper in
-	`runtime/hxrt/string_optional.go`.
+	null goes straight into typed Go code; a value that can be null needs a nil
+	check first.
+	How: `classifyOptionalIntArg` picks the case and gives the argument to
+	lower. Each String lowering maps `Omitted` and `Plain` to its typed helper,
+	and `Nullable` to its helper in `runtime/hxrt/string_optional.go`.
+	`lowerArraySearchExpr` checks a `Nullable` start for nil before it uses it.
 **/
-private enum StringOptionalIntArg {
+private enum OptionalIntArg {
 	/** No argument, or a `null` constant. **/
 	Omitted;
 
-	/** An Int that cannot be null, lowered as a Go `int`. **/
-	Plain(expr:GoExpr);
+	/** An argument that Haxe does not type as nullable, as `intrinsicCallArgs` retyped it. **/
+	Plain(arg:TypedExpr);
 
-	/** A `Null<Int>` or `Dynamic` value lowered as its Go `any` storage. **/
-	Nullable(expr:GoExpr);
+	/** A `Null<Int>` or `Dynamic` value as Haxe typed it; it lowers to its Go `any` storage. **/
+	Nullable(arg:TypedExpr);
 }
 
 private typedef GoChanMethodCall = {
@@ -7825,7 +7827,7 @@ class GoCompiler {
 			return nativeSliceBoundaryCall;
 		}
 
-		var arrayInstanceCall = lowerArrayInstanceCall(callee, args, returnType);
+		var arrayInstanceCall = lowerArrayInstanceCall(callee, args, sourceArgs, returnType);
 		if (arrayInstanceCall != null) {
 			return arrayInstanceCall;
 		}
@@ -8869,7 +8871,7 @@ class GoCompiler {
 		How: `args` are the call arguments as `intrinsicCallArgs` retyped them;
 		`sourceArgs` are the same arguments as Haxe typed them. The optional Int
 		argument of `substr`, `substring`, `indexOf` and `lastIndexOf` is read
-		from `sourceArgs` (see `lowerStringOptionalIntArg`), so that a null value
+		from `sourceArgs` (see `classifyOptionalIntArg`), so that a null value
 		reads as omitted.
 	**/
 	function lowerStringInstanceCall(callee:TypedExpr, args:Array<TypedExpr>, sourceArgs:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
@@ -8923,9 +8925,9 @@ class GoCompiler {
 							} else {
 								compilationContext.optimizerStringInstanceLegacyLowerings++;
 							}
-							var callExpr = switch (lowerStringOptionalIntArg(args, sourceArgs, 1)) {
-								case Plain(endExpr):
-									GoExpr.GoCall(GoExpr.GoIdent(substringHelper), [loweredTarget, startExpr, endExpr]);
+							var callExpr = switch (classifyOptionalIntArg(args, sourceArgs, 1)) {
+								case Plain(end):
+									GoExpr.GoCall(GoExpr.GoIdent(substringHelper), [loweredTarget, startExpr, lowerExpr(end).expr]);
 								// An omitted end is the receiver's length. Read a local receiver twice;
 								// pass any other receiver once, so that a call runs only once.
 								case Omitted if (loweredTarget.match(GoExpr.GoIdent(_))):
@@ -8936,8 +8938,8 @@ class GoCompiler {
 									]);
 								case Omitted:
 									GoExpr.GoCall(GoExpr.GoIdent(optionalHelper), [loweredTarget, startExpr, GoExpr.GoNil]);
-								case Nullable(endExpr):
-									GoExpr.GoCall(GoExpr.GoIdent(optionalHelper), [loweredTarget, startExpr, endExpr]);
+								case Nullable(end):
+									GoExpr.GoCall(GoExpr.GoIdent(optionalHelper), [loweredTarget, startExpr, lowerExpr(end).expr]);
 							};
 							{
 								expr: callExpr,
@@ -8952,14 +8954,14 @@ class GoCompiler {
 								compilationContext.optimizerStringInstanceLegacyLowerings++;
 								"hxrt.StringSubstr";
 							};
-							var callExpr = switch (lowerStringOptionalIntArg(args, sourceArgs, 1)) {
+							var callExpr = switch (classifyOptionalIntArg(args, sourceArgs, 1)) {
 								case Omitted:
 									GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, posExpr, GoExpr.GoIntLiteral(0), GoExpr.GoBoolLiteral(false)]);
-								case Plain(lenExpr):
-									GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, posExpr, lenExpr, GoExpr.GoBoolLiteral(true)]);
-								case Nullable(lenExpr):
+								case Plain(len):
+									GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, posExpr, lowerExpr(len).expr, GoExpr.GoBoolLiteral(true)]);
+								case Nullable(len):
 									GoExpr.GoCall(GoExpr.GoIdent(useTypedHelpers ? "hxrt.StringSubstrOptionalStringPtr" : "hxrt.StringSubstrOptional"),
-										[loweredTarget, posExpr, lenExpr]);
+										[loweredTarget, posExpr, lowerExpr(len).expr]);
 							};
 							{
 								expr: callExpr,
@@ -8981,13 +8983,13 @@ class GoCompiler {
 							} else {
 								forward ? "hxrt.StringIndexOfOptional" : "hxrt.StringLastIndexOfOptional";
 							};
-							var callExpr = switch (lowerStringOptionalIntArg(args, sourceArgs, 1)) {
+							var callExpr = switch (classifyOptionalIntArg(args, sourceArgs, 1)) {
 								case Omitted:
 									GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, searchExpr, GoExpr.GoIntLiteral(0), GoExpr.GoBoolLiteral(false)]);
-								case Plain(startExpr):
-									GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, searchExpr, startExpr, GoExpr.GoBoolLiteral(true)]);
-								case Nullable(startExpr):
-									GoExpr.GoCall(GoExpr.GoIdent(optionalHelper), [loweredTarget, searchExpr, startExpr]);
+								case Plain(start):
+									GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, searchExpr, lowerExpr(start).expr, GoExpr.GoBoolLiteral(true)]);
+								case Nullable(start):
+									GoExpr.GoCall(GoExpr.GoIdent(optionalHelper), [loweredTarget, searchExpr, lowerExpr(start).expr]);
 							};
 							{
 								expr: callExpr,
@@ -9048,23 +9050,24 @@ class GoCompiler {
 	}
 
 	/**
-		What: Classifies and lowers the optional Int argument at `index` of a
-		String method call (see `StringOptionalIntArg`).
+		What: Classifies the optional Int argument at `index` of a String or
+		Array method call (see `OptionalIntArg`).
 		Why: Haxe (`--interp`, neko and python) reads a null optional argument
-		as omitted: `s.substr(1, n)` with a null `n` is `s.substr(1)`.
-		`intrinsicCallArgs` reads a `?x:Int` or `x:Null<Int>` parameter at the
-		plain Int type for these lowerings, so a null parameter failed the Go
-		assertion `x.(int)` with an uncaught panic. Other `Null<Int>` values
-		(locals, fields, Array elements, call results) and `Dynamic` values
-		stayed Go `any`, and Go rejected them in the `int` slot.
+		as omitted: `s.substr(1, n)` and `a.indexOf(x, n)` with a null `n` are
+		`s.substr(1)` and `a.indexOf(x)`. `intrinsicCallArgs` reads a `?x:Int`
+		or `x:Null<Int>` parameter at the plain Int type for these lowerings, so
+		a null parameter failed the Go assertion `x.(int)` with an uncaught
+		panic. In the String lowerings, other `Null<Int>` values (locals,
+		fields, Array elements, call results) and `Dynamic` values stayed Go
+		`any`, and Go rejected them in the `int` slot.
 		How: A missing argument or a `null` constant is `Omitted` at compile
 		time. The argument as Haxe typed it (`sourceArgs`) is `Nullable` when
 		it is a `Null<Int>` read from `any` storage (not a narrowed or proven
-		non-null local) or a `Dynamic` value; it is lowered as that `any` value.
-		Any other argument is `Plain` and lowers from `args` as before, so Int
-		values and constants keep the typed helper call with no extra check.
+		non-null local) or a `Dynamic` value. Any other argument is `Plain` and
+		comes from `args` as before, so Int values and constants keep their
+		typed code with no extra check. The caller lowers the argument.
 	**/
-	function lowerStringOptionalIntArg(args:Array<TypedExpr>, sourceArgs:Array<TypedExpr>, index:Int):StringOptionalIntArg {
+	function classifyOptionalIntArg(args:Array<TypedExpr>, sourceArgs:Array<TypedExpr>, index:Int):OptionalIntArg {
 		if (index >= args.length) {
 			return Omitted;
 		}
@@ -9073,9 +9076,9 @@ class GoCompiler {
 			return Omitted;
 		}
 		if ((isNullableIntType(source.t) && isErasedNullablePrimitiveExpr(source)) || isAnyLikeType(source.t)) {
-			return Nullable(lowerExpr(source).expr);
+			return Nullable(source);
 		}
-		return Plain(lowerExpr(args[index]).expr);
+		return Plain(args[index]);
 	}
 
 	/**
@@ -13960,17 +13963,21 @@ class GoCompiler {
 		both panic on those bounds and alias the source storage.
 		How: Delegate bound normalization and copying to the shared Array runtime.
 		Omitted ends use a typed fast path; explicit ends use the runtime's validated
-		`Null<Int>` ABI adapter. Native slice representations use sibling helpers and
-		are narrowed back into the portable return representation when required.
+		`Null<Int>` ABI adapter, which reads a nil end as omitted. That adapter takes
+		Go `any`, so the end is lowered as Haxe typed it (`sourceArgs`):
+		`intrinsicCallArgs` reads a `?end:Int` parameter as Int, and a null one
+		failed the Go assertion `end.(int)`. Native slice representations use
+		sibling helpers and are narrowed back into the portable return
+		representation when required.
 	**/
-	function lowerArraySliceExpr(target:TypedExpr, args:Array<TypedExpr>, returnType:Type):LoweredExpr {
+	function lowerArraySliceExpr(target:TypedExpr, args:Array<TypedExpr>, sourceArgs:Array<TypedExpr>, returnType:Type):LoweredExpr {
 		if (args.length < 1 || args.length > 2) {
 			Context.fatalError("Array.slice expects a start and optional end", target.pos);
 		}
 		final targetExpr = recoverSharedArrayReceiver(target, lowerExpr(target).expr);
 		final startExpr = recoverErasedArrayPosition(args[0], lowerExpr(args[0]).expr);
 		final hasEnd = args.length == 2;
-		final endExpr = hasEnd ? lowerExpr(args[1]).expr : null;
+		final endExpr = hasEnd ? lowerExpr(sourceArgs[1]).expr : null;
 		if (usesSharedArrayCarrier(target)) {
 			return {
 				expr: GoExpr.GoCall(GoExpr.GoSelector(targetExpr, hasEnd ? "SliceOptional" : "SliceFrom"), hasEnd ? [startExpr, endExpr] : [startExpr]),
@@ -14038,8 +14045,13 @@ class GoCompiler {
 		that stays below 0 finds nothing, as the Haxe API documents (the `--interp`
 		evaluator instead clamps it to 0; JS, C++, and Python follow the documentation).
 		Then scan the typed elements with the common Array equality lowering.
+		The start comes from `classifyOptionalIntArg`, which reads it as Haxe typed
+		it (`sourceArgs`), so a null `?fromIndex:Int` parameter reaches the nil check
+		instead of failing a Go `int` assertion. A start that cannot be null is a Go
+		`int` with no check, except an Int read from `any` storage (an `Array<Int>`
+		element read past the end is null).
 	**/
-	function lowerArraySearchExpr(target:TypedExpr, args:Array<TypedExpr>, kind:ArraySearchKind):Null<LoweredExpr> {
+	function lowerArraySearchExpr(target:TypedExpr, args:Array<TypedExpr>, sourceArgs:Array<TypedExpr>, kind:ArraySearchKind):Null<LoweredExpr> {
 		var methodName = switch (kind) {
 			case FirstIndex: "indexOf";
 			case LastIndex: "lastIndexOf";
@@ -14061,7 +14073,17 @@ class GoCompiler {
 		var tempPrefix = "hx_" + methodName.toLowerCase();
 		var loweredTarget = lowerExprWithPrefix(target);
 		var loweredValue = lowerReturnedExprWithExpectedType(args[0], elementType);
-		var startArg = args.length == 2 && !isNullLiteralExpr(args[1]) ? args[1] : null;
+		var startArg:Null<TypedExpr> = null;
+		var nullableStart = false;
+		switch (classifyOptionalIntArg(args, sourceArgs, 1)) {
+			case Omitted:
+			case Nullable(start):
+				startArg = start;
+				nullableStart = true;
+			case Plain(start):
+				startArg = start;
+				nullableStart = exprBackedByAny(start);
+		}
 		var loweredStart = startArg == null ? null : lowerExprWithPrefix(startArg);
 		var targetName = freshTempName(tempPrefix + "_target");
 		var valueName = freshTempName(tempPrefix + "_value");
@@ -14091,7 +14113,7 @@ class GoCompiler {
 				GoStmt.GoIf(GoExpr.GoBinary("<", indexExpr, GoExpr.GoIntLiteral(0)), [GoStmt.GoAssign(indexExpr, GoExpr.GoIntLiteral(0))], null)
 				];
 			body = body.concat(loweredStart.prefix);
-			if (isNullablePrimitiveType(startArg.t) || exprBackedByAny(startArg)) {
+			if (nullableStart) {
 				// A `Null<Int>` start that holds null at run time means "omitted".
 				var startInputName = freshTempName(tempPrefix + "_start");
 				var startInput = GoExpr.GoIdent(startInputName);
@@ -14154,7 +14176,7 @@ class GoCompiler {
 		};
 	}
 
-	function lowerArrayInstanceCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+	function lowerArrayInstanceCall(callee:TypedExpr, args:Array<TypedExpr>, sourceArgs:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
 		var methodCall = asArrayMethodCall(callee);
 		if (methodCall == null || !isArrayType(methodCall.target.t)) {
 			return null;
@@ -14164,11 +14186,11 @@ class GoCompiler {
 			case "concat":
 				lowerArrayConcatExpr(methodCall.target, args);
 			case "indexOf":
-				lowerArraySearchExpr(methodCall.target, args, FirstIndex);
+				lowerArraySearchExpr(methodCall.target, args, sourceArgs, FirstIndex);
 			case "lastIndexOf":
-				lowerArraySearchExpr(methodCall.target, args, LastIndex);
+				lowerArraySearchExpr(methodCall.target, args, sourceArgs, LastIndex);
 			case "contains":
-				lowerArraySearchExpr(methodCall.target, args, Membership);
+				lowerArraySearchExpr(methodCall.target, args, sourceArgs, Membership);
 			case "remove":
 				lowerArrayRemoveExpr(methodCall.target, args);
 			case "insert":
@@ -14288,7 +14310,7 @@ class GoCompiler {
 			case "shift" if (args.length == 0):
 				lowerArrayShiftExpr(methodCall.target, returnType);
 			case "slice":
-				lowerArraySliceExpr(methodCall.target, args, returnType);
+				lowerArraySliceExpr(methodCall.target, args, sourceArgs, returnType);
 			case _:
 				null;
 		};
