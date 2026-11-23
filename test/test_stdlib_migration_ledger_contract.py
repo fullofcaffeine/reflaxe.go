@@ -998,6 +998,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
             "CompilerReflect.generatedFields",
             "CompilerReflect.generatedMethod",
             "NativeReflect.lookupMethod",
+            "NativeReflect.lookupBuiltin",
             "CompilerReflect.callMethod",
             "NativeReflect.fields",
             "NativeReflect.deleteField",
@@ -1009,6 +1010,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         for fragment in (
             '@:go.name("ReflectLookupField")',
             '@:go.name("ReflectLookupMethod")',
+            '@:go.name("ReflectLookupBuiltin")',
             '@:go.name("ReflectCallMethod")',
             '@:go.name("ReflectFields")',
             '@:go.name("ReflectDeleteField")',
@@ -1018,6 +1020,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
         for signature in (
             "func ReflectLookupField(object any, field *string) *ReflectFieldLookup",
             "func ReflectLookupMethod(object any, field *string) *ReflectFieldLookup",
+            "func ReflectLookupBuiltin(object any, field *string) *ReflectFieldLookup",
             "func ReflectCallMethod(function any, arguments []any) any",
             "func ReflectFields(object any) []*string",
             "func ReflectDeleteField(object any, field *string) bool",
@@ -1027,7 +1030,7 @@ class StdlibMigrationLedgerContractTest(unittest.TestCase):
 
         self.assertIn('var HxrtReflection = "reflection";', feature_analyzer)
         self.assertIn('path == "Reflect" || path == "hxrt.reflect.NativeReflect"', feature_analyzer)
-        self.assertRegex(feature_analyzer, r"case FEATURE_REFLECTION:\s*\[FEATURE_STRING, FEATURE_ARRAY, FEATURE_FUNCTION\]")
+        self.assertRegex(feature_analyzer, r"case FEATURE_REFLECTION:\s*\[\s*FEATURE_STRING,\s*FEATURE_ARRAY,\s*FEATURE_FUNCTION,\s*FEATURE_EQUALITY,\s*FEATURE_ARRAY_SORT\s*\]")
         self.assertIn('["reflect.go"]', feature_analyzer)
         self.assertNotIn('case "reflect.go":', reflaxe_compiler)
         self.assertIn("GoRuntimeCapabilityManifest.build", reflaxe_compiler)

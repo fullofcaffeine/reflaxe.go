@@ -500,8 +500,16 @@ class GoHxrtFeatureAnalyzer {
 				[FEATURE_STRING];
 			case FEATURE_TEMPLATE:
 				[FEATURE_CORE, FEATURE_ARRAY, FEATURE_REFLECTION];
+			// Reflect.field on an Array returns bound methods: `indexOf` and its
+			// relatives compare with Haxe equality, and `sort` reuses ArraySort.
 			case FEATURE_REFLECTION:
-				[FEATURE_STRING, FEATURE_ARRAY, FEATURE_FUNCTION];
+				[
+					FEATURE_STRING,
+					FEATURE_ARRAY,
+					FEATURE_FUNCTION,
+					FEATURE_EQUALITY,
+					FEATURE_ARRAY_SORT
+				];
 			case FEATURE_REGEX:
 				[FEATURE_STRING, FEATURE_EXCEPTION];
 			case FEATURE_SERIALIZATION:

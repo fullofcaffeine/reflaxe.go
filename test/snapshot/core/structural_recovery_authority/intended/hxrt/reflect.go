@@ -71,7 +71,9 @@ func ReflectLookupField(object any, field *string) *ReflectFieldLookup {
 func ReflectLookupMethod(object any, field *string) *ReflectFieldLookup {
 	object = ObjectSource(object)
 	// Carrier methods implement runtime protocols, not Haxe function members.
-	if _, callable := object.(functionValue); callable {
+	// The Haxe members of an Array come from ReflectLookupBuiltin instead.
+	switch object.(type) {
+	case functionValue, *Array:
 		return &ReflectFieldLookup{}
 	}
 	key, valid := reflectFieldName(field)
@@ -99,6 +101,278 @@ func ReflectLookupMethod(object any, field *string) *ReflectFieldLookup {
 	return &ReflectFieldLookup{Found: true, Value: method.Interface()}
 }
 
+// ReflectLookupBuiltin finds a member of the portable Array or String carrier:
+// `length`, or a Haxe method as a function bound to the receiver.
+//
+// What: Array and String are core Haxe classes. Neither the compiler's adapters
+// for generated classes nor native struct inspection can see their members.
+// Why: --interp returns these members from Reflect.field, which is also how a
+// field of a Dynamic value is read, so `d.length` and `d.charAt(0)` work there.
+// Staged Reflect.hasField does not call this lookup: --interp reports none of
+// these members as a field.
+// How: Each method calls the carrier operation or String helper that typed code
+// calls, or composes them as the typed lowering does. A missing optional
+// argument, or a null one, reads as omitted. `iterator` and `keyValueIterator`
+// return generated Haxe classes, which hxrt cannot construct, so they stay absent.
+func ReflectLookupBuiltin(object any, field *string) *ReflectFieldLookup {
+	key, valid := reflectFieldName(field)
+	if !valid {
+		return &ReflectFieldLookup{}
+	}
+	source := ObjectSource(object)
+	var method func(...any) any
+	var slot string
+	switch receiver := source.(type) {
+	case *Array:
+		if key == "length" {
+			return &ReflectFieldLookup{Found: true, Value: receiver.Len()}
+		}
+		method, slot = reflectArrayMethod(receiver, key), "Array."+key
+	case *string:
+		if key == "length" {
+			return &ReflectFieldLookup{Found: true, Value: StringLengthStringPtr(receiver)}
+		}
+		method, slot = reflectStringMethod(receiver, key), "String."+key
+	}
+	if method == nil {
+		return &ReflectFieldLookup{}
+	}
+	// A bound method keeps its receiver and member name, so Reflect.compareMethods
+	// recognizes two reads of the same member, while == sees two fresh values.
+	return &ReflectFieldLookup{Found: true, Value: BoundFunction(method, func() any { return source }, slot)}
+}
+
+func reflectArgument(arguments []any, index int) any {
+	if index < len(arguments) {
+		return arguments[index]
+	}
+	return nil
+}
+
+func reflectIntArgument(arguments []any, index int) int {
+	return IntFromNullableAny(reflectArgument(arguments, index))
+}
+
+// reflectOptionalIntArgument reads a missing or null optional Int as omitted.
+func reflectOptionalIntArgument(arguments []any, index int) (int, bool) {
+	value := reflectArgument(arguments, index)
+	if value == nil {
+		return 0, false
+	}
+	return IntFromNullableAny(value), true
+}
+
+func reflectStringArgument(arguments []any, index int) *string {
+	text, _ := reflectArgument(arguments, index).(*string)
+	return text
+}
+
+func reflectArrayArgument(arguments []any, index int) *Array {
+	array, _ := ObjectSource(reflectArgument(arguments, index)).(*Array)
+	if array == nil {
+		Throw(StringFromLiteral("Invalid argument: expected Array"))
+	}
+	return array
+}
+
+// reflectCallback calls a Haxe function passed to a reflected Array method.
+func reflectCallback(callback any, arguments ...any) any {
+	if FunctionOrigin(callback) == nil {
+		Throw(StringFromLiteral("Cannot call null"))
+	}
+	return ReflectCallMethod(callback, arguments)
+}
+
+// reflectArraySearch applies the typed Array search lowering with Haxe equality:
+// a negative start counts from the end, then clamps into the Array.
+func reflectArraySearch(array *Array, value any, start int, hasStart bool, backward bool) int {
+	length := array.Len()
+	index := 0
+	if backward {
+		index = length - 1
+	}
+	if hasStart {
+		index = start
+		if index < 0 {
+			index += length
+		}
+		if backward && index >= length {
+			index = length - 1
+		}
+		if !backward && index < 0 {
+			index = 0
+		}
+	}
+	step := 1
+	if backward {
+		step = -1
+	}
+	for ; index >= 0 && index < length; index += step {
+		if HaxeEqual(array.Get(index), value) {
+			return index
+		}
+	}
+	return -1
+}
+
+// reflectArrayMethod returns the Haxe Array method `key` on one Array, or nil.
+func reflectArrayMethod(array *Array, key string) func(...any) any {
+	switch key {
+	case "concat":
+		return func(arguments ...any) any {
+			result := array.Copy()
+			result.Push(reflectArrayArgument(arguments, 0).Values()...)
+			return result
+		}
+	case "contains":
+		return func(arguments ...any) any {
+			return reflectArraySearch(array, reflectArgument(arguments, 0), 0, false, false) >= 0
+		}
+	case "copy":
+		return func(...any) any { return array.Copy() }
+	case "filter":
+		return func(arguments ...any) any {
+			result := NewArray()
+			for index := 0; index < array.Len(); index++ {
+				value := array.Get(index)
+				if keep, _ := reflectCallback(reflectArgument(arguments, 0), value).(bool); keep {
+					result.Push(value)
+				}
+			}
+			return result
+		}
+	case "indexOf", "lastIndexOf":
+		backward := key == "lastIndexOf"
+		return func(arguments ...any) any {
+			start, hasStart := reflectOptionalIntArgument(arguments, 1)
+			return reflectArraySearch(array, reflectArgument(arguments, 0), start, hasStart, backward)
+		}
+	case "insert":
+		return func(arguments ...any) any {
+			array.Insert(reflectIntArgument(arguments, 0), reflectArgument(arguments, 1))
+			return nil
+		}
+	case "join":
+		return func(arguments ...any) any { return StringJoinAny(array.Values(), reflectStringArgument(arguments, 0)) }
+	case "map":
+		return func(arguments ...any) any {
+			result := NewArray()
+			for index := 0; index < array.Len(); index++ {
+				result.Push(reflectCallback(reflectArgument(arguments, 0), array.Get(index)))
+			}
+			return result
+		}
+	case "pop":
+		return func(...any) any { return array.Pop() }
+	case "push":
+		return func(arguments ...any) any { return array.Push(reflectArgument(arguments, 0)) }
+	case "remove":
+		return func(arguments ...any) any {
+			index := reflectArraySearch(array, reflectArgument(arguments, 0), 0, false, false)
+			if index < 0 {
+				return false
+			}
+			array.RemoveAt(index)
+			return true
+		}
+	case "resize":
+		return func(arguments ...any) any {
+			array.SetLength(reflectIntArgument(arguments, 0))
+			return nil
+		}
+	case "reverse":
+		return func(...any) any {
+			array.Reverse()
+			return nil
+		}
+	case "shift":
+		return func(...any) any {
+			value := array.Get(0)
+			array.RemoveAt(0)
+			return value
+		}
+	case "slice":
+		return func(arguments ...any) any {
+			start := reflectIntArgument(arguments, 0)
+			if end, hasEnd := reflectOptionalIntArgument(arguments, 1); hasEnd {
+				return array.Slice(start, end)
+			}
+			return array.SliceFrom(start)
+		}
+	case "sort":
+		return func(arguments ...any) any {
+			compare := reflectArgument(arguments, 0)
+			ArraySort(array, NewFunction(func(left any, right any) int {
+				return IntFromNullableAny(reflectCallback(compare, left, right))
+			}))
+			return nil
+		}
+	case "splice":
+		return func(arguments ...any) any {
+			return array.Splice(reflectIntArgument(arguments, 0), reflectIntArgument(arguments, 1))
+		}
+	case "toString":
+		return func(...any) any { return StdString(array) }
+	case "unshift":
+		return func(arguments ...any) any {
+			array.Insert(0, reflectArgument(arguments, 0))
+			return nil
+		}
+	}
+	return nil
+}
+
+// reflectStringMethod returns the Haxe String method `key` on one String, or nil.
+func reflectStringMethod(text *string, key string) func(...any) any {
+	switch key {
+	case "charAt":
+		return func(arguments ...any) any { return StringCharAtStringPtr(text, reflectIntArgument(arguments, 0)) }
+	case "charCodeAt":
+		return func(arguments ...any) any {
+			return StringCharCodeAtAnyStringPtr(text, reflectIntArgument(arguments, 0))
+		}
+	case "indexOf":
+		return func(arguments ...any) any {
+			start, hasStart := reflectOptionalIntArgument(arguments, 1)
+			return StringIndexOfStringPtr(text, reflectStringArgument(arguments, 0), start, hasStart)
+		}
+	case "lastIndexOf":
+		return func(arguments ...any) any {
+			start, hasStart := reflectOptionalIntArgument(arguments, 1)
+			return StringLastIndexOfStringPtr(text, reflectStringArgument(arguments, 0), start, hasStart)
+		}
+	case "split":
+		return func(arguments ...any) any {
+			parts := StringSplitStringPtr(text, reflectStringArgument(arguments, 0))
+			values := make([]any, len(parts))
+			for index, part := range parts {
+				values[index] = part
+			}
+			return &Array{values: values}
+		}
+	case "substr":
+		return func(arguments ...any) any {
+			length, hasLength := reflectOptionalIntArgument(arguments, 1)
+			return StringSubstrStringPtr(text, reflectIntArgument(arguments, 0), length, hasLength)
+		}
+	case "substring":
+		return func(arguments ...any) any {
+			end, hasEnd := reflectOptionalIntArgument(arguments, 1)
+			if !hasEnd {
+				end = StringLengthStringPtr(text)
+			}
+			return StringSubstringStringPtr(text, reflectIntArgument(arguments, 0), end)
+		}
+	case "toLowerCase":
+		return func(...any) any { return StringToLowerCaseStringPtr(text) }
+	case "toUpperCase":
+		return func(...any) any { return StringToUpperCaseStringPtr(text) }
+	case "toString":
+		return func(...any) any { return text }
+	}
+	return nil
+}
+
 func reflectAssignField(field reflect.Value, value any) bool {
 	if !field.IsValid() || !field.CanSet() {
 		return false
@@ -123,8 +397,10 @@ func reflectAssignField(field reflect.Value, value any) bool {
 	return false
 }
 
-// ReflectSetField mutates anonymous maps and exported native struct fields. A
-// false result lets staged Reflect try the typed generated-field adapter.
+// ReflectSetField mutates anonymous maps, exported native struct fields and the
+// length of an Array, which truncates it or extends it with nulls as in
+// --interp. A false result lets staged Reflect try the typed generated-field
+// adapter.
 func ReflectSetField(object any, field *string, value any) bool {
 	object = ObjectSource(object)
 	key, valid := reflectFieldName(field)
@@ -132,6 +408,12 @@ func ReflectSetField(object any, field *string, value any) bool {
 		return false
 	}
 	switch target := object.(type) {
+	case *Array:
+		if key != "length" {
+			return false
+		}
+		target.SetLength(IntFromNullableAny(value))
+		return true
 	case map[string]any:
 		target[key] = value
 		return true
@@ -212,6 +494,7 @@ func ReflectCallMethod(function any, arguments []any) any {
 
 // ReflectFields returns deterministic native object field names. The public API
 // does not promise ordering, but sorting stabilizes generated tests and callers.
+// An Array or a String lists only `length`, as in --interp.
 func ReflectFields(object any) []*string {
 	object = ObjectSource(object)
 	if object == nil {
@@ -219,6 +502,8 @@ func ReflectFields(object any) []*string {
 	}
 	keys := make([]string, 0)
 	switch value := object.(type) {
+	case *Array, *string:
+		keys = append(keys, "length")
 	case map[string]any:
 		for key := range value {
 			keys = append(keys, key)

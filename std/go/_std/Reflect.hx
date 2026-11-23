@@ -26,8 +26,9 @@ import reflaxe.go.internal.CompilerReflect;
 	- Delegate erased Go map/struct/function inspection to the typed
 	  `NativeReflect` runtime boundary.
 	- Preserve lookup precedence explicitly as class-token metadata, native map or
-	  exported struct field, generated Haxe field, generated Haxe method, then
-	  exported native Go method.
+	  exported struct field, Array or String member, generated Haxe field,
+	  generated Haxe method, then exported native Go method. `hasField` skips the
+	  Array and String members, which `--interp` does not report as fields.
 **/
 @:coreApi
 class Reflect {
@@ -56,6 +57,10 @@ class Reflect {
 		var nativeField:ReflectFieldLookup = NativeReflect.lookupField(o, field);
 		if (nativeField.found)
 			return nativeField.value;
+
+		var builtinMember:ReflectFieldLookup = NativeReflect.lookupBuiltin(o, field);
+		if (builtinMember.found)
+			return builtinMember.value;
 
 		var generatedField = CompilerReflect.generatedField(o, field);
 		if (generatedField != null || CompilerReflect.hasGeneratedField(o, field))

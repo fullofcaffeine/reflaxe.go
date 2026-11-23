@@ -1,0 +1,118 @@
+field Array length: 3
+field String length: 4
+field empty length: 0
+Array concat is a function: true
+Array contains is a function: true
+Array copy is a function: true
+Array filter is a function: true
+Array indexOf is a function: true
+Array insert is a function: true
+Array join is a function: true
+Array lastIndexOf is a function: true
+Array map is a function: true
+Array pop is a function: true
+Array push is a function: true
+Array remove is a function: true
+Array resize is a function: true
+Array reverse is a function: true
+Array shift is a function: true
+Array slice is a function: true
+Array sort is a function: true
+Array splice is a function: true
+Array toString is a function: true
+Array unshift is a function: true
+String charAt is a function: true
+String charCodeAt is a function: true
+String indexOf is a function: true
+String lastIndexOf is a function: true
+String split is a function: true
+String substr is a function: true
+String substring is a function: true
+String toLowerCase is a function: true
+String toUpperCase is a function: true
+String toString is a function: true
+Array missing: null
+Array Len: null
+Array Push: null
+Array Values: null
+String missing: null
+hasField Array: [false,false,false]
+hasField String: [false,false]
+fields Array: [length]
+fields String: [length]
+getProperty: [3,4]
+typed length: 8
+indexOf: 1
+indexOf from: 3
+indexOf negative from: 3
+indexOf null from: 1
+lastIndexOf: 3
+lastIndexOf from: 1
+contains: [true,false]
+join: 3|1|2|1
+slice: [[1,2,1],[1],[1,2,1]]
+copy: [3,1,2,1]
+concat: [3,1,2,1,9]
+toString: [3,1,2,1]
+map: [30,10,20,10]
+filter: [3,2]
+remove: true
+after remove: [3,2,1]
+shift: 3
+unshift: null
+push: 4
+after push: [0,2,1,7]
+sort: null
+after sort: [0,1,2,7]
+insert: null
+reverse: null
+after reverse: [7,2,1,5,0]
+splice: [2,1]
+pop: 0
+resize: null
+after resize: [7,5,null,null]
+empty pop and shift: [null,null]
+String elements: [2,b+a+c]
+charAt: [y,]
+charCodeAt: [120,null]
+indexOf: [1,3,1]
+lastIndexOf: [3,1]
+split: [x,y,z]
+substr: [y,z,y,y,z]
+substring: [y,z,y,y,z]
+case: [X,Y,Z,abc]
+toString: x,y,z
+bound push: [1,2,3,4]
+length read is a value: 4
+compareMethods same: true
+compareMethods other Array: false
+compareMethods other method: false
+fresh value: false
+String compareMethods: true
+d.length: 3
+d.push: 4
+d.indexOf: 1
+d.join: 1,2,3,4
+d.pop: 4
+d.length + 1: 4
+typed Int: 6
+interpolation: size 3
+condition: big
+comparison: true
+s.length: 5
+s.charAt: x
+s.split: [x,y,z]
+s.split.length: 3
+s.indexOf: 2
+s.toUpperCase: X,Y,Z
+s.substr: y,z
+s.charCodeAt: 120
+typed String: z!
+nested: 4
+nested call: b1
+JSON: 3 a/b/c hello
+setField length 1: [5]
+setField length 3: [8,null,null]
+setProperty length 2: [8,null]
+d.length = 0: 0
+after d.length = 0: [[],[]]

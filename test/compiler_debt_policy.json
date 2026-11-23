@@ -4445,6 +4445,18 @@
     {
       "capability": "dynamic_values",
       "classification": "required",
+      "context": "lookupBuiltin",
+      "exception_id": "runtime_facade_dynamic_contract",
+      "file": "std/hxrt/reflect/NativeReflect.hx",
+      "max_count": 1,
+      "metric": "haxe_dynamic",
+      "owner": "runtime_facade",
+      "profile": "shared",
+      "surface": "staged_std"
+    },
+    {
+      "capability": "dynamic_values",
+      "classification": "required",
       "context": "lookupField",
       "exception_id": "runtime_facade_dynamic_contract",
       "file": "std/hxrt/reflect/NativeReflect.hx",

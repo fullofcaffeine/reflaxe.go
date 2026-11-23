@@ -154,8 +154,9 @@ depends on both `socket` and `ssl` and additionally copies
 `serialization`, which copies `runtime/hxrt/serialization.go` plus string and
 equality support. Their staged `Reflect` calls also select the shared,
 memory-safe `runtime/hxrt/reflect.go` helper. That helper provides the dynamic
-object and anonymous-structure fallback; generated class fields and methods
-still use compiler-emitted typed metadata. The two capabilities do not depend on
+object and anonymous-structure fallback and the members of Arrays and Strings,
+so it also copies the equality and Array sort slices; generated class fields
+and methods still use compiler-emitted typed metadata. The two capabilities do not depend on
 one another:
 `core/runtime_hxrt_infer_regex` and
 `core/runtime_hxrt_infer_serialization` lock both positive and negative file

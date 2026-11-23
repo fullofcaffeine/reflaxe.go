@@ -28,6 +28,17 @@ extern class NativeReflect {
 	@:go.name("ReflectLookupMethod")
 	public static function lookupMethod(object:Dynamic, field:String):ReflectFieldLookup;
 
+	/**
+		What: Finds `length` or a bound method of an Array or a String.
+		Why: Array and String are core classes, so no generated adapter or native
+		struct probe sees their members, and `Reflect.field` must return them.
+		How: Kept separate from `lookupField` and `lookupMethod`, which
+		`Reflect.hasField` also reads, because `--interp` reports none of these
+		members as fields.
+	**/
+	@:go.name("ReflectLookupBuiltin")
+	public static function lookupBuiltin(object:Dynamic, field:String):ReflectFieldLookup;
+
 	@:go.name("ReflectSetField")
 	public static function setField(object:Dynamic, field:String, value:Dynamic):Bool;
 

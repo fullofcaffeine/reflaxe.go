@@ -55,6 +55,10 @@ func Reflect_field(o any, field *string) any {
 	if nativeField.Found {
 		return nativeField.Value
 	}
+	builtinMember := hxrt.ReflectLookupBuiltin(o, field)
+	if builtinMember.Found {
+		return builtinMember.Value
+	}
 	var generatedField any = reflaxe__go___internal__CompilerReflect_generatedField(o, field)
 	if !hxrt.AnyEqualsNull(generatedField) || reflaxe__go___internal__CompilerReflect_hasGeneratedField(o, field) {
 		return generatedField
