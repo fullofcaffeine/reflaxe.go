@@ -138,10 +138,10 @@ func main() {
 	hxrt.Println(v_9)
 	var v_10 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("native-is="), hxrt.StdString(errors.Is(hxrt.ExportNativeError(joined), hxrt.ExportNativeError(x)))), hxrt.StringFromLiteral(",")), hxrt.StdString(errors.Is(hxrt.ExportNativeError(joined), hxrt.ExportNativeError(y)))))
 	hxrt.Println(v_10)
-	var v_11 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("native-is-copy="), hxrt.StdString(errors.Is(hxrt.ExportNativeError(joined), hxrt.ExportNativeError(hxrt.ImportNativeError(errors.New(*hxrt.StdString(hxrt.StringFromLiteral("x")))))))))
+	var v_11 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("native-is-copy="), hxrt.StdString(errors.Is(hxrt.ExportNativeError(joined), errors.New(*hxrt.StdString(hxrt.StringFromLiteral("x")))))))
 	hxrt.Println(v_11)
 	natives := hxrt.NewArray(x, missing, y)
-	var v_12 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("native-spread-is="), hxrt.StdString(errors.Is(hxrt.ExportNativeError(hxrt.ImportNativeError(errors.Join(hxrt.ExportErrors(func() []*hxrt.NativeErrorValue {
+	var v_12 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("native-spread-is="), hxrt.StdString(errors.Is(errors.Join(hxrt.ExportErrors(func() []*hxrt.NativeErrorValue {
 		var this1_2 *hxrt.Array
 		this1_2 = natives
 		return func(hx_lambda_raw_9 []any) []*hxrt.NativeErrorValue {
@@ -157,9 +157,9 @@ func main() {
 			}
 			return hx_lambda_out_10
 		}(this1_2.Values())
-	}(), hxrt.ExportNativeError)...))), hxrt.ExportNativeError(y)))))
+	}(), hxrt.ExportNativeError)...), hxrt.ExportNativeError(y)))))
 	hxrt.Println(v_12)
-	var v_13 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("native-nested-is="), hxrt.StdString(errors.Is(hxrt.ExportNativeError(hxrt.ImportNativeError(errors.Join([]hxrt.RawError{hxrt.ExportNativeError(hxrt.ImportNativeError(errors.Join([]hxrt.RawError{hxrt.ExportNativeError(x)}...))), hxrt.ExportNativeError(y)}...))), hxrt.ExportNativeError(x)))))
+	var v_13 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("native-nested-is="), hxrt.StdString(errors.Is(errors.Join([]hxrt.RawError{errors.Join([]hxrt.RawError{hxrt.ExportNativeError(x)}...), hxrt.ExportNativeError(y)}...), hxrt.ExportNativeError(x)))))
 	hxrt.Println(v_13)
 	var v_14 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("native-null="), hxrt.StdString((hxrt.ImportNativeError(errors.Join([]hxrt.RawError{hxrt.ExportNativeError(missing), hxrt.ExportNativeError(nil)}...)) == nil))))
 	hxrt.Println(v_14)

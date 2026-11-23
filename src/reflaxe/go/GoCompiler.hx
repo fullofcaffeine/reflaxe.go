@@ -7238,11 +7238,19 @@ class GoCompiler {
 					var externPackage = externClassPackageName(classType);
 					if (externPackage != null) {
 						noteExternImportPath(classType, externPackage);
-						var adapted = asValue
-							&& isOrdinaryMethod(resolved) ? lowerImportedExternMethodValue(GoExpr.GoIdent(externPackage), classType, resolved,
-								externFieldName(resolved), appliedType) : null;
+						var selector = GoExpr.GoSelector(GoExpr.GoIdent(externPackage), externFieldName(resolved));
+						var adapted = if (!asValue) {
+							null;
+						} else if (isOrdinaryMethod(resolved)) {
+							lowerImportedExternMethodValue(GoExpr.GoIdent(externPackage), classType, resolved, externFieldName(resolved), appliedType);
+						} else {
+							// A Go package-level variable, such as io.EOF, is native storage
+							// like a struct field, so a read crosses the same import boundary.
+							// Assignment targets and direct calls keep the bare selector.
+							normalizeImportedExternFieldRead(classType, resolved, selector);
+						};
 						return {
-							expr: adapted == null ? GoExpr.GoSelector(GoExpr.GoIdent(externPackage), externFieldName(resolved)) : adapted,
+							expr: adapted == null ? selector : adapted,
 							isStringLike: isStringType(resolved.type)
 						};
 					}
@@ -10631,9 +10639,12 @@ class GoCompiler {
 	}
 
 	/**
-		What: Imports native field values into their declared Haxe carriers.
+		What: Imports native field and package-variable values into their declared
+		Haxe carriers.
 		Why: Strings and marked named values are stored by value in Go. Named-value
 		reads must copy the field so a later write cannot mutate the earlier result.
+		A Go package variable, such as io.EOF, is the same kind of native storage;
+		reading it as a bare `error` broke every `go.NativeError` use.
 		How: Read a marked selector once into a local and return its address. Keep
 		unmarked native pointers unchanged and preserve string/error conversions.
 	**/
@@ -10681,13 +10692,14 @@ class GoCompiler {
 		What: Converts Haxe carriers before assignment to typed native Go storage.
 		Why: Imported strings and marked named-value fields store Go values, while
 		Haxe carries pointers. Unmarked pointer fields must retain pointer identity.
+		A writable Go package variable is the same storage as a struct field.
 		How: Dereference only marked named values and proven native string storage.
 	**/
 	function normalizeNativeStorageAssignment(target:TypedExpr, valueExpr:GoExpr):GoExpr {
 		return switch (target.expr) {
 			case TArray(slice, _) if (isNativeStringSliceType(slice.t)):
 				GoExpr.GoUnary("*", GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [valueExpr]));
-			case TField(_, FInstance(classRef, _, fieldRef)):
+			case TField(_, FInstance(classRef, _, fieldRef)) | TField(_, FStatic(classRef, fieldRef)):
 				var classType = classRef.get();
 				var field = fieldRef.get();
 				var fieldType = field.type;
@@ -10721,7 +10733,7 @@ class GoCompiler {
 		return switch (target.expr) {
 			case TArray(slice, _) if (isNativeStringSliceType(slice.t)):
 				GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [fieldExpr]);
-			case TField(_, FInstance(classRef, _, fieldRef)):
+			case TField(_, FInstance(classRef, _, fieldRef)) | TField(_, FStatic(classRef, fieldRef)):
 				normalizeImportedExternFieldRead(classRef.get(), fieldRef.get(), fieldExpr);
 			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _):
 				normalizeNativeStorageAssignmentResult(inner, fieldExpr);
@@ -11037,9 +11049,20 @@ class GoCompiler {
 		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.ImportNativeError"), [value]);
 	}
 
-	/** Exports the saved native root, evaluating the Haxe carrier exactly once. */
+	/**
+		What: Exports the saved native root, evaluating the Haxe carrier exactly once.
+		Why: A native value that goes straight to another native slot, such as
+		`errors.Is(err, io.EOF)`, would otherwise be put in a new carrier and taken
+		out again. That costs an allocation on every call.
+		How: Export of a just-imported value returns the inner Go error, because
+		import keeps the exact root and nil stays nil. Every export goes to a Go
+		`error` slot, so Go converts the inner value the same way as before.
+	**/
 	function exportNativeError(value:GoExpr):GoExpr {
-		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExportNativeError"), [value]);
+		return switch (value) {
+			case GoExpr.GoCall(GoExpr.GoIdent("hxrt.ImportNativeError"), [native]): native;
+			case _: GoExpr.GoCall(GoExpr.GoIdent("hxrt.ExportNativeError"), [value]);
+		};
 	}
 
 	/**

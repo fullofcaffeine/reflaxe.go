@@ -59,7 +59,7 @@ func ErrorProbe_run() {
 	root := hxrt.ImportNativeError(errors.New(*hxrt.StdString(hxrt.StringFromLiteral("root"))))
 	ErrorProbe_check(hxrt.StringEqualStringPtr(hxrt.StdString(root.Text()), hxrt.StringFromLiteral("root")), hxrt.StringFromLiteral("explicit text"))
 	ErrorProbe_check(errors.Is(hxrt.ExportNativeError(root), hxrt.ExportNativeError(root)), hxrt.StringFromLiteral("direct identity"))
-	ErrorProbe_check(!errors.Is(hxrt.ExportNativeError(root), hxrt.ExportNativeError(hxrt.ImportNativeError(errors.New(*hxrt.StdString(hxrt.StringFromLiteral("root")))))), hxrt.StringFromLiteral("distinct equal text"))
+	ErrorProbe_check(!errors.Is(hxrt.ExportNativeError(root), errors.New(*hxrt.StdString(hxrt.StringFromLiteral("root")))), hxrt.StringFromLiteral("distinct equal text"))
 	ErrorProbe_check(errors.Is(hxrt.ExportNativeError(nil), hxrt.ExportNativeError(nil)), hxrt.StringFromLiteral("nil export"))
 	create := func() *hxrt.Function[func(*string) *hxrt.NativeErrorValue] {
 		hx_extern_method_1 := errors.New

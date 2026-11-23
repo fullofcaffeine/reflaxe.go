@@ -71,6 +71,20 @@ This distinction survives storage in Haxe generic fields.
 Two Haxe carriers can contain the same native error, so carrier equality does not establish native identity.
 Use precise externs for native matching operations, such as `errors.Is`.
 
+The generator does not emit package-level variables.
+An authored extern can bind a Go error variable, such as `io.EOF`, as a static var of type `NativeError`:
+
+```haxe
+@:go.import("io")
+extern class IoVars {
+	@:go.name("EOF") public static var eof(default, never):go.NativeError;
+}
+```
+
+A read of the variable keeps the original value, so `errors.Is(error, io.EOF)` matches.
+A write gives Go the original value again.
+A static var that binds a Go package variable of a named value type, such as `image.ZP`, uses `@:go.valueField`.
+
 The ownership manifest records the selected representation.
 Older manifests retain the legacy representation.
 Regeneration rejects a representation change for an existing output tree.
