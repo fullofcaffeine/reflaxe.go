@@ -16,4 +16,17 @@ func main() {
 	hxrt.Println(v_4)
 	var v_5 any = any(hxrt.StringSubstr(s, -2, 0, false))
 	hxrt.Println(v_5)
+	var none any = noInt()
+	var v_6 any = any(hxrt.StringSubstrOptional(s, 1, none))
+	hxrt.Println(v_6)
+	var v_7 any = any(hxrt.StringSubstringOptional(s, 1, none))
+	hxrt.Println(v_7)
+	var v_8 any = any(hxrt.StringIndexOfOptional(s, hxrt.StringFromLiteral("l"), none))
+	hxrt.Println(v_8)
+	var v_9 any = any(hxrt.StringLastIndexOfOptional(s, hxrt.StringFromLiteral("l"), none))
+	hxrt.Println(v_9)
+}
+
+func noInt() any {
+	return nil
 }

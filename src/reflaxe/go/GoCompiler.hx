@@ -132,6 +132,27 @@ private enum ArraySearchKind {
 	Membership;
 }
 
+/**
+	What: How a String method lowering receives its optional Int argument: the
+	`substr` length, the `substring` end, or the `indexOf`/`lastIndexOf` start.
+	Why: Haxe reads a null optional argument as omitted. An Int that cannot be
+	null goes straight into the typed `hxrt` helper; a value that can be null
+	needs a nil check first.
+	How: `lowerStringOptionalIntArg` picks the case. Each String lowering maps
+	`Omitted` and `Plain` to its typed helper, and `Nullable` to its helper in
+	`runtime/hxrt/string_optional.go`.
+**/
+private enum StringOptionalIntArg {
+	/** No argument, or a `null` constant. **/
+	Omitted;
+
+	/** An Int that cannot be null, lowered as a Go `int`. **/
+	Plain(expr:GoExpr);
+
+	/** A `Null<Int>` or `Dynamic` value lowered as its Go `any` storage. **/
+	Nullable(expr:GoExpr);
+}
+
 private typedef GoChanMethodCall = {
 	final target:TypedExpr;
 	final methodName:String;
@@ -1076,6 +1097,22 @@ class GoCompiler {
 		}
 		if (usage.uses("hxrt.StringCompareStringPtr")) {
 			requireGeneratedRuntimeFeature(GoHxrtFeatureAnalyzer.FEATURE_STRING_COMPARE, "lowered_go_ast:hxrt.StringCompareStringPtr");
+		}
+		// The `runtime/hxrt/string_optional.go` helpers that `lowerStringInstanceCall` calls.
+		for (symbol in [
+			"hxrt.StringSubstrOptionalStringPtr",
+			"hxrt.StringSubstringOptionalStringPtr",
+			"hxrt.StringIndexOfOptionalStringPtr",
+			"hxrt.StringLastIndexOfOptionalStringPtr",
+			"hxrt.StringSubstrOptional",
+			"hxrt.StringSubstringOptional",
+			"hxrt.StringIndexOfOptional",
+			"hxrt.StringLastIndexOfOptional"
+		]) {
+			if (usage.uses(symbol)) {
+				requireGeneratedRuntimeFeature(GoHxrtFeatureAnalyzer.FEATURE_STRING_OPTIONAL, "lowered_go_ast:" + symbol);
+				break;
+			}
 		}
 		for (symbol in NULLABLE_ORDERED_COMPARISON_HELPERS) {
 			if (usage.uses(symbol)) {
@@ -7798,7 +7835,7 @@ class GoCompiler {
 			return restAbstractCall;
 		}
 
-		var stringInstanceCall = lowerStringInstanceCall(callee, args, returnType);
+		var stringInstanceCall = lowerStringInstanceCall(callee, args, sourceArgs, returnType);
 		if (stringInstanceCall != null) {
 			return stringInstanceCall;
 		}
@@ -8824,7 +8861,18 @@ class GoCompiler {
 		};
 	}
 
-	function lowerStringInstanceCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+	/**
+		What: Lowers the compiler-owned `String` instance methods to `hxrt`
+		helpers.
+		Why: Haxe String methods count code points, not Go bytes, and the typed
+		helpers keep that rule in one runtime place.
+		How: `args` are the call arguments as `intrinsicCallArgs` retyped them;
+		`sourceArgs` are the same arguments as Haxe typed them. The optional Int
+		argument of `substr`, `substring`, `indexOf` and `lastIndexOf` is read
+		from `sourceArgs` (see `lowerStringOptionalIntArg`), so that a null value
+		reads as omitted.
+	**/
+	function lowerStringInstanceCall(callee:TypedExpr, args:Array<TypedExpr>, sourceArgs:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
 		return switch (callee.expr) {
 			case TField(target, FInstance(classRef, _, field)):
 				var classType = classRef.get();
@@ -8869,20 +8917,34 @@ class GoCompiler {
 							var startExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
 							var lengthHelper = useTypedHelpers ? "hxrt.StringLengthStringPtr" : "hxrt.StringLength";
 							var substringHelper = useTypedHelpers ? "hxrt.StringSubstringStringPtr" : "hxrt.StringSubstring";
+							var optionalHelper = useTypedHelpers ? "hxrt.StringSubstringOptionalStringPtr" : "hxrt.StringSubstringOptional";
 							if (useTypedHelpers) {
 								compilationContext.optimizerStringInstanceTypedLowerings++;
 							} else {
 								compilationContext.optimizerStringInstanceLegacyLowerings++;
 							}
-							var endExpr = args.length > 1 ? lowerExpr(args[1]).expr : GoExpr.GoCall(GoExpr.GoIdent(lengthHelper), [loweredTarget]);
+							var callExpr = switch (lowerStringOptionalIntArg(args, sourceArgs, 1)) {
+								case Plain(endExpr):
+									GoExpr.GoCall(GoExpr.GoIdent(substringHelper), [loweredTarget, startExpr, endExpr]);
+								// An omitted end is the receiver's length. Read a local receiver twice;
+								// pass any other receiver once, so that a call runs only once.
+								case Omitted if (loweredTarget.match(GoExpr.GoIdent(_))):
+									GoExpr.GoCall(GoExpr.GoIdent(substringHelper), [
+										loweredTarget,
+										startExpr,
+										GoExpr.GoCall(GoExpr.GoIdent(lengthHelper), [loweredTarget])
+									]);
+								case Omitted:
+									GoExpr.GoCall(GoExpr.GoIdent(optionalHelper), [loweredTarget, startExpr, GoExpr.GoNil]);
+								case Nullable(endExpr):
+									GoExpr.GoCall(GoExpr.GoIdent(optionalHelper), [loweredTarget, startExpr, endExpr]);
+							};
 							{
-								expr: GoExpr.GoCall(GoExpr.GoIdent(substringHelper), [loweredTarget, startExpr, endExpr]),
+								expr: callExpr,
 								isStringLike: true
 							};
 						case "substr":
 							var posExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoIntLiteral(0);
-							var lenExpr = args.length > 1 ? lowerExpr(args[1]).expr : GoExpr.GoIntLiteral(0);
-							var hasLenExpr = GoExpr.GoBoolLiteral(args.length > 1);
 							var helper = if (useTypedHelpers) {
 								compilationContext.optimizerStringInstanceTypedLowerings++;
 								"hxrt.StringSubstrStringPtr";
@@ -8890,40 +8952,45 @@ class GoCompiler {
 								compilationContext.optimizerStringInstanceLegacyLowerings++;
 								"hxrt.StringSubstr";
 							};
+							var callExpr = switch (lowerStringOptionalIntArg(args, sourceArgs, 1)) {
+								case Omitted:
+									GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, posExpr, GoExpr.GoIntLiteral(0), GoExpr.GoBoolLiteral(false)]);
+								case Plain(lenExpr):
+									GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, posExpr, lenExpr, GoExpr.GoBoolLiteral(true)]);
+								case Nullable(lenExpr):
+									GoExpr.GoCall(GoExpr.GoIdent(useTypedHelpers ? "hxrt.StringSubstrOptionalStringPtr" : "hxrt.StringSubstrOptional"),
+										[loweredTarget, posExpr, lenExpr]);
+							};
 							{
-								expr: GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, posExpr, lenExpr, hasLenExpr]),
+								expr: callExpr,
 								isStringLike: true
 							};
-						case "indexOf":
+						case "indexOf" | "lastIndexOf":
 							var searchExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"),
 								[GoExpr.GoStringLiteral("")]);
-							var startExpr = args.length > 1 ? lowerExpr(args[1]).expr : GoExpr.GoIntLiteral(0);
-							var hasStartExpr = GoExpr.GoBoolLiteral(args.length > 1);
+							var forward = resolvedField.name == "indexOf";
 							var helper = if (useTypedHelpers) {
 								compilationContext.optimizerStringInstanceTypedLowerings++;
-								"hxrt.StringIndexOfStringPtr";
+								forward ? "hxrt.StringIndexOfStringPtr" : "hxrt.StringLastIndexOfStringPtr";
 							} else {
 								compilationContext.optimizerStringInstanceLegacyLowerings++;
-								"hxrt.StringIndexOf";
+								forward ? "hxrt.StringIndexOf" : "hxrt.StringLastIndexOf";
 							};
-							{
-								expr: GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, searchExpr, startExpr, hasStartExpr]),
-								isStringLike: false
-							};
-						case "lastIndexOf":
-							var searchExpr = args.length > 0 ? lowerExpr(args[0]).expr : GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"),
-								[GoExpr.GoStringLiteral("")]);
-							var startExpr = args.length > 1 ? lowerExpr(args[1]).expr : GoExpr.GoIntLiteral(0);
-							var hasStartExpr = GoExpr.GoBoolLiteral(args.length > 1);
-							var helper = if (useTypedHelpers) {
-								compilationContext.optimizerStringInstanceTypedLowerings++;
-								"hxrt.StringLastIndexOfStringPtr";
+							var optionalHelper = if (useTypedHelpers) {
+								forward ? "hxrt.StringIndexOfOptionalStringPtr" : "hxrt.StringLastIndexOfOptionalStringPtr";
 							} else {
-								compilationContext.optimizerStringInstanceLegacyLowerings++;
-								"hxrt.StringLastIndexOf";
+								forward ? "hxrt.StringIndexOfOptional" : "hxrt.StringLastIndexOfOptional";
+							};
+							var callExpr = switch (lowerStringOptionalIntArg(args, sourceArgs, 1)) {
+								case Omitted:
+									GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, searchExpr, GoExpr.GoIntLiteral(0), GoExpr.GoBoolLiteral(false)]);
+								case Plain(startExpr):
+									GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, searchExpr, startExpr, GoExpr.GoBoolLiteral(true)]);
+								case Nullable(startExpr):
+									GoExpr.GoCall(GoExpr.GoIdent(optionalHelper), [loweredTarget, searchExpr, startExpr]);
 							};
 							{
-								expr: GoExpr.GoCall(GoExpr.GoIdent(helper), [loweredTarget, searchExpr, startExpr, hasStartExpr]),
+								expr: callExpr,
 								isStringLike: false
 							};
 						case "split":
@@ -8970,14 +9037,45 @@ class GoCompiler {
 					}
 				}
 			case TMeta(_, inner):
-				lowerStringInstanceCall(inner, args, returnType);
+				lowerStringInstanceCall(inner, args, sourceArgs, returnType);
 			case TParenthesis(inner):
-				lowerStringInstanceCall(inner, args, returnType);
+				lowerStringInstanceCall(inner, args, sourceArgs, returnType);
 			case TCast(inner, _):
-				lowerStringInstanceCall(inner, args, returnType);
+				lowerStringInstanceCall(inner, args, sourceArgs, returnType);
 			case _:
 				null;
 		};
+	}
+
+	/**
+		What: Classifies and lowers the optional Int argument at `index` of a
+		String method call (see `StringOptionalIntArg`).
+		Why: Haxe (`--interp`, neko and python) reads a null optional argument
+		as omitted: `s.substr(1, n)` with a null `n` is `s.substr(1)`.
+		`intrinsicCallArgs` reads a `?x:Int` or `x:Null<Int>` parameter at the
+		plain Int type for these lowerings, so a null parameter failed the Go
+		assertion `x.(int)` with an uncaught panic. Other `Null<Int>` values
+		(locals, fields, Array elements, call results) and `Dynamic` values
+		stayed Go `any`, and Go rejected them in the `int` slot.
+		How: A missing argument or a `null` constant is `Omitted` at compile
+		time. The argument as Haxe typed it (`sourceArgs`) is `Nullable` when
+		it is a `Null<Int>` read from `any` storage (not a narrowed or proven
+		non-null local) or a `Dynamic` value; it is lowered as that `any` value.
+		Any other argument is `Plain` and lowers from `args` as before, so Int
+		values and constants keep the typed helper call with no extra check.
+	**/
+	function lowerStringOptionalIntArg(args:Array<TypedExpr>, sourceArgs:Array<TypedExpr>, index:Int):StringOptionalIntArg {
+		if (index >= args.length) {
+			return Omitted;
+		}
+		var source = sourceArgs[index];
+		if (isNullLiteralExpr(source)) {
+			return Omitted;
+		}
+		if ((isNullableIntType(source.t) && isErasedNullablePrimitiveExpr(source)) || isAnyLikeType(source.t)) {
+			return Nullable(lowerExpr(source).expr);
+		}
+		return Plain(lowerExpr(args[index]).expr);
 	}
 
 	/**
