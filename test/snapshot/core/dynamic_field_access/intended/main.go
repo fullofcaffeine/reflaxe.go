@@ -118,29 +118,17 @@ func anonymousReads() {
 	hxrt.Println(v)
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("arg "), hxrt.StdString(echo(Reflect_field(o, hxrt.StringFromLiteral("name"))))))
 	hxrt.Println(v_1)
-	if func(hx_value_2 any) bool {
-		if hx_value_2 == nil {
-			var hx_zero_3 bool
-			return hx_zero_3
-		}
-		return hx_value_2.(bool)
-	}(Reflect_field(o, hxrt.StringFromLiteral("flag"))) {
+	if hxrt.DynamicIsTrue(Reflect_field(o, hxrt.StringFromLiteral("flag"))) {
 		hxrt.Println(any(hxrt.StringFromLiteral("cond yes")))
 	}
 	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("ternary "), func() *string {
-		var hx_if_6 *string
-		if func(hx_value_4 any) bool {
-			if hx_value_4 == nil {
-				var hx_zero_5 bool
-				return hx_zero_5
-			}
-			return hx_value_4.(bool)
-		}(Reflect_field(o, hxrt.StringFromLiteral("flag"))) {
-			hx_if_6 = hxrt.StringFromLiteral("on")
+		var hx_if_2 *string
+		if hxrt.DynamicIsTrue(Reflect_field(o, hxrt.StringFromLiteral("flag"))) {
+			hx_if_2 = hxrt.StringFromLiteral("on")
 		} else {
-			hx_if_6 = hxrt.StringFromLiteral("off")
+			hx_if_2 = hxrt.StringFromLiteral("off")
 		}
-		return hx_if_6
+		return hx_if_2
 	}()))
 	hxrt.Println(v_2)
 	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("interp to="), hxrt.StdString(Reflect_field(o, hxrt.StringFromLiteral("to")))), hxrt.StringFromLiteral(" name=")), hxrt.StdString(Reflect_field(o, hxrt.StringFromLiteral("name")))))
@@ -160,40 +148,40 @@ func anonymousReads() {
 }
 
 func builtAndTypedObjects() {
-	hx_obj_7 := map[string]any{}
-	var built any = hxrt.AnonymousFromMap(hx_obj_7)
+	hx_obj_3 := map[string]any{}
+	var built any = hxrt.AnonymousFromMap(hx_obj_3)
 	Reflect_setField(built, hxrt.StringFromLiteral("a"), 1)
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("reflect built "), hxrt.StdString(Reflect_field(built, hxrt.StringFromLiteral("a")))))
 	hxrt.Println(v)
-	hx_obj_8 := map[string]any{}
-	hx_obj_8["x"] = 1
-	hx_obj_8["label"] = hxrt.StringFromLiteral("p")
-	point := hxrt.AnonymousFromMap(hx_obj_8)
+	hx_obj_4 := map[string]any{}
+	hx_obj_4["x"] = 1
+	hx_obj_4["label"] = hxrt.StringFromLiteral("p")
+	point := hxrt.AnonymousFromMap(hx_obj_4)
 	var view any = point
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("typedef "), hxrt.StdString(Reflect_field(view, hxrt.StringFromLiteral("x")))), hxrt.StringFromLiteral(" ")), hxrt.StdString(Reflect_field(view, hxrt.StringFromLiteral("label")))))
 	hxrt.Println(v_1)
 	func() any {
-		hx_dynamic_target_9 := view
-		hx_dynamic_value_11 := 5
-		Reflect_setField(hx_dynamic_target_9, hxrt.StringFromLiteral("x"), hx_dynamic_value_11)
-		return hx_dynamic_value_11
+		hx_dynamic_target_5 := view
+		hx_dynamic_value_7 := 5
+		Reflect_setField(hx_dynamic_target_5, hxrt.StringFromLiteral("x"), hx_dynamic_value_7)
+		return hx_dynamic_value_7
 	}()
-	var v_2 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("typedef shared "), func(hx_value_12 any) int {
-		if hx_value_12 == nil {
-			var hx_zero_13 int
-			return hx_zero_13
+	var v_2 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("typedef shared "), func(hx_value_8 any) int {
+		if hx_value_8 == nil {
+			var hx_zero_9 int
+			return hx_zero_9
 		}
-		return hx_value_12.(int)
+		return hx_value_8.(int)
 	}(hxrt.AnonymousGet(point, "x"))))
 	hxrt.Println(v_2)
 }
 
 func calls() {
-	hx_obj_14 := map[string]any{}
-	hx_obj_14["f"] = hxrt.NewFunction(func(x int) int {
+	hx_obj_10 := map[string]any{}
+	hx_obj_10["f"] = hxrt.NewFunction(func(x int) int {
 		return int((hxrt.Int32Wrap(x) + hxrt.Int32Wrap(100)))
 	})
-	var functions any = hxrt.AnonymousFromMap(hx_obj_14)
+	var functions any = hxrt.AnonymousFromMap(hx_obj_10)
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("anon call "), hxrt.StdString(reflaxe__go___internal__CompilerReflect_callMethod(Reflect_field(functions, hxrt.StringFromLiteral("f")), []any{1}))))
 	hxrt.Println(v)
 	var box any = New_Box(3)
@@ -214,16 +202,16 @@ func classInstanceReads() {
 	hxrt.Println(v_2)
 	bound := hx_recover_callable_408c8b7a(Reflect_field(dynamicBox, hxrt.StringFromLiteral("add")))
 	first := func() int {
-		var hx_callable_15 *hxrt.Function[func(int) int] = bound
-		var hx_argument_16 int = 1
-		return hxrt.FunctionCall(hx_callable_15)(hx_argument_16)
+		var hx_callable_11 *hxrt.Function[func(int) int] = bound
+		var hx_argument_12 int = 1
+		return hxrt.FunctionCall(hx_callable_11)(hx_argument_12)
 	}()
 	var dynamicBound any = Reflect_field(dynamicBox, hxrt.StringFromLiteral("add"))
 	box.value = 10
 	second := func() int {
-		var hx_callable_17 *hxrt.Function[func(int) int] = bound
-		var hx_argument_18 int = 1
-		return hxrt.FunctionCall(hx_callable_17)(hx_argument_18)
+		var hx_callable_13 *hxrt.Function[func(int) int] = bound
+		var hx_argument_14 int = 1
+		return hxrt.FunctionCall(hx_callable_13)(hx_argument_14)
 	}()
 	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("bound "), first), hxrt.StringFromLiteral(" live ")), second), hxrt.StringFromLiteral(" dynamic ")), hxrt.StdString(reflaxe__go___internal__CompilerReflect_callMethod(dynamicBound, []any{2}))))
 	hxrt.Println(v_3)
@@ -234,25 +222,25 @@ func echo(value any) any {
 }
 
 func evaluationOrder() {
-	hx_obj_19 := map[string]any{}
-	hx_obj_19["name"] = hxrt.StringFromLiteral("n")
-	hx_obj_19["count"] = 0
-	var o any = hxrt.AnonymousFromMap(hx_obj_19)
+	hx_obj_15 := map[string]any{}
+	hx_obj_15["name"] = hxrt.StringFromLiteral("n")
+	hx_obj_15["count"] = 0
+	var o any = hxrt.AnonymousFromMap(hx_obj_15)
 	func() any {
-		hx_dynamic_target_20 := step(hxrt.StringFromLiteral("t"), o)
-		hx_dynamic_value_22 := step(hxrt.StringFromLiteral("v"), hxrt.StringFromLiteral("w"))
-		Reflect_setField(hx_dynamic_target_20, hxrt.StringFromLiteral("name"), hx_dynamic_value_22)
-		return hx_dynamic_value_22
+		hx_dynamic_target_16 := step(hxrt.StringFromLiteral("t"), o)
+		hx_dynamic_value_18 := step(hxrt.StringFromLiteral("v"), hxrt.StringFromLiteral("w"))
+		Reflect_setField(hx_dynamic_target_16, hxrt.StringFromLiteral("name"), hx_dynamic_value_18)
+		return hx_dynamic_value_18
 	}()
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("write order "), order), hxrt.StringFromLiteral(" ")), hxrt.StdString(Reflect_field(o, hxrt.StringFromLiteral("name")))))
 	hxrt.Println(v)
 	order = hxrt.StringFromLiteral("")
 	var fh any = step(hxrt.StringFromLiteral("t"), o)
 	func() any {
-		hx_dynamic_target_23 := fh
-		hx_dynamic_value_25 := hxrt.StringConcatStringPtr(hxrt.StdString(Reflect_field(fh, hxrt.StringFromLiteral("name"))), stepText(hxrt.StringFromLiteral("v"), hxrt.StringFromLiteral("+")))
-		Reflect_setField(hx_dynamic_target_23, hxrt.StringFromLiteral("name"), hx_dynamic_value_25)
-		return hx_dynamic_value_25
+		hx_dynamic_target_19 := fh
+		hx_dynamic_value_21 := hxrt.StringConcatStringPtr(hxrt.StdString(Reflect_field(fh, hxrt.StringFromLiteral("name"))), stepText(hxrt.StringFromLiteral("v"), hxrt.StringFromLiteral("+")))
+		Reflect_setField(hx_dynamic_target_19, hxrt.StringFromLiteral("name"), hx_dynamic_value_21)
+		return hx_dynamic_value_21
 	}()
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("concat order "), order), hxrt.StringFromLiteral(" ")), hxrt.StdString(Reflect_field(o, hxrt.StringFromLiteral("name")))))
 	hxrt.Println(v_1)
@@ -272,19 +260,19 @@ func main() {
 }
 
 func nestedReads() {
-	hx_obj_26 := map[string]any{}
-	hx_obj_27 := map[string]any{}
-	hx_obj_27["b"] = 3
-	hx_obj_26["a"] = hxrt.AnonymousFromMap(hx_obj_27)
-	hx_obj_26["list"] = hxrt.NewArray(1, 2)
-	var tree any = hxrt.AnonymousFromMap(hx_obj_26)
+	hx_obj_22 := map[string]any{}
+	hx_obj_23 := map[string]any{}
+	hx_obj_23["b"] = 3
+	hx_obj_22["a"] = hxrt.AnonymousFromMap(hx_obj_23)
+	hx_obj_22["list"] = hxrt.NewArray(1, 2)
+	var tree any = hxrt.AnonymousFromMap(hx_obj_22)
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("nested "), hxrt.StdString(Reflect_field(Reflect_field(tree, hxrt.StringFromLiteral("a")), hxrt.StringFromLiteral("b")))), hxrt.StringFromLiteral(" ")), hxrt.StdString(Reflect_field(Reflect_field(tree, hxrt.StringFromLiteral("a")), hxrt.StringFromLiteral("missing")))), hxrt.StringFromLiteral(" ")), hxrt.StdString(Reflect_field(tree, hxrt.StringFromLiteral("list")))))
 	hxrt.Println(v)
 	func() any {
-		hx_dynamic_target_28 := Reflect_field(tree, hxrt.StringFromLiteral("a"))
-		hx_dynamic_value_30 := 4
-		Reflect_setField(hx_dynamic_target_28, hxrt.StringFromLiteral("b"), hx_dynamic_value_30)
-		return hx_dynamic_value_30
+		hx_dynamic_target_24 := Reflect_field(tree, hxrt.StringFromLiteral("a"))
+		hx_dynamic_value_26 := 4
+		Reflect_setField(hx_dynamic_target_24, hxrt.StringFromLiteral("b"), hx_dynamic_value_26)
+		return hx_dynamic_value_26
 	}()
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("nested write "), hxrt.StdString(Reflect_field(Reflect_field(tree, hxrt.StringFromLiteral("a")), hxrt.StringFromLiteral("b")))))
 	hxrt.Println(v_1)
@@ -303,53 +291,53 @@ func stepText(name *string, value *string) *string {
 }
 
 func writes() {
-	hx_obj_31 := map[string]any{}
-	hx_obj_31["to"] = 2
-	hx_obj_31["name"] = hxrt.StringFromLiteral("anon")
-	var o any = hxrt.AnonymousFromMap(hx_obj_31)
+	hx_obj_27 := map[string]any{}
+	hx_obj_27["to"] = 2
+	hx_obj_27["name"] = hxrt.StringFromLiteral("anon")
+	var o any = hxrt.AnonymousFromMap(hx_obj_27)
 	func() any {
-		hx_dynamic_target_32 := o
-		hx_dynamic_value_34 := 9
-		Reflect_setField(hx_dynamic_target_32, hxrt.StringFromLiteral("to"), hx_dynamic_value_34)
-		return hx_dynamic_value_34
+		hx_dynamic_target_28 := o
+		hx_dynamic_value_30 := 9
+		Reflect_setField(hx_dynamic_target_28, hxrt.StringFromLiteral("to"), hx_dynamic_value_30)
+		return hx_dynamic_value_30
 	}()
 	func() any {
-		hx_dynamic_target_35 := o
-		hx_dynamic_value_37 := hxrt.StringFromLiteral("added")
-		Reflect_setField(hx_dynamic_target_35, hxrt.StringFromLiteral("extra"), hx_dynamic_value_37)
-		return hx_dynamic_value_37
+		hx_dynamic_target_31 := o
+		hx_dynamic_value_33 := hxrt.StringFromLiteral("added")
+		Reflect_setField(hx_dynamic_target_31, hxrt.StringFromLiteral("extra"), hx_dynamic_value_33)
+		return hx_dynamic_value_33
 	}()
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("anon write "), hxrt.StdString(Reflect_field(o, hxrt.StringFromLiteral("to")))), hxrt.StringFromLiteral(" ")), hxrt.StdString(Reflect_field(o, hxrt.StringFromLiteral("extra")))), hxrt.StringFromLiteral(" ")), hxrt.StdString(Reflect_hasField(o, hxrt.StringFromLiteral("extra")))))
 	hxrt.Println(v)
 	func() any {
-		hx_dynamic_target_38 := o
-		hx_dynamic_value_40 := hxrt.StringConcatStringPtr(hxrt.StdString(Reflect_field(o, hxrt.StringFromLiteral("name"))), hxrt.StringFromLiteral("!"))
-		Reflect_setField(hx_dynamic_target_38, hxrt.StringFromLiteral("name"), hx_dynamic_value_40)
-		return hx_dynamic_value_40
+		hx_dynamic_target_34 := o
+		hx_dynamic_value_36 := hxrt.StringConcatStringPtr(hxrt.StdString(Reflect_field(o, hxrt.StringFromLiteral("name"))), hxrt.StringFromLiteral("!"))
+		Reflect_setField(hx_dynamic_target_34, hxrt.StringFromLiteral("name"), hx_dynamic_value_36)
+		return hx_dynamic_value_36
 	}()
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("concat "), hxrt.StdString(Reflect_field(o, hxrt.StringFromLiteral("name")))))
 	hxrt.Println(v_1)
 	assigned := hxrt.StdString(func() any {
-		hx_dynamic_target_41 := o
-		hx_dynamic_value_43 := 11
-		Reflect_setField(hx_dynamic_target_41, hxrt.StringFromLiteral("to"), hx_dynamic_value_43)
-		return hx_dynamic_value_43
+		hx_dynamic_target_37 := o
+		hx_dynamic_value_39 := 11
+		Reflect_setField(hx_dynamic_target_37, hxrt.StringFromLiteral("to"), hx_dynamic_value_39)
+		return hx_dynamic_value_39
 	}())
 	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("assigned "), assigned), hxrt.StringFromLiteral(" ")), hxrt.StdString(Reflect_field(o, hxrt.StringFromLiteral("to")))))
 	hxrt.Println(v_2)
 	box := New_Box(1)
 	var dynamicBox any = box
 	func() any {
-		hx_dynamic_target_44 := dynamicBox
-		hx_dynamic_value_46 := 8
-		Reflect_setField(hx_dynamic_target_44, hxrt.StringFromLiteral("value"), hx_dynamic_value_46)
-		return hx_dynamic_value_46
+		hx_dynamic_target_40 := dynamicBox
+		hx_dynamic_value_42 := 8
+		Reflect_setField(hx_dynamic_target_40, hxrt.StringFromLiteral("value"), hx_dynamic_value_42)
+		return hx_dynamic_value_42
 	}()
 	func() any {
-		hx_dynamic_target_47 := dynamicBox
-		hx_dynamic_value_49 := hxrt.StringFromLiteral("changed")
-		Reflect_setField(hx_dynamic_target_47, hxrt.StringFromLiteral("inherited"), hx_dynamic_value_49)
-		return hx_dynamic_value_49
+		hx_dynamic_target_43 := dynamicBox
+		hx_dynamic_value_45 := hxrt.StringFromLiteral("changed")
+		Reflect_setField(hx_dynamic_target_43, hxrt.StringFromLiteral("inherited"), hx_dynamic_value_45)
+		return hx_dynamic_value_45
 	}()
 	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("class write "), box.value), hxrt.StringFromLiteral(" ")), box.inherited))
 	hxrt.Println(v_3)

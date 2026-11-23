@@ -1,0 +1,70 @@
+add 9 7.5 4.5 14 9.5 x7 7x
+add types TInt TFloat TInt
+sub 5 -5 2 4.5
+mul 14 5 17.5
+div 3.5 5 1
+mod 3 -1 0.5 -1.5
+zero true true true
+overflow -2147483648 0 -2 true true
+null text nullt tnull nullx
+typed 7 7 3.5 2 4t t4 -1 0.75
+plain 7 1
+bits 8 15 9 48 6 4
+shifts -4 2147483644 2 -2
+null + 1 = error Invalid operation: null + 1
+true + 1 = error Invalid operation: true + 1
+x - 1 = error Invalid operation: x - 1
+null * 2 = error Invalid operation: null * 2
+2.5 & 1 = error Invalid operation: 2.5 & 1
+2.0 | 1 = error Invalid operation: 2 | 1
+-null = error Invalid operation
+~x = error Invalid operation: -1 - x
+null++ = error Invalid operation: null + 1
+ok = 2
+local 8
+values 8 10 10 8 8
+float 2.5 3.5
+wrap -2147483648 text s1
+anon field 3 3 3
+class field 5 6
+class via dynamic 2.5
+static 3 3
+array [2,3.5] 2.5
+local 1
+divided 0.25
+value 1.25 1.25
+text a1b
+wrap -2147483648
+field 15 s2 15
+class field 2.5
+array 9
+typed targets 3 3.5
+neg -7 -2.5 true
+not false true true false false false
+complement -8 -1 2147483647
+not local
+if call true
+if one false
+if null false
+ternary yes no no
+while 2
+do-while 3
+while local 3
+for range 6
+compare loop 3
+logic true true false false
+and one false
+or true
+numbers true false true false true true
+strings true true true
+bools true true
+mixed false false false
+null false false true false false
+objects true false false
+equality true true true true true
+operands ab 3
+compare lr true
+field compound tv 3
+field increment t 4
+left first 7 3
+captured left first 6 100

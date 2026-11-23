@@ -50,10 +50,10 @@ class Box extends Base {
 	no property accessor runs, so a property without storage reads as null;
 	a method read as a value stays bound to its object and sees later
 	writes; a write to a missing field of an anonymous object adds the
-	field. The receiver runs once, before the right side. Left out: numeric
-	`+=` and `++` on a `Dynamic` field (arithmetic on `Dynamic` values does
-	not compile yet) and `@:isVar` properties with accessors (`Reflect.field`
-	does not see their storage on haxe.go yet).
+	field. The receiver runs once, before the right side. Numeric `+=` and
+	`++` on a `Dynamic` field are covered by `core/dynamic_operators`. Left
+	out: `@:isVar` properties with accessors (`Reflect.field` does not see
+	their storage on haxe.go yet).
 **/
 class Main {
 	static var order = "";

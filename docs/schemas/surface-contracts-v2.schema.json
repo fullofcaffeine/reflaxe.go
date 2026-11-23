@@ -135,6 +135,7 @@
         "string_compare",
         "string_optional",
         "nullable_compare",
+        "dynamic_ops",
         "equality",
         "print",
         "exception",

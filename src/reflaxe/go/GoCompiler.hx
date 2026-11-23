@@ -8,6 +8,7 @@ import haxe.macro.Expr.Unop;
 import haxe.macro.PositionTools;
 import haxe.macro.Type;
 import haxe.macro.TypeTools;
+import haxe.macro.TypedExprTools;
 import reflaxe.go.analyze.GoProfileContractAnalyzer;
 import reflaxe.go.compiler.GoAutoLoweringMode;
 import reflaxe.go.compiler.GoCompilerDefine;
@@ -1119,6 +1120,12 @@ class GoCompiler {
 		for (symbol in NULLABLE_ORDERED_COMPARISON_HELPERS) {
 			if (usage.uses(symbol)) {
 				requireGeneratedRuntimeFeature(GoHxrtFeatureAnalyzer.FEATURE_NULLABLE_COMPARE, "lowered_go_ast:" + symbol);
+				break;
+			}
+		}
+		for (symbol in DYNAMIC_OPERATOR_HELPERS) {
+			if (usage.uses(symbol)) {
+				requireGeneratedRuntimeFeature(GoHxrtFeatureAnalyzer.FEATURE_DYNAMIC_OPS, "lowered_go_ast:" + symbol);
 				break;
 			}
 		}
@@ -3823,7 +3830,7 @@ class GoCompiler {
 	}
 
 	function lowerToStatements(expr:TypedExpr):Array<GoStmt> {
-		var anonymousMutation = lowerAnonymousMutation(expr);
+		var anonymousMutation = lowerAnonymousMutation(expr, false);
 		if (anonymousMutation != null)
 			return exprStatement(anonymousMutation.expr);
 		return switch (expr.expr) {
@@ -4591,7 +4598,23 @@ class GoCompiler {
 	**/
 	function lowerConditionExpr(condition:TypedExpr):GoExpr {
 		var boolType = Context.getType("Bool");
-		return materializeExprWithPrefix(lowerReturnedExprWithExpectedType(condition, boolType), boolType).expr;
+		return materializeExprWithPrefix(lowerConditionWithPrefix(condition), boolType).expr;
+	}
+
+	/**
+		What: Lowers the condition of an `if`, `while`, `do`-`while` or `?:`.
+		Why: A `Dynamic` condition (a local, a field or a call result) is Go
+		`any`, which Go does not accept as a condition. `--interp` and neko take
+		the branch only for the Bool `true`; null, `false` and every other value
+		(Int `1`, a String) do not take it.
+		How: A `Dynamic` condition calls `hxrt.DynamicIsTrue`; any other
+		condition keeps the typed Bool recovery.
+	**/
+	function lowerConditionWithPrefix(condition:TypedExpr):LoweredExprWithPrefix {
+		if (!isDynamicOperand(condition))
+			return lowerReturnedExprWithExpectedType(condition, Context.getType("Bool"));
+		var lowered = lowerExprWithPrefix(condition);
+		return {prefix: lowered.prefix, expr: dynamicTruthExpr(lowered.expr), isStringLike: false};
 	}
 
 	function lowerIfExpr(condition:TypedExpr, thenBranch:TypedExpr, elseBranch:Null<TypedExpr>, resultType:Type):LoweredExprWithPrefix {
@@ -4600,7 +4623,7 @@ class GoCompiler {
 			Context.fatalError("If-expression requires an else branch", condition.pos);
 		}
 
-		var loweredCondition = lowerReturnedExprWithExpectedType(condition, Context.getType("Bool"));
+		var loweredCondition = lowerConditionWithPrefix(condition);
 		var facts = conditionNonNullFacts(condition);
 		var thenLeaves = valueBranchLeaves(thenBranch);
 		var elseLeaves = valueBranchLeaves(elseExpr);
@@ -6145,9 +6168,11 @@ class GoCompiler {
 		How: Read and write through the shared structural boundary, or through staged
 		`Reflect.field`/`Reflect.setField` for a `Dynamic` receiver, with typed
 		temporaries for the old and new values. The same expression serves all
-		statement contexts.
+		statement contexts. In a value position (`usesValue`), the value of a
+		`Dynamic` field's `++`, `--` or compound update takes the expression's
+		type; a statement leaves it unconverted, as Haxe does not read it.
 	**/
-	function lowerAnonymousMutation(expr:TypedExpr):Null<LoweredExpr> {
+	function lowerAnonymousMutation(expr:TypedExpr, usesValue:Bool = true):Null<LoweredExpr> {
 		var operation = switch (expr.expr) {
 			case TBinop(OpAssign, left, right): {
 					left: left,
@@ -6227,7 +6252,12 @@ class GoCompiler {
 			expr.pos) : GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousSet"), [objectExpr, GoExpr.GoStringLiteral(field.name), GoExpr.GoIdent(resultName)]);
 		body.push(GoStmt.GoExprStmt(write));
 		body.push(GoStmt.GoReturn(GoExpr.GoIdent(operation.post ? oldName : resultName)));
-		return {expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [storage], body), []), isStringLike: isStringType(operation.left.t)};
+		var mutation = GoExpr.GoCall(GoExpr.GoFuncLiteral([], [storage], body), []);
+		return {
+			expr: usesValue
+			&& (operation.unit != null || operation.op != null) ? dynamicUnitResult(mutation, operation.left, expr.t) : mutation,
+			isStringLike: isStringType(operation.left.t)
+		};
 	}
 
 	/**
@@ -6681,7 +6711,7 @@ class GoCompiler {
 			case TUnop(op, postFix, value):
 				var sharedArrayUnit = (op == OpIncrement || op == OpDecrement) ? lowerHaxeArrayIndexUnitExpr(value, op, postFix, expr.pos) : null;
 				if (sharedArrayUnit != null) {
-					return sharedArrayUnit;
+					return {expr: dynamicUnitResult(sharedArrayUnit.expr, value, expr.t), isStringLike: sharedArrayUnit.isStringLike};
 				}
 				if (postFix) {
 					return switch (op) {
@@ -6690,11 +6720,11 @@ class GoCompiler {
 							var temp = freshTempName("hx_post");
 							var opSymbol = op == OpIncrement ? GoBinaryOperator.Add : GoBinaryOperator.Subtract;
 							{
-								expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(value.t)], [
+								expr: dynamicUnitResult(GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(value.t)], [
 									GoStmt.GoVarDecl(temp, null, nullableNumericStorageRead(target, value.t), true),
 									GoStmt.GoAssign(target, unitStepExpr(unitStepSource(target, temp, value.t), opSymbol, value.t, expr.pos)),
 									GoStmt.GoReturn(GoExpr.GoIdent(temp))
-								]), []),
+								]), []), value, expr.t),
 								isStringLike: isStringType(expr.t)
 							};
 						case _:
@@ -6719,12 +6749,14 @@ class GoCompiler {
 						var target = lowerLValue(value);
 						var opSymbol = op == OpIncrement ? GoBinaryOperator.Add : GoBinaryOperator.Subtract;
 						{
-							expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(value.t)], [
+							expr: dynamicUnitResult(GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(value.t)], [
 								GoStmt.GoAssign(target, unitStepExpr(target, opSymbol, value.t, expr.pos)),
 								GoStmt.GoReturn(target)
-							]), []),
+							]), []), value, expr.t),
 							isStringLike: isStringType(expr.t)
 						};
+					case OpNot | OpNeg | OpNegBits if (isDynamicOperand(value)):
+						{expr: lowerDynamicUnopExpr(op, lowerExpr(value).expr, expr.t), isStringLike: false};
 					case _:
 						var loweredValue = nullableUnaryOperandExpr(lowerExpr(value).expr, value);
 						var unaryExpr = if (isInt32SemanticType(expr.t, expr.pos) && (op == OpNeg || op == OpNegBits)) {
@@ -7005,7 +7037,7 @@ class GoCompiler {
 				if (sharedArrayUnit != null) {
 					{
 						prefix: [],
-						expr: sharedArrayUnit.expr,
+						expr: dynamicUnitResult(sharedArrayUnit.expr, value, expr.t),
 						isStringLike: sharedArrayUnit.isStringLike
 					};
 				} else if (postFix) {
@@ -7019,7 +7051,7 @@ class GoCompiler {
 									GoStmt.GoVarDecl(temp, null, nullableNumericStorageRead(target, value.t), true),
 									GoStmt.GoAssign(target, unitStepExpr(unitStepSource(target, temp, value.t), opSymbol, value.t, expr.pos))
 								],
-								expr: GoExpr.GoIdent(temp),
+								expr: dynamicUnitResult(GoExpr.GoIdent(temp), value, expr.t),
 								isStringLike: false
 							};
 						case _:
@@ -11668,6 +11700,9 @@ class GoCompiler {
 		var nullableOrderedComparison = (leftNullableNumber && rightNullableNumber && (floatMode || int32Mode))
 			|| (int32Mode
 				&& ((leftNullableNumber && isInt32SemanticType(right.t)) || (rightNullableNumber && isInt32SemanticType(left.t))));
+		// An operator with a `Dynamic` operand takes the run-time rules of `--interp`.
+		var dynamicOperands = isDynamicOperand(left) || isDynamicOperand(right);
+		var dynamicHelper = dynamicOperands ? dynamicBinopHelper(op) : null;
 
 		return switch (op) {
 			case OpAdd if (stringMode):
@@ -11677,6 +11712,17 @@ class GoCompiler {
 					expr: GoExpr.GoCall(GoExpr.GoIdent(typedStringOps ? "hxrt.StringConcatStringPtr" : "hxrt.StringConcatAny"),
 						[leftStringExpr, rightStringExpr]),
 					isStringLike: true
+				};
+			case _ if (dynamicHelper != null):
+				{
+					expr: lowerDynamicBinopExpr(op, left, leftLowered.expr, right, rightLowered.expr, resultType),
+					isStringLike: false
+				};
+			case OpBoolAnd | OpBoolOr if (dynamicOperands):
+				{
+					expr: GoExpr.GoBinary(binopSymbol(op), isDynamicOperand(left) ? dynamicTruthExpr(leftLowered.expr) : leftExprForOperator,
+						isDynamicOperand(right) ? dynamicTruthExpr(rightLowered.expr) : rightExprForOperator),
+					isStringLike: false
 				};
 			case OpEq if (useStringEquality):
 				{
@@ -11851,6 +11897,13 @@ class GoCompiler {
 			case OpAdd if (isStringType(leftType) || isStringType(rightType)):
 				var typedStringOps = isStringType(leftType) && isStringType(rightType) && !rightUsesErasedArrayStorage;
 				GoExpr.GoCall(GoExpr.GoIdent(typedStringOps ? "hxrt.StringConcatStringPtr" : "hxrt.StringConcatAny"), [leftExpr, rightExpr]);
+			case _ if ((isDynamicCatchType(leftType) || isDynamicCatchType(rightType)) && dynamicBinopHelper(op) != null):
+				// `d += 1` stores the run-time result; a typed target (`i += d`) reads it back as its own type.
+				var helper = dynamicBinopHelper(op);
+				dynamicOperatorResult(GoExpr.GoCall(GoExpr.GoIdent(helper.name), [
+					dynamicOperandGoExpr(leftExpr, leftType),
+					dynamicOperandGoExpr(rightExpr, rightType)
+				]), helper.goType, leftType);
 			case OpAdd | OpSub | OpMult | OpMod | OpAnd | OpOr | OpXor | OpShl | OpShr | OpUShr if (int32Operands):
 				var int32Left = coerceNullableIntOperandExpr(leftExpr, leftType);
 				var int32Right = coerceNullableIntOperandExpr(rightExpr, rightType);
@@ -12310,8 +12363,245 @@ class GoCompiler {
 				nullableOrderedComparisonHelper(operatorName, shape[0], shape[1], shape[2])
 	];
 
+	/**
+		What: Whether an operand is a `Dynamic` value, whose operators Haxe
+		resolves from the value it holds at run time.
+		Why: A `Dynamic` value is Go `any`, and Go defines no operators on `any`.
+		`Null<T>` values, type parameters and `Any` are also `any` in Go, but
+		they keep their own lowerings: Haxe does not type operators on them as
+		`Dynamic` operations.
+		How: Follow the Haxe type to `Dynamic`.
+	**/
+	function isDynamicOperand(expr:TypedExpr):Bool {
+		return isDynamicCatchType(expr.t);
+	}
+
+	/** Every `runtime/hxrt/dynamic_ops.go` helper that lowered code can call; any of them requires the `dynamic_ops` runtime slice. */
+	static final DYNAMIC_OPERATOR_HELPERS:Array<String> = [
+		"hxrt.DynamicAdd",
+		"hxrt.DynamicSub",
+		"hxrt.DynamicMul",
+		"hxrt.DynamicDiv",
+		"hxrt.DynamicMod",
+		"hxrt.DynamicAnd",
+		"hxrt.DynamicOr",
+		"hxrt.DynamicXor",
+		"hxrt.DynamicShl",
+		"hxrt.DynamicShr",
+		"hxrt.DynamicUShr",
+		"hxrt.DynamicNeg",
+		"hxrt.DynamicComplement",
+		"hxrt.DynamicIsTrue",
+		"hxrt.DynamicNot",
+		"hxrt.DynamicToFloat",
+		"hxrt.DynamicLess",
+		"hxrt.DynamicLessEqual",
+		"hxrt.DynamicGreater",
+		"hxrt.DynamicGreaterEqual"
+	];
+
+	/**
+		What: The `runtime/hxrt/dynamic_ops.go` helper for one binary operator
+		with a `Dynamic` operand, and the Go type that the helper returns.
+		Why: Arithmetic keeps the run-time Int or Float of its result (`any`), a
+		division is always a Float, bitwise and shift operators always give an
+		Int, and comparisons give a Bool.
+		How: `==`, `!=`, `&&`, `||` and assignments have no helper here: equality
+		already uses `hxrt.HaxeEqual` or the String equality, and `&&`/`||` read
+		each `Dynamic` operand with `dynamicTruthExpr`.
+	**/
+	static function dynamicBinopHelper(op:Binop):Null<{name:String, goType:String}> {
+		return switch (op) {
+			case OpAdd: {name: "hxrt.DynamicAdd", goType: "any"};
+			case OpSub: {name: "hxrt.DynamicSub", goType: "any"};
+			case OpMult: {name: "hxrt.DynamicMul", goType: "any"};
+			case OpDiv: {name: "hxrt.DynamicDiv", goType: "float64"};
+			case OpMod: {name: "hxrt.DynamicMod", goType: "any"};
+			case OpAnd: {name: "hxrt.DynamicAnd", goType: "int"};
+			case OpOr: {name: "hxrt.DynamicOr", goType: "int"};
+			case OpXor: {name: "hxrt.DynamicXor", goType: "int"};
+			case OpShl: {name: "hxrt.DynamicShl", goType: "int"};
+			case OpShr: {name: "hxrt.DynamicShr", goType: "int"};
+			case OpUShr: {name: "hxrt.DynamicUShr", goType: "int"};
+			case OpLt: {name: "hxrt.DynamicLess", goType: "bool"};
+			case OpLte: {name: "hxrt.DynamicLessEqual", goType: "bool"};
+			case OpGt: {name: "hxrt.DynamicGreater", goType: "bool"};
+			case OpGte: {name: "hxrt.DynamicGreaterEqual", goType: "bool"};
+			case _: null;
+		};
+	}
+
+	/**
+		What: Converts the result of a `Dynamic` operator helper to the Go type of
+		the Haxe expression.
+		Why: Haxe types `d + 1` as `Dynamic` but `d - 1`, `-d` and a local's
+		`d++` as Float, and `~d` as Int, while the helper returns the run-time
+		value. A Float-typed result may hold an Int (`--interp` keeps `7 - 1` an
+		Int), which Go reads as the same number.
+		How: Keep the helper's value when the Go types match or the expression is
+		`Dynamic`; read a Float with `hxrt.DynamicToFloat`, an Int with
+		`hxrt.IntFromNullableAny`, and any other type with the ordinary `any`
+		recovery.
+	**/
+	function dynamicOperatorResult(call:GoExpr, callGoType:String, resultType:Type):GoExpr {
+		var resultGoType = typeToGoType(resultType);
+		if (resultGoType == callGoType || resultGoType == "any")
+			return call;
+		if (callGoType == "int" && resultGoType == "float64")
+			return GoExpr.GoCall(GoExpr.GoIdent("float64"), [call]);
+		if (callGoType != "any")
+			return call;
+		if (resultGoType == "float64")
+			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.DynamicToFloat"), [call]);
+		if (resultGoType == "int")
+			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [call]);
+		return coerceAnyExprToType(call, resultType, resultType, true);
+	}
+
+	/**
+		What: One operand of a `Dynamic` operator helper.
+		Why: The helper reads the Go type that the operand holds, and Go stores an
+		untyped whole-number constant in `any` as an `int`. A Float constant
+		written without a fraction must stay a Float.
+		How: Convert such a constant with `float64(...)`; pass every other
+		operand as it is.
+	**/
+	function dynamicOperandExpr(lowered:GoExpr, operand:TypedExpr):GoExpr {
+		return dynamicOperandGoExpr(lowered, operand.t);
+	}
+
+	/** `dynamicOperandExpr` for an operand known only by its Haxe type. */
+	function dynamicOperandGoExpr(lowered:GoExpr, operandType:Type):GoExpr {
+		if (!isFloatType(operandType))
+			return lowered;
+		return switch (lowered) {
+			case GoIntLiteral(_): GoExpr.GoCall(GoExpr.GoIdent("float64"), [lowered]);
+			case GoFloatLiteral(text) if (!~/[.eE]/.match(text)): GoExpr.GoCall(GoExpr.GoIdent("float64"), [lowered]);
+			case _: lowered;
+		};
+	}
+
+	/** Reads a `Dynamic` operand as a condition: true only for the Bool `true`. */
+	function dynamicTruthExpr(lowered:GoExpr):GoExpr {
+		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.DynamicIsTrue"), [lowered]);
+	}
+
+	/**
+		What: Lowers a binary operator with a `Dynamic` operand to its
+		`runtime/hxrt/dynamic_ops.go` helper.
+		Why: Haxe evaluates the left operand before the right one. Go evaluates
+		the arguments of a call left to right only relative to other calls: it
+		may read a plain variable argument after a later argument's call, so in
+		`y - (y = 3)` Go would read the new `y`.
+		How: Pass both operands as arguments. When the left argument is not a
+		call or a constant and the right operand can change it
+		(`dynamicLeftNeedsCapture`), read the left operand into a temporary first.
+	**/
+	function lowerDynamicBinopExpr(op:Binop, left:TypedExpr, leftExpr:GoExpr, right:TypedExpr, rightExpr:GoExpr, resultType:Type):GoExpr {
+		var helper = dynamicBinopHelper(op);
+		var leftArg = dynamicOperandExpr(leftExpr, left);
+		var rightArg = dynamicOperandExpr(rightExpr, right);
+		if (!dynamicLeftNeedsCapture(left, leftArg, right))
+			return dynamicOperatorResult(GoExpr.GoCall(GoExpr.GoIdent(helper.name), [leftArg, rightArg]), helper.goType, resultType);
+		var leftName = freshTempName("hx_dynamic_left");
+		var result = dynamicOperatorResult(GoExpr.GoCall(GoExpr.GoIdent(helper.name), [GoExpr.GoIdent(leftName), rightArg]), helper.goType, resultType);
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([], [typeToGoType(resultType)], [GoStmt.GoVarDecl(leftName, null, leftArg, true), GoStmt.GoReturn(result)]),
+			[]);
+	}
+
+	/**
+		What: Whether the left operand of a `Dynamic` operator must be read
+		before the right operand runs.
+		Why: See `lowerDynamicBinopExpr`. A call or a constant keeps its place in
+		Go; a variable or field read does not.
+		How: A local that no closure captures can change only through an
+		assignment, `++` or `--` in the right operand. Any other read can also
+		change through a call or a constructor there.
+	**/
+	function dynamicLeftNeedsCapture(left:TypedExpr, leftArg:GoExpr, right:TypedExpr):Bool {
+		switch (leftArg) {
+			case GoCall(_, _) | GoIntLiteral(_) | GoFloatLiteral(_) | GoBoolLiteral(_) | GoStringLiteral(_) | GoNil:
+				return false;
+			case _:
+		}
+		return exprMayChange(right, uncapturedLocal(left));
+	}
+
+	/** The local that `expr` reads, when no closure captures it. */
+	function uncapturedLocal(expr:TypedExpr):Null<TVar> {
+		return switch (expr.expr) {
+			case TLocal(variable) if (!variable.capture): variable;
+			case TMeta(_, inner) | TParenthesis(inner) | TCast(inner, _): uncapturedLocal(inner);
+			case _: null;
+		};
+	}
+
+	/**
+		Whether running `expr` can assign `local` (when given) or change any
+		storage (when `local` is null). Function bodies do not run where they
+		are declared, so they are skipped.
+	**/
+	function exprMayChange(expr:TypedExpr, local:Null<TVar>):Bool {
+		var found = false;
+		function visit(current:TypedExpr):Void {
+			if (found)
+				return;
+			switch (current.expr) {
+				case TFunction(_):
+					return;
+				case TBinop(OpAssign | OpAssignOp(_), target, _) | TUnop(OpIncrement | OpDecrement, _, target):
+					if (local == null || exprTargetsVariable(target, local)) {
+						found = true;
+						return;
+					}
+				case TCall(_, _) | TNew(_, _, _) if (local == null):
+					found = true;
+					return;
+				case _:
+			}
+			TypedExprTools.iter(current, visit);
+		}
+		visit(expr);
+		return found;
+	}
+
+	/**
+		What: Lowers unary `-`, `~` and `!` on a `Dynamic` operand.
+		Why: Go has no unary operators on `any`. `--interp` negates an Int with
+		32-bit wrap-around or a Float, computes `~x` as `-1 - x`, and reads `!x`
+		as true only for `false` and null.
+		How: Call `hxrt.DynamicNeg`, `hxrt.DynamicComplement` or
+		`hxrt.DynamicNot`, and convert the result to the expression's type.
+	**/
+	function lowerDynamicUnopExpr(op:Unop, operand:GoExpr, resultType:Type):GoExpr {
+		return switch (op) {
+			case OpNot: GoExpr.GoCall(GoExpr.GoIdent("hxrt.DynamicNot"), [operand]);
+			case OpNeg: dynamicOperatorResult(GoExpr.GoCall(GoExpr.GoIdent("hxrt.DynamicNeg"), [operand]), "any", resultType);
+			case _: dynamicOperatorResult(GoExpr.GoCall(GoExpr.GoIdent("hxrt.DynamicComplement"), [operand]), "any", resultType);
+		};
+	}
+
+	/**
+		The next value of `++` or `--`. A `Dynamic` value steps through
+		`hxrt.DynamicAdd` or `hxrt.DynamicSub`, which keep an Int an Int (with
+		32-bit wrap-around), keep a Float a Float, append `1` to a String and
+		raise `--interp`'s error for null or a Bool.
+	**/
 	function unitStepExpr(target:GoExpr, opSymbol:GoBinaryOperator, valueType:Type, ?sourcePos:haxe.macro.Expr.Position):GoExpr {
+		if (isDynamicCatchType(valueType))
+			return GoExpr.GoCall(GoExpr.GoIdent(opSymbol == GoBinaryOperator.Add ? "hxrt.DynamicAdd" : "hxrt.DynamicSub"), [target, GoExpr.GoIntLiteral(1)]);
 		return GoExprOperatorOps.unitStepExpr(target, opSymbol, isInt32SemanticType(valueType, sourcePos));
+	}
+
+	/**
+		What: The value of `++` or `--` on a `Dynamic` value, as the Go type of
+		the Haxe expression.
+		Why: The step keeps the value in its `any` storage, but Haxe types
+		`d++` on a local, `++o.n` and an `Array<Dynamic>` element step as Float.
+		How: Convert with `dynamicOperatorResult`; other operands keep `lowered`.
+	**/
+	function dynamicUnitResult(lowered:GoExpr, value:TypedExpr, resultType:Type):GoExpr {
+		return isDynamicOperand(value) ? dynamicOperatorResult(lowered, "any", resultType) : lowered;
 	}
 
 	/**
