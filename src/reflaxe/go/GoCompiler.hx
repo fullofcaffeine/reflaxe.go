@@ -4658,6 +4658,23 @@ class GoCompiler {
 	}
 
 	/**
+		What: Calls one member of the staged `Reflect` class from lowered code.
+		Why: Haxe gives a field read or write on a `Dynamic` receiver the meaning of
+		`Reflect.field` or `Reflect.setField`. Calling that staged member reuses its
+		lookup order and generated-member adapters instead of adding a second
+		compiler-owned dynamic field mechanism.
+		How: Record the usage as a source call to the member would, so the class and
+		its metadata adapters are emitted, then call the member's static symbol.
+	**/
+	function reflectSourceCall(member:String, arguments:Array<GoExpr>, pos:Position):GoExpr {
+		var owner = classFromType(Context.getType("Reflect"));
+		if (owner == null)
+			Context.fatalError("Missing source-owned Reflect class", pos);
+		noteStaticStdlibFieldUsage(owner, member, pos);
+		return GoExpr.GoCall(GoExpr.GoIdent(staticSymbol(owner, member)), arguments);
+	}
+
+	/**
 		Preserve ordered catches with separate exception and payload views. The
 		frontend supplies raw catch nodes, so both statement and expression paths
 		must use the same conversion, nominal ancestry and typed recovery rules.
@@ -6120,12 +6137,15 @@ class GoCompiler {
 	}
 
 	/**
-		What: Lower structural field mutation through live storage access.
-		Why: An anonymous value can be a map or a source-backed view, so it has no
-		Go lvalue. Capturing the receiver before the right side also preserves Haxe
-		evaluation order and avoids repeating side effects for compound operations.
-		How: Read and write through the shared boundary, with typed temporaries for
-		the old and new values. The same expression serves all statement contexts.
+		What: Lower structural and `Dynamic` field mutation through live storage access.
+		Why: An anonymous value can be a map or a source-backed view, and a `Dynamic`
+		value is Go `any`, so neither has a Go lvalue. Capturing the receiver before
+		the right side also preserves Haxe evaluation order and avoids repeating side
+		effects for compound operations.
+		How: Read and write through the shared structural boundary, or through staged
+		`Reflect.field`/`Reflect.setField` for a `Dynamic` receiver, with typed
+		temporaries for the old and new values. The same expression serves all
+		statement contexts.
 	**/
 	function lowerAnonymousMutation(expr:TypedExpr):Null<LoweredExpr> {
 		var operation = switch (expr.expr) {
@@ -6164,19 +6184,26 @@ class GoCompiler {
 		var field = anonymousMutationField(operation.left);
 		if (field == null)
 			return null;
+		var tempPrefix = field.dynamicReceiver ? "hx_dynamic" : "hx_structural";
 		var loweredTarget = lowerExprWithPrefix(field.target);
-		var objectName = freshTempName("hx_structural_target");
+		var objectName = freshTempName(tempPrefix + "_target");
 		var objectExpr = GoExpr.GoIdent(objectName);
-		var body = loweredTarget.prefix.concat([GoStmt.GoVarDecl(objectName, "hxrt.Anonymous", loweredTarget.expr, true)]);
-		var oldName = freshTempName("hx_structural_old");
-		var resultName = freshTempName("hx_structural_value");
+		var body = loweredTarget.prefix.concat([
+			GoStmt.GoVarDecl(objectName, field.dynamicReceiver ? "any" : "hxrt.Anonymous", loweredTarget.expr, true)
+		]);
+		var oldName = freshTempName(tempPrefix + "_old");
+		var resultName = freshTempName(tempPrefix + "_value");
 		// `++` and `--` produce the field's value type (`Int` for a `Null<Int>`
 		// field), so they step a typed copy instead of the nil-capable storage.
 		var storage = operation.unit != null ? typeToGoType(operation.left.t) : valueStorageGoType(operation.left.t);
 		if (operation.op != null || operation.unit != null) {
-			var oldValue = operation.unit != null
-				&& isNullablePrimitiveType(operation.left.t) ? nullableNumericStorageRead(anonymousFieldStorageRead(objectExpr, field.name),
-					operation.left.t) : lowerAnonymousFieldRead(objectExpr, field.name, operation.left.t);
+			var oldValue = if (field.dynamicReceiver) {
+				lowerDynamicFieldRead(objectExpr, field.name, operation.left.t, expr.pos);
+			} else if (operation.unit != null && isNullablePrimitiveType(operation.left.t)) {
+				nullableNumericStorageRead(anonymousFieldStorageRead(objectExpr, field.name), operation.left.t);
+			} else {
+				lowerAnonymousFieldRead(objectExpr, field.name, operation.left.t);
+			};
 			body.push(GoStmt.GoVarDecl(oldName, storage, oldValue, true));
 		}
 		var result:GoExpr;
@@ -6196,17 +6223,23 @@ class GoCompiler {
 				operation.right.t, expr.pos, false);
 		}
 		body.push(GoStmt.GoVarDecl(resultName, storage, result, true));
-		body.push(GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousSet"),
-			[objectExpr, GoExpr.GoStringLiteral(field.name), GoExpr.GoIdent(resultName)])));
+		var write = field.dynamicReceiver ? reflectSourceCall("setField", [objectExpr, lowerConst(TString(field.name)).expr, GoExpr.GoIdent(resultName)],
+			expr.pos) : GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousSet"), [objectExpr, GoExpr.GoStringLiteral(field.name), GoExpr.GoIdent(resultName)]);
+		body.push(GoStmt.GoExprStmt(write));
 		body.push(GoStmt.GoReturn(GoExpr.GoIdent(operation.post ? oldName : resultName)));
 		return {expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [storage], body), []), isStringLike: isStringType(operation.left.t)};
 	}
 
-	/** Resolve only structural field targets, preserving typed receiver ownership. */
-	function anonymousMutationField(expr:TypedExpr):Null<{target:TypedExpr, name:String}> {
+	/**
+		Resolve only structural and `Dynamic` field targets, preserving typed
+		receiver ownership. A `Dynamic` receiver has no Go lvalue either; it reads
+		and writes through staged `Reflect.field` and `Reflect.setField`.
+	**/
+	function anonymousMutationField(expr:TypedExpr):Null<{target:TypedExpr, name:String, dynamicReceiver:Bool}> {
 		return switch (expr.expr) {
-			case TField(target, FAnon(field)) if (isAnonymousObjectType(target.t)): {target: target, name: field.get().name};
-			case TField(target, FDynamic(name)) if (isAnonymousObjectType(target.t)): {target: target, name: name};
+			case TField(target, FAnon(field)) if (isAnonymousObjectType(target.t)): {target: target, name: field.get().name, dynamicReceiver: false};
+			case TField(target, FDynamic(name)) if (isAnonymousObjectType(target.t)): {target: target, name: name, dynamicReceiver: false};
+			case TField(target, FDynamic(name)) if (isDynamicFieldReceiver(target)): {target: target, name: name, dynamicReceiver: true};
 			case TParenthesis(inner) | TCast(inner, _) | TMeta(_, inner): anonymousMutationField(inner);
 			case _: null;
 		};
@@ -7437,6 +7470,12 @@ class GoCompiler {
 						isStringLike: false
 					};
 				}
+				if (isDynamicFieldReceiver(target)) {
+					return {
+						expr: lowerDynamicFieldRead(loweredTarget, name, appliedType, target.pos),
+						isStringLike: false
+					};
+				}
 				var dynamicExpr = if (name == "length" && isArrayType(target.t)) {
 					usesSharedArrayCarrier(target) ? GoExpr.GoCall(GoExpr.GoSelector(loweredTarget, "Len"),
 						[]) : GoExpr.GoCall(GoExpr.GoIdent("len"), [loweredTarget]);
@@ -7674,6 +7713,30 @@ class GoCompiler {
 	/** The erased `any` value of one structural field, before any typed recovery. */
 	function anonymousFieldStorageRead(targetExpr:GoExpr, fieldName:String):GoExpr {
 		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnonymousGet"), [targetExpr, GoExpr.GoStringLiteral(fieldName)]);
+	}
+
+	/**
+		What: Whether a field access has a `Dynamic` receiver that Go cannot select.
+		Why: A receiver stored as Go `any` has no fields or methods, so `o.f` must
+		take Haxe's dynamic path. Anonymous objects keep their structural boundary,
+		and every typed receiver keeps its direct Go selector.
+		How: Select only non-structural receivers whose Go storage is `any`.
+	**/
+	function isDynamicFieldReceiver(target:TypedExpr):Bool {
+		return !isAnonymousObjectType(target.t) && typeToGoType(target.t) == "any";
+	}
+
+	/**
+		What: Reads one field of a `Dynamic` receiver.
+		Why: Haxe reads `o.f` on a `Dynamic` value as `Reflect.field(o, "f")`: a
+		missing field (or a null receiver) is null, a method is a bound value, and no
+		property accessor runs. Calling the staged member keeps one dynamic field path.
+		How: Call staged `Reflect.field`, then recover the applied type of the read
+		when it is narrower than `Dynamic`.
+	**/
+	function lowerDynamicFieldRead(targetExpr:GoExpr, fieldName:String, fieldType:Null<Type>, pos:Position):GoExpr {
+		var value = reflectSourceCall("field", [targetExpr, lowerConst(TString(fieldName)).expr], pos);
+		return fieldType == null ? value : lowerNullableAwareTypeAssertExpr(value, fieldType);
 	}
 
 	function lowerNilSafeTypeAssertExpr(expr:GoExpr, assertedType:String):GoExpr {
@@ -13094,6 +13157,8 @@ class GoCompiler {
 		return switch (expr.expr) {
 			case TLocal(variable): registeredNarrowedPrimitiveStorageGoType(variable) == null && registeredNonNullPrimitiveLocalGoType(variable) == null && valueStorageGoType(variable.t) == "any";
 			case TArray(target, _): usesSharedArrayCarrier(target);
+			// A `Dynamic` field read returns staged `Reflect.field`'s `any` value.
+			case TField(target, FDynamic(_)): isDynamicFieldReceiver(target) && valueStorageGoType(expr.t) == "any";
 			case TMeta(_, inner):
 				exprBackedByAny(inner);
 			case TParenthesis(inner):

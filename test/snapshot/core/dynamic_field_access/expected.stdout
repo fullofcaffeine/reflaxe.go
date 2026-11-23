@@ -1,0 +1,29 @@
+anon 2 anon
+arg anon
+cond yes
+ternary on
+interp to=2 name=anon
+eq true true true
+typed 3
+text 4
+missing null true
+null receiver null
+reflect built 1
+typedef 1 p
+typedef shared 5
+nested 3 null [1,2]
+nested write 4
+field 4 inherited base private hidden
+property without storage null typed 8
+class missing null
+bound 5 live 11 dynamic 12
+anon write 9 added true
+concat anon!
+assigned 11 11
+class write 8 changed
+anon call 101
+method call 5 describe base
+dynamic method 15
+write order tv w
+concat order tv w+
+read order w+ tv
