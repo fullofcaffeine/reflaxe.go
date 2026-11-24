@@ -172,7 +172,11 @@ class GoSurfacePlanner {
 			}
 		}
 
-		decisions.sort((a, b) -> compareStrings(decisionKey(a), decisionKey(b)));
+		// Build each decision key once. The comparator then sees the same strings
+		// as before, so the order is unchanged.
+		var keyedDecisions = [for (decision in decisions) {key: decisionKey(decision), decision: decision}];
+		keyedDecisions.sort((a, b) -> compareStrings(a.key, b.key));
+		decisions = [for (entry in keyedDecisions) entry.decision];
 		var requiredImports = [for (requirement in requiredImportsByKey) requirement];
 		requiredImports.sort((a, b) -> compareStrings(importKey(a), importKey(b)));
 		var requiredRuntimeFeatures = [for (feature in requiredRuntimeById) feature];

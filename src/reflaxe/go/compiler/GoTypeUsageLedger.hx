@@ -336,9 +336,23 @@ private typedef MutableModuleEvidence = {
 	var module:String;
 	var kind:GoTypeUsageTargetKind;
 	var location:String;
-	var typeUsages:Map<String, GoTypeUsageEvidence>;
+	var typeUsages:Map<String, KeyedTypeUsageEvidence>;
 	var memberUsages:Map<String, GoMemberUsageEvidence>;
 	var nativeImports:Map<String, MutableNativeImportEvidence>;
+}
+
+/**
+	Why: The canonical shape JSON is both the deduplication key and the sort key.
+	Rebuilding it inside the sort comparator rendered every shape again on each
+	comparison, which made the two ledger snapshots a large part of a big compile.
+	What: One deduplicated type usage together with its shape JSON.
+	How: `addTypeUsage(...)` renders the shape once when it records the usage, and
+	`compareTypeUsage(...)` reads the stored string. The order stays (level, shape
+	JSON), so the published snapshot is unchanged.
+**/
+private typedef KeyedTypeUsageEvidence = {
+	final evidence:GoTypeUsageEvidence;
+	final shapeJson:String;
 }
 
 private typedef MutableNativeImportEvidence = {
@@ -418,8 +432,9 @@ class GoTypeUsageLedger {
 			if (mutable == null) {
 				continue;
 			}
-			var typeUsages = [for (value in mutable.typeUsages) value];
-			typeUsages.sort(compareTypeUsage);
+			var keyedTypeUsages = [for (value in mutable.typeUsages) value];
+			keyedTypeUsages.sort(compareTypeUsage);
+			var typeUsages = [for (value in keyedTypeUsages) value.evidence];
 			var memberUsages = [for (value in mutable.memberUsages) value];
 			memberUsages.sort(compareMemberUsage);
 			var mutableNativeImports = [for (value in mutable.nativeImports) value];
@@ -669,7 +684,7 @@ class GoTypeUsageLedger {
 				if (evidence == null) {
 					continue;
 				}
-				module.typeUsages.set(typeUsageKey(evidence), evidence);
+				addTypeUsage(module, evidence);
 				var targetModule = moduleTypeForUsage(value);
 				if (targetModule != null) {
 					addNativeImport(module, targetModule, GoNativeImportUsageKind.fromTypeUsage(outwardLevel), module.location);
@@ -744,11 +759,24 @@ class GoTypeUsageLedger {
 		if (type == null) {
 			return;
 		}
-		var evidence:GoTypeUsageEvidence = {
+		addTypeUsage(module, {
 			level: level,
 			shape: typeShape(type)
-		};
-		module.typeUsages.set(typeUsageKey(evidence), evidence);
+		});
+	}
+
+	/**
+		Record one type usage, keeping the last observation for each (level, shape).
+
+		Why / What / How
+		- The shape JSON is rendered here once and kept beside the evidence, so
+		  `snapshot(...)` can sort without rendering it again.
+		- The map key is the same `level + "\u0000" + shape JSON` string as before,
+		  so deduplication is unchanged.
+	**/
+	function addTypeUsage(module:MutableModuleEvidence, evidence:GoTypeUsageEvidence):Void {
+		var shapeJson = renderShapeJson(evidence.shape);
+		module.typeUsages.set(evidence.level + "\u0000" + shapeJson, {evidence: evidence, shapeJson: shapeJson});
 	}
 
 	function addMemberUsage(module:MutableModuleEvidence, kind:GoMemberUsageKind, target:String, member:String, targetModule:Null<ModuleType>,
@@ -1007,10 +1035,6 @@ class GoTypeUsageLedger {
 		return module + ":" + line;
 	}
 
-	static function typeUsageKey(entry:GoTypeUsageEvidence):String {
-		return entry.level + "\u0000" + shapeKey(entry.shape);
-	}
-
 	static function memberUsageKey(entry:GoMemberUsageEvidence):String {
 		return entry.kind + "\u0000" + entry.target + "\u0000" + entry.member + "\u0000" + entry.location;
 	}
@@ -1023,9 +1047,9 @@ class GoTypeUsageLedger {
 		return entry.feature + "\u0000" + entry.sourceKind + "\u0000" + entry.source;
 	}
 
-	static function compareTypeUsage(a:GoTypeUsageEvidence, b:GoTypeUsageEvidence):Int {
-		var levelOrder = compareStrings(a.level, b.level);
-		return levelOrder != 0 ? levelOrder : compareStrings(shapeKey(a.shape), shapeKey(b.shape));
+	static function compareTypeUsage(a:KeyedTypeUsageEvidence, b:KeyedTypeUsageEvidence):Int {
+		var levelOrder = compareStrings(a.evidence.level, b.evidence.level);
+		return levelOrder != 0 ? levelOrder : compareStrings(a.shapeJson, b.shapeJson);
 	}
 
 	static function compareMemberUsage(a:GoMemberUsageEvidence, b:GoMemberUsageEvidence):Int {
@@ -1052,10 +1076,6 @@ class GoTypeUsageLedger {
 		}
 		var usageOrder = compareStrings(a.usageKind, b.usageKind);
 		return usageOrder != 0 ? usageOrder : compareStrings(a.location, b.location);
-	}
-
-	static function shapeKey(shape:GoTypeShape):String {
-		return renderShapeJson(shape);
 	}
 
 	static function resolveImportPath(metadataImportPath:String, runtimeImportPath:String):String {

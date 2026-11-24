@@ -1176,8 +1176,11 @@ class GoSurfaceContractRegistry {
 				}
 			}
 		}
-		var decisions = [for (decision in decisionsByKey) decision];
-		decisions.sort(compareDecisions);
+		// Each map key is already `decisionKey(decision)`. Sorting by the stored key
+		// gives the same order without rendering every shape on each comparison.
+		var keyedDecisions = [for (key => decision in decisionsByKey) {key: key, decision: decision}];
+		keyedDecisions.sort((a, b) -> compareStrings(a.key, b.key));
+		var decisions = [for (entry in keyedDecisions) entry.decision];
 		var admittedCount = 0;
 		for (decision in decisions) {
 			if (decision.outcome == GoSurfaceDecisionOutcome.Admitted) {
@@ -2293,10 +2296,6 @@ class GoSurfaceContractRegistry {
 
 	static function compareContracts(a:GoSurfaceContract, b:GoSurfaceContract):Int {
 		return compareStrings(a.surfaceId, b.surfaceId);
-	}
-
-	static function compareDecisions(a:GoSurfaceDecision, b:GoSurfaceDecision):Int {
-		return compareStrings(decisionKey(a), decisionKey(b));
 	}
 
 	static function compareValidationIssues(a:GoSurfaceValidationIssue, b:GoSurfaceValidationIssue):Int {
