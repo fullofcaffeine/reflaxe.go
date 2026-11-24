@@ -11,6 +11,7 @@ import reflaxe.compiler.TypeUsageTracker.TypeUsageMap;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureReason;
 import reflaxe.helpers.TypeHelper;
 
+using reflaxe.helpers.BaseTypeHelper;
 using reflaxe.helpers.ModuleTypeHelper;
 
 /**
@@ -369,6 +370,29 @@ private typedef ResolvedMember = {
 }
 
 /**
+	The two strings that `typeShape(...)` reads from one named declaration.
+
+	Why
+	Reading a declaration through its macro reference (`ref.get()`) builds a new
+	interpreter object with all of the declaration's data every time. A large
+	program reads the same few declarations, such as `Int` or `String`, many
+	thousands of times while it converts types into shapes.
+
+	What
+	`path` is `ModuleTypeHelper.getPath(...)` and `trailId` is
+	`TypeHelper.getUniqueId(...)` for that declaration. Both depend only on the
+	declaration's package, module, and name, never on type arguments.
+
+	How
+	`GoTypeUsageLedger.declarationFacts(...)` computes them from one read of the
+	declaration.
+**/
+private typedef DeclarationFacts = {
+	final path:String;
+	final trailId:String;
+}
+
+/**
 	Collects Reflaxe type usage into a deterministic, path-safe compiler ledger.
 
 	Why
@@ -393,6 +417,32 @@ class GoTypeUsageLedger {
 	public static inline final SCANNER_FALLBACK = "transitional_contract_diagnostics_only";
 
 	final modules:Map<String, MutableModuleEvidence> = [];
+
+	/**
+		Declaration facts of enums, typedefs, and abstracts, kept for this ledger.
+
+		Why
+		Most shape conversion time went into reading the same declarations again
+		(see `DeclarationFacts`).
+
+		What
+		Maps a kind letter plus the reference's type path to the facts of that one
+		declaration. Classes are not kept here (see `typeShape(...)`).
+
+		How
+		The key is `GoTypeMapper.declarationPath(ref)`: the macro interpreter prints
+		a reference as the declaration's dotted type path without building the
+		declaration object (`GoTypeMapperContract` pins this).
+		Haxe gives every enum, typedef, and abstract in one compilation its own
+		type path, and it gives private ones a module-specific path (`pack._Module.Name`),
+		so one key names one declaration. The facts read only that declaration's
+		package, module, and name, which do not change after Haxe creates it, so a
+		kept value is the value a new read would give. Type arguments, including any
+		monomorphs in them, are not part of the facts and are converted again on
+		every use. The ledger is created again for each compilation, so no entry
+		survives into the next one on a compilation server.
+	**/
+	final declarationFactsByPath:Map<String, DeclarationFacts> = [];
 
 	public function new() {}
 
@@ -808,7 +858,7 @@ class GoTypeUsageLedger {
 		module.nativeImports.set(nativeImportKey(evidence), evidence);
 	}
 
-	static function typeUsageEvidence(value:TypeOrModuleType, level:GoTypeUsageLevelId):Null<GoTypeUsageEvidence> {
+	function typeUsageEvidence(value:TypeOrModuleType, level:GoTypeUsageLevelId):Null<GoTypeUsageEvidence> {
 		return switch (value) {
 			case EModuleType(moduleType):
 				{
@@ -823,7 +873,31 @@ class GoTypeUsageLedger {
 		};
 	}
 
-	static function typeShape(type:Type, ?trail:Array<String>, depth:Int = 0):GoTypeShape {
+	/**
+		Convert one macro type into a `GoTypeShape`.
+
+		Why
+		Every typed expression of a project module passes through here, so a large
+		program converts more than a hundred thousand types. Reading declarations
+		with `ref.get()` was most of that cost (see `DeclarationFacts`).
+
+		What
+		The same shapes as before. `trail` holds the ids of the enclosing
+		monomorphs, functions, anonymous structures, dynamics, lazy types, and the
+		followed `Iterator` typedef. A type whose id is already on the trail becomes
+		`UnknownShape(Recursive)`. Each id is exactly `TypeHelper.getUniqueId(...)`
+		(see `trailId(...)`).
+
+		How
+		- A class is read once per use: that one read gives its kind, path, and id.
+		  Class facts are never kept, because type parameter classes have
+		  references that print alike (every local `f<T>` owns an `f.T`).
+		- An enum, typedef, or abstract is read once per compilation
+		  (see `declarationFactsByPath`).
+		- Monomorphs and type arguments are read on every use, so a monomorph that
+		  Haxe binds later is seen bound from then on, as before.
+	**/
+	function typeShape(type:Type, ?trail:Array<String>, depth:Int = 0):GoTypeShape {
 		if (type == null) {
 			return UnknownShape(GoUnknownTypeShapeReason.Missing);
 		}
@@ -831,30 +905,25 @@ class GoTypeUsageLedger {
 			return UnknownShape(GoUnknownTypeShapeReason.DepthLimit);
 		}
 		var activeTrail = trail == null ? [] : trail;
-		var id = TypeHelper.getUniqueId(type);
-		if (activeTrail.indexOf(id) != -1) {
-			return UnknownShape(GoUnknownTypeShapeReason.Recursive);
-		}
-		var nextTrail = activeTrail.copy();
-		nextTrail.push(id);
-
 		return switch (type) {
-			case TMono(reference):
-				var resolved = reference.get();
-				resolved == null ? UnknownShape(GoUnknownTypeShapeReason.Monomorph) : typeShape(resolved, nextTrail, depth + 1);
-			case TEnum(enumRef, parameters):
-				nominalShape(GoTypeUsageTargetKind.Enum, TEnumDecl(enumRef).getPath(), parameters, activeTrail, depth);
 			case TInst(classRef, parameters):
 				var classType = classRef.get();
-				switch (classType.kind) {
-					case KTypeParameter(_):
-						TypeParameter(TClassDecl(classRef).getPath());
-					case _:
-						nominalShape(GoTypeUsageTargetKind.Class, TClassDecl(classRef).getPath(), parameters, activeTrail, depth);
+				var facts = declarationFacts("C", classType);
+				if (activeTrail.indexOf(facts.trailId) != -1) {
+					UnknownShape(GoUnknownTypeShapeReason.Recursive);
+				} else {
+					switch (classType.kind) {
+						case KTypeParameter(_):
+							TypeParameter(facts.path);
+						case _:
+							nominalShape(GoTypeUsageTargetKind.Class, facts, parameters, activeTrail, depth);
+					}
 				}
+			case TEnum(enumRef, parameters):
+				nominalShape(GoTypeUsageTargetKind.Enum, namedDeclarationFacts("E", enumRef), parameters, activeTrail, depth);
 			case TType(typeRef, parameters):
-				final path = TTypeDecl(typeRef).getPath();
-				if (path == "StdTypes.Iterator" && parameters.length == 1) {
+				var facts = namedDeclarationFacts("T", typeRef);
+				if (facts.path == "StdTypes.Iterator" && parameters.length == 1 && activeTrail.indexOf(facts.trailId) == -1) {
 					/*
 						Why: Haxe Iterator<T> is the canonical structural
 						hasNext/next protocol, but retaining only its typedef name
@@ -864,10 +933,29 @@ class GoTypeUsageLedger {
 						How: All user typedefs remain nominal and opaque, so this
 						does not let aliases hide Dynamic or other storage.
 					 */
-					typeShape(Context.follow(type), nextTrail, depth + 1);
+					typeShape(Context.follow(type), extendedTrail(activeTrail, facts.trailId), depth + 1);
 				} else {
-					nominalShape(GoTypeUsageTargetKind.Typedef, path, parameters, activeTrail, depth);
+					nominalShape(GoTypeUsageTargetKind.Typedef, facts, parameters, activeTrail, depth);
 				}
+			case TAbstract(abstractRef, parameters):
+				nominalShape(GoTypeUsageTargetKind.Abstract, namedDeclarationFacts("A", abstractRef), parameters, activeTrail, depth);
+			case TMono(_) | TFun(_, _) | TAnonymous(_) | TDynamic(_) | TLazy(_):
+				structuralShape(type, activeTrail, depth);
+		};
+	}
+
+	/** Convert a monomorph, function, anonymous structure, dynamic, or lazy type. */
+	function structuralShape(type:Type, trail:Array<String>, depth:Int):GoTypeShape {
+		var id = trailId(type);
+		if (trail.indexOf(id) != -1) {
+			return UnknownShape(GoUnknownTypeShapeReason.Recursive);
+		}
+		var nextTrail = extendedTrail(trail, id);
+
+		return switch (type) {
+			case TMono(reference):
+				var resolved = reference.get();
+				resolved == null ? UnknownShape(GoUnknownTypeShapeReason.Monomorph) : typeShape(resolved, nextTrail, depth + 1);
 			case TFun(arguments, returnType):
 				var outwardArguments = new Array<GoFunctionArgumentShape>();
 				for (argument in arguments) {
@@ -894,18 +982,99 @@ class GoTypeUsageLedger {
 				DynamicShape(inner == null ? null : typeShape(inner, nextTrail, depth + 1));
 			case TLazy(resolve):
 				typeShape(resolve(), nextTrail, depth + 1);
-			case TAbstract(abstractRef, parameters):
-				var moduleType:ModuleType = TAbstract(abstractRef);
-				nominalShape(GoTypeUsageTargetKind.Abstract, moduleType.getPath(), parameters, activeTrail, depth);
+			case TInst(_, _) | TEnum(_, _) | TType(_, _) | TAbstract(_, _):
+				// `typeShape(...)` converts named declarations itself.
+				typeShape(type, trail, depth);
 		};
 	}
 
-	static function nominalShape(kind:GoTypeUsageTargetKind, path:String, parameters:Array<Type>, trail:Array<String>, depth:Int):GoTypeShape {
+	static function extendedTrail(trail:Array<String>, id:String):Array<String> {
+		var next = trail.copy();
+		next.push(id);
+		return next;
+	}
+
+	/**
+		Return the same string as `TypeHelper.getUniqueId(type)`.
+
+		Why: `typeShape(...)` decides recursion by comparing these ids, so they must
+		not change. The upstream helper reads each declaration with `ref.get()`.
+
+		What: Functions and anonymous structures keep their `Std.string(...)` text;
+		monomorphs, dynamics, and lazy types keep their prefixes around the inner id.
+
+		How: A declaration's id is `"T"` plus `ModuleTypeHelper.getUniqueId(...)`,
+		taken from `declarationFacts(...)` or `namedDeclarationFacts(...)`.
+	**/
+	function trailId(type:Type):String {
+		return switch (type) {
+			case TLazy(resolve):
+				trailId(resolve());
+			case TAnonymous(_) | TFun(_, _):
+				Std.string(type);
+			case TDynamic(inner):
+				inner != null ? "TD" + trailId(inner) : "TD_Empty";
+			case TMono(reference):
+				var resolved = reference.get();
+				resolved != null ? "TM" + trailId(resolved) : "TM_Empty";
+			case TInst(classRef, _):
+				declarationFacts("C", classRef.get()).trailId;
+			case TEnum(enumRef, _):
+				namedDeclarationFacts("E", enumRef).trailId;
+			case TType(typeRef, _):
+				namedDeclarationFacts("T", typeRef).trailId;
+			case TAbstract(abstractRef, _):
+				namedDeclarationFacts("A", abstractRef).trailId;
+		};
+	}
+
+	/**
+		Return the facts of one enum (`"E"`), typedef (`"T"`), or abstract (`"A"`)
+		declaration. The declaration is read only the first time this ledger sees
+		it; `declarationFactsByPath` explains why the key names one declaration.
+	**/
+	function namedDeclarationFacts<T:BaseType>(prefix:String, ref:Ref<T>):DeclarationFacts {
+		var key = prefix + GoTypeMapper.declarationPath(ref);
+		var facts = declarationFactsByPath.get(key);
+		if (facts == null) {
+			facts = declarationFacts(prefix, ref.get());
+			declarationFactsByPath.set(key, facts);
+		}
+		return facts;
+	}
+
+	/**
+		Compute the facts of one declaration from a single read of it.
+
+		Why: `ModuleTypeHelper.getPath(...)` and `ModuleTypeHelper.getUniqueId(...)`
+		take a module type and read the declaration again for each answer.
+
+		What: `path` equals `ModuleTypeHelper.getPath(...)`. `trailId` equals
+		`"T" + ModuleTypeHelper.getUniqueId(...)` for a declaration of kind
+		`prefix` (`C`, `E`, `T`, or `A`), which is `TypeHelper.getUniqueId(...)` of
+		any type that names it.
+
+		How: Both are built from `module`, `name`, and `pack` with the same
+		expressions as the upstream helpers.
+	**/
+	static function declarationFacts(prefix:String, declaration:BaseType):DeclarationFacts {
+		var module = declaration.module;
+		var name = declaration.name;
+		var path = StringTools.endsWith(module, name) ? module : module + "." + name;
+		var trailId = "T" + prefix + "|" + declaration.pack.join("_") + declaration.globalName(false);
+		return {path: path, trailId: trailId};
+	}
+
+	/** Convert a named declaration and its type arguments, unless it is already on the trail. */
+	function nominalShape(kind:GoTypeUsageTargetKind, facts:DeclarationFacts, parameters:Array<Type>, trail:Array<String>, depth:Int):GoTypeShape {
+		if (trail.indexOf(facts.trailId) != -1) {
+			return UnknownShape(GoUnknownTypeShapeReason.Recursive);
+		}
 		var outwardParameters = new Array<GoTypeShape>();
 		for (parameter in parameters) {
 			outwardParameters.push(typeShape(parameter, trail, depth + 1));
 		}
-		return Nominal(kind, path, GoImmutableList.fromArray(outwardParameters));
+		return Nominal(kind, facts.path, GoImmutableList.fromArray(outwardParameters));
 	}
 
 	static function moduleTypeShape(moduleType:ModuleType):GoTypeShape {
@@ -1102,9 +1271,25 @@ class GoTypeUsageLedger {
 		return path == null ? "" : path.split("\\").join("/");
 	}
 
+	/**
+		Escape `value` for a JSON string literal.
+
+		Why: Rendering a shape escapes every path and name in it, and almost none of
+		them contain a character that needs escaping. Five split/join passes
+		allocate new strings even then.
+
+		What: Returns `value` itself when it contains none of the five escaped
+		characters. Otherwise escapes them as before.
+
+		How: Each split/join pass leaves a string without its separator unchanged,
+		so skipping all five passes for such a string gives the same result.
+	**/
 	static function jsonEscape(value:String):String {
 		if (value == null) {
 			return "";
+		}
+		if (value.indexOf("\\") == -1 && value.indexOf('"') == -1 && value.indexOf("\n") == -1 && value.indexOf("\r") == -1 && value.indexOf("\t") == -1) {
+			return value;
 		}
 		return value.split("\\")
 			.join("\\\\")

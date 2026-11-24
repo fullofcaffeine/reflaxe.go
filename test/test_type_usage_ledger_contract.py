@@ -45,6 +45,31 @@ class TypeUsageLedgerContractTest(unittest.TestCase):
         self.assertTrue(report.is_file(), "typed usage report was not emitted")
         return json.loads(report.read_text(encoding="utf-8"))
 
+    def test_shape_conversion_matches_the_plain_conversion(self) -> None:
+        # The ledger keeps declaration facts between conversions. This macro
+        # contract compares every shape with the uncached conversion and checks
+        # that monomorphs are read again on every use.
+        proc = subprocess.run(
+            [
+                "haxe",
+                "-cp",
+                "src",
+                "-cp",
+                "test/compiler",
+                "-lib",
+                "reflaxe",
+                "--macro",
+                "GoTypeShapeContract.check()",
+                "--no-output",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertIn("type shape contract passed", proc.stdout + proc.stderr)
+
     def test_tracker_is_enabled_and_report_is_deterministic(self) -> None:
         compiler_init = COMPILER_INIT.read_text(encoding="utf-8")
         self.assertIn("trackUsedTypes: true", compiler_init)
