@@ -1,0 +1,34 @@
+length 5 0 2 0
+2
+typed 10 0.5 5 1
+operators 6 3 true true 2.5 -2
+condition one
+loop 3 2
+length write [1]
+statements [[1,2,9],[0,3]]
+push 4 pop 10 [1,2,9]
+string b 2 [a,pha] lp
+join 0-3 2 true
+typed L 5
+chain 5 A 5
+call result 4 e!
+missing method = error Cannot call null
+anon ann 1 4 deep 2
+class 4 8
+typed ANN 2 0.5
+missing null null
+label length 4 a
+writes bob! 7 18
+values 7 9 7 cy
+added true 7
+json 3 2 0
+json a,b,c bob ANN
+null field = error
+null call = error
+null write = error
+null step = error
+outside field = error
+present field = no error
+call order ria [[1,5],[2]]
+read order ri 1
+write order riv 3

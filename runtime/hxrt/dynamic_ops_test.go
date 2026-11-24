@@ -229,3 +229,33 @@ func TestDynamicSlotConversions(t *testing.T) {
 		}
 	}
 }
+
+// The receiver of a field of a value read from a `Dynamic` index: every value
+// passes unchanged, and null (also a null pointer stored in the `any`) raises
+// "Null Access", as a field of a null structure does.
+func TestDynamicFieldReceiver(t *testing.T) {
+	text := StringFromLiteral("ab")
+	array := NewArray(1, 2)
+	var nilText *string
+	var nilArray *Array
+	cases := []struct {
+		name string
+		run  func() any
+		want string
+	}{
+		{"String", func() any { return DynamicFieldReceiver(text) }, "S:ab"},
+		{"Int", func() any { return DynamicFieldReceiver(0) }, "I:0"},
+		{"Bool", func() any { return DynamicFieldReceiver(false) }, "B:false"},
+		{"null", func() any { return DynamicFieldReceiver(nil) }, "error: Null Access"},
+		{"null String", func() any { return DynamicFieldReceiver(nilText) }, "error: Null Access"},
+		{"null Array", func() any { return DynamicFieldReceiver(nilArray) }, "error: Null Access"},
+	}
+	for _, c := range cases {
+		if got := dynamicOutcome(c.run); got != c.want {
+			t.Errorf("%s: got %q, want %q", c.name, got, c.want)
+		}
+	}
+	if DynamicFieldReceiver(array) != any(array) {
+		t.Errorf("Array: got another value")
+	}
+}

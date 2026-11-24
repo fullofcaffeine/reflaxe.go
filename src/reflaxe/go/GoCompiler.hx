@@ -6216,8 +6216,13 @@ class GoCompiler {
 		var loweredTarget = lowerExprWithPrefix(field.target);
 		var objectName = freshTempName(tempPrefix + "_target");
 		var objectExpr = GoExpr.GoIdent(objectName);
+		// A field of a `Dynamic` element (`d[0].n = v`, see `dynamicStructureField`)
+		// is a `Dynamic` field whose receiver must not be null. For `d[0].n += v`
+		// Haxe first stores the element in a local typed as a structure.
+		var structureField = dynamicStructureField(operation.left) != null;
 		var body = loweredTarget.prefix.concat([
-			GoStmt.GoVarDecl(objectName, field.dynamicReceiver ? "any" : "hxrt.Anonymous", loweredTarget.expr, true)
+			GoStmt.GoVarDecl(objectName, field.dynamicReceiver ? "any" : "hxrt.Anonymous",
+				structureField ? dynamicStructureReceiverExpr(loweredTarget.expr) : loweredTarget.expr, true)
 		]);
 		var indexExpr:Null<GoExpr> = null;
 		var index = field.index;
@@ -6228,9 +6233,10 @@ class GoCompiler {
 			body.push(GoStmt.GoVarDecl(indexName, "int", lowerDynamicIndexPosition(index, loweredIndex.expr), true));
 			indexExpr = GoExpr.GoIdent(indexName);
 		}
-		// The element of a `Dynamic` value is itself `Dynamic`, whatever type the
-		// use gave the index read (see `dynamicIndexOperand`).
-		var left:TypedExpr = index != null ? {expr: operation.left.expr, pos: operation.left.pos, t: TDynamic(null)} : operation.left;
+		// The element of a `Dynamic` value, and a field of it, is itself `Dynamic`,
+		// whatever type the use gave the read (see `dynamicIndexOperand`).
+		var dynamicElement = index != null || structureField;
+		var left:TypedExpr = dynamicElement ? {expr: operation.left.expr, pos: operation.left.pos, t: TDynamic(null)} : operation.left;
 		var oldName = freshTempName(tempPrefix + "_old");
 		var resultName = freshTempName(tempPrefix + "_value");
 		// `++` and `--` produce the field's value type (`Int` for a `Null<Int>`
@@ -6277,8 +6283,8 @@ class GoCompiler {
 		var mutation = GoExpr.GoCall(GoExpr.GoFuncLiteral([], [storage], body), []);
 		return {
 			expr: usesValue
-			&& (operation.unit != null || operation.op != null || index != null) ? dynamicUnitResult(mutation, left, expr.t) : mutation,
-			isStringLike: isStringType(index != null ? expr.t : left.t)
+			&& (operation.unit != null || operation.op != null || dynamicElement) ? dynamicUnitResult(mutation, left, expr.t) : mutation,
+			isStringLike: isStringType(dynamicElement ? expr.t : left.t)
 		};
 	}
 
@@ -6287,7 +6293,9 @@ class GoCompiler {
 		`Dynamic` value, preserving typed receiver ownership. A `Dynamic` receiver
 		has no Go lvalue either; a field reads and writes through staged
 		`Reflect.field` and `Reflect.setField`, and an index (`index`, with an
-		empty `name`) through the `dynamic_ops` index helpers.
+		empty `name`) through the `dynamic_ops` index helpers. A field of a
+		`Dynamic` element (see `dynamicStructureField`) has a `Dynamic` receiver,
+		lowered typed `Dynamic` so that it is not converted to a structure.
 	**/
 	function anonymousMutationField(expr:TypedExpr):Null<{
 		target:TypedExpr,
@@ -6295,6 +6303,14 @@ class GoCompiler {
 		dynamicReceiver:Bool,
 		index:Null<TypedExpr>
 	}> {
+		var member = dynamicStructureField(expr);
+		if (member != null)
+			return {
+				target: asDynamicOperand(member.target),
+				name: member.name,
+				dynamicReceiver: true,
+				index: null
+			};
 		return switch (expr.expr) {
 			case TField(target, FAnon(field)) if (isAnonymousObjectType(target.t)): {
 					target: target,
@@ -7529,6 +7545,13 @@ class GoCompiler {
 				}
 			case FAnon(field):
 				var resolved = field.get();
+				// A field of a `Dynamic` element reads as a `Dynamic` field.
+				if (isDynamicStructureReceiver(target)) {
+					return {
+						expr: lowerDynamicStructureFieldRead(target, resolved.name, appliedType, target.pos),
+						isStringLike: appliedType != null && isStringType(appliedType)
+					};
+				}
 				var loweredTarget = lowerExpr(target).expr;
 				if (isSharedArrayElementExpr(target)) {
 					loweredTarget = coerceStoredArrayElementExpr(loweredTarget, target.t);
@@ -7561,6 +7584,12 @@ class GoCompiler {
 					};
 				}
 			case FDynamic(name):
+				if (isDynamicStructureReceiver(target)) {
+					return {
+						expr: lowerDynamicStructureFieldRead(target, name, appliedType, target.pos),
+						isStringLike: appliedType != null && isStringType(appliedType)
+					};
+				}
 				var loweredTarget = lowerExpr(target).expr;
 				if (isSharedArrayElementExpr(target) && typeToGoType(target.t) != "any") {
 					loweredTarget = coerceStoredArrayElementExpr(loweredTarget, target.t);
@@ -7868,32 +7897,142 @@ class GoCompiler {
 		(see `dynamicIndexOperand`).
 	**/
 	function lowerDynamicIndexRead(targetExpr:GoExpr, indexExpr:GoExpr, valueType:Type):GoExpr {
-		var value = GoExpr.GoCall(GoExpr.GoIdent("hxrt.DynamicIndexGet"), [targetExpr, indexExpr]);
+		return dynamicReadForUse(GoExpr.GoCall(GoExpr.GoIdent("hxrt.DynamicIndexGet"), [targetExpr, indexExpr]), valueType);
+	}
+
+	/**
+		What: Reads the Go `any` value of a `Dynamic` element (see
+		`dynamicIndexOperand`) as the type that its use gave it.
+		Why: Haxe binds the unknown type of `d[0]`, `d[0].length` or
+		`d[0].pop()` from its use, whatever the value holds: `var f:Float =
+		d[0].length` makes it a Float and `"n" + d[0]` a String.
+		How: Convert as a `Dynamic` operator result (`dynamicOperatorResult`): an
+		Int read as a Float is the same number, and an Int read as a String is
+		its text. A `Null<Int>`, `Null<Float>` or `Null<Bool>` keeps the
+		nil-capable `any` value.
+	**/
+	function dynamicReadForUse(value:GoExpr, valueType:Type):GoExpr {
 		return isNullablePrimitiveType(valueType) ? value : dynamicOperatorResult(value, "any", valueType);
 	}
 
 	/**
-		What: A read of an index of a `Dynamic` value, typed `Dynamic`, or null for
-		any other expression.
+		What: A `Dynamic` element typed `Dynamic`, or null for any other
+		expression. A `Dynamic` element is a read of an index of a `Dynamic`
+		value (`d[i]`), a field of one (`d[i].length`, see
+		`dynamicStructureField`), or the result of a call of such a field
+		(`d[i].pop()`).
 		Why: Haxe types `d[i]` with an unknown type that its use binds: `d[0] + 1`
 		and `d[0] > 1` make it a Float, `!d[0]` and `if (d[0])` a Bool, and
-		`d[0] == 1` an Int. `--interp` still applies the operator to the value that
-		the element holds: `d[0] + 1` of an Int element stays an Int, and a null
-		element raises "Invalid operation". So an operator must take the read as a
-		`Dynamic` operand, not as the bound type.
-		How: Return the `TArray` read with the `Dynamic` type, without the
-		parentheses and metadata around it, so that `isDynamicOperand` selects the
-		`dynamic_ops` helpers and lowering keeps the read unconverted.
+		`d[0] == 1` an Int. A field access on it binds it to a structure whose
+		fields and call results are unknown types too. `--interp` still applies
+		the operator to the value that the element holds: `d[0] + 1` of an Int
+		element stays an Int, and a null element raises "Invalid operation". So an
+		operator must take the read as a `Dynamic` operand, not as the bound type.
+		How: Return the read with the `Dynamic` type, without the parentheses and
+		metadata around it, so that `isDynamicOperand` selects the `dynamic_ops`
+		helpers and lowering keeps the read unconverted.
 	**/
 	function dynamicIndexOperand(expr:TypedExpr):Null<TypedExpr> {
 		return switch (expr.expr) {
 			case TArray(target, _) if (isDynamicIndexTarget(target)): {expr: expr.expr, pos: expr.pos, t: TDynamic(null)};
+			case TField(_, _) if (dynamicStructureField(expr) != null): {expr: expr.expr, pos: expr.pos, t: TDynamic(null)};
+			case TCall(callee, _) if (dynamicStructureField(callee) != null): {expr: expr.expr, pos: expr.pos, t: TDynamic(null)};
 			case TParenthesis(inner) | TMeta(_, inner): dynamicIndexOperand(inner);
 			case _: null;
 		};
 	}
 
-	/** `expr` as an operator operand: a `Dynamic` index read typed `Dynamic` (see `dynamicIndexOperand`), else `expr` itself. */
+	/**
+		What: The receiver and the name of a field of a `Dynamic` element
+		(`d[0].length`, `d[0].push`, `d[0].inner.name`), or null for any other
+		expression.
+		Why: Haxe types the element with an unknown type, and a field access on
+		it makes that type a structure, whatever the element holds. The
+		structural field lowering converts the receiver to an anonymous object
+		first, which fails for a String or an Array element (`--interp` reads
+		`d[0].length` of both). A `Dynamic` value has no static type to trust, so
+		the field takes the `Dynamic` path instead (see
+		`lowerDynamicStructureFieldRead` and `lowerDynamicStructureCall`).
+		How: Accept a structural or `Dynamic` field access whose receiver is a
+		structure that is itself a `Dynamic` element (see
+		`isDynamicStructureReceiver`). Typed receivers, also a local that holds
+		a `Dynamic` element, keep the structural lowering.
+	**/
+	function dynamicStructureField(expr:TypedExpr):Null<{target:TypedExpr, name:String}> {
+		return switch (expr.expr) {
+			case TField(target, FAnon(field)) if (isDynamicStructureReceiver(target)): {target: target, name: field.get().name};
+			case TField(target, FDynamic(name)) if (isDynamicStructureReceiver(target)): {target: target, name: name};
+			case TParenthesis(inner) | TMeta(_, inner): dynamicStructureField(inner);
+			case _: null;
+		};
+	}
+
+	/** Whether `target` is a `Dynamic` element (see `dynamicIndexOperand`) that Haxe types as a structure. */
+	function isDynamicStructureReceiver(target:TypedExpr):Bool {
+		return isAnonymousObjectType(target.t) && dynamicIndexOperand(target) != null;
+	}
+
+	/**
+		What: The receiver of a field of a `Dynamic` element (see
+		`dynamicStructureField`), as a `Dynamic` value that is not null.
+		Why: Staged `Reflect.field` reads null from a null receiver, but
+		`--interp` raises an error for a field of a null structure, and the
+		structural lowering raised `Null Access`.
+		How: Lower the receiver typed `Dynamic`, so that it is not converted to
+		an anonymous object, and pass it through `hxrt.DynamicFieldReceiver`,
+		which raises `Null Access` for null.
+	**/
+	function lowerDynamicStructureReceiver(target:TypedExpr):GoExpr {
+		return dynamicStructureReceiverExpr(lowerExpr(asDynamicOperand(target)).expr);
+	}
+
+	/** `hxrt.DynamicFieldReceiver(receiver)`, the null check of `lowerDynamicStructureReceiver` for a lowered receiver. */
+	function dynamicStructureReceiverExpr(receiver:GoExpr):GoExpr {
+		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.DynamicFieldReceiver"), [receiver]);
+	}
+
+	/**
+		What: Reads field `name` of a `Dynamic` element (see
+		`dynamicStructureField`), as `valueType` when it is not null.
+		Why: The element can hold any value, so the read must be the read of a
+		field of a `Dynamic` value: `Reflect.field` reads the length of a String
+		or an Array, a method as a bound function, and a field of an anonymous
+		object, a class instance or a parsed JSON value.
+		How: Read through `lowerDynamicFieldRead` from the checked receiver (see
+		`lowerDynamicStructureReceiver`), then convert the value as a `Dynamic`
+		index read is converted (`dynamicReadForUse`).
+	**/
+	function lowerDynamicStructureFieldRead(target:TypedExpr, name:String, valueType:Null<Type>, pos:Position):GoExpr {
+		var value = lowerDynamicFieldRead(lowerDynamicStructureReceiver(target), name, null, pos);
+		return valueType == null ? value : dynamicReadForUse(value, valueType);
+	}
+
+	/**
+		What: Calls a field of a `Dynamic` element (`d[0].push(x)`,
+		`d[0].charAt(1)`, `d[0].f(3)`), or returns null for any other callee.
+		Why: Haxe gives the callee a function type from the arguments, so the
+		typed call recovers the structural field as a typed function first,
+		which fails for a String or an Array element. The element can hold any
+		value, so the call must be the call of a field of a `Dynamic` value.
+		How: Read the field as `lowerDynamicStructureFieldRead` does, call it with
+		the compiler's erased invocation, as a call on a `Dynamic` receiver does
+		(`d.push(x)`), with the arguments in order after the receiver, then
+		convert the result to the type that its use gave it.
+	**/
+	function lowerDynamicStructureCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+		var member = dynamicStructureField(callee);
+		if (member == null)
+			return null;
+		var method = lowerDynamicStructureFieldRead(member.target, member.name, null, callee.pos);
+		var arguments = args.map(arg -> GoCompositeElement.GoCompositeValue(lowerCallArgForParamType(arg, null)));
+		var call = valueRecovery.invoke(method, GoExpr.GoCompositeLiteral("[]any", arguments));
+		return {
+			expr: isVoidType(returnType) ? call : dynamicReadForUse(call, returnType),
+			isStringLike: isStringType(returnType)
+		};
+	}
+
+	/** `expr` as an operator operand: a `Dynamic` element typed `Dynamic` (see `dynamicIndexOperand`), else `expr` itself. */
 	function asDynamicOperand(expr:TypedExpr):TypedExpr {
 		var operand = dynamicIndexOperand(expr);
 		return operand != null ? operand : expr;
@@ -8065,6 +8204,11 @@ class GoCompiler {
 	}
 
 	function lowerCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):LoweredExpr {
+		var dynamicStructureCall = lowerDynamicStructureCall(callee, args, returnType);
+		if (dynamicStructureCall != null) {
+			return dynamicStructureCall;
+		}
+
 		// Compiler-owned lowerings below expect typed primitive arguments; the
 		// generated-call path after them recovers nullable arguments itself.
 		var sourceArgs = args;
@@ -11791,7 +11935,7 @@ class GoCompiler {
 		numeric paths, and route only erased equality through `hxrt.HaxeEqual`.
 	**/
 	function lowerBinop(op:Binop, left:TypedExpr, right:TypedExpr, resultType:Type):LoweredExpr {
-		// A `Dynamic` index read is a `Dynamic` operand, whatever type its use gave it.
+		// A `Dynamic` element is a `Dynamic` operand, whatever type its use gave it.
 		left = asDynamicOperand(left);
 		right = asDynamicOperand(right);
 		var leftLowered = lowerExpr(left);
@@ -12618,10 +12762,11 @@ class GoCompiler {
 		Why: A `Dynamic` value is Go `any`, and Go defines no operators on `any`.
 		`Null<T>` values, type parameters and `Any` are also `any` in Go, but
 		they keep their own lowerings: Haxe does not type operators on them as
-		`Dynamic` operations. A read of an index of a `Dynamic` value is a
-		`Dynamic` operand whatever type its use gave it (see
-		`dynamicIndexOperand`).
-		How: Follow the Haxe type to `Dynamic`, or recognize the index read.
+		`Dynamic` operations. A read of an index of a `Dynamic` value, and a
+		field or call result of one, is a `Dynamic` operand whatever type its use
+		gave it (see `dynamicIndexOperand`).
+		How: Follow the Haxe type to `Dynamic`, or recognize the `Dynamic`
+		element.
 	**/
 	function isDynamicOperand(expr:TypedExpr):Bool {
 		return isDynamicCatchType(expr.t) || dynamicIndexOperand(expr) != null;
@@ -12654,7 +12799,8 @@ class GoCompiler {
 		"hxrt.DynamicToFloatSlot",
 		"hxrt.DynamicToNullableFloat",
 		"hxrt.DynamicToBool",
-		"hxrt.DynamicToNullableBool"
+		"hxrt.DynamicToNullableBool",
+		"hxrt.DynamicFieldReceiver"
 	];
 
 	/**
@@ -13714,6 +13860,8 @@ class GoCompiler {
 		return switch (expr.expr) {
 			case TLocal(variable): registeredNarrowedPrimitiveStorageGoType(variable) == null && registeredNonNullPrimitiveLocalGoType(variable) == null && valueStorageGoType(variable.t) == "any";
 			case TArray(target, _) if (isDynamicIndexTarget(target)): valueStorageGoType(expr.t) == "any";
+			// A field or call result of a `Dynamic` element is `any` unless its use typed it.
+			case TField(_, _) | TCall(_, _) if (dynamicIndexOperand(expr) != null): valueStorageGoType(expr.t) == "any";
 			case TArray(target, _): usesSharedArrayCarrier(target);
 			// A `Dynamic` field read returns staged `Reflect.field`'s `any` value.
 			case TField(target, FDynamic(_)): isDynamicFieldReceiver(target) && valueStorageGoType(expr.t) == "any";

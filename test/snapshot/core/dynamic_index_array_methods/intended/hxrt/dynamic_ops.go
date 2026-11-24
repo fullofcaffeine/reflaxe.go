@@ -43,6 +43,9 @@ import (
 //     the Array carrier (array.go).
 //   - A value stored in a Float, Bool or String slot (`var f:Float = d`)
 //     is converted to the Go type of the slot; see DynamicToFloatSlot.
+//   - A field of an element read from `target[index]` (`d[0].length`)
+//     raises "Null Access" when the element is null; see
+//     DynamicFieldReceiver.
 
 // dynamicInt reads an Int operand. Go integer types other than `int` can reach
 // a `Dynamic` value through native boundaries; they are read as their low 32
@@ -446,4 +449,23 @@ func DynamicIndexGet(target any, index int) any {
 // gap with nulls, and a negative index changes nothing, as for a typed Array.
 func DynamicIndexSet(target any, index int, value any) any {
 	return dynamicIndexArray(target).Set(index, value)
+}
+
+// DynamicFieldReceiver is the receiver of a field read, write or call on an
+// element read from a `Dynamic` index (`d[0].length`, `d[0].push(x)`), on a
+// field of one, or on the result of a call of one.
+//
+// What: It returns `target` unchanged, and raises "Null Access" when
+// `target` is null (also a null pointer stored in the `any`).
+// Why: Haxe types such an element as a structure, so `--interp` raises an
+// error for a field of a null element, as for any null structure. The
+// compiler reads the field through `Reflect.field`, which reads null from a
+// null receiver, so it checks the receiver here first.
+// How: The compiler passes the receiver once, before the field read or the
+// arguments of the call.
+func DynamicFieldReceiver(target any) any {
+	if isAnyNil(target) {
+		Throw(StringFromLiteral("Null Access"))
+	}
+	return target
 }
