@@ -33,8 +33,8 @@ EXPECTED_INVENTORY = {
         "staged_support": 5,
         "upstream_std_override": 109,
     },
-    "packagedArchiveMembers": 464,
-    "packagedManifestEntries": 463,
+    "packagedArchiveMembers": 465,
+    "packagedManifestEntries": 464,
     "trackedCrossHxFiles": 0,
 }
 

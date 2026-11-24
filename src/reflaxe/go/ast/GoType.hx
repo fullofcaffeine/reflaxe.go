@@ -352,6 +352,30 @@ abstract GoType(GoTypeKind) {
 		};
 	}
 
+	/**
+		What: Return `N` when this type is an unqualified named type `N` or a
+		pointer `*N` to one, and null for every other type.
+
+		Why: A generated Haxe class appears in its own package as `*N` (a class
+		carrier) or `N` (an interface). Stored-value recovery uses this name to
+		skip the classes that a target cannot name.
+
+		How: Match a `Named` node without a package qualifier, directly or as the
+		element of one `Pointer`. This is the same structural test that
+		`sameRepresentation` applies to `GoType.named(N)` and
+		`GoType.pointer(GoType.named(N))`.
+	**/
+	public function localNominalName():Null<String> {
+		return switch (this) {
+			case Named(packageName, name) if (packageName == null): name;
+			case Pointer(element): switch (element.kind()) {
+					case Named(packageName, name) if (packageName == null): name;
+					case _: null;
+				}
+			case _: null;
+		};
+	}
+
 	static function normalizedBuiltin(value:GoBuiltinType):GoBuiltinType {
 		return switch (value) {
 			case Byte: GoBuiltinType.Uint8;

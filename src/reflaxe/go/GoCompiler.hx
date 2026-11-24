@@ -26,6 +26,7 @@ import reflaxe.go.compiler.GoStructuralObjectLowering;
 import reflaxe.go.compiler.GoValueRecovery;
 import reflaxe.go.compiler.GoNominalValueRecovery;
 import reflaxe.go.compiler.GoNominalTypeTest;
+import reflaxe.go.compiler.GoStoredValueClassScan;
 import reflaxe.go.compiler.GoRecoveryAvailability;
 import reflaxe.go.compiler.GoRecoveryDispatch.GoGuardedRecoveryDeclaration;
 import reflaxe.go.compiler.GoNativeTypeEligibility;
@@ -362,6 +363,7 @@ class GoCompiler {
 	final valueRecovery:GoValueRecovery;
 	final nominalValueRecovery:GoNominalValueRecovery;
 	final nominalTypeTest:GoNominalTypeTest;
+	final storedValueClassScan = new GoStoredValueClassScan();
 	final recoveryAvailability:GoRecoveryAvailability;
 	final functionVarNameScopes:Array<Map<Int, String>>;
 	final functionVarNameCountScopes:Array<Map<String, Int>>;
@@ -598,6 +600,7 @@ class GoCompiler {
 		valueRecovery.reset();
 		nominalValueRecovery.reset();
 		nominalTypeTest.reset();
+		storedValueClassScan.reset();
 		generatedMethodMetadataPlan = [];
 		generatedFieldMetadataPlan = [];
 		resetRequiredNativeChanElementTypes();
@@ -8161,6 +8164,13 @@ class GoCompiler {
 	/**
 		Recover physical storage without invoking Dynamic string conversion.
 
+		A class target is the carrier `*N` of a generated class or the interface
+		`N` of a source interface. `storedValueClassScan` leaves out each class
+		that cannot be the target and whose test could not change compiler state,
+		so the loop gives the result and side effects of a test of every project
+		class. Its rule depends on the writes of `hasGeneratedVirtualCarrier` and
+		`classTypeName`; see `GoStoredValueClassScan`.
+
 		Value recovery reuses helpers built with this function while
 		`storedValueRecoveryInputs()` is unchanged. A change here that reads more
 		compiler state must add that state there.
@@ -8173,7 +8183,7 @@ class GoCompiler {
 			return valueRecovery.recover(value, target);
 		if (target.sameRepresentation(GoType.qualified("hxrt", "Anonymous")))
 			return structuralObjectLowering.recoverRaw(value);
-		for (source in projectClasses) {
+		for (source in storedValueClassScan.testedClasses(projectClasses, target)) {
 			if (hasGeneratedVirtualCarrier(source) && target.sameRepresentation(GoType.pointer(GoType.named(classTypeName(source)))))
 				return nominalValueRecovery.recover(value, source);
 			if (source.isInterface && !source.isExtern && target.sameRepresentation(GoType.named(classTypeName(source))))
@@ -8193,13 +8203,14 @@ class GoCompiler {
 		availability facts and this revision are unchanged. The revision must
 		therefore change whenever a fact that those callbacks read changes.
 
-		How: `recoverStoredGoValue` scans `projectClasses`. Its class checks read the
-		required source-owned and embedded superclass names, the available class and
-		enum tables, and the pending class and enum queues. The import-path lookup
-		reads the extern package aliases. The class list, the name sets and the
-		tables only grow during a compilation, so their sizes identify them. The
-		queues empty between passes and aliases can be replaced, so those are
-		listed in full.
+		How: `recoverStoredGoValue` scans `projectClasses`. Which classes it tests
+		depends only on that list, the target and facts fixed for each class. Its
+		class checks read the required source-owned and embedded superclass names,
+		the available class and enum tables, and the pending class and enum queues.
+		The import-path lookup reads the extern package aliases. The class list, the
+		name sets and the tables only grow during a compilation, so their sizes
+		identify them. The queues empty between passes and aliases can be replaced,
+		so those are listed in full.
 	**/
 	function storedValueRecoveryInputs():String {
 		final byText = (left:String, right:String) -> left < right ? -1 : left > right ? 1 : 0;
