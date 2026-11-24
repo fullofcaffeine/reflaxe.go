@@ -518,7 +518,7 @@ class GoCompiler {
 					return path;
 			return null;
 		});
-		valueRecovery = new GoValueRecovery(recoveryAvailability, recoverStoredGoValue, lowerWithLocalTemps);
+		valueRecovery = new GoValueRecovery(recoveryAvailability, recoverStoredGoValue, lowerWithLocalTemps, storedValueRecoveryInputs);
 		nominalValueRecovery = new GoNominalValueRecovery(recoveryAvailability, classTypeName, inheritancePath);
 		nominalTypeTest = new GoNominalTypeTest(recoveryAvailability, classTypeName);
 		structuralObjectLowering = new GoStructuralObjectLowering(recoveryAvailability, {
@@ -8162,7 +8162,13 @@ class GoCompiler {
 		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.NamedFunction"), [GoExpr.GoIdent(symbol), GoExpr.GoStringLiteral(identity)]);
 	}
 
-	/** Recover physical storage without invoking Dynamic string conversion. */
+	/**
+		Recover physical storage without invoking Dynamic string conversion.
+
+		Value recovery reuses helpers built with this function while
+		`storedValueRecoveryInputs()` is unchanged. A change here that reads more
+		compiler state must add that state there.
+	**/
 	function recoverStoredGoValue(value:GoExpr, target:GoType):GoExpr {
 		recoveryAvailability.requireType(target);
 		if (target.isBuiltin(GoBuiltinType.AnyType))
@@ -8180,6 +8186,46 @@ class GoCompiler {
 		// The helper parameter is already any: Go boxes concrete arguments there.
 		// Keep the assertion inside that interface boundary without reboxing its input.
 		return lowerNilSafeTypeAssertExpr(value, target.render());
+	}
+
+	/**
+		What: A revision of the compiler facts that value recovery reads through its
+		callbacks: `recoverStoredGoValue` and the availability import-path lookup.
+
+		Why: The recovery loop's last pass usually only confirms the previous pass.
+		`GoValueRecovery` skips lowering its helpers again when its own inputs, the
+		availability facts and this revision are unchanged. The revision must
+		therefore change whenever a fact that those callbacks read changes.
+
+		How: `recoverStoredGoValue` scans `projectClasses`. Its class checks read the
+		required source-owned and embedded superclass names, the available class and
+		enum tables, and the pending class and enum queues. The import-path lookup
+		reads the extern package aliases. The class list, the name sets and the
+		tables only grow during a compilation, so their sizes identify them. The
+		queues empty between passes and aliases can be replaced, so those are
+		listed in full.
+	**/
+	function storedValueRecoveryInputs():String {
+		final byText = (left:String, right:String) -> left < right ? -1 : left > right ? 1 : 0;
+		final queuedClasses = [for (name in pendingRequiredClassesByName.keys()) name];
+		queuedClasses.sort(byText);
+		final queuedEnums = [for (name in pendingRequiredEnumsByName.keys()) name];
+		queuedEnums.sort(byText);
+		final aliases = [for (path => alias in externImportPackages) path + "=" + alias];
+		aliases.sort(byText);
+		final sizes = [Std.string(projectClasses.length)];
+		for (names in [
+			requiredSourceOwnedClassNames.keys(),
+			requiredEmbeddedSuperclassClassNames.keys(),
+			availableClassesByName.keys(),
+			availableEnumsByName.keys()
+		]) {
+			var size = 0;
+			for (_ in names)
+				size++;
+			sizes.push(Std.string(size));
+		}
+		return sizes.concat([queuedClasses.join(","), queuedEnums.join(","), aliases.join(",")]).join("|");
 	}
 
 	function lowerNullableAwareTypeAssertExpr(expr:GoExpr, returnType:Type):GoExpr {

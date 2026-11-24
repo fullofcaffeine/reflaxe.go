@@ -32,6 +32,8 @@ class GoRecoveryAvailability {
 	final unresolved:Map<String, Bool> = [];
 	var factRevision = 0;
 	var frozen = false;
+	var observedFacts:Null<Map<String, Bool>> = null;
+	var observationSettled = false;
 
 	public function new(importPath:GoPackageName->Null<String>) {
 		this.importPath = importPath;
@@ -45,11 +47,38 @@ class GoRecoveryAvailability {
 		unresolved.clear();
 		factRevision = 0;
 		frozen = false;
+		observedFacts = null;
+		observationSettled = false;
 	}
 
 	/** Revision changes only when a declaration or helper fact actually changes. */
 	public function revision():Int
 		return factRevision;
+
+	/**
+		What: Starts recording which facts `conditionFor` reads, until `settled()`.
+
+		Why: A builder may keep its result for a later discovery pass only if each
+		fact it read already had its final value when it read it. A fact can change
+		after a read in the same discovery: a later helper can add a declaration
+		owner that an earlier helper already looked up.
+
+		How: Remember every type, package and helper identity that a query looks up.
+		A later change to one of them unsettles the observation. So does a query that
+		leaves a requirement unresolved, because `freeze` must still see it.
+	**/
+	public function observe():Void {
+		observedFacts = [];
+		observationSettled = true;
+	}
+
+	/** Ends the observation: true when no fact changed after a read and nothing stayed unresolved. */
+	public function settled():Bool {
+		final result = observedFacts != null && observationSettled;
+		observedFacts = null;
+		observationSettled = false;
+		return result;
+	}
 
 	/** Only explicit whole-package ABI contracts, such as the generated runtime, use this. */
 	public function notePackage(path:String, selection:GoBuildConstraint):Void {
@@ -59,7 +88,7 @@ class GoRecoveryAvailability {
 				throw new haxe.Exception("Runtime package changed its availability contract: " + path);
 			return;
 		}
-		changed();
+		changed(packageFact(path));
 		packages.set(path, selection);
 	}
 
@@ -79,7 +108,7 @@ class GoRecoveryAvailability {
 				throw new haxe.Exception("Recovery declaration owner changed its selection: " + owner);
 			return;
 		}
-		changed();
+		changed(identity);
 		if (owners == null) {
 			owners = [];
 			witnesses.set(identity, owners);
@@ -94,7 +123,7 @@ class GoRecoveryAvailability {
 				throw new haxe.Exception("Recovery helper changed its signature: " + symbol);
 			return;
 		}
-		changed();
+		changed(helperFact(symbol));
 		helpers.set(symbol, signature);
 	}
 
@@ -149,9 +178,10 @@ class GoRecoveryAvailability {
 			var type = switch (dependency) {
 				case TypeReference(value): value;
 				case HelperReference(symbol):
+					observeFact(helperFact(symbol));
 					var signature = helpers.get(symbol);
 					if (signature == null)
-						missing.set("helper:" + symbol, true);
+						missing.set(helperFact(symbol), true);
 					signature;
 			};
 			if (type == null)
@@ -167,6 +197,7 @@ class GoRecoveryAvailability {
 					}
 					identity = nativeIdentity(path, name.name);
 				}
+				observeFact(identity);
 				var owners = witnesses.get(identity);
 				var available:Null<GoBuildConstraint> = null;
 				if (owners != null) {
@@ -174,6 +205,7 @@ class GoRecoveryAvailability {
 					for (owner in owners)
 						available = available.or(owner);
 				} else if (path != null) {
+					observeFact(packageFact(path));
 					available = packages.get(path);
 				}
 				if (available == null)
@@ -190,6 +222,8 @@ class GoRecoveryAvailability {
 			unresolved.set(name, true);
 			complete = false;
 		}
+		if (!complete)
+			observationSettled = false;
 		return complete ? condition : null;
 	}
 
@@ -203,12 +237,25 @@ class GoRecoveryAvailability {
 		frozen = true;
 	}
 
-	function changed():Void {
+	function changed(fact:String):Void {
 		if (frozen)
 			throw new haxe.Exception("Recovery ownership changed after freeze");
 		factRevision++;
+		if (observedFacts != null && observedFacts.exists(fact))
+			observationSettled = false;
+	}
+
+	function observeFact(fact:String):Void {
+		if (observedFacts != null)
+			observedFacts.set(fact, true);
 	}
 
 	static function nativeIdentity(path:String, name:String):String
 		return "import:" + path + "#" + name;
+
+	static function helperFact(symbol:String):String
+		return "helper:" + symbol;
+
+	static function packageFact(path:String):String
+		return "package:" + path;
 }

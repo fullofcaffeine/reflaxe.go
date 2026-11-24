@@ -26,6 +26,12 @@ private typedef CallableRecovery = {
 	final symbol:String;
 }
 
+/** Helpers built by one discovery, with the inputs that discovery read. */
+private typedef SettledDiscovery = {
+	final inputs:String;
+	final declarations:Array<GoGuardedRecoveryDeclaration>;
+}
+
 /**
 	What: Plans typed recovery of callable values read from heterogeneous storage.
 	Why: Different Function instantiations cannot be recovered by a Go assertion,
@@ -34,7 +40,9 @@ private typedef CallableRecovery = {
 	and emit only demanded target helpers with finite typed source dispatch.
 	Anonymous storage is opaque here: its fields recover when accessed. A helper
 	is named from a digest of its target representation and declared in name
-	order, so an edit elsewhere cannot rename or move it.
+	order, so an edit elsewhere cannot rename or move it. A discovery whose
+	inputs did not change since the previous one returns the same helpers
+	without lowering them again (see `discover`).
 **/
 class GoValueRecovery {
 	static final symbolPrefix = "hx_recover_callable_";
@@ -44,6 +52,7 @@ class GoValueRecovery {
 	final dispatcher:GoRecoveryDispatch;
 	final recoverStored:(GoExpr, GoType) -> GoExpr;
 	final helperScope:GoRecoveryHelperScope;
+	final inputsRevision:Null<Void->String>;
 	final sources:Array<CallableRepresentation> = [];
 	final demands:Array<CallableRecovery> = [];
 	final demandsByKey:Map<String, CallableRecovery> = [];
@@ -52,12 +61,20 @@ class GoValueRecovery {
 	final declarations:Map<String, GoType> = [];
 	var frozen = false;
 	var needsInvocation = false;
+	var settledDiscovery:Null<SettledDiscovery> = null;
 
-	public function new(availability:GoRecoveryAvailability, recoverStored:(GoExpr, GoType) -> GoExpr, ?helperScope:GoRecoveryHelperScope) {
+	/**
+		`inputsRevision` names the owner's mutable facts that `recoverStored` reads.
+		It must change whenever one of those facts changes. Without it, every
+		discovery lowers its helpers again.
+	**/
+	public function new(availability:GoRecoveryAvailability, recoverStored:(GoExpr, GoType) -> GoExpr, ?helperScope:GoRecoveryHelperScope,
+			?inputsRevision:Void->String) {
 		this.availability = availability;
 		this.dispatcher = new GoRecoveryDispatch(availability);
 		this.recoverStored = recoverStored;
 		this.helperScope = helperScope != null ? helperScope : build -> build();
+		this.inputsRevision = inputsRevision;
 	}
 
 	public function reset():Void {
@@ -69,6 +86,7 @@ class GoValueRecovery {
 		needsInvocation = false;
 		namedSources.clear();
 		declarations.clear();
+		settledDiscovery = null;
 	}
 
 	/** Register the physical signature from an emitted declaration, including optional ABI. */
@@ -194,8 +212,46 @@ class GoValueRecovery {
 	/**
 		Build plans until nested demands stop growing. The caller must also close its
 		class, metadata and runtime dependency queues before freezing emission.
+
+		What: Returns the previous discovery's helpers, without lowering them again,
+		when that discovery settled and none of its inputs changed since.
+
+		Why: The compiler's recovery loop repeats discovery until a pass finds
+		nothing new. The last pass only confirms the previous one, but lowering
+		every helper again re-runs stored-value recovery for each projected
+		argument, which is most of that pass's cost.
+
+		How: The inputs are the sources, the demands, the erased-invocation flag,
+		the availability revision and the owner's `inputsRevision`. Sources and
+		demands only grow and the revisions change with every new fact, so equal
+		inputs mean equal facts. A discovery settles when no source, invocation
+		flag or owner fact changed while it ran, and availability saw no fact
+		change after reading it and left nothing unresolved. Then each read saw its
+		final value, and lowering again would read the same values and make the
+		same choices. Its writes, such as nested demands or helper signatures, are
+		already recorded, so repeating them would change nothing.
 	 */
 	public function discover():Array<GoGuardedRecoveryDeclaration> {
+		if (settledDiscovery != null && settledDiscovery.inputs == discoveryInputs())
+			return settledDiscovery.declarations.copy();
+		settledDiscovery = null;
+		final sourceCount = sources.length;
+		final invocation = needsInvocation;
+		final ownerFacts = inputsRevision == null ? null : inputsRevision();
+		availability.observe();
+		final declarations = lowerDiscovery();
+		final settled = availability.settled();
+		if (settled && ownerFacts != null && sources.length == sourceCount && needsInvocation == invocation && inputsRevision() == ownerFacts)
+			settledDiscovery = {inputs: discoveryInputs(), declarations: declarations.copy()};
+		return declarations;
+	}
+
+	function discoveryInputs():String {
+		final ownerFacts = inputsRevision == null ? "" : inputsRevision();
+		return sources.length + "/" + demands.length + "/" + needsInvocation + "/" + availability.revision() + "/" + ownerFacts;
+	}
+
+	function lowerDiscovery():Array<GoGuardedRecoveryDeclaration> {
 		var declarations = new Array<GoGuardedRecoveryDeclaration>();
 		if (needsInvocation)
 			declarations = declarations.concat(helperScope(lowerInvocation));
