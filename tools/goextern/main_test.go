@@ -868,6 +868,92 @@ func NeedsAliasPointer(value *Alias) {}
 	}
 }
 
+func TestBuildEmissionPreservesUintptrValueABI(t *testing.T) {
+	moduleDir := t.TempDir()
+	writeTestFile(t, filepath.Join(moduleDir, "go.mod"), "module example.com/uintptrfixture\n\ngo 1.22\n")
+	writeTestFile(t, filepath.Join(moduleDir, "handle", "handle.go"), `package handle
+
+type Alias = uintptr
+type Handle uintptr
+
+type Descriptor struct {
+	Fd uintptr
+	AliasFd Alias
+	Frames []uintptr
+}
+
+type File struct{}
+
+func (*File) Fd() uintptr { return 0 }
+func NewFile(fd uintptr, name string) *File { return &File{} }
+func Lookup(fd uintptr) (uintptr, string) { return fd, "" }
+func AliasEcho(value Alias) Alias { return value }
+func Callers(pc []uintptr) int { return len(pc) }
+func EchoHandle(value Handle) Handle { return value }
+func NeedsPointer(value *uintptr) {}
+func NeedsAliasPointer(value *Alias) {}
+`)
+	emission, err := BuildEmission(Config{
+		GoImportPath:      "example.com/uintptrfixture/handle",
+		WorkingDirectory:  moduleDir,
+		OutputRoot:        t.TempDir(),
+		HaxePackagePrefix: "goextern",
+	})
+	if err != nil {
+		t.Fatalf("BuildEmission failed for native uintptr fixture: %v", err)
+	}
+	file := fileContentsByName(t, emission, "File.hx")
+	if !strings.Contains(file, "public function fd():go.NativeUintptr;") {
+		t.Fatalf("File.hx must return the exact uintptr carrier:\n%s", file)
+	}
+	descriptor := fileContentsByName(t, emission, "Descriptor.hx")
+	for _, want := range []string{
+		"public var fd:go.NativeUintptr;",
+		"public var aliasFd:go.NativeUintptr;",
+		"public var frames:go.NativeSlice<go.NativeUintptr>;",
+	} {
+		if !strings.Contains(descriptor, want) {
+			t.Fatalf("Descriptor.hx missing exact uintptr field %q:\n%s", want, descriptor)
+		}
+	}
+	alias := fileContentsByName(t, emission, "Alias.hx")
+	if !strings.Contains(alias, "typedef Alias = go.NativeUintptr;") {
+		t.Fatalf("true uintptr alias lost its underlying ABI:\n%s", alias)
+	}
+	if !strings.Contains(fileContentsByName(t, emission, "Handle.hx"), "@:go.valueType") {
+		t.Fatalf("named uintptr identity must remain a separate Go value type")
+	}
+	pkg := fileContentsByName(t, emission, "HandlePkg.hx")
+	for _, want := range []string{
+		"newFile(fd:go.NativeUintptr, name:String):File;",
+		"lookup(fd:go.NativeUintptr):LookupResult;",
+		"aliasEcho(value:go.NativeUintptr):go.NativeUintptr;",
+		"callers(pc:go.NativeSlice<go.NativeUintptr>):Int;",
+		"echoHandle(value:Handle):Handle;",
+		"needsPointer(value:Dynamic):Void;",
+		"needsAliasPointer(value:Dynamic):Void;",
+	} {
+		if !strings.Contains(pkg, want) {
+			t.Fatalf("HandlePkg.hx missing exact uintptr signature or pointer fallback %q:\n%s", want, pkg)
+		}
+	}
+	result := fileContentsByName(t, emission, "LookupResult.hx")
+	if !strings.Contains(result, "value1(default, null):go.NativeUintptr;") {
+		t.Fatalf("LookupResult.hx missing exact uintptr tuple slot:\n%s", result)
+	}
+	for _, name := range []string{"NeedsPointer", "NeedsAliasPointer"} {
+		found := false
+		for _, fallback := range emission.DynamicFallbacks {
+			if fallback.Symbol == name && fallback.Position == "param:value" && fallback.Reason == "native_uintptr_pointer_abi" {
+				found = true
+			}
+		}
+		if !found {
+			t.Fatalf("missing explicit uintptr pointer fallback for %s: %+v", name, emission.DynamicFallbacks)
+		}
+	}
+}
+
 func TestBuildEmissionContextIncludesInterfaceAndPackageClass(t *testing.T) {
 	cfg := Config{
 		GoImportPath:      "context",

@@ -429,7 +429,7 @@ func mapStructFieldTypeWithReason(t types.Type, ctx mappingContext) (string, str
 	switch fieldType := types.Unalias(t).(type) {
 	case *types.Basic:
 		switch fieldType.Kind() {
-		case types.Bool, types.Int, types.Int64, types.Uint8, types.String, types.Float64:
+		case types.Bool, types.Int, types.Int64, types.Uint8, types.Uintptr, types.String, types.Float64:
 			return mapBasicTypeWithReason(fieldType)
 		default:
 			return "Dynamic", "scalar_field_abi"
@@ -478,7 +478,7 @@ func mapNativeSliceFieldElementWithReason(t types.Type, ctx mappingContext) (str
 	switch elementType := types.Unalias(t).(type) {
 	case *types.Basic:
 		switch elementType.Kind() {
-		case types.Bool, types.Int, types.Uint8, types.Float64:
+		case types.Bool, types.Int, types.Uint8, types.Uintptr, types.Float64:
 			return mapBasicTypeWithReason(elementType)
 		default:
 			return "Dynamic", "slice_element_abi"
@@ -955,6 +955,10 @@ func mapTypeResult(t types.Type, ctx mappingContext) mappedType {
 			// A byte value cannot stand in for a Go *byte destination.
 			return mappedType{Haxe: "Dynamic", Reason: "native_byte_pointer_abi"}
 		}
+		if basic, ok := types.Unalias(tt.Elem()).(*types.Basic); ok && basic.Kind() == types.Uintptr {
+			// A uintptr value cannot stand in for a Go *uintptr destination.
+			return mappedType{Haxe: "Dynamic", Reason: "native_uintptr_pointer_abi"}
+		}
 		return mapTypeResult(tt.Elem(), ctx)
 	case *types.Slice:
 		if basic, ok := types.Unalias(tt.Elem()).(*types.Basic); ok && basic.Kind() == types.String {
@@ -1087,6 +1091,9 @@ func mapBasicTypeWithReason(basic *types.Basic) (string, string) {
 	}
 	if basic.Kind() == types.Uint8 {
 		return "go.NativeByte", ""
+	}
+	if basic.Kind() == types.Uintptr {
+		return "go.NativeUintptr", ""
 	}
 	if basic.Info()&types.IsInteger != 0 {
 		return "Int", ""

@@ -1,0 +1,1 @@
+go.NativeUintptr is a non-nullable native Go uintptr value

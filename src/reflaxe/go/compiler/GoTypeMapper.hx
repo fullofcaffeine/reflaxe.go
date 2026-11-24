@@ -110,6 +110,7 @@ class GoTypeMapper {
 	public static function typeToGoType(type:Type, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):String {
 		rejectNullableNativeInt64(type);
 		rejectNullableNativeByte(type);
+		rejectNullableNativeUintptr(type);
 		if (isBytesDataType(type)) {
 			return "[]int";
 		}
@@ -150,6 +151,8 @@ class GoTypeMapper {
 					"int64";
 				} else if (classType.pack.join(".") == "go" && classType.name == "NativeByte") {
 					"byte";
+				} else if (classType.pack.join(".") == "go" && classType.name == "NativeUintptr") {
+					"uintptr";
 				} else if (isTypeParameterClass(classType)) {
 					typeParameterGoType(classType, classTypeName, enumTypeName);
 				} else if (classType.isInterface) {
@@ -313,6 +316,17 @@ class GoTypeMapper {
 		};
 	}
 
+	/** Native Go uintptr is a value; Null<NativeUintptr> needs a separate carrier. */
+	public static function isNullableNativeUintptrType(type:Type):Bool {
+		return switch (type) {
+			case TAbstract(ref, params): declarationPath(ref) == "Null" && params.length == 1 && isNativeUintptrType(params[0]);
+			case TMono(ref): var resolved = ref.get(); resolved != null && isNullableNativeUintptrType(resolved);
+			case TType(_, _): isNullableNativeUintptrType(TypeTools.follow(type, true));
+			case TLazy(f): isNullableNativeUintptrType(f());
+			case _: false;
+		};
+	}
+
 	public static function isNativeInt64Type(type:Type):Bool {
 		return switch (Context.follow(type)) {
 			case TInst(ref, _): declarationPath(ref) == "go.NativeInt64";
@@ -327,6 +341,13 @@ class GoTypeMapper {
 		};
 	}
 
+	public static function isNativeUintptrType(type:Type):Bool {
+		return switch (Context.follow(type)) {
+			case TInst(ref, _): declarationPath(ref) == "go.NativeUintptr";
+			case _: false;
+		};
+	}
+
 	static function rejectNullableNativeInt64(type:Type):Void {
 		if (isNullableNativeInt64Type(type)) {
 			Context.fatalError("Null<go.NativeInt64> has no native Go int64 representation; use a typed optional boundary", Context.currentPos());
@@ -336,6 +357,12 @@ class GoTypeMapper {
 	static function rejectNullableNativeByte(type:Type):Void {
 		if (isNullableNativeByteType(type)) {
 			Context.fatalError("Null<go.NativeByte> has no native Go byte representation; use a typed optional boundary", Context.currentPos());
+		}
+	}
+
+	static function rejectNullableNativeUintptr(type:Type):Void {
+		if (isNullableNativeUintptrType(type)) {
+			Context.fatalError("Null<go.NativeUintptr> has no native Go uintptr representation; use a typed optional boundary", Context.currentPos());
 		}
 	}
 
@@ -520,6 +547,7 @@ class GoTypeMapper {
 	public static function scalarGoType(type:Type, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):String {
 		rejectNullableNativeInt64(type);
 		rejectNullableNativeByte(type);
+		rejectNullableNativeUintptr(type);
 		if (isBytesDataType(type)) {
 			return "[]int";
 		}
@@ -560,6 +588,8 @@ class GoTypeMapper {
 					"int64";
 				} else if (classType.pack.join(".") == "go" && classType.name == "NativeByte") {
 					"byte";
+				} else if (classType.pack.join(".") == "go" && classType.name == "NativeUintptr") {
+					"uintptr";
 				} else if (isTypeParameterClass(classType)) {
 					typeParameterGoType(classType, classTypeName, enumTypeName);
 				} else if (classType.isInterface) {

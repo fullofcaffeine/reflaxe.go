@@ -6516,6 +6516,9 @@ class GoCompiler {
 		if (isNullLiteralExpr(expr) && GoTypeMapper.isNativeByteType(expr.t)) {
 			Context.fatalError("go.NativeByte is a non-nullable native Go byte value", expr.pos);
 		}
+		if (isNullLiteralExpr(expr) && GoTypeMapper.isNativeUintptrType(expr.t)) {
+			Context.fatalError("go.NativeUintptr is a non-nullable native Go uintptr value", expr.pos);
+		}
 		var anonymousMutation = lowerAnonymousMutation(expr);
 		if (anonymousMutation != null)
 			return anonymousMutation;
@@ -7422,6 +7425,9 @@ class GoCompiler {
 				var classType = classRef.get();
 				if (asValue && classType.pack.join(".") == "go" && classType.name == "NativePointer" && resolved.name == "of")
 					Context.fatalError("go.NativePointer.of must be called directly; method values are unsupported", resolved.pos);
+				if (asValue && classType.pack.join(".") == "go" && classType.name == "NativeUintptr")
+					Context.fatalError("go.NativeUintptr." + resolved.name + " must be called directly; method values are unsupported",
+						target == null ? resolved.pos : target.pos);
 				noteStaticStdlibFieldUsage(classType, resolved.name, resolved.pos);
 				if (classType.isExtern) {
 					var externPackage = externClassPackageName(classType);
@@ -8223,6 +8229,11 @@ class GoCompiler {
 			return nativePointerCall;
 		}
 
+		var nativeUintptrCall = lowerNativeUintptrCall(callee, args, returnType);
+		if (nativeUintptrCall != null) {
+			return nativeUintptrCall;
+		}
+
 		var nativeSliceBoundaryCall = lowerNativeSliceBoundaryCall(callee, args, returnType);
 		if (nativeSliceBoundaryCall != null) {
 			return nativeSliceBoundaryCall;
@@ -8728,6 +8739,32 @@ class GoCompiler {
 			case _:
 				null;
 		};
+	}
+
+	/**
+		What: Lowers the two explicit `go.NativeUintptr` conversions.
+		Why: Go has no implicit conversion between `int` and `uintptr`, and the
+		carrier deliberately has no Haxe `from`/`to` casts, so ports such as
+		`term.GetSize(int(os.Stdout.Fd()))` need one visible conversion point.
+		How: Emit the Go conversion `int(x)` or `uintptr(n)` over the typed
+		argument. Go conversion semantics apply: out-of-range values wrap.
+	**/
+	function lowerNativeUintptrCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+		final goType = if (isStaticCall(callee, "NativeUintptr", ["go"], "toInt")) {
+			"int";
+		} else if (isStaticCall(callee, "NativeUintptr", ["go"], "fromInt")) {
+			"uintptr";
+		} else {
+			return null;
+		};
+		if (args.length != 1)
+			Context.fatalError("go.NativeUintptr conversions expect exactly one value", callee.pos);
+		final lowered = lowerExprWithPrefix(args[0]);
+		return materializeExprWithPrefix({
+			prefix: lowered.prefix,
+			expr: GoExpr.GoCall(GoExpr.GoIdent(goType), [lowered.expr]),
+			isStringLike: false
+		}, returnType);
 	}
 
 	/**

@@ -207,6 +207,9 @@ class GoTypeMapperContract {
 		require(goType(get(fixture, "slice")) == "[]bool", "go.NativeSlice carrier");
 		require(GoTypeMapper.isNativeInt64Type(get(fixture, "nativeInt64")), "go.NativeInt64");
 		require(goType(get(fixture, "nativeInt64")) == "int64", "go.NativeInt64 carrier");
+		require(GoTypeMapper.isNativeUintptrType(get(fixture, "nativeUintptr")), "go.NativeUintptr");
+		require(!GoTypeMapper.isNativeUintptrType(get(fixture, "nativeInt64")), "go.NativeInt64 is not go.NativeUintptr");
+		require(goType(get(fixture, "nativeUintptr")) == "uintptr", "go.NativeUintptr carrier");
 		Sys.println("ok");
 	}
 	#end

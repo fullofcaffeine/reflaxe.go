@@ -1,0 +1,3 @@
+stdout fd: 1
+round trip: 42
+native-uintptr:ok
