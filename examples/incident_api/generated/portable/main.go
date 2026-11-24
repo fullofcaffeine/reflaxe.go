@@ -4196,6 +4196,234 @@ func reflaxe__go___internal__CompilerReflect_isEnumValue(value any) bool {
 	}
 }
 
+func hx_is_of_type_token(hx_value any, hx_type any) bool {
+	switch hx_type_marker := hx_type.(type) {
+	case *hxrt__TypeClassValue:
+		if hx_type_marker == nil {
+			return false
+		}
+		if hx_type_marker.name == nil {
+			return false
+		}
+		switch *hx_type_marker.name {
+		case "Array":
+			return func(hx_value any) bool {
+				switch hx_value.(type) {
+				case *hxrt.Array:
+					return true
+				default:
+					return false
+				}
+			}(hx_value)
+		case "Bool":
+			return func(hx_value any) bool {
+				switch hx_value.(type) {
+				case bool:
+					return true
+				default:
+					return false
+				}
+			}(hx_value)
+		case "Class":
+			return func(hx_value any) bool {
+				switch hx_value.(type) {
+				case *hxrt__TypeClassValue:
+					return true
+				default:
+					return false
+				}
+			}(hx_value)
+		case "Dynamic":
+			return (hx_value != nil)
+		case "Enum":
+			return func(hx_value any) bool {
+				switch hx_value.(type) {
+				case *hxrt__TypeEnumValue:
+					return true
+				default:
+					return false
+				}
+			}(hx_value)
+		case "Float":
+			return func(hx_value any) bool {
+				switch hx_value.(type) {
+				case int:
+					return true
+				case int8:
+					return true
+				case int16:
+					return true
+				case int32:
+					return true
+				case int64:
+					return true
+				case uint:
+					return true
+				case uint8:
+					return true
+				case uint16:
+					return true
+				case uint32:
+					return true
+				case uint64:
+					return true
+				case uintptr:
+					return true
+				case float32:
+					return true
+				case float64:
+					return true
+				default:
+					return false
+				}
+			}(hx_value)
+		case "Int":
+			return func(hx_value any) bool {
+				switch hx_value.(type) {
+				case int:
+					return true
+				case int8:
+					return true
+				case int16:
+					return true
+				case int32:
+					return true
+				case int64:
+					return true
+				case uint:
+					return true
+				case uint8:
+					return true
+				case uint16:
+					return true
+				case uint32:
+					return true
+				case uint64:
+					return true
+				case uintptr:
+					return true
+				default:
+					return false
+				}
+			}(hx_value)
+		case "String":
+			return func(hx_value any) bool {
+				switch hx_value.(type) {
+				case *string:
+					return true
+				case string:
+					return true
+				default:
+					return false
+				}
+			}(hx_value)
+		case "app.core.Incident":
+			return hx_is_nominal_app__core__Incident(hx_value)
+		case "app.core.IncidentApi":
+			return hx_is_nominal_app__core__IncidentApi(hx_value)
+		case "app.core.IncidentConfig":
+			return hx_is_nominal_app__core__IncidentConfig(hx_value)
+		case "app.core.IncidentRequestException":
+			return hx_is_nominal_app__core__IncidentRequestException(hx_value)
+		case "app.core.IncidentStore":
+			return hx_is_nominal_app__core__IncidentStore(hx_value)
+		case "app.http.HttpRequest":
+			return hx_is_nominal_app__http__HttpRequest(hx_value)
+		case "app.http.HttpResponse":
+			return hx_is_nominal_app__http__HttpResponse(hx_value)
+		case "app.http.TinyHttpServer":
+			return hx_is_nominal_app__http__TinyHttpServer(hx_value)
+		case "haxe.Exception":
+			return hx_is_nominal_haxe__Exception(hx_value)
+		case "haxe.ValueException":
+			return hx_is_nominal_haxe__ValueException(hx_value)
+		case "haxe._Int64.___Int64":
+			return hx_is_nominal_haxe___Int64_____Int64(hx_value)
+		case "haxe.exceptions.NotImplementedException":
+			return hx_is_nominal_haxe__exceptions__NotImplementedException(hx_value)
+		case "haxe.exceptions.PosException":
+			return hx_is_nominal_haxe__exceptions__PosException(hx_value)
+		case "haxe.io.Bytes":
+			return hx_is_nominal_haxe__io__Bytes(hx_value)
+		case "haxe.io.BytesBuffer":
+			return hx_is_nominal_haxe__io__BytesBuffer(hx_value)
+		case "haxe.io.Eof":
+			return hx_is_nominal_haxe__io__Eof(hx_value)
+		case "haxe.io.Input":
+			return hx_is_nominal_haxe__io__Input(hx_value)
+		case "haxe.io.Output":
+			return hx_is_nominal_haxe__io__Output(hx_value)
+		case "haxe.iterators.StringIterator":
+			return hx_is_nominal_haxe__iterators__StringIterator(hx_value)
+		case "haxe.iterators.StringKeyValueIterator":
+			return hx_is_nominal_haxe__iterators__StringKeyValueIterator(hx_value)
+		case "sys.io.FileInput":
+			return hx_is_nominal_sys__io__FileInput(hx_value)
+		case "sys.io.FileOutput":
+			return hx_is_nominal_sys__io__FileOutput(hx_value)
+		case "sys.net.Host":
+			return hx_is_nominal_sys__net__Host(hx_value)
+		case "sys.net.Socket":
+			return hx_is_nominal_sys__net__Socket(hx_value)
+		case "sys.net.SocketInput":
+			return hx_is_nominal_sys__net__SocketInput(hx_value)
+		case "sys.net.SocketOutput":
+			return hx_is_nominal_sys__net__SocketOutput(hx_value)
+		default:
+			return false
+		}
+	case *hxrt__TypeEnumValue:
+		if hx_type_marker == nil {
+			return false
+		}
+		if hx_type_marker.name == nil {
+			return false
+		}
+		switch *hx_type_marker.name {
+		case "haxe.StackItem":
+			return func(hx_value any) bool {
+				switch hx_value.(type) {
+				case *haxe__StackItem:
+					return true
+				default:
+					return false
+				}
+			}(hx_value)
+		case "haxe.io.Encoding":
+			return func(hx_value any) bool {
+				switch hx_value.(type) {
+				case *haxe__io__Encoding:
+					return true
+				default:
+					return false
+				}
+			}(hx_value)
+		case "haxe.io.Error":
+			return func(hx_value any) bool {
+				switch hx_value.(type) {
+				case *haxe__io__Error:
+					return true
+				default:
+					return false
+				}
+			}(hx_value)
+		case "sys.io.FileSeek":
+			return func(hx_value any) bool {
+				switch hx_value.(type) {
+				case *sys__io__FileSeek:
+					return true
+				default:
+					return false
+				}
+			}(hx_value)
+		default:
+			return false
+		}
+	default:
+		return false
+	}
+}
+
 func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []any) any {
 	origin := hxrt.FunctionOrigin(value)
 	if origin == nil {

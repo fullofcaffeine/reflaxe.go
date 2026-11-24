@@ -425,6 +425,9 @@ class GoCompiler {
 	var tempVarCountersByModule:Map<String, Int>;
 	var requiresTypeValueSupport:Bool;
 
+	/** Set when lowered code calls `runtimeTypeTokenTestSymbol`; see `lowerDynamicStdIsOfTypeExpr`. */
+	var requiresRuntimeTypeTokenTest:Bool;
+
 	/**
 		Why / What / How
 		- Selective packaging must copy `array.go` exactly when lowering emits the
@@ -554,6 +557,7 @@ class GoCompiler {
 		tempVarCounter = 0;
 		tempVarCountersByModule = new Map<String, Int>();
 		requiresTypeValueSupport = false;
+		requiresRuntimeTypeTokenTest = false;
 		requiresSharedArrayRuntime = false;
 		#end
 	}
@@ -611,6 +615,7 @@ class GoCompiler {
 		resetExternImportPaths();
 		buildStaticFunctionInfoTable(classes);
 		requiresTypeValueSupport = false;
+		requiresRuntimeTypeTokenTest = false;
 		tempVarCounter = 0;
 		tempVarCountersByModule = new Map<String, Int>();
 		var moduleDecls = new Map<String, Array<GoDecl>>();
@@ -675,6 +680,7 @@ class GoCompiler {
 			supportDecls = lowerGeneratedMethodMetadataShimDecls();
 			supportDecls = supportDecls.concat(lowerRegisteredCompilerCapabilityDecls());
 			supportDecls = supportDecls.concat(lowerTestAstStmtDecls());
+			supportDecls = supportDecls.concat(lowerRuntimeTypeTokenTestDecls());
 			noteRecoveryTypeOwners(preludeDecls.concat(supportDecls), "compiler-support", GoBuildConstraint.always());
 			valueRecovery.noteDeclarations(supportDecls);
 			// Preserve common declaration order while conditional plans move to separate files.
@@ -819,6 +825,7 @@ class GoCompiler {
 			count++;
 		for (flag in [
 			requiresTypeValueSupport,
+			requiresRuntimeTypeTokenTest,
 			requiresReflectTypeFieldMetadata,
 			requiresReflectEnumValueMetadata,
 			requiresGeneratedMethodLookup,
@@ -10255,6 +10262,9 @@ class GoCompiler {
 		};
 	}
 
+	/** The generated `func(value any, token any) bool` that tests a value against a runtime class or enum token. */
+	static final runtimeTypeTokenTestSymbol = "hx_is_of_type_token";
+
 	/**
 		What: Lower the source-owned `Std` aliases and downcast helper when their
 		type token arrives through a typed function parameter instead of a literal.
@@ -10264,13 +10274,49 @@ class GoCompiler {
 		`instance` necessarily forward a runtime `Class<T>` value. Rejecting that value
 		forces public library behavior back into separate compiler rewrites.
 
-		How: Build one closed, typed Go expression over the target's existing named
-		type-token carriers. Core tokens use exact Go representation switches; project
-		classes and enums use the same final reachable type-name plans as the literal
-		intrinsic. Unknown or null tokens fail closed.
+		The test must know every class and enum of the finished program. A test built
+		here, while one class is lowered, knows only the types queued so far. Classes
+		are lowered in name order, and a standard-library type joins the program only
+		when something lowered before needs it: `haxe.exceptions.PosException`, for
+		example, joins when its subclass `NotImplementedException` is lowered or when
+		a stored-value recovery first tests that subclass. A queued enum joins only
+		after every class is lowered. A token test built early therefore returned
+		false for values of those types, and the result depended on lowering order.
+
+		How: Return a call to one shared helper and mark it as required.
+		`lowerRuntimeTypeTokenTestDecls` declares the helper in the closure loop of
+		`compileResolvedTypes`, from the finished class and enum lists. Core tokens use
+		exact Go representation switches; project classes and enums use the same final
+		reachable type-name plans as the literal intrinsic. Unknown or null tokens fail
+		closed.
 	**/
 	function lowerDynamicStdIsOfTypeExpr(valueExpr:GoExpr, targetExpr:GoExpr):GoExpr {
 		requiresTypeValueSupport = true;
+		requiresRuntimeTypeTokenTest = true;
+		recoveryAvailability.noteHelper(runtimeTypeTokenTestSymbol, GoType.functionType([GoType.parse("any"), GoType.parse("any")], [GoType.parse("bool")]));
+		recoveryAvailability.requireHelper(runtimeTypeTokenTestSymbol);
+		return GoExpr.GoCall(GoExpr.GoIdent(runtimeTypeTokenTestSymbol), [valueExpr, targetExpr]);
+	}
+
+	/**
+		What: Declare the runtime-token type test that `lowerDynamicStdIsOfTypeExpr`
+		calls, or nothing when no lowered code calls it.
+
+		Why: The test's cases must name the finished set of generated classes and
+		enums, so that the set and the result do not depend on the order in which
+		classes were lowered or recoveries were built.
+
+		How: Each pass of the closure loop builds the helper again from the current
+		`projectClasses` and `projectEnums`. Every class and enum in those lists has
+		been lowered when a pass starts. A pass that queues another class or enum, or
+		demands another nominal test, changes `recoveryRequirementCount`, so the loop
+		runs again and the last pass builds the helper from the final lists. Cases
+		are sorted by Haxe name, so the order in which types were queued does not
+		change the output.
+	**/
+	function lowerRuntimeTypeTokenTestDecls():Array<GoDecl> {
+		if (!requiresRuntimeTypeTokenTest)
+			return [];
 		var classCases = dynamicStdClassTypeCases();
 		var enumCases = dynamicStdEnumTypeCases();
 		var classMarker = GoType.pointer(GoType.named("hxrt__TypeClassValue"));
@@ -10286,15 +10332,17 @@ class GoCompiler {
 			];
 		}
 
-		return GoExpr.GoCall(GoExpr.GoFuncLiteral([
-			{name: "hx_value", typeName: GoType.builtin(GoBuiltinType.AnyType)},
-			{name: "hx_type", typeName: GoType.builtin(GoBuiltinType.AnyType)}
-		], [GoType.builtin(GoBuiltinType.Bool)], [
-			GoStmt.GoTypeSwitch(GoExpr.GoIdent("hx_type"), "hx_type_marker", [
-				{typeName: classMarker, body: markerBody(classCases)},
-				{typeName: enumMarker, body: markerBody(enumCases)}
-			], [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))])
-		]), [valueExpr, targetExpr]);
+		return [
+			GoDecl.GoFuncDecl(runtimeTypeTokenTestSymbol, null, [
+				{name: "hx_value", typeName: GoType.builtin(GoBuiltinType.AnyType)},
+				{name: "hx_type", typeName: GoType.builtin(GoBuiltinType.AnyType)}
+			], [GoType.builtin(GoBuiltinType.Bool)], [
+				GoStmt.GoTypeSwitch(GoExpr.GoIdent("hx_type"), "hx_type_marker", [
+					{typeName: classMarker, body: markerBody(classCases)},
+					{typeName: enumMarker, body: markerBody(enumCases)}
+				], [GoStmt.GoReturn(GoExpr.GoBoolLiteral(false))])
+			])
+		];
 	}
 
 	/**
@@ -10303,6 +10351,7 @@ class GoCompiler {
 		not always available as a compile-time type literal.
 		How: Reuse the compiler's final generated carriers and exact core
 		representations, sorted by canonical Haxe name for deterministic output.
+		Only `lowerRuntimeTypeTokenTestDecls` calls this, after every class is lowered.
 	**/
 	function dynamicStdClassTypeCases():Array<GoSwitchCase> {
 		var specs = new Map<String, Array<String>>();

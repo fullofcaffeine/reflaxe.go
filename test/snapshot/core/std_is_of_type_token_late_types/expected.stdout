@@ -1,0 +1,8 @@
+class token NotImplementedException=true
+class token PosException=true
+class token Exception=true
+class token String=false
+class token on string=false
+enum token Option=true
+enum token on error=false
+caught as PosException=true
