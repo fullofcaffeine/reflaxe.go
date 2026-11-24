@@ -34,6 +34,9 @@ class GoTypeMapperContractFixture<T:{x:Int}, U> {
 	public var slice:go.NativeSlice<Bool>;
 	public var nativeInt64:go.NativeInt64;
 	public var nativeUintptr:go.NativeUintptr;
+	public var nativeUint32:go.NativeUint32;
+	public var nativeUint16:go.NativeUint16;
+	public var nativeUint:go.NativeUint;
 	public var map:Map<String, Int>;
 
 	public static var created:Int = 0;

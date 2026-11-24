@@ -1,0 +1,1 @@
+go.NativeUint32 is a non-nullable native Go uint32 value

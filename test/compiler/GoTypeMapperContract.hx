@@ -205,11 +205,18 @@ class GoTypeMapperContract {
 		final sliceElement = GoTypeMapper.nativeSliceElementType(get(fixture, "slice"));
 		require(sliceElement != null && GoTypeMapper.isBoolType(sliceElement), "go.NativeSlice element");
 		require(goType(get(fixture, "slice")) == "[]bool", "go.NativeSlice carrier");
-		require(GoTypeMapper.isNativeInt64Type(get(fixture, "nativeInt64")), "go.NativeInt64");
-		require(goType(get(fixture, "nativeInt64")) == "int64", "go.NativeInt64 carrier");
-		require(GoTypeMapper.isNativeUintptrType(get(fixture, "nativeUintptr")), "go.NativeUintptr");
-		require(!GoTypeMapper.isNativeUintptrType(get(fixture, "nativeInt64")), "go.NativeInt64 is not go.NativeUintptr");
-		require(goType(get(fixture, "nativeUintptr")) == "uintptr", "go.NativeUintptr carrier");
+		require(GoTypeMapper.nativeScalarCarrierName(get(fixture, "slice")) == null, "go.NativeSlice is not a scalar carrier");
+		for (field => expected in [
+			"nativeInt64" => {carrier: "NativeInt64", goType: "int64"},
+			"nativeUintptr" => {carrier: "NativeUintptr", goType: "uintptr"},
+			"nativeUint32" => {carrier: "NativeUint32", goType: "uint32"},
+			"nativeUint16" => {carrier: "NativeUint16", goType: "uint16"},
+			"nativeUint" => {carrier: "NativeUint", goType: "uint"}
+		]) {
+			require(GoTypeMapper.nativeScalarCarrierName(get(fixture, field)) == expected.carrier, "go." + expected.carrier);
+			require(GoTypeMapper.nativeScalarCarrierGoType(expected.carrier) == expected.goType, "go." + expected.carrier + " Go type");
+			require(goType(get(fixture, field)) == expected.goType, "go." + expected.carrier + " carrier");
+		}
 		Sys.println("ok");
 	}
 	#end

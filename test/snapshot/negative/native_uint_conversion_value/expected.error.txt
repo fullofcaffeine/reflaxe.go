@@ -1,0 +1,1 @@
+go.NativeUint.toInt must be called directly

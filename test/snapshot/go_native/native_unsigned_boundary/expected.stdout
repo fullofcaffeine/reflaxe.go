@@ -1,0 +1,4 @@
+perm: -rw-r--r--
+ones: 4
+round trip: 42 42 42
+native-unsigned:ok

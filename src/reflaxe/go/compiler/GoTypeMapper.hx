@@ -108,9 +108,7 @@ class GoTypeMapper {
 	}
 
 	public static function typeToGoType(type:Type, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):String {
-		rejectNullableNativeInt64(type);
-		rejectNullableNativeByte(type);
-		rejectNullableNativeUintptr(type);
+		rejectNullableNativeScalarCarrier(type);
 		if (isBytesDataType(type)) {
 			return "[]int";
 		}
@@ -147,12 +145,9 @@ class GoTypeMapper {
 				"*hxrt.Function[" + goFunctionType(args, returnType, classTypeName, enumTypeName) + "]";
 			case TInst(classRef, params):
 				var classType = classRef.get();
-				if (classType.pack.join(".") == "go" && classType.name == "NativeInt64") {
-					"int64";
-				} else if (classType.pack.join(".") == "go" && classType.name == "NativeByte") {
-					"byte";
-				} else if (classType.pack.join(".") == "go" && classType.name == "NativeUintptr") {
-					"uintptr";
+				final carrierGoType = nativeScalarCarrierClassGoType(classType);
+				if (carrierGoType != null) {
+					carrierGoType;
 				} else if (isTypeParameterClass(classType)) {
 					typeParameterGoType(classType, classTypeName, enumTypeName);
 				} else if (classType.isInterface) {
@@ -294,75 +289,61 @@ class GoTypeMapper {
 		};
 	}
 
-	/** Native Go int64 has no nil value; Null<NativeInt64> needs a separate carrier. */
-	public static function isNullableNativeInt64Type(type:Type):Bool {
-		return switch (type) {
-			case TAbstract(ref, params): declarationPath(ref) == "Null" && params.length == 1 && isNativeInt64Type(params[0]);
-			case TMono(ref): var resolved = ref.get(); resolved != null && isNullableNativeInt64Type(resolved);
-			case TType(_, _): isNullableNativeInt64Type(TypeTools.follow(type, true));
-			case TLazy(f): isNullableNativeInt64Type(f());
-			case _: false;
+	/**
+		What: The exact Go scalar type that one opaque `go.Native*` carrier class lowers to.
+		Why: Haxe `Int` lowers to Go `int`, and Go never converts implicitly between
+		integer types, so each exact Go width needs its own carrier. One table keeps
+		the type lowering, the `null` rejections and the explicit `toInt`/`fromInt`
+		conversions of every carrier in agreement.
+		How: Takes the class name inside package `go`, such as `NativeUint32`, and
+		returns its Go type, or null when the class is not a scalar carrier.
+	**/
+	public static function nativeScalarCarrierGoType(className:String):Null<String> {
+		return switch (className) {
+			case "NativeInt64": "int64";
+			case "NativeByte": "byte";
+			case "NativeUintptr": "uintptr";
+			case "NativeUint32": "uint32";
+			case "NativeUint16": "uint16";
+			case "NativeUint": "uint";
+			case _: null;
 		};
 	}
 
-	/** Native Go byte is a value; Null<NativeByte> needs a separate carrier. */
-	public static function isNullableNativeByteType(type:Type):Bool {
-		return switch (type) {
-			case TAbstract(ref, params): declarationPath(ref) == "Null" && params.length == 1 && isNativeByteType(params[0]);
-			case TMono(ref): var resolved = ref.get(); resolved != null && isNullableNativeByteType(resolved);
-			case TType(_, _): isNullableNativeByteType(TypeTools.follow(type, true));
-			case TLazy(f): isNullableNativeByteType(f());
-			case _: false;
-		};
-	}
-
-	/** Native Go uintptr is a value; Null<NativeUintptr> needs a separate carrier. */
-	public static function isNullableNativeUintptrType(type:Type):Bool {
-		return switch (type) {
-			case TAbstract(ref, params): declarationPath(ref) == "Null" && params.length == 1 && isNativeUintptrType(params[0]);
-			case TMono(ref): var resolved = ref.get(); resolved != null && isNullableNativeUintptrType(resolved);
-			case TType(_, _): isNullableNativeUintptrType(TypeTools.follow(type, true));
-			case TLazy(f): isNullableNativeUintptrType(f());
-			case _: false;
-		};
-	}
-
-	public static function isNativeInt64Type(type:Type):Bool {
+	/** The carrier class name of a `go.Native*` scalar type, such as `NativeUint32`, or null. */
+	public static function nativeScalarCarrierName(type:Type):Null<String> {
 		return switch (Context.follow(type)) {
-			case TInst(ref, _): declarationPath(ref) == "go.NativeInt64";
-			case _: false;
+			case TInst(ref, _):
+				final classType = ref.get();
+				nativeScalarCarrierClassGoType(classType) == null ? null : classType.name;
+			case _: null;
 		};
 	}
 
-	public static function isNativeByteType(type:Type):Bool {
-		return switch (Context.follow(type)) {
-			case TInst(ref, _): declarationPath(ref) == "go.NativeByte";
-			case _: false;
+	/** The Go type of a `go.Native*` scalar carrier class, or null for any other class. */
+	public static function nativeScalarCarrierClassGoType(classType:ClassType):Null<String> {
+		return classType.pack.length == 1 && classType.pack[0] == "go" ? nativeScalarCarrierGoType(classType.name) : null;
+	}
+
+	/** A native scalar carrier is a Go value without nil; `Null<T>` of it needs a separate carrier. */
+	static function nullableNativeScalarCarrierName(type:Type):Null<String> {
+		return switch (type) {
+			case TAbstract(ref, params): declarationPath(ref) == "Null" && params.length == 1 ? nativeScalarCarrierName(params[0]) : null;
+			case TMono(ref):
+				var resolved = ref.get();
+				resolved == null ? null : nullableNativeScalarCarrierName(resolved);
+			case TType(_, _): nullableNativeScalarCarrierName(TypeTools.follow(type, true));
+			case TLazy(f): nullableNativeScalarCarrierName(f());
+			case _: null;
 		};
 	}
 
-	public static function isNativeUintptrType(type:Type):Bool {
-		return switch (Context.follow(type)) {
-			case TInst(ref, _): declarationPath(ref) == "go.NativeUintptr";
-			case _: false;
-		};
-	}
-
-	static function rejectNullableNativeInt64(type:Type):Void {
-		if (isNullableNativeInt64Type(type)) {
-			Context.fatalError("Null<go.NativeInt64> has no native Go int64 representation; use a typed optional boundary", Context.currentPos());
-		}
-	}
-
-	static function rejectNullableNativeByte(type:Type):Void {
-		if (isNullableNativeByteType(type)) {
-			Context.fatalError("Null<go.NativeByte> has no native Go byte representation; use a typed optional boundary", Context.currentPos());
-		}
-	}
-
-	static function rejectNullableNativeUintptr(type:Type):Void {
-		if (isNullableNativeUintptrType(type)) {
-			Context.fatalError("Null<go.NativeUintptr> has no native Go uintptr representation; use a typed optional boundary", Context.currentPos());
+	static function rejectNullableNativeScalarCarrier(type:Type):Void {
+		final carrier = nullableNativeScalarCarrierName(type);
+		if (carrier != null) {
+			Context.fatalError("Null<go." + carrier + "> has no native Go " + nativeScalarCarrierGoType(carrier)
+				+ " representation; use a typed optional boundary",
+				Context.currentPos());
 		}
 	}
 
@@ -545,9 +526,7 @@ class GoTypeMapper {
 	}
 
 	public static function scalarGoType(type:Type, classTypeName:GoClassTypeNamer, enumTypeName:GoEnumTypeNamer):String {
-		rejectNullableNativeInt64(type);
-		rejectNullableNativeByte(type);
-		rejectNullableNativeUintptr(type);
+		rejectNullableNativeScalarCarrier(type);
 		if (isBytesDataType(type)) {
 			return "[]int";
 		}
@@ -584,12 +563,9 @@ class GoTypeMapper {
 				"*hxrt.Function[" + goFunctionType(args, returnType, classTypeName, enumTypeName) + "]";
 			case TInst(classRef, params):
 				var classType = classRef.get();
-				if (classType.pack.join(".") == "go" && classType.name == "NativeInt64") {
-					"int64";
-				} else if (classType.pack.join(".") == "go" && classType.name == "NativeByte") {
-					"byte";
-				} else if (classType.pack.join(".") == "go" && classType.name == "NativeUintptr") {
-					"uintptr";
+				final carrierGoType = nativeScalarCarrierClassGoType(classType);
+				if (carrierGoType != null) {
+					carrierGoType;
 				} else if (isTypeParameterClass(classType)) {
 					typeParameterGoType(classType, classTypeName, enumTypeName);
 				} else if (classType.isInterface) {

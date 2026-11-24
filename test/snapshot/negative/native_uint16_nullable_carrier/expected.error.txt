@@ -1,0 +1,1 @@
+Null<go.NativeUint16> has no native Go uint16 representation

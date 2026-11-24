@@ -954,6 +954,121 @@ func NeedsAliasPointer(value *Alias) {}
 	}
 }
 
+func TestBuildEmissionPreservesUnsignedValueABI(t *testing.T) {
+	moduleDir := t.TempDir()
+	writeTestFile(t, filepath.Join(moduleDir, "go.mod"), "module example.com/unsignedfixture\n\ngo 1.22\n")
+	writeTestFile(t, filepath.Join(moduleDir, "perm", "perm.go"), `package perm
+
+type Alias32 = uint32
+type Mode uint32
+type Port uint16
+type Word uint
+
+type Header struct {
+	Attrs   uint32
+	Alias   Alias32
+	Method  uint16
+	Size    uint
+	Mode    Mode
+	Masks   []uint32
+	Ports   []uint16
+	Words   []uint
+}
+
+func Open(path string, mode int, perm uint32) (int, error) { return 0, nil }
+func LockFileEx(flags uint32, reserved uint32, bytesLow uint32, bytesHigh uint32) error { return nil }
+func Swap16(value uint16) uint16 { return value }
+func Count(value uint) (uint, uint32) { return value, 0 }
+func AliasEcho(value Alias32) Alias32 { return value }
+func EchoMode(value Mode) Mode { return value }
+func EchoPort(value Port) Port { return value }
+func EchoWord(value Word) Word { return value }
+func NeedsPointer32(value *uint32) {}
+func NeedsAliasPointer32(value *Alias32) {}
+func NeedsPointer16(value *uint16) {}
+func NeedsPointer(value *uint) {}
+`)
+	emission, err := BuildEmission(Config{
+		GoImportPath:      "example.com/unsignedfixture/perm",
+		WorkingDirectory:  moduleDir,
+		OutputRoot:        t.TempDir(),
+		HaxePackagePrefix: "goextern",
+	})
+	if err != nil {
+		t.Fatalf("BuildEmission failed for native unsigned fixture: %v", err)
+	}
+	header := fileContentsByName(t, emission, "Header.hx")
+	for _, want := range []string{
+		"public var attrs:go.NativeUint32;",
+		"public var alias:go.NativeUint32;",
+		"public var method:go.NativeUint16;",
+		"public var size:go.NativeUint;",
+		"public var masks:go.NativeSlice<go.NativeUint32>;",
+		"public var ports:go.NativeSlice<go.NativeUint16>;",
+		"public var words:go.NativeSlice<go.NativeUint>;",
+	} {
+		if !strings.Contains(header, want) {
+			t.Fatalf("Header.hx missing exact unsigned field %q:\n%s", want, header)
+		}
+	}
+	if !strings.Contains(header, "public var mode:Mode;") {
+		t.Fatalf("Header.hx must keep the named uint32 field as its value type:\n%s", header)
+	}
+	alias := fileContentsByName(t, emission, "Alias32.hx")
+	if !strings.Contains(alias, "typedef Alias32 = go.NativeUint32;") {
+		t.Fatalf("true uint32 alias lost its underlying ABI:\n%s", alias)
+	}
+	for _, name := range []string{"Mode.hx", "Port.hx", "Word.hx"} {
+		if !strings.Contains(fileContentsByName(t, emission, name), "@:go.valueType") {
+			t.Fatalf("%s: a named unsigned Go type must remain a separate Go value type", name)
+		}
+	}
+	pkg := fileContentsByName(t, emission, "PermPkg.hx")
+	for _, want := range []string{
+		"open(path:String, mode:Int, perm:go.NativeUint32):OpenResult;",
+		"lockFileEx(flags:go.NativeUint32, reserved:go.NativeUint32, bytesLow:go.NativeUint32, bytesHigh:go.NativeUint32):go.Error;",
+		"swap16(value:go.NativeUint16):go.NativeUint16;",
+		"count(value:go.NativeUint):CountResult;",
+		"aliasEcho(value:go.NativeUint32):go.NativeUint32;",
+		"echoMode(value:Mode):Mode;",
+		"echoPort(value:Port):Port;",
+		"echoWord(value:Word):Word;",
+		"needsPointer32(value:Dynamic):Void;",
+		"needsAliasPointer32(value:Dynamic):Void;",
+		"needsPointer16(value:Dynamic):Void;",
+		"needsPointer(value:Dynamic):Void;",
+	} {
+		if !strings.Contains(pkg, want) {
+			t.Fatalf("PermPkg.hx missing exact unsigned signature or pointer fallback %q:\n%s", want, pkg)
+		}
+	}
+	result := fileContentsByName(t, emission, "CountResult.hx")
+	for _, want := range []string{
+		"value1(default, null):go.NativeUint;",
+		"value2(default, null):go.NativeUint32;",
+	} {
+		if !strings.Contains(result, want) {
+			t.Fatalf("CountResult.hx missing exact unsigned tuple slot %q:\n%s", want, result)
+		}
+	}
+	for name, reason := range map[string]string{
+		"NeedsPointer32":      "native_uint32_pointer_abi",
+		"NeedsAliasPointer32": "native_uint32_pointer_abi",
+		"NeedsPointer16":      "native_uint16_pointer_abi",
+		"NeedsPointer":        "native_uint_pointer_abi",
+	} {
+		found := false
+		for _, fallback := range emission.DynamicFallbacks {
+			if fallback.Symbol == name && fallback.Position == "param:value" && fallback.Reason == reason {
+				found = true
+			}
+		}
+		if !found {
+			t.Fatalf("missing explicit %s fallback for %s: %+v", reason, name, emission.DynamicFallbacks)
+		}
+	}
+}
+
 func TestBuildEmissionContextIncludesInterfaceAndPackageClass(t *testing.T) {
 	cfg := Config{
 		GoImportPath:      "context",

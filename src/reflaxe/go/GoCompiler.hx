@@ -6510,14 +6510,10 @@ class GoCompiler {
 	}
 
 	function lowerExpr(expr:TypedExpr):LoweredExpr {
-		if (isNullLiteralExpr(expr) && GoTypeMapper.isNativeInt64Type(expr.t)) {
-			Context.fatalError("go.NativeInt64 is a non-nullable native Go int64 value", expr.pos);
-		}
-		if (isNullLiteralExpr(expr) && GoTypeMapper.isNativeByteType(expr.t)) {
-			Context.fatalError("go.NativeByte is a non-nullable native Go byte value", expr.pos);
-		}
-		if (isNullLiteralExpr(expr) && GoTypeMapper.isNativeUintptrType(expr.t)) {
-			Context.fatalError("go.NativeUintptr is a non-nullable native Go uintptr value", expr.pos);
+		if (isNullLiteralExpr(expr)) {
+			final carrier = GoTypeMapper.nativeScalarCarrierName(expr.t);
+			if (carrier != null)
+				Context.fatalError("go." + carrier + " is a non-nullable native Go " + GoTypeMapper.nativeScalarCarrierGoType(carrier) + " value", expr.pos);
 		}
 		var anonymousMutation = lowerAnonymousMutation(expr);
 		if (anonymousMutation != null)
@@ -7425,8 +7421,8 @@ class GoCompiler {
 				var classType = classRef.get();
 				if (asValue && classType.pack.join(".") == "go" && classType.name == "NativePointer" && resolved.name == "of")
 					Context.fatalError("go.NativePointer.of must be called directly; method values are unsupported", resolved.pos);
-				if (asValue && classType.pack.join(".") == "go" && classType.name == "NativeUintptr")
-					Context.fatalError("go.NativeUintptr." + resolved.name + " must be called directly; method values are unsupported",
+				if (asValue && GoTypeMapper.nativeScalarCarrierClassGoType(classType) != null)
+					Context.fatalError("go." + classType.name + "." + resolved.name + " must be called directly; method values are unsupported",
 						target == null ? resolved.pos : target.pos);
 				noteStaticStdlibFieldUsage(classType, resolved.name, resolved.pos);
 				if (classType.isExtern) {
@@ -7442,7 +7438,7 @@ class GoCompiler {
 							// A Go package-level variable, such as io.EOF, is native storage
 							// like a struct field, so a read crosses the same import boundary.
 							// Assignment targets and direct calls keep the bare selector.
-							normalizeImportedExternFieldRead(classType, resolved, selector);
+							typeNativeScalarPackageRead(resolved, normalizeImportedExternFieldRead(classType, resolved, selector));
 						};
 						return {
 							expr: adapted == null ? selector : adapted,
@@ -8275,9 +8271,9 @@ class GoCompiler {
 			return nativePointerCall;
 		}
 
-		var nativeUintptrCall = lowerNativeUintptrCall(callee, args, returnType);
-		if (nativeUintptrCall != null) {
-			return nativeUintptrCall;
+		var nativeScalarConversionCall = lowerNativeScalarConversionCall(callee, args, returnType);
+		if (nativeScalarConversionCall != null) {
+			return nativeScalarConversionCall;
 		}
 
 		var nativeSliceBoundaryCall = lowerNativeSliceBoundaryCall(callee, args, returnType);
@@ -8788,29 +8784,64 @@ class GoCompiler {
 	}
 
 	/**
-		What: Lowers the two explicit `go.NativeUintptr` conversions.
-		Why: Go has no implicit conversion between `int` and `uintptr`, and the
-		carrier deliberately has no Haxe `from`/`to` casts, so ports such as
-		`term.GetSize(int(os.Stdout.Fd()))` need one visible conversion point.
-		How: Emit the Go conversion `int(x)` or `uintptr(n)` over the typed
-		argument. Go conversion semantics apply: out-of-range values wrap.
+		What: Lowers the explicit `toInt` and `fromInt` conversions of the unsigned
+		`go.Native*` scalar carriers (`NativeUintptr`, `NativeUint32`,
+		`NativeUint16` and `NativeUint`).
+		Why: Go has no implicit conversion between `int` and these types, and the
+		carriers deliberately have no Haxe `from`/`to` casts, so ports such as
+		`term.GetSize(int(os.Stdout.Fd()))` or `unix.Open(path, mode, perm)` need
+		one visible conversion point.
+		How: Emit the Go conversion `int(x)` or `T(n)` over the typed argument. Go
+		conversion semantics apply: out-of-range values wrap (see
+		`nativeUnsignedFromInt` for constant arguments).
 	**/
-	function lowerNativeUintptrCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
-		final goType = if (isStaticCall(callee, "NativeUintptr", ["go"], "toInt")) {
-			"int";
-		} else if (isStaticCall(callee, "NativeUintptr", ["go"], "fromInt")) {
-			"uintptr";
-		} else {
-			return null;
+	function lowerNativeScalarConversionCall(callee:TypedExpr, args:Array<TypedExpr>, returnType:Type):Null<LoweredExpr> {
+		final conversion = switch (callee.expr) {
+			case TField(_, FStatic(classRef, field)):
+				final fieldName = GoTypeMapper.referencedFieldName(field);
+				final classType = classRef.get();
+				final goType = fieldName == "toInt"
+					|| fieldName == "fromInt" ? GoTypeMapper.nativeScalarCarrierClassGoType(classType) : null;
+				goType == null ? null : {carrier: classType.name, goType: goType, toInt: fieldName == "toInt"};
+			case _:
+				null;
 		};
+		if (conversion == null)
+			return null;
 		if (args.length != 1)
-			Context.fatalError("go.NativeUintptr conversions expect exactly one value", callee.pos);
+			Context.fatalError("go." + conversion.carrier + " conversions expect exactly one value", callee.pos);
 		final lowered = lowerExprWithPrefix(args[0]);
 		return materializeExprWithPrefix({
 			prefix: lowered.prefix,
-			expr: GoExpr.GoCall(GoExpr.GoIdent(goType), [lowered.expr]),
+			expr: conversion.toInt ? GoExpr.GoCall(GoExpr.GoIdent("int"), [lowered.expr]) : nativeUnsignedFromInt(conversion.goType, lowered.expr),
 			isStringLike: false
 		}, returnType);
+	}
+
+	/**
+		What: Converts one lowered Haxe `Int` to an unsigned Go carrier type.
+		Why: Go wraps a negative or too-wide `int` variable at run time, but it
+		rejects the same conversion of a constant at build time: `uint32(-1)` is
+		"constant -1 overflows uint32". Haxe hex literals above `0x7FFFFFFF`, such
+		as `0xFFFFFFFF`, are negative `Int` constants, so they hit this too.
+		How: A non-constant value keeps the plain conversion `T(n)`. An integer
+		literal is wrapped here to the value that Go gives the same variable:
+		`uint16(n & 0xFFFF)` for the 16-bit type, and `^T(-n - 1)` for a negative
+		literal of a type with 32 or more bits (`^uint32(0)` for -1). The second
+		form is exact for the platform-width `uint` and `uintptr` too.
+	**/
+	static function nativeUnsignedFromInt(goType:String, value:GoExpr):GoExpr {
+		final literal:Null<Int> = switch (value) {
+			case GoIntLiteral(n): n;
+			case GoUnary(GoUnaryOperator.Negate, GoIntLiteral(n)): -n;
+			case _: null;
+		};
+		final convert = (operand:GoExpr) -> GoExpr.GoCall(GoExpr.GoIdent(goType), [operand]);
+		if (literal == null)
+			return convert(value);
+		if (goType == "uint16")
+			return convert(GoExpr.GoIntLiteral(literal & 0xFFFF));
+		return literal < 0 ? GoExpr.GoUnary(GoUnaryOperator.BitwiseNot, convert(GoExpr.GoIntLiteral(~literal))) : convert(GoExpr.GoIntLiteral(literal));
 	}
 
 	/**
@@ -11234,6 +11265,22 @@ class GoCompiler {
 			return callExpr;
 		}
 		return GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [callExpr]);
+	}
+
+	/**
+		What: Gives one package-level extern read of an exact scalar carrier its Go type.
+		Why: Such a field is often a Go untyped constant, such as
+		`windows.LOCKFILE_FAIL_IMMEDIATELY` or `math.MaxUint32`. A Go short variable
+		declaration gives an untyped constant its default type `int`, so
+		`flags := windows.LOCKFILE_FAIL_IMMEDIATELY` could not pass as a `uint32`,
+		and an `any` box would hold an `int` that the carrier type assertion rejects.
+		How: Convert the read to the carrier's Go type, as in
+		`uint32(math.MaxUint32)`. The conversion is a no-op for a typed Go variable.
+		Assignment targets lower without this read path and keep the bare selector.
+	**/
+	static function typeNativeScalarPackageRead(field:ClassField, read:GoExpr):GoExpr {
+		final carrier = GoTypeMapper.nativeScalarCarrierName(field.type);
+		return carrier == null ? read : GoExpr.GoCall(GoExpr.GoIdent(GoTypeMapper.nativeScalarCarrierGoType(carrier)), [read]);
 	}
 
 	/**

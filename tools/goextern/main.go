@@ -429,7 +429,7 @@ func mapStructFieldTypeWithReason(t types.Type, ctx mappingContext) (string, str
 	switch fieldType := types.Unalias(t).(type) {
 	case *types.Basic:
 		switch fieldType.Kind() {
-		case types.Bool, types.Int, types.Int64, types.Uint8, types.Uintptr, types.String, types.Float64:
+		case types.Bool, types.Int, types.Int64, types.Uint8, types.Uintptr, types.Uint32, types.Uint16, types.Uint, types.String, types.Float64:
 			return mapBasicTypeWithReason(fieldType)
 		default:
 			return "Dynamic", "scalar_field_abi"
@@ -478,7 +478,7 @@ func mapNativeSliceFieldElementWithReason(t types.Type, ctx mappingContext) (str
 	switch elementType := types.Unalias(t).(type) {
 	case *types.Basic:
 		switch elementType.Kind() {
-		case types.Bool, types.Int, types.Uint8, types.Uintptr, types.Float64:
+		case types.Bool, types.Int, types.Uint8, types.Uintptr, types.Uint32, types.Uint16, types.Uint, types.Float64:
 			return mapBasicTypeWithReason(elementType)
 		default:
 			return "Dynamic", "slice_element_abi"
@@ -946,18 +946,13 @@ func mapTypeResult(t types.Type, ctx mappingContext) mappedType {
 		haxe, reason := mapBasicTypeWithReason(tt)
 		return mappedType{Haxe: haxe, Reason: reason}
 	case *types.Pointer:
-		if basic, ok := types.Unalias(tt.Elem()).(*types.Basic); ok && basic.Kind() == types.Int64 {
-			// A native int64 value cannot stand in for a Go *int64. Leave the
-			// pointer boundary explicit until the typed scalar pointer API owns it.
-			return mappedType{Haxe: "Dynamic", Reason: "native_int64_pointer_abi"}
-		}
-		if basic, ok := types.Unalias(tt.Elem()).(*types.Basic); ok && basic.Kind() == types.Uint8 {
-			// A byte value cannot stand in for a Go *byte destination.
-			return mappedType{Haxe: "Dynamic", Reason: "native_byte_pointer_abi"}
-		}
-		if basic, ok := types.Unalias(tt.Elem()).(*types.Basic); ok && basic.Kind() == types.Uintptr {
-			// A uintptr value cannot stand in for a Go *uintptr destination.
-			return mappedType{Haxe: "Dynamic", Reason: "native_uintptr_pointer_abi"}
+		if basic, ok := types.Unalias(tt.Elem()).(*types.Basic); ok {
+			if carrier, exact := exactScalarCarriers[basic.Kind()]; exact {
+				// A carrier value, such as a native int64, cannot stand in for a Go
+				// *int64 destination. Leave the pointer boundary explicit until the
+				// typed scalar pointer API owns it.
+				return mappedType{Haxe: "Dynamic", Reason: carrier.pointerReason}
+			}
 		}
 		return mapTypeResult(tt.Elem(), ctx)
 	case *types.Slice:
@@ -1075,6 +1070,25 @@ func mapBasicType(basic *types.Basic) string {
 	return mapped
 }
 
+// exactScalarCarrier is the opaque haxe.go carrier of one Go integer kind.
+type exactScalarCarrier struct {
+	haxe          string
+	pointerReason string
+}
+
+// exactScalarCarriers lists the Go integer kinds that have an exact haxe.go
+// carrier. Haxe Int lowers to Go int, and Go never converts implicitly between
+// integer types, so an Int declaration of these kinds builds only while every
+// caller passes a Go constant. The other integer kinds still map to Int.
+var exactScalarCarriers = map[types.BasicKind]exactScalarCarrier{
+	types.Int64:   {haxe: "go.NativeInt64", pointerReason: "native_int64_pointer_abi"},
+	types.Uint8:   {haxe: "go.NativeByte", pointerReason: "native_byte_pointer_abi"},
+	types.Uintptr: {haxe: "go.NativeUintptr", pointerReason: "native_uintptr_pointer_abi"},
+	types.Uint32:  {haxe: "go.NativeUint32", pointerReason: "native_uint32_pointer_abi"},
+	types.Uint16:  {haxe: "go.NativeUint16", pointerReason: "native_uint16_pointer_abi"},
+	types.Uint:    {haxe: "go.NativeUint", pointerReason: "native_uint_pointer_abi"},
+}
+
 func mapBasicTypeWithReason(basic *types.Basic) (string, string) {
 	if basic == nil {
 		return "Dynamic", "nil_type"
@@ -1086,14 +1100,8 @@ func mapBasicTypeWithReason(basic *types.Basic) (string, string) {
 	if basic.Info()&types.IsBoolean != 0 {
 		return "Bool", ""
 	}
-	if basic.Kind() == types.Int64 {
-		return "go.NativeInt64", ""
-	}
-	if basic.Kind() == types.Uint8 {
-		return "go.NativeByte", ""
-	}
-	if basic.Kind() == types.Uintptr {
-		return "go.NativeUintptr", ""
+	if carrier, exact := exactScalarCarriers[basic.Kind()]; exact {
+		return carrier.haxe, ""
 	}
 	if basic.Info()&types.IsInteger != 0 {
 		return "Int", ""

@@ -1,0 +1,1 @@
+Null<go.NativeUint32> has no native Go uint32 representation

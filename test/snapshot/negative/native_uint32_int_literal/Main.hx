@@ -1,0 +1,8 @@
+import go.NativeUint32;
+
+@:goNative class Main {
+	static function main():Void {
+		final value:NativeUint32 = 420;
+		Sys.println(NativeUint32.toInt(value));
+	}
+}

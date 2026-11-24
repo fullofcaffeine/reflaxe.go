@@ -1,0 +1,1 @@
+go.NativeUint16 is a non-nullable native Go uint16 value

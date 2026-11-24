@@ -201,7 +201,7 @@ dependencies can be inspected without editing `go.mod` or creating `go.sum`.
 The generator intentionally starts conservative:
 
 - `bool` -> `Bool`
-- `int64` -> `go.NativeInt64`, `byte` (`uint8`) -> `go.NativeByte`, `uintptr` -> `go.NativeUintptr` (see [Exact native scalar carriers](#exact-native-scalar-carriers))
+- `int64` -> `go.NativeInt64`, `byte` (`uint8`) -> `go.NativeByte`, `uintptr` -> `go.NativeUintptr`, `uint32` -> `go.NativeUint32`, `uint16` -> `go.NativeUint16`, `uint` -> `go.NativeUint` (see [Exact native scalar carriers](#exact-native-scalar-carriers))
 - other integer scalars -> `Int`
 - floating scalars -> `Float`
 - `string` -> `String`
@@ -219,8 +219,8 @@ ordinary Go zero value; it does not call or invent a package constructor.
 
 The generator emits an exported, non-embedded field only when its complete Go
 ABI has an exact Haxe type. The exact set includes `bool`, `int`, `int64`,
-`byte`, `uintptr`, `float64`, `string`, safe native slices, named interfaces, and pointers to supported named
-values. These named types can belong to the root or a dependency package.
+`byte`, `uintptr`, `uint32`, `uint16`, `uint`, `float64`, `string`, safe native
+slices, named interfaces, and pointers to supported named values. These named types can belong to the root or a dependency package.
 
 Unexported fields stay private to Go. The generator omits unsupported fields
 and records each omission in the fallback report. Examples include embedded
@@ -259,16 +259,21 @@ Native scalar pointer destinations:
 ### Exact native scalar carriers
 
 Haxe `Int` lowers to Go `int`. Go does not convert implicitly between `int` and
-the other integer types, so an `Int` declaration for one of them does not build.
-Three opaque extern types in the `go` package carry the exact Go type instead:
+the other integer types, so an `Int` declaration for one of them builds only
+while every caller passes a Go constant: `unix.Open(path, mode, 0)` builds, but
+a `perm` variable gives `cannot use perm (variable of type int) as uint32
+value`. Opaque extern types in the `go` package carry the exact Go type instead:
 
 | Go type | Haxe carrier | Typical API |
 | --- | --- | --- |
 | `int64` | `go.NativeInt64` | `strconv.ParseInt`, `strconv.FormatInt` |
 | `byte` (`uint8`) | `go.NativeByte` | `bytes.IndexByte`; `go.NativeSlice<go.NativeByte>` is `[]byte` |
 | `uintptr` | `go.NativeUintptr` | `(*os.File).Fd`, `os.NewFile`, `runtime.Caller`, `runtime.FuncForPC` |
+| `uint32` | `go.NativeUint32` | `unix.Open` and `syscall.Open` `perm`, `windows.LockFileEx`, `bits.OnesCount32` |
+| `uint16` | `go.NativeUint16` | `bits.ReverseBytes16`, `netip.AddrPortFrom`, `zip.FileHeader.Method` |
+| `uint` | `go.NativeUint` | `bits.Len`, `bits.OnesCount` |
 
-The rules are the same for all three:
+The rules are the same for all carriers:
 
 - The compiler lowers the carrier to the exact Go type wherever the Haxe type
   appears: locals, parameters, returns, class fields, tuple-carrier fields,
@@ -277,21 +282,39 @@ The rules are the same for all three:
   or from `Int`. Get a value from a precise extern and pass it back to Go.
 - The carrier is not nullable. The compiler rejects `null`, `Null<T>` of the
   carrier, optional arguments and optional structure fields of the carrier.
+- An extern static variable of a carrier type can name a Go untyped constant,
+  such as `math.MaxUint32`. The compiler converts each read to the carrier's Go
+  type, as in `uint32(math.MaxUint32)`, so a local that stores it keeps that
+  type and does not become a Go `int`.
 - `goextern` maps the Go type, and a true alias of it, to the carrier. A named
-  Go type such as `type Handle uintptr` stays a separate `@:go.valueType`
-  extern. A pointer such as `*uintptr` stays `Dynamic`, with the reason code
-  `native_int64_pointer_abi`, `native_byte_pointer_abi` or
-  `native_uintptr_pointer_abi`.
+  Go type such as `type Handle uintptr` or `type FileMode uint32` stays a
+  separate `@:go.valueType` extern. A pointer such as `*uint32` stays `Dynamic`,
+  with the reason code `native_int64_pointer_abi`, `native_byte_pointer_abi`,
+  `native_uintptr_pointer_abi`, `native_uint32_pointer_abi`,
+  `native_uint16_pointer_abi` or `native_uint_pointer_abi`.
 
-`go.NativeUintptr` also has two explicit conversions. Call them directly;
-method values are not supported.
+`go.NativeUintptr`, `go.NativeUint32`, `go.NativeUint16` and `go.NativeUint`
+also have two explicit conversions. Call them directly; method values are not
+supported.
 
-- `NativeUintptr.toInt(x)` lowers to Go `int(x)`. Use it for an API that takes
-  `int`. A value above the Go `int` range wraps, as in Go, and the result is not
-  reduced to 32 bits.
-- `NativeUintptr.fromInt(n)` lowers to Go `uintptr(n)`. A negative `Int` wraps,
-  as in Go.
-- `==` and `!=` on two `go.NativeUintptr` values compare the Go values.
+- `toInt(x)` lowers to Go `int(x)`. Use it for an API that takes `int`. A value
+  above the Go `int` range wraps, as in Go. The result is not reduced to 32
+  bits, so `NativeUint32.toInt` of `0xFFFFFFFF` is `4294967295` on a 64-bit
+  target.
+- `fromInt(n)` lowers to the Go conversion, such as `uint32(n)`. A negative or
+  too-wide `Int` wraps, as in Go: `NativeUint32.fromInt(-1)` is `0xFFFFFFFF`
+  and `NativeUint16.fromInt(0x12345)` is `0x2345`. Go rejects that conversion
+  of a constant, so the compiler wraps an integer literal itself: it emits
+  `^uint32(0)` for `NativeUint32.fromInt(-1)`, and the same value for
+  `NativeUint32.fromInt(0xFFFFFFFF)`, because Haxe types that literal as the
+  `Int` `-1`.
+- `==` and `!=` on two values of the same carrier compare the Go values.
+
+To get a named Go type such as `fs.FileMode` from a carrier, declare the Go
+type conversion as an extern function with `@:go.valueReturn`, as in
+`@:go.valueReturn @:go.name("FileMode") static function fileMode(bits:go.NativeUint32):FileMode;`
+in an extern class for `io/fs`. Go lowers the call `fs.FileMode(bits)` as an
+explicit conversion.
 
 For example, upstream Go code that reads the terminal width with
 `term.GetSize(int(os.Stdout.Fd()))` uses these externs:
@@ -329,10 +352,32 @@ class TermSize {
 // Go:   term.GetSize(int(os.Stdout.Fd()))
 ```
 
+A shared lock on Windows passes `uint32` flags and byte counts. With exact
+declarations, the values can be variables:
+
+```haxe
+@:go.import("golang.org/x/sys/windows") @:go.package("windows")
+extern class WindowsPkg {
+	@:go.name("LOCKFILE_FAIL_IMMEDIATELY") static var lockfileFailImmediately(default, never):go.NativeUint32;
+
+	// Go: func LockFileEx(file Handle, flags uint32, reserved uint32, bytesLow uint32, bytesHigh uint32, overlapped *Overlapped) (err error)
+	@:go.valueArgs("0") @:go.name("LockFileEx")
+	static function lockFileEx(file:Handle, flags:go.NativeUint32, reserved:go.NativeUint32, bytesLow:go.NativeUint32,
+		bytesHigh:go.NativeUint32, overlapped:Overlapped):Null<go.NativeError>;
+}
+
+// Haxe: final whole = go.NativeUint32.fromInt(-1);
+//       WindowsPkg.lockFileEx(handle, WindowsPkg.lockfileFailImmediately, go.NativeUint32.fromInt(0), whole, whole, new Overlapped());
+// Go:   whole := ^uint32(0)
+//       windows.LockFileEx(*handle, uint32(windows.LOCKFILE_FAIL_IMMEDIATELY), uint32(0), whole, whole, &windows.Overlapped{})
+```
+
 Evidence: `test/snapshot/go_native/native_int64_boundary`,
 `test/snapshot/go_native/native_byte_slice_boundary`,
-`test/snapshot/go_native/native_uintptr_boundary` and the
-`test/snapshot/negative/native_uintptr_*` cases.
+`test/snapshot/go_native/native_uintptr_boundary`,
+`test/snapshot/go_native/native_unsigned_boundary` and the
+`test/snapshot/negative/native_uintptr_*`, `native_uint32_*`, `native_uint16_*`
+and `native_uint_*` cases.
 
 Generated files are not an edit surface. Put stronger user-owned externs or
 typed adapters in a separate Haxe path. The ownership manifest rejects any
@@ -428,7 +473,7 @@ Common reason codes:
 - `embedded_field`: the exported field is embedded and is not emitted as a direct writable selector.
 - `scalar_field_abi`: the scalar width or signedness does not match the Haxe carrier.
 - `pointer_field_abi`: the pointer does not have a matching named Haxe carrier.
-- `native_int64_pointer_abi`, `native_byte_pointer_abi`, `native_uintptr_pointer_abi`: a pointer to an exact scalar carrier type, such as `*uintptr`, is not the carrier value.
+- `native_int64_pointer_abi`, `native_byte_pointer_abi`, `native_uintptr_pointer_abi`, `native_uint32_pointer_abi`, `native_uint16_pointer_abi`, `native_uint_pointer_abi`: a pointer to an exact scalar carrier type, such as `*uint32`, is not the carrier value.
 - `slice_element_abi`: the native slice element would change representation.
 - `map_field_abi`: no exact native map field carrier is available yet.
 - `named_value_field_abi`: a named Go value would be pointer-backed as a Haxe extern class.
