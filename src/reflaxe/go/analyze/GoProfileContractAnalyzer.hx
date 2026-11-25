@@ -160,6 +160,7 @@ class GoProfileContractAnalyzer {
 	public static function collectPortableNativeImportTypedHits(types:Array<ModuleType>, projectRoot:String,
 			allowPrefixes:Array<String>):Array<GoPortableNativeImportHit> {
 		var hitsByModule:Map<String, GoPortableNativeImportHit> = [];
+		final reach = new GoNativeTypeReach();
 		for (moduleType in types) {
 			switch (moduleType) {
 				case TClassDecl(classRef):
@@ -171,7 +172,7 @@ class GoProfileContractAnalyzer {
 					if (hitsByModule.exists(moduleName) || isAllowedModule(moduleName, allowPrefixes)) {
 						continue;
 					}
-					if (classUsesGoNative(classType)) {
+					if (classUsesGoNative(classType, reach)) {
 						hitsByModule.set(moduleName, hitForModule(moduleName, classType.pos));
 					}
 				case TAbstract(abstractRef):
@@ -183,7 +184,7 @@ class GoProfileContractAnalyzer {
 					if (hitsByModule.exists(moduleName) || isAllowedModule(moduleName, allowPrefixes)) {
 						continue;
 					}
-					if (abstractUsesGoNative(abstractType)) {
+					if (abstractUsesGoNative(abstractType, reach)) {
 						hitsByModule.set(moduleName, hitForModule(moduleName, abstractType.pos));
 					}
 				case _:
@@ -348,7 +349,7 @@ class GoProfileContractAnalyzer {
 		return null;
 	}
 
-	static function classUsesGoNative(classType:ClassType):Bool {
+	static function classUsesGoNative(classType:ClassType, reach:GoNativeTypeReach):Bool {
 		if (classType.pack != null && classType.pack.length > 0 && classType.pack[0] == "go") {
 			return true;
 		}
@@ -357,23 +358,23 @@ class GoProfileContractAnalyzer {
 			if (field == null) {
 				continue;
 			}
-			if (typeHasGoNative(field.type)) {
+			if (typeHasGoNative(field.type, reach)) {
 				return true;
 			}
 			var expr = field.expr();
-			if (expr != null && exprHasGoNative(expr)) {
+			if (expr != null && exprHasGoNative(expr, reach)) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	static function abstractUsesGoNative(abstractType:AbstractType):Bool {
+	static function abstractUsesGoNative(abstractType:AbstractType, reach:GoNativeTypeReach):Bool {
 		if (abstractType.pack != null && abstractType.pack.length > 0 && abstractType.pack[0] == "go") {
 			return true;
 		}
 
-		if (typeHasGoNative(abstractType.type)) {
+		if (typeHasGoNative(abstractType.type, reach)) {
 			return true;
 		}
 
@@ -385,11 +386,11 @@ class GoProfileContractAnalyzer {
 					if (field == null) {
 						continue;
 					}
-					if (typeHasGoNative(field.type)) {
+					if (typeHasGoNative(field.type, reach)) {
 						return true;
 					}
 					var expr = field.expr();
-					if (expr != null && exprHasGoNative(expr)) {
+					if (expr != null && exprHasGoNative(expr, reach)) {
 						return true;
 					}
 				}
@@ -398,13 +399,13 @@ class GoProfileContractAnalyzer {
 		return false;
 	}
 
-	static function exprHasGoNative(expr:TypedExpr):Bool {
+	static function exprHasGoNative(expr:TypedExpr, reach:GoNativeTypeReach):Bool {
 		var found = false;
 		function walk(node:TypedExpr):Void {
 			if (found || node == null) {
 				return;
 			}
-			if (typeHasGoNative(node.t)) {
+			if (typeHasGoNative(node.t, reach)) {
 				found = true;
 				return;
 			}
@@ -414,8 +415,25 @@ class GoProfileContractAnalyzer {
 		return found;
 	}
 
-	static function typeHasGoNative(t:Type):Bool {
-		return typeHasGoNativeInner(t, []);
+	/**
+		What: True when the gate's walk over `t` (`typeHasGoNativeInner`) meets a
+		`go.*` declaration.
+
+		Why: That walk prints every type it visits and keeps the printed types as
+		its visited set, and it runs again for each expression node: about 3.9 s of
+		the BeadsHX bootstrap compile. `GoNativeTypeReach` answers whether `t` can
+		reach a `go.*` declaration at all, remembering answers per declaration.
+
+		How: A type that cannot reach a `go.*` declaration answers false without
+		the walk, which follows the same edges and could only answer false. Only
+		the other types take the walk. Its printed visited set can skip a type that
+		prints like one met before (every anonymous structure prints the same, and
+		deep types print truncated), so it can miss a `go.*` type that the reach
+		check sees. Keeping the walk as the final answer keeps every diagnostic
+		exactly as before.
+	**/
+	static function typeHasGoNative(t:Type, reach:GoNativeTypeReach):Bool {
+		return reach.reaches(t) && typeHasGoNativeInner(t, []);
 	}
 
 	static function typeHasGoNativeInner(t:Type, seen:Array<String>):Bool {
