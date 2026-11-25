@@ -1,0 +1,4 @@
+2026 2026-11-25 2026-11-25 12:00:00 +0000 UTC
+time.Time time.Month time.Duration syntax.ErrorCode []interface {}
+November 1m30s missing closing ] eq [time.Month][syntax.ErrorCode] true
+{"Code":"missing closing ]","Issue":{"CreatedAt":"2026-11-25T12:00:00Z","Month":11,"Title":"Fix the parser"},"Timeout":90000000000,"Values":[11,"missing closing ]"],"Zero":"0001-01-01T00:00:00Z"}

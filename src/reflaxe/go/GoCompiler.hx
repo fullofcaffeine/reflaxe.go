@@ -8878,8 +8878,11 @@ class GoCompiler {
 		`map[string]any`, not Haxe carriers such as `*string`.
 		How: `NativeAny` is an abstract over `Any`, so its value is a Go `any`.
 		`ofString` stores the Go string (`*hxrt.StdString(x)`), `ofFloat` a
-		`float64`, also for an untyped integer constant, and `nil` the nil
-		interface; the other constructors already hold their Go value. `set` in
+		`float64`, also for an untyped integer constant, `ofValue` the Go value
+		behind a pointer-backed `@:go.struct` or `@:go.valueType` extern carrier
+		(`*t`), and `nil` the nil interface; the other constructors already hold
+		their Go value. `ofValue` accepts any Haxe type, so its argument type is
+		checked here. `set` in
 		an expression position assigns inside a function literal; a statement
 		`set` is lowered by `lowerNativeAnyMapSet` directly.
 	**/
@@ -8901,11 +8904,17 @@ class GoCompiler {
 		}
 		if (args.length != 1)
 			Context.fatalError("go.NativeAny." + constructor + " expects exactly one value", callee.pos);
-		final value = lowerCallArgForParamType(args[0], callParamType(callee.t, 0));
+		if (constructor == "ofValue" && (nullableInnerType(args[0].t) != null || !isNativeGoValueExternType(args[0].t)))
+			Context.fatalError("go.NativeAny.ofValue expects a non-null value of a @:go.struct or @:go.valueType extern class, such as time.Time; got "
+				+ haxe.macro.TypeTools.toString(args[0].t),
+				args[0].pos);
+		final value = lowerCallArgForParamType(args[0], constructor == "ofValue" ? args[0].t : callParamType(callee.t, 0));
 		return {
 			expr: switch (constructor) {
 				case "ofString":
 					nativeGoStringValue(value);
+				case "ofValue":
+					nativeGoValueOfCarrier(value);
 				case "ofFloat":
 					switch (value) {
 						case GoExpr.GoFloatLiteral(_) | GoExpr.GoCall(GoExpr.GoIdent("float64"), _): value;
@@ -8915,6 +8924,29 @@ class GoCompiler {
 					value;
 			},
 			isStringLike: false
+		};
+	}
+
+	/**
+		What: The Go value behind one lowered pointer-backed extern value carrier.
+		Why: `go.NativeAny.ofValue` must store `time.Time`, not the `*time.Time`
+		carrier, and a carrier built from a Go value already names that value.
+		How: Unwrap `&x` to `x`, and the native value-result and value-field
+		carrier `func() *T { v := e; return &v }()` (see
+		`normalizeExternValueCallResult`) to `e`, which evaluates `e` once as
+		before. Dereference anything else (`*t`), which copies the value.
+	**/
+	function nativeGoValueOfCarrier(value:GoExpr):GoExpr {
+		return switch (value) {
+			case GoExpr.GoUnary(GoUnaryOperator.AddressOf, inner):
+				inner;
+			case GoExpr.GoCall(GoExpr.GoFuncLiteral([], [_], [
+				GoStmt.GoVarDecl(name, null, captured, true),
+				GoStmt.GoReturn(GoExpr.GoUnary(GoUnaryOperator.AddressOf, GoExpr.GoIdent(returned)))
+			]), []) if (captured != null && name == returned):
+				captured;
+			case _:
+				GoExpr.GoUnary(GoUnaryOperator.Dereference, value);
 		};
 	}
 

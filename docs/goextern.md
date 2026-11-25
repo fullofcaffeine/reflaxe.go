@@ -300,8 +300,27 @@ template.execute(writer, data);  // extern parameter typed go.NativeAny
 - A template reads `.Issue.Title` from key `"Title"` of the map stored under
   `"Issue"`; `printf`, `eq`, `range`, `index`, `len`, `%T` and missing keys
   behave as for Go data. `%T` of a map is `map[string]interface {}`, so a value
-  that Go code stores as a named or struct type, such as `*types.Issue`, prints
-  a different `%T`.
+  that Go code stores as a first-party named or struct type, such as
+  `*types.Issue`, prints a different `%T`.
+- `NativeAny.ofValue(value)` stores the Go value of a precise extern value
+  type: a `@:go.struct` extern such as `time.Time`, or a `@:go.valueType`
+  extern such as `time.Duration` or a named Go string type. These externs are
+  pointer-backed in Haxe, and a `Dynamic` value keeps the pointer, so `%T`
+  printed `*time.Time` and `eq` failed on a named string. `ofValue` lowers to
+  the Go dereference (`*t`), so the `any` holds a copy with the Go type and
+  its methods:
+
+  ```haxe
+  final created = TimePkg.unix(seconds, 0).utc();  // GoTime, a @:go.struct extern
+  issue.set("CreatedAt", NativeAny.ofValue(created));
+  // {{.CreatedAt.Year}} prints 2026, {{printf "%T" .CreatedAt}} prints time.Time,
+  // and encoding/json writes "2026-11-25T12:00:00Z".
+  ```
+
+  The argument's static type must be the extern class itself; the compiler
+  rejects other types, including `Null<T>`. A null carrier is not a Go zero
+  value and fails with Go's nil pointer dereference. `ofValue` is an explicit
+  call, not an implicit cast.
 - A `NativeAny` holds Go data only: pass it to Go, do not read it back as a
   Haxe value. Call the constructors and `set` directly; method values are not
   supported.

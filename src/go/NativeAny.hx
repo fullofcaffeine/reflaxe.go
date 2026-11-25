@@ -16,10 +16,11 @@ package go;
 	the Go value that Go code would use: `ofString` a Go `string`, `ofInt` an
 	`int`, `ofFloat` a `float64` (also for an integral literal such as `2`),
 	`ofBool` a `bool`, `ofMap` a `map[string]any`, `ofSlice` a `[]any`,
-	`ofStrings` a `[]string`, and `nil` a nil interface. The constructors are
-	implicit casts, so `map.set("Title", title)` converts `title`. Call them
-	directly; method values are not supported. A null String becomes "null", as
-	it does at every Go `string` parameter; use `nil()` for Go `nil`.
+	`ofStrings` a `[]string`, `ofValue` the Go value of a precise extern value
+	type such as `time.Time`, and `nil` a nil interface. All but `ofValue` and
+	`nil` are implicit casts, so `map.set("Title", title)` converts `title`.
+	Call them directly; method values are not supported. A null String becomes
+	"null", as it does at every Go `string` parameter; use `nil()` for Go `nil`.
 
 	A `NativeAny` holds Go data only. Pass it to Go; do not read it back as a
 	Haxe value. A `Dynamic` value unifies with this type without conversion and
@@ -48,6 +49,28 @@ abstract NativeAny(Any) {
 
 	/** Stores the Go `[]string` itself, not a copy. */
 	@:from public static extern function ofStrings(value:NativeStringSlice):NativeAny;
+
+	/**
+		Stores the Go value of a precise extern value type: a `@:go.struct`
+		extern such as `time.Time`, or a `@:go.valueType` extern such as
+		`time.Duration` or a named Go string type such as `json.Number`.
+
+		Why: Haxe keeps these externs pointer-backed, so a `time.Time` is a
+		`*time.Time` in Haxe, and a `Dynamic` value keeps that pointer. Go code
+		stores the value itself, and reflection sees the difference: template
+		`%T` printed `*time.Time`, and `eq` failed on a pointer to a named
+		string.
+
+		How: The compiler lowers `ofValue(t)` to the Go dereference `*t`, so the
+		`any` holds a copy of the Go value with its Go type and methods
+		(`{{.CreatedAt.Year}}`, `%T` is `time.Time`). The argument's static type
+		must be the extern class itself; the compiler rejects any other type,
+		including `Null<T>`. A null carrier is not a Go zero value: it fails with
+		Go's nil pointer dereference, as at a named-value extern parameter.
+		This constructor is not an implicit cast because Haxe has no type
+		constraint that admits only these externs.
+	**/
+	public static extern function ofValue<T>(value:T):NativeAny;
 
 	/** The Go nil interface, as Go code stores `nil` in a map. */
 	public static extern function nil():NativeAny;
