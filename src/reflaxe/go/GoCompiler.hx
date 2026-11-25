@@ -3856,6 +3856,9 @@ class GoCompiler {
 				lowerToStatements(inner);
 			case TParenthesis(inner):
 				lowerToStatements(inner);
+			// A checked cast used as a statement still throws for a value of another type.
+			case TCast(_, _) if (isTestedCheckedCast(expr)):
+				exprStatement(lowerExpr(expr).expr);
 			case TCast(inner, _):
 				lowerToStatements(inner);
 			case TVar(variable, value):
@@ -6709,6 +6712,8 @@ class GoCompiler {
 				// Check the cast itself: inlining can erase its surrounding API call.
 				if (isArrayType(inner.t) && isAnonymousObjectType(expr.t))
 					Context.fatalError("Array-to-structural casts are not supported on Go; retain a concrete iterable carrier", expr.pos);
+				if (isTestedCheckedCast(expr))
+					return {expr: lowerCheckedCastExpr(inner, expr.t, expr.pos), isStringLike: isStringType(expr.t)};
 				var loweredInner = lowerExpr(inner);
 				var innerGoType = typeToGoType(inner.t);
 				var castGoType = typeToGoType(expr.t);
@@ -14307,17 +14312,86 @@ class GoCompiler {
 		`hx_recover_class_Mid(hx_recover_class_Mid(value))`, and so did the
 		staged `haxe.Exception.catchValue` on every catch of a non-exception value.
 
-		How: mirror the cast lowering. An operand whose Go type is `any`, cast to
-		a different non-`any` Go type, is converted (a `Dynamic` value to Int,
-		Float, Bool or String) or recovered (classes, interfaces, structures and
-		function values). Two shapes stay erased and keep the old answer: a
-		nullable primitive, whose nil-preserving assertion still returns `any`,
-		and an Array-to-Array cast, which only views the same storage.
+		How: mirror the cast lowering. A checked cast that needs a run-time test
+		always returns the cast type's storage (`lowerCheckedCastExpr`). Otherwise
+		an operand whose Go type is `any`, cast to a different non-`any` Go type,
+		is converted (a `Dynamic` value to Int, Float, Bool or String) or recovered
+		(classes, interfaces, structures and function values). Two shapes stay
+		erased and keep the old answer: a nullable primitive, whose nil-preserving
+		assertion still returns `any`, and an Array-to-Array cast, which only views
+		the same storage.
 	**/
 	function castLoweringTypesAnyOperand(castExpr:TypedExpr, inner:TypedExpr):Bool {
+		if (isTestedCheckedCast(castExpr))
+			return typeToGoType(castExpr.t) != "any";
 		if (isNullablePrimitiveType(castExpr.t) || (isArrayType(inner.t) && isArrayType(castExpr.t)))
 			return false;
 		return typeToGoType(castExpr.t) != "any" && typeToGoType(inner.t) == "any";
+	}
+
+	/**
+		What: Whether `expr` is a checked cast `cast(value, T)` that needs a
+		run-time test of its value.
+
+		Why: Haxe returns the value of a checked cast when it is null or a `T`, and
+		otherwise throws a catchable class cast error. An unchecked `cast value`
+		has no test. A checked cast whose operand's static type already proves the
+		cast (an upcast, or a value of the same Go type) keeps the plain cast
+		lowering, so it does not pay for a test whose answer is known.
+
+		How: the typer records the checked target as the cast's module type. The
+		operand proves the cast when its class is the target class or extends it,
+		or when it has the target's own non-`any` Go type. Interfaces that a class
+		implements are not followed; such a cast keeps the test, which is still
+		correct.
+	**/
+	function isTestedCheckedCast(expr:TypedExpr):Bool {
+		return switch (expr.expr) {
+			case TCast(inner, moduleType) if (moduleType != null):
+				final sourceClass = classFromType(inner.t);
+				final targetClass = classFromType(expr.t);
+				if (sourceClass != null && targetClass != null && inheritancePath(sourceClass, targetClass) != null) {
+					false;
+				} else {
+					final targetGoType = typeToGoType(expr.t);
+					targetGoType == "any" || typeToGoType(inner.t) != targetGoType
+					;
+				}
+			case _:
+				false;
+		};
+	}
+
+	/**
+		What: Lowers a checked cast `cast(value, T)` that `isTestedCheckedCast`
+		says needs a run-time test.
+
+		Why: `--interp` throws the String "Class cast error" when the value is
+		neither null nor a `T`, so a `Dynamic` catch receives that String and a
+		`haxe.Exception` catch receives a ValueException with it as the message.
+		The plain cast lowering recovered the value with a Go type assertion,
+		which panicked with a raw Go message ("interface {} is *main.Other, not
+		*main.Mid") that no Haxe `catch` could handle.
+
+		How: pass the operand to a function literal as `any`. A value that is not
+		null and fails the `Std.isOfType` test for `T` throws "Class cast error"
+		the way a Haxe `throw` statement does. Otherwise the value takes the
+		conversion of a cast of a `Dynamic` value. The test only reads the
+		operand's static type, so it is given a `Dynamic`-typed stand-in for the
+		`any` parameter.
+	**/
+	function lowerCheckedCastExpr(inner:TypedExpr, targetType:Type, pos:Position):GoExpr {
+		final valueName = freshTempName("hx_cast");
+		final value = GoExpr.GoIdent(valueName);
+		final erasedOperand:TypedExpr = {expr: TIdent(valueName), t: TDynamic(null), pos: pos};
+		final fails = GoExpr.GoBinary("&&", GoExpr.GoUnary("!", GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnyEqualsNull"), [value])),
+			GoExpr.GoUnary("!", lowerStdIsOfTypeExpr(value, erasedOperand, targetType)));
+		final error = exceptionSourceCall("thrown", lowerConst(TString("Class cast error")).expr);
+		final converted = lowerDynamicSlotExpr(value, targetType);
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: valueName, typeName: "any"}], [typeToGoType(targetType)], [
+			GoStmt.GoIf(fails, [GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [error]))], null),
+			GoStmt.GoReturn(converted != null ? converted : lowerNullableAwareTypeAssertExpr(value, targetType))
+		]), [lowerExpr(inner).expr]);
 	}
 
 	/**
