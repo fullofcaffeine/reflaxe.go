@@ -355,7 +355,7 @@ class GoCompiler {
 	var requiresStringValueErrorResultNormalization:Bool;
 	final externImportPaths:Map<String, Bool>;
 	final externImportPackages:Map<String, String>;
-	final reservedLocalPackageNames:Map<String, Bool> = [];
+	final reservedPackageNames:Map<String, Bool> = [];
 	final usedExternClassPaths:Map<String, Bool>;
 	final sourceModuleRegistry:GoSourceModuleRegistry;
 	final sourceOwnedStdlibPlanner:GoSourceOwnedStdlibPlanner;
@@ -5580,26 +5580,30 @@ class GoCompiler {
 	}
 
 	/**
-		Reserve typed package qualifiers before allocating any local names.
+		Reserve typed package qualifiers before allocating any local or
+		selected-main static names.
 
 		Extern imports are discovered lazily during lowering, so the used-import
 		map is incomplete here. The completed Haxe module inventory supplies their
 		declared aliases without adding imports. Compiler support imports can also
 		be requested by later recovery; use their existing finite inventory.
+		Locals avoid these names with a `_local` suffix. Selected-main statics,
+		which otherwise print as bare package-level names, use their qualified
+		`Type_field` form instead (see `GoNaming.staticSymbol`).
 	**/
 	function reserveTypedPackageNames():Void {
-		reservedLocalPackageNames.clear();
-		reservedLocalPackageNames.set("hxrt", true);
+		reservedPackageNames.clear();
+		reservedPackageNames.set("hxrt", true);
 		for (path in buildSupportImports(true))
-			reservedLocalPackageNames.set(importAliasForPath(path), true);
+			reservedPackageNames.set(importAliasForPath(path), true);
 		for (requirement in compilationContext.surfacePlan.requiredImports)
-			reservedLocalPackageNames.set(importAliasForPath(requirement.path), true);
+			reservedPackageNames.set(importAliasForPath(requirement.path), true);
 		for (moduleType in Context.getAllModuleTypes()) {
 			switch (moduleType) {
 				case TClassDecl(ref) if (ref.get().isExtern):
 					var alias = externClassPackageName(ref.get());
 					if (alias != null)
-						reservedLocalPackageNames.set(alias, true);
+						reservedPackageNames.set(alias, true);
 				case _:
 			}
 		}
@@ -5624,7 +5628,7 @@ class GoCompiler {
 		}
 
 		var base = normalizeIdent(variable.name);
-		while (reservedLocalPackageNames.exists(base))
+		while (reservedPackageNames.exists(base))
 			base += "_local";
 		var currentScope = currentFunctionVarNameScope();
 		var countScope = currentFunctionVarNameCountScope();
@@ -5634,7 +5638,7 @@ class GoCompiler {
 
 		var next = countScope.exists(base) ? countScope.get(base) : 0;
 		var assigned = next == 0 ? base : base + "_" + next;
-		while (reservedLocalPackageNames.exists(assigned) || activeScopesContainLocalName(assigned)) {
+		while (reservedPackageNames.exists(assigned) || activeScopesContainLocalName(assigned)) {
 			next++;
 			assigned = base + "_" + next;
 		}
@@ -15593,7 +15597,8 @@ class GoCompiler {
 
 	function staticSymbol(classType:ClassType, fieldName:String):String {
 		noteStdlibClass(classType);
-		return GoNaming.staticSymbol(classType.pack, classType.name, fieldName, isSelectedMainClass(classType) ? outputIdentity.entrySymbol.value() : null);
+		return GoNaming.staticSymbol(classType.pack, classType.name, fieldName, isSelectedMainClass(classType) ? outputIdentity.entrySymbol.value() : null,
+			reservedPackageNames);
 	}
 
 	function normalizeIdent(name:String):String {

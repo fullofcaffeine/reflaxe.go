@@ -331,7 +331,7 @@ func dyn(value any) any {
 	return value
 }
 
-func errors() {
+func Main_errors() {
 	attempt(hxrt.StringFromLiteral("null + 1"), hxrt.NewFunction(func() any {
 		return hxrt.DynamicAdd(dyn(nil), 1)
 	}))
@@ -543,7 +543,7 @@ func main() {
 	arithmetic()
 	typedOperands()
 	bitwise()
-	errors()
+	Main_errors()
 	increments()
 	compound()
 	unary()

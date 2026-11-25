@@ -81,14 +81,34 @@ class GoNaming {
 		return "New_" + typeSymbol(pack, typeName);
 	}
 
-	/** Keep selected-main statics stable while giving its `main` field the target entry symbol. */
-	public static function staticSymbol(pack:Array<String>, typeName:String, fieldName:String, selectedMainEntrySymbol:Null<String>):String {
+	/**
+		Names one static field as a Go package-level symbol.
+
+		Why: statics of the selected main class print as bare names (`helper`)
+		so the entry package reads like hand-written Go. A bare name shares the
+		package block with every import of every file in that Go package, so a
+		static named like the entry symbol or an imported package (`strings`,
+		`hxrt`) would not compile.
+
+		What: returns the entry symbol for the main class's `main` field, the
+		bare normalized name for its other statics, and the qualified
+		`Type_field` form for every other class's statics.
+
+		How: a main-class static whose bare name equals the entry symbol or any
+		name in `reservedPackageNames` falls back to the qualified form. That
+		form starts with the Haxe type name, which is uppercase, while Go
+		package names are lowercase by convention. Callers pass the package
+		names reserved before lowering, so every reference to one static gets
+		the same symbol.
+	**/
+	public static function staticSymbol(pack:Array<String>, typeName:String, fieldName:String, selectedMainEntrySymbol:Null<String>,
+			reservedPackageNames:Map<String, Bool>):String {
 		if (selectedMainEntrySymbol != null) {
 			if (fieldName == "main") {
 				return selectedMainEntrySymbol;
 			}
 			final normalized = normalizeIdent(fieldName);
-			if (normalized == selectedMainEntrySymbol) {
+			if (normalized == selectedMainEntrySymbol || reservedPackageNames.exists(normalized)) {
 				return typeSymbol(pack, typeName) + "_" + normalized;
 			}
 			return normalized;
