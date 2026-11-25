@@ -17,6 +17,8 @@ import reflaxe.go.compiler.GoRecoveryDispatch.GoRecoveryCasePlan;
 	availability dispatcher place concrete cases in selected probe files. Each
 	test is named from its target's generated type name (`hx_is_nominal_<Type>`)
 	and declared in name order, so an edit elsewhere cannot rename or move it.
+	`discover` walks each candidate's declared ancestry once per call with
+	`GoNominalAncestry`, however many targets ask about that candidate.
 **/
 class GoNominalTypeTest {
 	static final symbolPrefix = "hx_is_nominal_";
@@ -62,35 +64,23 @@ class GoNominalTypeTest {
 		return GoExpr.GoCall(GoExpr.GoIdent(symbol), [value]);
 	}
 
-	function belongsTo(source:ClassType, target:ClassType, visited:Map<String, Bool>):Bool {
-		var name = className(source);
-		if (name == className(target))
-			return true;
-		if (visited.exists(name))
-			return false;
-		visited.set(name, true);
-		if (source.superClass != null && belongsTo(source.superClass.t.get(), target, visited))
-			return true;
-		for (implemented in source.interfaces)
-			if (belongsTo(implemented.t.get(), target, visited))
-				return true;
-		return false;
-	}
-
 	/** Only emitted concrete layouts become cases; interfaces remain nominal targets. */
 	public function discover(candidates:Array<ClassType>):Array<GoGuardedRecoveryDeclaration> {
 		var declarations = new Array<GoGuardedRecoveryDeclaration>();
 		var names = [for (name in targets.keys()) name];
 		names.sort(GoRecoveryDispatch.compareSymbols);
+		final ancestries = [for (candidate in candidates) new GoNominalAncestry(candidate, className)];
 		for (name in names) {
 			var cases = new Array<GoRecoveryCasePlan>();
-			for (candidate in candidates)
-				if (belongsTo(candidate, targets.get(name), new Map()))
+			for (index in 0...candidates.length) {
+				final candidate = candidates[index];
+				if (ancestries[index].contains(name))
 					cases.push({
 						sourceType: GoType.pointer(GoType.named(className(candidate))),
 						body: [GoStmt.GoReturn(GoExpr.GoBinary("!=", GoExpr.GoIdent("source"), GoExpr.GoNil))],
 						dependencies: []
 					});
+			}
 			var plan = dispatcher.lower({
 				symbol: GoRecoveryDispatch.entrySymbol(symbolPrefix, name),
 				params: [{name: "value", typeName: "any"}],
