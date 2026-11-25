@@ -6,36 +6,36 @@ import haxe.macro.TypedExprTools;
 import reflaxe.go.analyze.GoNativeTypeReach;
 import reflaxe.go.analyze.GoProfileContractAnalyzer;
 import reflaxe.go.analyze.GoProfileContractAnalyzer.GoPortableNativeImportHit;
-import reflaxe.go.compiler.GoTypeMapper;
 #end
 
 /**
-	Contract for the reach check in front of the native authority gate's type walk.
+	Contract for the native authority gate's answer to "can this type reach a
+	`go.*` declaration?".
 
 	Why
-	The gate (`GoProfileContractAnalyzer`) asks `GoNativeTypeReach` first whether
-	a type can reach a `go.*` declaration, and runs its own walk only when it can.
-	The reach check remembers answers per declaration, so a remembered answer that
-	is wrong for a later question would hide a `go.*` use from the gate. And the
-	gate's walk can miss a `go.*` type that the reach check sees, so the gate must
-	keep the walk's answer: its diagnostics must stay exactly as before.
+	The gate (`GoProfileContractAnalyzer`) answers with `GoNativeTypeReach`,
+	which remembers answers per declaration. A remembered answer that is wrong
+	for a later question would hide a `go.*` use from the gate, or report one
+	that is not there. The walk it replaced kept printed types as its visited
+	set, so it missed a `go.*` type that prints like a type met before: every
+	anonymous structure prints the same, and prints are cut short after two
+	levels of nesting.
 
 	What
 	For the field types and expression node types of real typed fixture classes,
 	and for constructed lazy, monomorph, and deeply nested types, pins that:
-	- the reach answer equals an independent reachability walk with no remembered
-	  answers, for several question orders and for each question alone;
+	- the answer equals an independent reachability walk with no remembered
+	  answers, for several question orders, for each question alone, and for
+	  every ordered pair of questions;
 	- named fixture fields have the expected answers, including cycles through
 	  typedefs and statics types;
-	- every question the replaced walk answers true is also true here;
-	- the gate answers exactly as a copy of the replaced walk, per type, per class
-	  and abstract, and in the hit list, including the anonymous structure case
-	  that the walk has always missed.
+	- the gate's answers per class and abstract, and its hit list, equal the
+	  same collection over the independent walk, and the gate reports the
+	  `go.*` types behind types that print alike.
 
 	How
 	After the initialization macros, loads the fixture modules, collects the
-	questions, and compares the answers with a copy of the replaced walk and with
-	the reference walk.
+	questions, and compares the answers with the independent walk.
 **/
 @:access(reflaxe.go.analyze.GoProfileContractAnalyzer)
 class GoNativeTypeReachContract {
@@ -54,174 +54,6 @@ class GoNativeTypeReachContract {
 			case TInst(ref, _): ref.get();
 			case _: throw "not a class: " + path;
 		};
-	}
-
-	/** The replaced gate walk (`typeHasGoNative` before the reach check), unchanged. */
-	static function legacyTypeHasGoNative(t:Type):Bool {
-		return legacyInner(t, []);
-	}
-
-	static function legacyInner(t:Type, seen:Array<String>):Bool {
-		if (t == null) {
-			return false;
-		}
-		var key = Std.string(t);
-		if (seen.indexOf(key) != -1) {
-			return false;
-		}
-		seen.push(key);
-
-		return switch (t) {
-			case TInst(classRef, params):
-				if (isGoPath(GoTypeMapper.declarationPath(classRef))) {
-					true;
-				} else {
-					legacyList(params, seen);
-				}
-			case TEnum(enumRef, params):
-				if (isGoPath(GoTypeMapper.declarationPath(enumRef))) {
-					true;
-				} else {
-					legacyList(params, seen);
-				}
-			case TType(typeRef, params):
-				if (isGoPath(GoTypeMapper.declarationPath(typeRef))) {
-					true;
-				} else if (legacyList(params, seen)) {
-					true;
-				} else {
-					legacyInner(typeRef.get().type, seen);
-				}
-			case TAbstract(absRef, params):
-				if (isGoPath(GoTypeMapper.declarationPath(absRef))) {
-					true;
-				} else if (legacyList(params, seen)) {
-					true;
-				} else {
-					legacyInner(GoTypeMapper.abstractDeclaration(absRef).type, seen);
-				}
-			case TFun(args, ret): var argHas = false; for (arg in args) {
-					if (legacyInner(arg.t, seen)) {
-						argHas = true;
-						break;
-					}
-				} argHas || legacyInner(ret, seen);
-			case TDynamic(inner): inner != null && legacyInner(inner, seen);
-			case TAnonymous(anonRef):
-				var anon = anonRef.get();
-				var hasGo = false;
-				for (field in anon.fields) {
-					if (legacyInner(field.type, seen)) {
-						hasGo = true;
-						break;
-					}
-				}
-				hasGo;
-			case TLazy(loader):
-				legacyInner(loader(), seen);
-			case TMono(monoRef): var candidate = monoRef.get(); candidate != null && legacyInner(candidate, seen);
-		}
-	}
-
-	static function legacyList(types:Array<Type>, seen:Array<String>):Bool {
-		for (t in types) {
-			if (legacyInner(t, seen)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	static function legacyExprHasGoNative(expr:TypedExpr):Bool {
-		var found = false;
-		function walk(node:TypedExpr):Void {
-			if (found || node == null) {
-				return;
-			}
-			if (legacyTypeHasGoNative(node.t)) {
-				found = true;
-				return;
-			}
-			TypedExprTools.iter(node, child -> walk(child));
-		}
-		walk(expr);
-		return found;
-	}
-
-	static function legacyFieldsUseGoNative(fields:Array<ClassField>):Bool {
-		for (field in fields) {
-			if (field == null) {
-				continue;
-			}
-			if (legacyTypeHasGoNative(field.type)) {
-				return true;
-			}
-			var expr = field.expr();
-			if (expr != null && legacyExprHasGoNative(expr)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	static function legacyClassUsesGoNative(classType:ClassType):Bool {
-		if (classType.pack != null && classType.pack.length > 0 && classType.pack[0] == "go") {
-			return true;
-		}
-		return legacyFieldsUseGoNative(classType.fields.get().concat(classType.statics.get()));
-	}
-
-	static function legacyAbstractUsesGoNative(abstractType:AbstractType):Bool {
-		if (abstractType.pack != null && abstractType.pack.length > 0 && abstractType.pack[0] == "go") {
-			return true;
-		}
-		if (legacyTypeHasGoNative(abstractType.type)) {
-			return true;
-		}
-		if (abstractType.impl != null) {
-			var impl = abstractType.impl.get();
-			if (impl != null && legacyFieldsUseGoNative(impl.fields.get().concat(impl.statics.get()))) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/** The replaced typed-hit collection, with the analyzer's unchanged helpers. */
-	static function legacyCollect(types:Array<ModuleType>, projectRoot:String):Array<GoPortableNativeImportHit> {
-		var hitsByModule:Map<String, GoPortableNativeImportHit> = [];
-		for (moduleType in types) {
-			switch (moduleType) {
-				case TClassDecl(classRef):
-					var classType = classRef.get();
-					if (!GoProfileContractAnalyzer.isPortableContractSource(classType.pos, projectRoot)) {
-						continue;
-					}
-					var moduleName = GoProfileContractAnalyzer.moduleNameForClass(classType);
-					if (hitsByModule.exists(moduleName)) {
-						continue;
-					}
-					if (legacyClassUsesGoNative(classType)) {
-						hitsByModule.set(moduleName, GoProfileContractAnalyzer.hitForModule(moduleName, classType.pos));
-					}
-				case TAbstract(abstractRef):
-					var abstractType = abstractRef.get();
-					if (!GoProfileContractAnalyzer.isPortableContractSource(abstractType.pos, projectRoot)) {
-						continue;
-					}
-					var moduleName = GoProfileContractAnalyzer.moduleNameForAbstract(abstractType);
-					if (hitsByModule.exists(moduleName)) {
-						continue;
-					}
-					if (legacyAbstractUsesGoNative(abstractType)) {
-						hitsByModule.set(moduleName, GoProfileContractAnalyzer.hitForModule(moduleName, abstractType.pos));
-					}
-				case _:
-			}
-		}
-		var out:Array<GoPortableNativeImportHit> = [for (moduleName in hitsByModule.keys()) hitsByModule.get(moduleName)];
-		out.sort(GoProfileContractAnalyzer.comparePortableNativeHits);
-		return out;
 	}
 
 	/** Exact reachability with no remembered answers: each declaration is expanded once per question. */
@@ -268,8 +100,87 @@ class GoNativeTypeReachContract {
 		return StringTools.startsWith(path, "go.");
 	}
 
+	static function isGoPack(pack:Array<String>):Bool {
+		return pack != null && pack.length > 0 && pack[0] == "go";
+	}
+
 	static function referenceReaches(t:Type):Bool {
 		return reference(t, new Map<String, Bool>());
+	}
+
+	static function referenceExprReaches(expr:TypedExpr):Bool {
+		var found = false;
+		function visit(node:TypedExpr):Void {
+			if (found || node == null) {
+				return;
+			}
+			if (referenceReaches(node.t)) {
+				found = true;
+				return;
+			}
+			TypedExprTools.iter(node, visit);
+		}
+		visit(expr);
+		return found;
+	}
+
+	static function referenceFieldsUseGoNative(fields:Array<ClassField>):Bool {
+		for (field in fields) {
+			if (field == null) {
+				continue;
+			}
+			if (referenceReaches(field.type)) {
+				return true;
+			}
+			final body = field.expr();
+			if (body != null && referenceExprReaches(body)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	static function referenceClassUsesGoNative(classType:ClassType):Bool {
+		return isGoPack(classType.pack) || referenceFieldsUseGoNative(classType.fields.get().concat(classType.statics.get()));
+	}
+
+	static function referenceAbstractUsesGoNative(abstractType:AbstractType):Bool {
+		if (isGoPack(abstractType.pack) || referenceReaches(abstractType.type)) {
+			return true;
+		}
+		final impl = abstractType.impl == null ? null : abstractType.impl.get();
+		return impl != null && referenceFieldsUseGoNative(impl.fields.get().concat(impl.statics.get()));
+	}
+
+	/** The gate's typed-hit collection over the reference walk, with the analyzer's helpers for the rest. */
+	static function referenceCollect(types:Array<ModuleType>, projectRoot:String):Array<GoPortableNativeImportHit> {
+		var hitsByModule:Map<String, GoPortableNativeImportHit> = [];
+		for (moduleType in types) {
+			switch (moduleType) {
+				case TClassDecl(classRef):
+					var classType = classRef.get();
+					if (!GoProfileContractAnalyzer.isPortableContractSource(classType.pos, projectRoot)) {
+						continue;
+					}
+					var moduleName = GoProfileContractAnalyzer.moduleNameForClass(classType);
+					if (!hitsByModule.exists(moduleName) && referenceClassUsesGoNative(classType)) {
+						hitsByModule.set(moduleName, GoProfileContractAnalyzer.hitForModule(moduleName, classType.pos));
+					}
+				case TAbstract(abstractRef):
+					var abstractType = abstractRef.get();
+					if (!GoProfileContractAnalyzer.isPortableContractSource(abstractType.pos, projectRoot)) {
+						continue;
+					}
+					var moduleName = GoProfileContractAnalyzer.moduleNameForAbstract(abstractType);
+					if (!hitsByModule.exists(moduleName) && referenceAbstractUsesGoNative(abstractType)) {
+						hitsByModule.set(moduleName, GoProfileContractAnalyzer.hitForModule(moduleName, abstractType.pos));
+					}
+				case _:
+			}
+		}
+		var out:Array<GoPortableNativeImportHit> = [for (moduleName in hitsByModule.keys()) hitsByModule.get(moduleName)];
+		out.sort(GoProfileContractAnalyzer.comparePortableNativeHits);
+		return out;
 	}
 
 	/** One question: a label for messages and the type asked about. */
@@ -316,6 +227,10 @@ class GoNativeTypeReachContract {
 		return [for (hit in hits) hit.module + "@" + hit.location].join(",");
 	}
 
+	static function declarationLine(pos:haxe.macro.Expr.Position):Int {
+		return PositionTools.toLocation(pos).range.start.line;
+	}
+
 	static function run():Void {
 		final fixture = load("GoNativeTypeReachContractFixture");
 		final classes = [
@@ -323,8 +238,9 @@ class GoNativeTypeReachContract {
 			load("GoNativeTypeReachContractFixture.ReachPortable"),
 			load("GoNativeTypeReachContractFixture.ReachStatics"),
 			load("GoNativeTypeReachContractFixture.ReachGoStatics"),
-			load("GoNativeTypeReachContractLegacyFixture"),
-			load("GoNativeTypeReachContractLegacyFixture.GoNativeTypeReachContractLegacyPortable")
+			load("GoNativeTypeReachContractPrintFixture"),
+			load("GoNativeTypeReachContractPrintFixture.GoNativeTypeReachContractNestedPrint"),
+			load("GoNativeTypeReachContractPrintFixture.GoNativeTypeReachContractPrintPortable")
 		];
 		final questions = new Array<{label:String, type:Type}>();
 		for (source in classes) {
@@ -351,6 +267,8 @@ class GoNativeTypeReachContract {
 			question("unbound monomorph", TMono({get: () -> null, toString: () -> "<mono>"})),
 			question("100 levels plain", nested(100, plainInt)),
 			question("100 levels go", nested(100, goSlice)),
+			question("300 levels plain", nested(300, plainInt)),
+			question("300 levels go", nested(300, goSlice)),
 			// Typed code reaches an abstract's statics through its implementation class, so these are built.
 			question("abstract statics go", abstractStatics("ReachOverInt", load("GoNativeTypeReachContractFixture.ReachGoStatics"))),
 			question("abstract statics plain", abstractStatics("ReachOverSlice", load("GoNativeTypeReachContractFixture.ReachStatics")))
@@ -436,30 +354,22 @@ class GoNativeTypeReachContract {
 			}
 		}
 
-		// Types nested beyond the depth limit answer true, so the gate's walk decides them.
+		// Deep types answer exactly: no depth limit answers for them.
 		require(new GoNativeTypeReach().reaches(nested(300, goSlice)), "a deep go.* type answered false");
-		require(new GoNativeTypeReach().reaches(nested(300, plainInt)), "a type beyond the depth limit answered false");
-		require(!GoProfileContractAnalyzer.typeHasGoNative(nested(300, plainInt), new GoNativeTypeReach()), "the gate reported a deep type without go.*");
+		require(!new GoNativeTypeReach().reaches(nested(300, plainInt)), "a deep type without go.* answered true");
 
-		// The gate answers exactly as the replaced walk; the reach check never answers false where the walk answers true.
-		final shared = new GoNativeTypeReach();
-		for (entry in questions) {
-			final legacy = legacyTypeHasGoNative(entry.type);
-			require(!legacy || shared.reaches(entry.type), "the replaced walk found go.* where the reach check did not, for " + entry.label);
-			require(GoProfileContractAnalyzer.typeHasGoNative(entry.type, shared) == legacy, "the gate's answer changed for " + entry.label);
-			require(GoProfileContractAnalyzer.typeHasGoNative(entry.type, new GoNativeTypeReach()) == legacy,
-				"the gate's answer alone changed for " + entry.label);
+		// A go.* type behind a type that prints the same as an earlier one is found.
+		for (path in [
+			"GoNativeTypeReachContractPrintFixture",
+			"GoNativeTypeReachContractPrintFixture.GoNativeTypeReachContractNestedPrint"
+		]) {
+			final take = load(path).fields.get()[0];
+			require(take.name == "take", "print fixture lost method take in " + path);
+			require(new GoNativeTypeReach().reaches(take.type), "the gate missed the go.* argument behind a like-printed one in " + path);
 		}
 
-		// The walk misses the second anonymous structure; the reach check sees it; the gate keeps the walk's answer.
-		final legacyInterface = load("GoNativeTypeReachContractLegacyFixture");
-		final take = legacyInterface.fields.get()[0].type;
-		require(!legacyTypeHasGoNative(take), "the replaced walk now sees the second anonymous argument");
-		require(new GoNativeTypeReach().reaches(take), "the reach check missed the second anonymous argument");
-		require(!GoProfileContractAnalyzer.typeHasGoNative(take, new GoNativeTypeReach()), "the gate reports the second anonymous argument");
-
-		// Per class and abstract, and in the hit list, the gate equals the replaced collection.
-		final types = moduleTypes("GoNativeTypeReachContractFixture").concat(moduleTypes("GoNativeTypeReachContractLegacyFixture"));
+		// Per class and abstract, and in the hit list, the gate equals the collection over the reference.
+		final types = moduleTypes("GoNativeTypeReachContractFixture").concat(moduleTypes("GoNativeTypeReachContractPrintFixture"));
 		final perType = new GoNativeTypeReach();
 		var classCount = 0;
 		var abstractCount = 0;
@@ -468,31 +378,37 @@ class GoNativeTypeReachContract {
 				case TClassDecl(ref):
 					final source = ref.get();
 					classCount++;
-					final legacy = legacyClassUsesGoNative(source);
-					require(GoProfileContractAnalyzer.classUsesGoNative(source, perType) == legacy, "class answer changed for " + source.name);
-					require(GoProfileContractAnalyzer.classUsesGoNative(source, new GoNativeTypeReach()) == legacy,
-						"class answer alone changed for " + source.name);
+					final want = referenceClassUsesGoNative(source);
+					require(GoProfileContractAnalyzer.classUsesGoNative(source, perType) == want, "class answer differs for " + source.name);
+					require(GoProfileContractAnalyzer.classUsesGoNative(source, new GoNativeTypeReach()) == want,
+						"class answer alone differs for " + source.name);
 				case TAbstract(ref):
 					final source = ref.get();
 					abstractCount++;
-					final legacy = legacyAbstractUsesGoNative(source);
-					require(GoProfileContractAnalyzer.abstractUsesGoNative(source, perType) == legacy, "abstract answer changed for " + source.name);
-					require(GoProfileContractAnalyzer.abstractUsesGoNative(source, new GoNativeTypeReach()) == legacy,
-						"abstract answer alone changed for " + source.name);
+					final want = referenceAbstractUsesGoNative(source);
+					require(GoProfileContractAnalyzer.abstractUsesGoNative(source, perType) == want, "abstract answer differs for " + source.name);
+					require(GoProfileContractAnalyzer.abstractUsesGoNative(source, new GoNativeTypeReach()) == want,
+						"abstract answer alone differs for " + source.name);
 				case _:
 			}
 		}
-		require(classCount >= 6 && abstractCount >= 4, "fixture modules lost classes or abstracts");
+		require(classCount >= 7 && abstractCount >= 4, "fixture modules lost classes or abstracts");
 		final root = Sys.getCwd();
 		final hits = describe(GoProfileContractAnalyzer.collectPortableNativeImportTypedHits(types, root, []));
-		require(hits == describe(legacyCollect(types, root)), "hit list changed: " + hits);
-		// The module's first type that uses go.* is the abstract ReachOverSlice; the hit points at its line.
+		require(hits == describe(referenceCollect(types, root)), "hit list differs from the reference: " + hits);
+		// Each module's hit points at its first type that uses go.*: the abstract ReachOverSlice, and the
+		// interface whose second anonymous argument is its only go.* type.
 		final overSlice = switch (Context.getType("GoNativeTypeReachContractFixture.ReachOverSlice")) {
 			case TAbstract(ref, _): ref.get();
 			case _: throw "not an abstract: ReachOverSlice";
 		};
-		final overSliceLine = PositionTools.toLocation(overSlice.pos).range.start.line;
-		require(hits == "GoNativeTypeReachContractFixture@GoNativeTypeReachContractFixture:" + overSliceLine, "unexpected hit list: " + hits);
+		final printLine = declarationLine(load("GoNativeTypeReachContractPrintFixture").pos);
+		require(hits == "GoNativeTypeReachContractFixture@GoNativeTypeReachContractFixture:"
+			+ declarationLine(overSlice.pos)
+			+ ",GoNativeTypeReachContractPrintFixture@GoNativeTypeReachContractPrintFixture:"
+			+ printLine,
+			"unexpected hit list: "
+			+ hits);
 	}
 	#end
 }

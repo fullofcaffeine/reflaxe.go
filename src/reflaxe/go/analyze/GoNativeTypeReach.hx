@@ -8,23 +8,24 @@ import reflaxe.go.compiler.GoTypeMapper;
 	What: Answers whether a macro type can reach a `go.*` declaration, and
 	remembers the answer for each typedef, abstract, and statics type it expands.
 
-	Why: The native authority gate asks this about the type of every expression
-	node in every portable class: about 96,000 questions on the BeadsHX bootstrap
-	compile. The gate's own walk (`GoProfileContractAnalyzer.typeHasGoNativeInner`)
-	starts again for each question, expands the same typedefs and abstracts each
-	time, and prints every visited type with `Std.string` to detect cycles. That
-	cost about 3.9 s of the compile, and most of these types reach no `go.*`
-	declaration at all.
+	Why: The native authority gate (`GoProfileContractAnalyzer`) asks this about
+	the type of every field and expression node in every portable class: about
+	96,000 questions on the BeadsHX bootstrap compile. Its earlier walk started
+	again for each question and kept the `Std.string` print of every visited type
+	as its visited set. That cost about 3.9 s of the compile, and it missed `go.*`
+	types: in eval every anonymous structure prints as `<anonymous>` and prints
+	are cut short after two levels of nesting, so the walk skipped any type that
+	printed like one it had met before.
 
-	How: The walk follows exactly the edges of the gate's walk: the path of each
-	class, enum, typedef, and abstract, its type parameters, the declared type of
-	each typedef and abstract, function arguments and results, `Dynamic<T>`,
-	anonymous fields, lazy types, and bound monomorphs. A typedef, an abstract,
-	and the statics type of a class, enum, or abstract are declarations: an
-	expansion is the same wherever the declaration appears, so its answer is kept
-	by path. A path names one declaration: Haxe rejects two types with one path,
-	private types get module-qualified paths, and the typedef that wraps a statics
-	type (such as `Class<Main>`) names its owner.
+	How: The walk follows the path of each class, enum, typedef, and abstract,
+	its type parameters, the declared type of each typedef and abstract, function
+	arguments and results, `Dynamic<T>`, anonymous fields, lazy types, and bound
+	monomorphs. A typedef, an abstract, and the statics type of a class, enum, or
+	abstract are declarations: an expansion is the same wherever the declaration
+	appears, so its answer is kept by path. A path names one declaration: Haxe
+	rejects two types with one path, private types get module-qualified paths,
+	and the typedef that wraps a statics type (such as `Class<Main>`) names its
+	owner.
 
 	An expansion that meets a declaration it is still expanding, or one it has
 	already expanded and found false, answers false for it. That is safe for the
@@ -35,16 +36,13 @@ import reflaxe.go.compiler.GoTypeMapper;
 	ends false, for every declaration it met. Other inner answers are found again
 	when asked later.
 
-	The answer is therefore exact reachability. Every question answered false
-	here is also false in the gate's walk, because that walk follows the same
-	edges and can only skip some of them. Types nested deeper than `MAX_DEPTH`
-	answer true, which can only send a caller to its slower walk. Declarations do
-	not change after typing; make one instance per analysis.
+	The answer is therefore exact reachability, with no depth limit of its own,
+	and it is the gate's final answer. Only declarations are remembered: other
+	types are trees (Haxe refuses to bind a monomorph to a type that contains it),
+	so the walk ends without a visited set for them. Declarations do not change
+	after typing; make one instance per analysis.
 **/
 class GoNativeTypeReach {
-	/** Nesting depth at which the walk stops and answers true, so a caller checks the type itself. */
-	static inline final MAX_DEPTH = 256;
-
 	final typedefs:Map<String, GoNativeReachAnswer> = [];
 	final abstracts:Map<String, GoNativeReachAnswer> = [];
 	final classStatics:Map<String, GoNativeReachAnswer> = [];
@@ -60,62 +58,58 @@ class GoNativeTypeReach {
 
 	/** True when `type` can reach a declaration whose dotted path starts with `go.`. */
 	public function reaches(type:Null<Type>):Bool {
-		return walk(type, 0);
+		return walk(type);
 	}
 
-	function walk(type:Null<Type>, depth:Int):Bool {
+	function walk(type:Null<Type>):Bool {
 		if (type == null) {
 			return false;
 		}
-		if (depth > MAX_DEPTH) {
-			return true;
-		}
-		final next = depth + 1;
 		return switch (type) {
-			case TInst(ref, params): isGoPath(GoTypeMapper.declarationPath(ref)) || walkAll(params, next);
-			case TEnum(ref, params): isGoPath(GoTypeMapper.declarationPath(ref)) || walkAll(params, next);
-			case TType(ref, params): final path = GoTypeMapper.declarationPath(ref); isGoPath(path) || walkAll(params,
-					next) || expand(typedefs, path, inner -> walk(ref.get().type, inner), next);
-			case TAbstract(ref, params): final path = GoTypeMapper.declarationPath(ref); isGoPath(path) || walkAll(params,
-					next) || expand(abstracts, path, inner -> walk(GoTypeMapper.abstractDeclaration(ref).type, inner), next);
+			case TInst(ref, params): isGoPath(GoTypeMapper.declarationPath(ref)) || walkAll(params);
+			case TEnum(ref, params): isGoPath(GoTypeMapper.declarationPath(ref)) || walkAll(params);
+			case TType(ref, params): final path = GoTypeMapper.declarationPath(ref); isGoPath(path) || walkAll(params) || expand(typedefs, path,
+					() -> walk(ref.get().type));
+			case TAbstract(ref, params): final path = GoTypeMapper.declarationPath(ref); isGoPath(path) || walkAll(params) || expand(abstracts, path,
+					() -> walk(GoTypeMapper.abstractDeclaration(ref).type));
 			case TFun(args, ret): var found = false; for (arg in args) {
-					if (walk(arg.t, next)) {
+					if (walk(arg.t)) {
 						found = true;
 						break;
 					}
-				} found || walk(ret, next);
-			case TDynamic(inner): inner != null && walk(inner, next);
+				} found || walk(ret);
+			case TDynamic(inner): inner != null && walk(inner);
 			case TAnonymous(ref):
 				final anon = ref.get();
 				switch (anon.status) {
 					case AClassStatics(owner):
-						expand(classStatics, GoTypeMapper.declarationPath(owner), inner -> walkFields(anon.fields, inner), next);
+						expand(classStatics, GoTypeMapper.declarationPath(owner), () -> walkFields(anon.fields));
 					case AEnumStatics(owner):
-						expand(enumStatics, GoTypeMapper.declarationPath(owner), inner -> walkFields(anon.fields, inner), next);
+						expand(enumStatics, GoTypeMapper.declarationPath(owner), () -> walkFields(anon.fields));
 					case AAbstractStatics(owner):
-						expand(abstractStatics, GoTypeMapper.declarationPath(owner), inner -> walkFields(anon.fields, inner), next);
+						expand(abstractStatics, GoTypeMapper.declarationPath(owner), () -> walkFields(anon.fields));
 					case _:
-						walkFields(anon.fields, next);
+						walkFields(anon.fields);
 				}
 			case TLazy(load):
-				walk(load(), next);
+				walk(load());
 			case TMono(ref):
-				walk(ref.get(), next);
+				walk(ref.get());
 		};
 	}
 
-	function walkAll(types:Array<Type>, depth:Int):Bool {
+	function walkAll(types:Array<Type>):Bool {
 		for (type in types) {
-			if (walk(type, depth)) {
+			if (walk(type)) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	function walkFields(fields:Array<ClassField>, depth:Int):Bool {
+	function walkFields(fields:Array<ClassField>):Bool {
 		for (field in fields) {
-			if (walk(field.type, depth)) {
+			if (walk(field.type)) {
 				return true;
 			}
 		}
@@ -123,7 +117,7 @@ class GoNativeTypeReach {
 	}
 
 	/** Answers for one declaration, expanding it with `explore` the first time it is met. */
-	function expand(memo:Map<String, GoNativeReachAnswer>, path:String, explore:Int->Bool, depth:Int):Bool {
+	function expand(memo:Map<String, GoNativeReachAnswer>, path:String, explore:() -> Bool):Bool {
 		switch (memo.get(path)) {
 			case Reaches:
 				return true;
@@ -135,7 +129,7 @@ class GoNativeTypeReach {
 		memo.set(path, Open);
 		openMemos.push(memo);
 		openPaths.push(path);
-		final found = explore(depth);
+		final found = explore();
 		if (found) {
 			memo.set(path, Reaches);
 		}

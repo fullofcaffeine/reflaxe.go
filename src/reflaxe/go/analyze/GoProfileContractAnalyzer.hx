@@ -358,7 +358,7 @@ class GoProfileContractAnalyzer {
 			if (field == null) {
 				continue;
 			}
-			if (typeHasGoNative(field.type, reach)) {
+			if (reach.reaches(field.type)) {
 				return true;
 			}
 			var expr = field.expr();
@@ -374,7 +374,7 @@ class GoProfileContractAnalyzer {
 			return true;
 		}
 
-		if (typeHasGoNative(abstractType.type, reach)) {
+		if (reach.reaches(abstractType.type)) {
 			return true;
 		}
 
@@ -386,7 +386,7 @@ class GoProfileContractAnalyzer {
 					if (field == null) {
 						continue;
 					}
-					if (typeHasGoNative(field.type, reach)) {
+					if (reach.reaches(field.type)) {
 						return true;
 					}
 					var expr = field.expr();
@@ -405,7 +405,7 @@ class GoProfileContractAnalyzer {
 			if (found || node == null) {
 				return;
 			}
-			if (typeHasGoNative(node.t, reach)) {
+			if (reach.reaches(node.t)) {
 				found = true;
 				return;
 			}
@@ -413,103 +413,6 @@ class GoProfileContractAnalyzer {
 		}
 		walk(expr);
 		return found;
-	}
-
-	/**
-		What: True when the gate's walk over `t` (`typeHasGoNativeInner`) meets a
-		`go.*` declaration.
-
-		Why: That walk prints every type it visits and keeps the printed types as
-		its visited set, and it runs again for each expression node: about 3.9 s of
-		the BeadsHX bootstrap compile. `GoNativeTypeReach` answers whether `t` can
-		reach a `go.*` declaration at all, remembering answers per declaration.
-
-		How: A type that cannot reach a `go.*` declaration answers false without
-		the walk, which follows the same edges and could only answer false. Only
-		the other types take the walk. Its printed visited set can skip a type that
-		prints like one met before (every anonymous structure prints the same, and
-		deep types print truncated), so it can miss a `go.*` type that the reach
-		check sees. Keeping the walk as the final answer keeps every diagnostic
-		exactly as before.
-	**/
-	static function typeHasGoNative(t:Type, reach:GoNativeTypeReach):Bool {
-		return reach.reaches(t) && typeHasGoNativeInner(t, []);
-	}
-
-	static function typeHasGoNativeInner(t:Type, seen:Array<String>):Bool {
-		if (t == null) {
-			return false;
-		}
-		var key = Std.string(t);
-		if (seen.indexOf(key) != -1) {
-			return false;
-		}
-		seen.push(key);
-
-		return switch (t) {
-			case TInst(classRef, params):
-				if (isGoDeclarationPath(GoTypeMapper.declarationPath(classRef))) {
-					true;
-				} else {
-					typeListHasGoNative(params, seen);
-				}
-			case TEnum(enumRef, params):
-				if (isGoDeclarationPath(GoTypeMapper.declarationPath(enumRef))) {
-					true;
-				} else {
-					typeListHasGoNative(params, seen);
-				}
-			case TType(typeRef, params):
-				if (isGoDeclarationPath(GoTypeMapper.declarationPath(typeRef))) {
-					true;
-				} else if (typeListHasGoNative(params, seen)) {
-					true;
-				} else {
-					typeHasGoNativeInner(typeRef.get().type, seen);
-				}
-			case TAbstract(absRef, params):
-				if (isGoDeclarationPath(GoTypeMapper.declarationPath(absRef))) {
-					true;
-				} else if (typeListHasGoNative(params, seen)) {
-					true;
-				} else {
-					typeHasGoNativeInner(GoTypeMapper.abstractDeclaration(absRef).type, seen);
-				}
-			case TFun(args, ret): var argHas = false; for (arg in args) {
-					if (typeHasGoNativeInner(arg.t, seen)) {
-						argHas = true;
-						break;
-					}
-				} argHas || typeHasGoNativeInner(ret, seen);
-			case TDynamic(inner): inner != null && typeHasGoNativeInner(inner, seen);
-			case TAnonymous(anonRef):
-				var anon = anonRef.get();
-				var hasGo = false;
-				for (field in anon.fields) {
-					if (typeHasGoNativeInner(field.type, seen)) {
-						hasGo = true;
-						break;
-					}
-				}
-				hasGo;
-			case TLazy(loader):
-				typeHasGoNativeInner(loader(), seen);
-			case TMono(monoRef): var candidate = monoRef.get(); candidate != null && typeHasGoNativeInner(candidate, seen);
-		}
-	}
-
-	static function typeListHasGoNative(types:Array<Type>, seen:Array<String>):Bool {
-		for (t in types) {
-			if (typeHasGoNativeInner(t, seen)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/** True when a dotted declaration path (`pack.Name`) lies in the `go` package tree. */
-	static inline function isGoDeclarationPath(path:String):Bool {
-		return StringTools.startsWith(path, "go.");
 	}
 
 	static function unionPortableNativeHits(typedHits:Array<GoPortableNativeImportHit>,

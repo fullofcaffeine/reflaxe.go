@@ -190,7 +190,9 @@ are present in report artifacts.
   - `off`: disable portable native-import checks.
 - `reflaxe_go_portable_native_scan_mode=typed|scanner|hybrid`
   - Detection mode for portable native-import policy:
-    - `typed` (default): typed analyzer traversal.
+    - `typed` (default): typed analyzer traversal. A module is reported when
+      the type of one of its fields or expressions reaches a `go.*`
+      declaration, however deeply that declaration is nested in the type.
     - `scanner`: explicit source scanner (`import`/`using`) for deterministic low-noise module hits.
     - `hybrid`: union of `typed` + `scanner` hits.
 - `reflaxe_go_portable_native_allow=<csv>`
