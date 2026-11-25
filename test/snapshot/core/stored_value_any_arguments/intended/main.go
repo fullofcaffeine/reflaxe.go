@@ -126,19 +126,13 @@ func main() {
 	}())
 	hxrt.Println(v_3)
 	var erased any = hxrt.NewArray(4, 7)
-	var v_4 any = any(total(func(hx_value_23 any) *hxrt.Array {
-		if hx_value_23 == nil {
-			var hx_zero_24 *hxrt.Array
-			return hx_zero_24
-		}
-		return hx_value_23.(*hxrt.Array)
-	}(func(hx_value_21 any) *hxrt.Array {
+	var v_4 any = any(total(func(hx_value_21 any) *hxrt.Array {
 		if hx_value_21 == nil {
 			var hx_zero_22 *hxrt.Array
 			return hx_zero_22
 		}
 		return hx_value_21.(*hxrt.Array)
-	}(erased))))
+	}(erased)))
 	hxrt.Println(v_4)
 }
 

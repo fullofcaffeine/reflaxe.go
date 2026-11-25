@@ -6721,6 +6721,8 @@ class GoCompiler {
 				// `Any` promoted to them) converts like an implicit slot does.
 				var dynamicCast = isDynamicValueType(inner.t)
 					&& !isDynamicValueType(expr.t) ? lowerDynamicSlotExpr(castExpr, expr.t) : null;
+				// `castLoweringTypesAnyOperand` mirrors which branches below type an `any`
+				// operand; keep the two in step.
 				if (dynamicCast != null) {
 					castExpr = dynamicCast;
 				} else if (!storageTransparentArrayCast && innerGoType != castGoType) {
@@ -14285,15 +14287,37 @@ class GoCompiler {
 				exprBackedByAny(inner);
 			case TParenthesis(inner):
 				exprBackedByAny(inner);
-			// The cast converts a `Dynamic` value to Int, Float, Bool or String storage.
-			case TCast(inner, _)
-				if (isDynamicValueType(inner.t) && !isDynamicValueType(expr.t) && !isNullablePrimitiveType(expr.t) && dynamicSlotHelper(expr.t) != null):
+			case TCast(inner, _) if (castLoweringTypesAnyOperand(expr, inner)):
 				false;
 			case TCast(inner, _):
 				exprBackedByAny(inner);
 			case _:
 				false;
 		};
+	}
+
+	/**
+		What: Whether the `TCast` branch of `lowerExpr` already turns this cast's
+		`any` operand into the cast type's own Go storage.
+
+		Why: `exprBackedByAny` looks through casts to find an erased operand, and
+		its callers then recover the value for their typed slot. A cast that has
+		recovered its operand is no longer erased, so a typed local recovered it
+		twice: `var mid:Mid = cast value` printed
+		`hx_recover_class_Mid(hx_recover_class_Mid(value))`, and so did the
+		staged `haxe.Exception.catchValue` on every catch of a non-exception value.
+
+		How: mirror the cast lowering. An operand whose Go type is `any`, cast to
+		a different non-`any` Go type, is converted (a `Dynamic` value to Int,
+		Float, Bool or String) or recovered (classes, interfaces, structures and
+		function values). Two shapes stay erased and keep the old answer: a
+		nullable primitive, whose nil-preserving assertion still returns `any`,
+		and an Array-to-Array cast, which only views the same storage.
+	**/
+	function castLoweringTypesAnyOperand(castExpr:TypedExpr, inner:TypedExpr):Bool {
+		if (isNullablePrimitiveType(castExpr.t) || (isArrayType(inner.t) && isArrayType(castExpr.t)))
+			return false;
+		return typeToGoType(castExpr.t) != "any" && typeToGoType(inner.t) == "any";
 	}
 
 	/**

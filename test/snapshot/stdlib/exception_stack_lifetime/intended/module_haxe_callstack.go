@@ -427,26 +427,20 @@ func haxe___CallStack__CallStack_Impl__subtract(this1 *hxrt.Array, stack any) an
 func haxe___CallStack__CallStack_Impl__toString(stack any) *string {
 	out := hxrt.StringFromLiteral("")
 	_g := 0
-	_g1 := func(hx_value_67 any) *hxrt.Array {
-		if hx_value_67 == nil {
-			var hx_zero_68 *hxrt.Array
-			return hx_zero_68
-		}
-		return hx_value_67.(*hxrt.Array)
-	}(func(hx_value_65 any) *hxrt.Array {
+	_g1 := func(hx_value_65 any) *hxrt.Array {
 		if hx_value_65 == nil {
 			var hx_zero_66 *hxrt.Array
 			return hx_zero_66
 		}
 		return hx_value_65.(*hxrt.Array)
-	}(stack))
+	}(stack)
 	for _g < _g1.Len() {
-		item := func(hx_value_69 any) *haxe__StackItem {
-			if hx_value_69 == nil {
-				var hx_zero_70 *haxe__StackItem
-				return hx_zero_70
+		item := func(hx_value_67 any) *haxe__StackItem {
+			if hx_value_67 == nil {
+				var hx_zero_68 *haxe__StackItem
+				return hx_zero_68
 			}
-			return hx_value_69.(*haxe__StackItem)
+			return hx_value_67.(*haxe__StackItem)
 		}(_g1.Get(_g))
 		_g = int(int32((_g + 1)))
 		out = hxrt.StringConcatStringPtr(out, hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("\nCalled from "), haxe___CallStack__CallStack_Impl__itemToString(item)))

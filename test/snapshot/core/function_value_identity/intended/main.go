@@ -55,7 +55,7 @@ func main() {
 	record_callback = first
 	extracted := record_callback
 	var boxed any = extracted
-	restored := hx_recover_callable_408c8b7a(hx_recover_callable_408c8b7a(boxed))
+	restored := hx_recover_callable_408c8b7a(boxed)
 	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("record="), func() int {
 		var hx_callable_7 *hxrt.Function[func(int) int] = record_callback
 		var hx_argument_8 int = 0

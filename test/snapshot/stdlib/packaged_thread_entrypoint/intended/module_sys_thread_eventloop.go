@@ -46,13 +46,13 @@ func (self *sys__thread__EventLoop) repeat(event *hxrt.Function[func()], interva
 }
 
 func (self *sys__thread__EventLoop) cancel(eventHandler any) {
-	hxrt.ThreadEventLoopCancel(self.__h, hxrt.IntFromNullableAny(func(hx_value_1 any) int {
+	hxrt.ThreadEventLoopCancel(self.__h, func(hx_value_1 any) int {
 		if hx_value_1 == nil {
 			var hx_zero_2 int
 			return hx_zero_2
 		}
 		return hx_value_1.(int)
-	}(eventHandler)))
+	}(eventHandler))
 }
 
 func (self *sys__thread__EventLoop) promise() {
