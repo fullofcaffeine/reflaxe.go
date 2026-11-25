@@ -13,8 +13,8 @@ func main() {
 		hx_exception_2 := haxe__Exception_caught(hx_caught_1)
 		hx_payload_3 := haxe__Exception_catchValue(hx_caught_1)
 		_ = hx_payload_3
-		var error *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_2)
-		var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("incorrectly-caught="), hxrt.StdString(error)))
+		var error_local *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_2)
+		var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("incorrectly-caught="), hxrt.StdString(error_local)))
 		hxrt.Println(v)
 	})
 }

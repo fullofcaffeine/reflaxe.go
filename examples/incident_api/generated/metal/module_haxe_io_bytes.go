@@ -5,9 +5,9 @@ import "examples_incident_api_metal/hxrt"
 type I_haxe__io__Bytes interface {
 	get(pos int) int
 	set(pos int, value int)
-	blit(pos int, src *haxe__io__Bytes, srcpos int, len int)
-	fill(pos int, len int, value int)
-	sub(pos int, len int) *haxe__io__Bytes
+	blit(pos int, src *haxe__io__Bytes, srcpos int, len_local int)
+	fill(pos int, len_local int, value int)
+	sub(pos int, len_local int) *haxe__io__Bytes
 	compare(other *haxe__io__Bytes) int
 	getDouble(pos int) float64
 	getFloat(pos int) float64
@@ -19,8 +19,8 @@ type I_haxe__io__Bytes interface {
 	getInt64(pos int) *haxe___Int64_____Int64
 	setInt32(pos int, value int)
 	setInt64(pos int, value *haxe___Int64_____Int64)
-	getString(pos int, len int, encoding *haxe__io__Encoding) *string
-	readString(pos int, len int) *string
+	getString(pos int, len_local int, encoding *haxe__io__Encoding) *string
+	readString(pos int, len_local int) *string
 	toString() *string
 	toHex() *string
 	getData() []int
@@ -72,24 +72,24 @@ func (self *haxe__io__Bytes) set(pos int, value int) {
 	self.__hx_rawValid = false
 }
 
-func (self *haxe__io__Bytes) blit(pos int, src *haxe__io__Bytes, srcpos int, len int) {
-	if ((((pos < 0) || (srcpos < 0)) || (len < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len))) > self.length)) || (int((hxrt.Int32Wrap(srcpos) + hxrt.Int32Wrap(len))) > src.length) {
+func (self *haxe__io__Bytes) blit(pos int, src *haxe__io__Bytes, srcpos int, len_local int) {
+	if ((((pos < 0) || (srcpos < 0)) || (len_local < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len_local))) > self.length)) || (int((hxrt.Int32Wrap(srcpos) + hxrt.Int32Wrap(len_local))) > src.length) {
 		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
-	if len == 0 {
+	if len_local == 0 {
 		return
 	}
-	hxrt.BytesBlitValues(self.b, pos, src.b, srcpos, len)
+	hxrt.BytesBlitValues(self.b, pos, src.b, srcpos, len_local)
 	self.__hx_rawValid = false
 }
 
-func (self *haxe__io__Bytes) fill(pos int, len int, value int) {
-	if ((pos < 0) || (len < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len))) > self.length) {
+func (self *haxe__io__Bytes) fill(pos int, len_local int, value int) {
+	if ((pos < 0) || (len_local < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len_local))) > self.length) {
 		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	masked := int((hxrt.Int32Wrap(value) & hxrt.Int32Wrap(255)))
 	_g := 0
-	_g1 := len
+	_g1 := len_local
 	for _g < _g1 {
 		hx_post_1 := _g
 		_g = int(int32((_g + 1)))
@@ -99,13 +99,13 @@ func (self *haxe__io__Bytes) fill(pos int, len int, value int) {
 	self.__hx_rawValid = false
 }
 
-func (self *haxe__io__Bytes) sub(pos int, len int) *haxe__io__Bytes {
-	if ((pos < 0) || (len < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len))) > self.length) {
+func (self *haxe__io__Bytes) sub(pos int, len_local int) *haxe__io__Bytes {
+	if ((pos < 0) || (len_local < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len_local))) > self.length) {
 		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
-	out := haxe__io__Bytes_alloc(len)
+	out := haxe__io__Bytes_alloc(len_local)
 	_g := 0
-	_g1 := len
+	_g1 := len_local
 	for _g < _g1 {
 		hx_post_2 := _g
 		_g = int(int32((_g + 1)))
@@ -255,15 +255,15 @@ func (self *haxe__io__Bytes) setInt64(pos int, value *haxe___Int64_____Int64) {
 	self.__hx_rawValid = false
 }
 
-func (self *haxe__io__Bytes) getString(pos int, len int, encoding *haxe__io__Encoding) *string {
-	if ((pos < 0) || (len < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len))) > self.length) {
+func (self *haxe__io__Bytes) getString(pos int, len_local int, encoding *haxe__io__Encoding) *string {
+	if ((pos < 0) || (len_local < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len_local))) > self.length) {
 		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
-	return hxrt.StdString(hxrt.BytesStringFromView(self.__hx_this.__hx_nativeView(), pos, len, ((encoding == haxe__io__Encoding_RawNative) && false)))
+	return hxrt.StdString(hxrt.BytesStringFromView(self.__hx_this.__hx_nativeView(), pos, len_local, ((encoding == haxe__io__Encoding_RawNative) && false)))
 }
 
-func (self *haxe__io__Bytes) readString(pos int, len int) *string {
-	return self.__hx_this.getString(pos, len, nil)
+func (self *haxe__io__Bytes) readString(pos int, len_local int) *string {
+	return self.__hx_this.getString(pos, len_local, nil)
 }
 
 func (self *haxe__io__Bytes) toString() *string {

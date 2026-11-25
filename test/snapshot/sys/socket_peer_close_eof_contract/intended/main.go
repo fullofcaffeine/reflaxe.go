@@ -26,8 +26,8 @@ func main() {
 			hx_exception_4 := haxe__Exception_caught(hx_caught_3)
 			hx_payload_5 := haxe__Exception_catchValue(hx_caught_3)
 			_ = hx_exception_4
-			var error any = hx_payload_5
-			result = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("error:"), hxrt.StdString(error))
+			var error_local any = hx_payload_5
+			result = hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("error:"), hxrt.StdString(error_local))
 		})
 		safeClose(peer)
 		serverResult.__hx_this.add(result)
@@ -56,8 +56,8 @@ func main() {
 			_ = hx_tmp
 			reachedEof = true
 		} else {
-			var error any = hx_payload_10
-			unexpected = hxrt.StdString(error)
+			var error_local any = hx_payload_10
+			unexpected = hxrt.StdString(error_local)
 		}
 	})
 	var v any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("partial="), bytes.__hx_this.getString(0, count, nil)), hxrt.StringFromLiteral(":")), count))

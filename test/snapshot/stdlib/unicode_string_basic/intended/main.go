@@ -59,8 +59,8 @@ func main() {
 		hx_exception_2 := haxe__Exception_caught(hx_caught_1)
 		hx_payload_3 := haxe__Exception_catchValue(hx_caught_1)
 		_ = hx_exception_2
-		var error any = hx_payload_3
-		var v_19 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("valid.raw="), hxrt.StdString(error)))
+		var error_local any = hx_payload_3
+		var v_19 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("valid.raw="), hxrt.StdString(error_local)))
 		hxrt.Println(v_19)
 	})
 }

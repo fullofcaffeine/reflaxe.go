@@ -52,8 +52,8 @@ func Harness_request(server *app__http__TinyHttpServer, method *string, path *st
 		hx_exception_8 := haxe__Exception_caught(hx_caught_7)
 		hx_payload_9 := haxe__Exception_catchValue(hx_caught_7)
 		_ = hx_payload_9
-		var error *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_8)
-		_ = error
+		var error_local *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_8)
+		_ = error_local
 		result = hxrt.StringFromLiteral("HTTP/1.1 000 Client Error body={\"error\":\"client_error\"}")
 	})
 	hxrt.TryCatch(func() {
@@ -92,8 +92,8 @@ func Harness_run() *string {
 		hx_exception_15 := haxe__Exception_caught(hx_caught_13)
 		hx_payload_16 := haxe__Exception_catchValue(hx_caught_13)
 		_ = hx_payload_16
-		var error *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_15)
-		out.Push(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("error="), hxrt.StdString(error)))
+		var error_local *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_15)
+		out.Push(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("error="), hxrt.StdString(error_local)))
 	})
 	server.close()
 	Harness_cleanup()

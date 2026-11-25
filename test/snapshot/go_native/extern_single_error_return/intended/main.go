@@ -13,7 +13,7 @@ func main() {
 		}
 		return New_go___Error(hxrt.StringFromLiteral(err.Error()))
 	}(context.Background().Err())
-	error := func(err interface{ Error() string }) *go___Error {
+	error_local := func(err interface{ Error() string }) *go___Error {
 		if err == nil {
 			return nil
 		}
@@ -27,6 +27,6 @@ func main() {
 	}(errors.New(*hxrt.StdString(hxrt.StringFromLiteral("ignored"))))
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("nil="), hxrt.StdString((noError == nil))))
 	hxrt.Println(v)
-	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("message="), error.toString()))
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("message="), error_local.toString()))
 	hxrt.Println(v_1)
 }

@@ -4,11 +4,11 @@ import "examples_incident_api_portable/hxrt"
 
 type I_haxe__io__Input interface {
 	readByte() int
-	readBytes(bytes *haxe__io__Bytes, pos int, len int) int
+	readBytes(bytes *haxe__io__Bytes, pos int, len_local int) int
 	close()
 	set_bigEndian(value bool) bool
 	readAll(bufsize any) *haxe__io__Bytes
-	readFullBytes(bytes *haxe__io__Bytes, pos int, len int)
+	readFullBytes(bytes *haxe__io__Bytes, pos int, len_local int)
 	read(nbytes int) *haxe__io__Bytes
 	readUntil(end int) *string
 	readLine() *string
@@ -20,7 +20,7 @@ type I_haxe__io__Input interface {
 	readInt24() int
 	readUInt24() int
 	readInt32() int
-	readString(len int, encoding *haxe__io__Encoding) *string
+	readString(len_local int, encoding *haxe__io__Encoding) *string
 }
 
 type haxe__io__Input struct {
@@ -65,11 +65,11 @@ func (self *haxe__io__Input) readByte() int {
 	}()
 }
 
-func (self *haxe__io__Input) readBytes(bytes *haxe__io__Bytes, pos int, len int) int {
-	if ((pos < 0) || (len < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len))) > bytes.length) {
+func (self *haxe__io__Input) readBytes(bytes *haxe__io__Bytes, pos int, len_local int) int {
+	if ((pos < 0) || (len_local < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len_local))) > bytes.length) {
 		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
-	remaining := len
+	remaining := len_local
 	hxrt.TryCatch(func() {
 		for remaining > 0 {
 			value := self.__hx_this.readByte()
@@ -89,7 +89,7 @@ func (self *haxe__io__Input) readBytes(bytes *haxe__io__Bytes, pos int, len int)
 			hxrt.Throw(hx_caught_3)
 		}
 	})
-	return int((hxrt.Int32Wrap(len) - hxrt.Int32Wrap(remaining)))
+	return int((hxrt.Int32Wrap(len_local) - hxrt.Int32Wrap(remaining)))
 }
 
 func (self *haxe__io__Input) close() {
@@ -131,14 +131,14 @@ func (self *haxe__io__Input) readAll(bufsize any) *haxe__io__Bytes {
 	return total.__hx_this.getBytes()
 }
 
-func (self *haxe__io__Input) readFullBytes(bytes *haxe__io__Bytes, pos int, len int) {
-	for len > 0 {
-		count := self.__hx_this.readBytes(bytes, pos, len)
+func (self *haxe__io__Input) readFullBytes(bytes *haxe__io__Bytes, pos int, len_local int) {
+	for len_local > 0 {
+		count := self.__hx_this.readBytes(bytes, pos, len_local)
 		if count == 0 {
 			hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_Blocked))
 		}
 		pos = int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(count)))
-		len = int((hxrt.Int32Wrap(len) - hxrt.Int32Wrap(count)))
+		len_local = int((hxrt.Int32Wrap(len_local) - hxrt.Int32Wrap(count)))
 	}
 }
 
@@ -180,10 +180,10 @@ func (self *haxe__io__Input) readLine() *string {
 		hx_payload_11 := haxe__Exception_catchValue(hx_caught_9)
 		_ = hx_exception_10
 		if hx_is_nominal_haxe__io__Eof(hx_payload_11) {
-			var error *haxe__io__Eof = hx_recover_class_haxe__io__Eof(hx_payload_11)
+			var error_local *haxe__io__Eof = hx_recover_class_haxe__io__Eof(hx_payload_11)
 			result = buffer.__hx_this.getBytes().__hx_this.toString()
 			if hxrt.StringLengthStringPtr(result) == 0 {
-				hxrt.Throw(haxe__Exception_thrown(error))
+				hxrt.Throw(haxe__Exception_thrown(error_local))
 			}
 		} else {
 			hxrt.Throw(hx_caught_9)
@@ -297,10 +297,10 @@ func (self *haxe__io__Input) readInt32() int {
 	return hx_if_20
 }
 
-func (self *haxe__io__Input) readString(len int, encoding *haxe__io__Encoding) *string {
-	bytes := haxe__io__Bytes_alloc(len)
-	self.__hx_this.readFullBytes(bytes, 0, len)
-	return bytes.__hx_this.getString(0, len, encoding)
+func (self *haxe__io__Input) readString(len_local int, encoding *haxe__io__Encoding) *string {
+	bytes := haxe__io__Bytes_alloc(len_local)
+	self.__hx_this.readFullBytes(bytes, 0, len_local)
+	return bytes.__hx_this.getString(0, len_local, encoding)
 }
 
 func (self *haxe__io__Input) HxClassName() string {

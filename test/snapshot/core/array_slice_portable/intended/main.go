@@ -15,8 +15,8 @@ func main() {
 	printValues(values.SliceOptional(1, nullableEnd))
 	var concreteEnd any = 3
 	printValues(values.SliceOptional(1, concreteEnd))
-	copy := values.SliceOptional(0, 2)
-	hx_array_target_1 := copy
+	copy_local := values.SliceOptional(0, 2)
+	hx_array_target_1 := copy_local
 	hx_array_index_2 := 0
 	hx_array_target_1.Set(hx_array_index_2, 9)
 	hxrt.Println(values.Get(0))

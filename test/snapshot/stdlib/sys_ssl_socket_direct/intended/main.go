@@ -48,8 +48,8 @@ func main() {
 		hx_exception_4 := haxe__Exception_caught(hx_caught_3)
 		hx_payload_5 := haxe__Exception_catchValue(hx_caught_3)
 		_ = hx_payload_5
-		var error *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_4)
-		readShutdownError = error.__hx_this.get_message()
+		var error_local *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_4)
+		readShutdownError = error_local.__hx_this.get_message()
 	})
 	hxrt.Println(any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("tls.read.shutdown="), readShutdownError)))
 	client.__hx_this.setFastSend(true)

@@ -26,10 +26,10 @@ func invoke(callback *hxrt.Function[func(any)]) {
 }
 
 func main() {
-	invoke(hx_recover_callable_d9d0d490(make()))
+	invoke(hx_recover_callable_d9d0d490(Main_make()))
 }
 
-func make() *hxrt.Function[func(any) int] {
+func Main_make() *hxrt.Function[func(any) int] {
 	return hxrt.NewFunction(func(value any) int {
 		if value == nil {
 			value = 9

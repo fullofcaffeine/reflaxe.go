@@ -190,7 +190,7 @@ func _UnicodeString__UnicodeString_Impl__notEqual(a *string, b *string) bool {
 	return !hxrt.StringEqualStringPtr(a, b)
 }
 
-func _UnicodeString__UnicodeString_Impl__substr(this1 *string, pos int, len any) *string {
+func _UnicodeString__UnicodeString_Impl__substr(this1 *string, pos int, len_local any) *string {
 	total := hxrt.StringLengthStringPtr(this1)
 	start := pos
 	if start < 0 {
@@ -203,12 +203,12 @@ func _UnicodeString__UnicodeString_Impl__substr(this1 *string, pos int, len any)
 		return hxrt.StringFromLiteral("")
 	}
 	end := total
-	if len != nil {
+	if len_local != nil {
 		var hx_if_6 int
-		if len.(int) < 0 {
-			hx_if_6 = int((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(len.(int))))
+		if len_local.(int) < 0 {
+			hx_if_6 = int((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(len_local.(int))))
 		} else {
-			hx_if_6 = int((hxrt.Int32Wrap(start) + hxrt.Int32Wrap(len.(int))))
+			hx_if_6 = int((hxrt.Int32Wrap(start) + hxrt.Int32Wrap(len_local.(int))))
 		}
 		end = hx_if_6
 		if end > total {
@@ -262,8 +262,8 @@ func _UnicodeString__UnicodeString_Impl__validate(bytes *haxe__io__Bytes, encodi
 	case 0:
 		data := bytes.__hx_this.getData()
 		pos := 0
-		max := bytes.length
-		for pos < max {
+		max_local := bytes.length
+		for pos < max_local {
 			hx_post_9 := pos
 			pos = int(int32((pos + 1)))
 			pos_1 := hx_post_9
@@ -274,7 +274,7 @@ func _UnicodeString__UnicodeString_Impl__validate(bytes *haxe__io__Bytes, encodi
 					return false
 				} else {
 					if c < 224 {
-						if int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(1))) > max {
+						if int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(1))) > max_local {
 							return false
 						}
 						hx_post_10 := pos
@@ -286,7 +286,7 @@ func _UnicodeString__UnicodeString_Impl__validate(bytes *haxe__io__Bytes, encodi
 						}
 					} else {
 						if c < 240 {
-							if int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(2))) > max {
+							if int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(2))) > max_local {
 								return false
 							}
 							hx_post_11 := pos
@@ -317,7 +317,7 @@ func _UnicodeString__UnicodeString_Impl__validate(bytes *haxe__io__Bytes, encodi
 							if c > 244 {
 								return false
 							} else {
-								if int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(3))) > max {
+								if int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(3))) > max_local {
 									return false
 								}
 								hx_post_13 := pos

@@ -52,8 +52,8 @@ func main() {
 		hx_exception_7 := haxe__Exception_caught(hx_caught_6)
 		hx_payload_8 := haxe__Exception_catchValue(hx_caught_6)
 		_ = hx_exception_7
-		var error any = hx_payload_8
-		failed = error
+		var error_local any = hx_payload_8
+		failed = error_local
 	})
 	safeClose(accepted)
 	safeClose(client)

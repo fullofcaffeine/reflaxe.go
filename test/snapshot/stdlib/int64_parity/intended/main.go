@@ -8,15 +8,15 @@ func emit(label *string, value *haxe___Int64_____Int64) {
 }
 
 func main() {
-	max := haxe__Int64Helper_parseString(hxrt.StringFromLiteral("9223372036854775807"))
-	min := haxe__Int64Helper_parseString(hxrt.StringFromLiteral("-9223372036854775808"))
+	max_local := haxe__Int64Helper_parseString(hxrt.StringFromLiteral("9223372036854775807"))
+	min_local := haxe__Int64Helper_parseString(hxrt.StringFromLiteral("-9223372036854775808"))
 	var b_low int
 	var b_high int
 	b_high = 0
 	b_low = 1
-	high := int((hxrt.Int32Wrap(max.high) + hxrt.Int32Wrap(b_high)))
-	low := int((hxrt.Int32Wrap(max.low) + hxrt.Int32Wrap(b_low)))
-	if haxe___Int32__Int32_Impl__ucompare(low, max.low) < 0 {
+	high := int((hxrt.Int32Wrap(max_local.high) + hxrt.Int32Wrap(b_high)))
+	low := int((hxrt.Int32Wrap(max_local.low) + hxrt.Int32Wrap(b_low)))
+	if haxe___Int32__Int32_Impl__ucompare(low, max_local.low) < 0 {
 		hx_post_1 := high
 		high = int(int32((high + 1)))
 		ret := hx_post_1
@@ -33,9 +33,9 @@ func main() {
 	var b_high_1 int
 	b_high_1 = 0
 	b_low_1 = 1
-	high_1 := int((hxrt.Int32Wrap(min.high) - hxrt.Int32Wrap(b_high_1)))
-	low_1 := int((hxrt.Int32Wrap(min.low) - hxrt.Int32Wrap(b_low_1)))
-	if haxe___Int32__Int32_Impl__ucompare(min.low, b_low_1) < 0 {
+	high_1 := int((hxrt.Int32Wrap(min_local.high) - hxrt.Int32Wrap(b_high_1)))
+	low_1 := int((hxrt.Int32Wrap(min_local.low) - hxrt.Int32Wrap(b_low_1)))
+	if haxe___Int32__Int32_Impl__ucompare(min_local.low, b_low_1) < 0 {
 		hx_post_2 := high_1
 		high_1 = int(int32((high_1 - 1)))
 		ret_1 := hx_post_2

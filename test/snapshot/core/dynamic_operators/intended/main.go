@@ -55,8 +55,8 @@ func arithmetic() {
 	var i any = dyn(7)
 	var f any = dyn(2.5)
 	var s any = dyn(hxrt.StringFromLiteral("x"))
-	var max any = dyn(2147483647)
-	var min any = dyn(-2147483648)
+	var max_local any = dyn(2147483647)
+	var min_local any = dyn(-2147483648)
 	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("add "), hxrt.StdString(hxrt.DynamicAdd(i, 2))), hxrt.StringFromLiteral(" ")), hxrt.StdString(hxrt.DynamicAdd(i, 0.5))), hxrt.StringFromLiteral(" ")), hxrt.StdString(hxrt.DynamicAdd(f, 2))), hxrt.StringFromLiteral(" ")), hxrt.StdString(hxrt.DynamicAdd(i, i))), hxrt.StringFromLiteral(" ")), hxrt.StdString(hxrt.DynamicAdd(i, f))), hxrt.StringFromLiteral(" ")), hxrt.StdString(hxrt.DynamicAdd(s, i))), hxrt.StringFromLiteral(" ")), hxrt.StdString(hxrt.DynamicAdd(i, s))))
 	hxrt.Println(v)
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("add types "), hxrt.StdString(Type_typeof(hxrt.DynamicAdd(i, 2)))), hxrt.StringFromLiteral(" ")), hxrt.StdString(Type_typeof(hxrt.DynamicAdd(i, 0.5)))), hxrt.StringFromLiteral(" ")), hxrt.StdString(Type_typeof(hxrt.DynamicAdd(i, i)))))
@@ -74,7 +74,7 @@ func arithmetic() {
 		return math.IsNaN(f_2)
 	}())))
 	hxrt.Println(v_3)
-	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("overflow "), hxrt.StdString(hxrt.DynamicAdd(max, 1))), hxrt.StringFromLiteral(" ")), hxrt.DynamicToFloat(hxrt.DynamicMul(dyn(65536), dyn(65536)))), hxrt.StringFromLiteral(" ")), hxrt.DynamicToFloat(hxrt.DynamicMul(max, 2))), hxrt.StringFromLiteral(" ")), hxrt.StdString((hxrt.DynamicToFloat(hxrt.DynamicSub(min, 1)) == 2147483647))), hxrt.StringFromLiteral(" ")), hxrt.StdString(hxrt.HaxeEqual(hxrt.DynamicAdd(max, 0.5), 2147483647.5))))
+	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("overflow "), hxrt.StdString(hxrt.DynamicAdd(max_local, 1))), hxrt.StringFromLiteral(" ")), hxrt.DynamicToFloat(hxrt.DynamicMul(dyn(65536), dyn(65536)))), hxrt.StringFromLiteral(" ")), hxrt.DynamicToFloat(hxrt.DynamicMul(max_local, 2))), hxrt.StringFromLiteral(" ")), hxrt.StdString((hxrt.DynamicToFloat(hxrt.DynamicSub(min_local, 1)) == 2147483647))), hxrt.StringFromLiteral(" ")), hxrt.StdString(hxrt.HaxeEqual(hxrt.DynamicAdd(max_local, 0.5), 2147483647.5))))
 	hxrt.Println(v_4)
 	var none any = dyn(nil)
 	var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("null text "), hxrt.StringConcatStringPtr(hxrt.StdString(none), hxrt.StringFromLiteral("t"))), hxrt.StringFromLiteral(" ")), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("t"), hxrt.StdString(none))), hxrt.StringFromLiteral(" ")), hxrt.StdString(hxrt.DynamicAdd(none, s))))
@@ -455,11 +455,11 @@ func increments() {
 	floatPost := hxrt.DynamicToFloat(hx_post_40)
 	var v_2 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("float "), hxrt.StdString(f)), hxrt.StringFromLiteral(" ")), floatPost))
 	hxrt.Println(v_2)
-	var max any = dyn(2147483647)
-	max = hxrt.DynamicAdd(max, 1)
+	var max_local any = dyn(2147483647)
+	max_local = hxrt.DynamicAdd(max_local, 1)
 	var text any = dyn(hxrt.StringFromLiteral("s"))
 	text = hxrt.DynamicAdd(text, 1)
-	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("wrap "), hxrt.StdString(max)), hxrt.StringFromLiteral(" text ")), hxrt.StdString(text)))
+	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("wrap "), hxrt.StdString(max_local)), hxrt.StringFromLiteral(" text ")), hxrt.StdString(text)))
 	hxrt.Println(v_3)
 	hx_obj_41 := map[string]any{}
 	hx_obj_41["n"] = 1
@@ -572,8 +572,8 @@ func typedOperands() {
 	var v any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("typed "), hxrt.StdString(hxrt.DynamicAdd(d, n))), hxrt.StringFromLiteral(" ")), hxrt.StdString(hxrt.DynamicAdd(n, d))), hxrt.StringFromLiteral(" ")), hxrt.DynamicToFloat(hxrt.DynamicSub(d, x))), hxrt.StringFromLiteral(" ")), hxrt.DynamicToFloat(hxrt.DynamicMul(x, d))), hxrt.StringFromLiteral(" ")), hxrt.StringConcatStringPtr(hxrt.StdString(d), t)), hxrt.StringFromLiteral(" ")), hxrt.StringConcatStringPtr(t, hxrt.StdString(d))), hxrt.StringFromLiteral(" ")), hxrt.DynamicToFloat(hxrt.DynamicSub(n, d))), hxrt.StringFromLiteral(" ")), hxrt.DynamicDiv(n, d)))
 	hxrt.Println(v)
 	plain := int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(n) * hxrt.Int32Wrap(2)))) + hxrt.Int32Wrap(1)))
-	real := ((x * float64(4)) - float64(1))
-	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("plain "), plain), hxrt.StringFromLiteral(" ")), real)))
+	real_local := ((x * float64(4)) - float64(1))
+	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("plain "), plain), hxrt.StringFromLiteral(" ")), real_local)))
 }
 
 func unary() {

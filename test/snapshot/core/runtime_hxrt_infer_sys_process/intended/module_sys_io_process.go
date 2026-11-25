@@ -8,7 +8,7 @@ type I_sys__io___Process__ProcessOutput interface {
 	close()
 	set_bigEndian(value bool) bool
 	readAll(bufsize any) *haxe__io__Bytes
-	readFullBytes(bytes *haxe__io__Bytes, pos int, len int)
+	readFullBytes(bytes *haxe__io__Bytes, pos int, len_local int)
 	read(nbytes int) *haxe__io__Bytes
 	readUntil(end int) *string
 	readLine() *string
@@ -20,7 +20,7 @@ type I_sys__io___Process__ProcessOutput interface {
 	readInt24() int
 	readUInt24() int
 	readInt32() int
-	readString(len int, encoding *haxe__io__Encoding) *string
+	readString(len_local int, encoding *haxe__io__Encoding) *string
 }
 
 type sys__io___Process__ProcessOutput struct {
@@ -110,7 +110,7 @@ type I_sys__io___Process__ProcessInput interface {
 	close()
 	set_bigEndian(value bool) bool
 	write(bytes *haxe__io__Bytes)
-	writeFullBytes(bytes *haxe__io__Bytes, pos int, len int)
+	writeFullBytes(bytes *haxe__io__Bytes, pos int, len_local int)
 	writeFloat(value float64)
 	writeDouble(value float64)
 	writeInt8(value int)

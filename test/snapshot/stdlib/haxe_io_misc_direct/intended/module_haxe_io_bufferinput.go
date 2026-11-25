@@ -4,11 +4,11 @@ import "snapshot/hxrt"
 
 type I_haxe__io__BufferInput interface {
 	readByte() int
-	readBytes(bytes *haxe__io__Bytes, targetPos int, len int) int
+	readBytes(bytes *haxe__io__Bytes, targetPos int, len_local int) int
 	close()
 	set_bigEndian(value bool) bool
 	readAll(bufsize any) *haxe__io__Bytes
-	readFullBytes(bytes *haxe__io__Bytes, pos int, len int)
+	readFullBytes(bytes *haxe__io__Bytes, pos int, len_local int)
 	read(nbytes int) *haxe__io__Bytes
 	readUntil(end int) *string
 	readLine() *string
@@ -20,7 +20,7 @@ type I_haxe__io__BufferInput interface {
 	readInt24() int
 	readUInt24() int
 	readInt32() int
-	readString(len int, encoding *haxe__io__Encoding) *string
+	readString(len_local int, encoding *haxe__io__Encoding) *string
 	refill()
 }
 
@@ -79,15 +79,15 @@ func (self *haxe__io__BufferInput) readByte() int {
 	return value
 }
 
-func (self *haxe__io__BufferInput) readBytes(bytes *haxe__io__Bytes, targetPos int, len int) int {
+func (self *haxe__io__BufferInput) readBytes(bytes *haxe__io__Bytes, targetPos int, len_local int) int {
 	if self.available == 0 {
 		self.__hx_this.refill()
 	}
 	var hx_if_1 int
-	if len > self.available {
+	if len_local > self.available {
 		hx_if_1 = self.available
 	} else {
-		hx_if_1 = len
+		hx_if_1 = len_local
 	}
 	size := hx_if_1
 	bytes.__hx_this.blit(targetPos, self.buf, self.pos, size)

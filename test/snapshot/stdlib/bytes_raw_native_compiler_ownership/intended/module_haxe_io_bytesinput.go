@@ -8,7 +8,7 @@ type I_haxe__io__BytesInput interface {
 	close()
 	set_bigEndian(value bool) bool
 	readAll(bufsize any) *haxe__io__Bytes
-	readFullBytes(bytes *haxe__io__Bytes, pos int, len int)
+	readFullBytes(bytes *haxe__io__Bytes, pos int, len_local int)
 	read(nbytes int) *haxe__io__Bytes
 	readUntil(end int) *string
 	readLine() *string
@@ -20,7 +20,7 @@ type I_haxe__io__BytesInput interface {
 	readInt24() int
 	readUInt24() int
 	readInt32() int
-	readString(len int, encoding *haxe__io__Encoding) *string
+	readString(len_local int, encoding *haxe__io__Encoding) *string
 	get_position() int
 	get_length() int
 	set_position(value int) int
@@ -41,8 +41,8 @@ func (self *haxe__io__BytesInput) HxFunctionReceiver() any {
 	return self.__hx_this
 }
 
-func New_haxe__io__BytesInput(bytes *haxe__io__Bytes, pos any, len any) *haxe__io__BytesInput {
-	return hx_init_haxe__io__BytesInput(hx_alloc_haxe__io__BytesInput(nil), bytes, pos, len)
+func New_haxe__io__BytesInput(bytes *haxe__io__Bytes, pos any, len_local any) *haxe__io__BytesInput {
+	return hx_init_haxe__io__BytesInput(hx_alloc_haxe__io__BytesInput(nil), bytes, pos, len_local)
 }
 
 func hx_alloc_haxe__io__BytesInput(owner any) *haxe__io__BytesInput {
@@ -56,21 +56,21 @@ func hx_alloc_haxe__io__BytesInput(owner any) *haxe__io__BytesInput {
 	return self
 }
 
-func hx_init_haxe__io__BytesInput(self *haxe__io__BytesInput, bytes *haxe__io__Bytes, pos any, len any) *haxe__io__BytesInput {
+func hx_init_haxe__io__BytesInput(self *haxe__io__BytesInput, bytes *haxe__io__Bytes, pos any, len_local any) *haxe__io__BytesInput {
 	hx_init_haxe__io__Input(self.haxe__io__Input)
 	if pos == nil {
 		pos = 0
 	}
-	if len == nil {
-		len = int((hxrt.Int32Wrap(bytes.length) - hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(pos)))))
+	if len_local == nil {
+		len_local = int((hxrt.Int32Wrap(bytes.length) - hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(pos)))))
 	}
-	if (hxrt.NullableIntLess(pos, 0) || hxrt.NullableIntLess(len, 0)) || (int((hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(pos))) + hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(len))))) > bytes.length) {
+	if (hxrt.NullableIntLess(pos, 0) || hxrt.NullableIntLess(len_local, 0)) || (int((hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(pos))) + hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(len_local))))) > bytes.length) {
 		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
 	self.b = bytes.__hx_this.getData()
 	self.pos = hxrt.IntFromNullableAny(pos)
-	self.len = hxrt.IntFromNullableAny(len)
-	self.totlen = hxrt.IntFromNullableAny(len)
+	self.len = hxrt.IntFromNullableAny(len_local)
+	self.totlen = hxrt.IntFromNullableAny(len_local)
 	return self
 }
 

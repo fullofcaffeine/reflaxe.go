@@ -8,7 +8,7 @@ type I_EReg interface {
 	matchedLeft() *string
 	matchedRight() *string
 	matchedPos() hxrt.Anonymous
-	matchSub(s *string, pos int, len int) bool
+	matchSub(s *string, pos int, len_local int) bool
 	split(s *string) *hxrt.Array
 	replace(s *string, by *string) *string
 	map_(s *string, f *hxrt.Function[func(*EReg) *string]) *string
@@ -99,7 +99,7 @@ func (self *EReg) matchedPos() hxrt.Anonymous {
 	return hxrt.AnonymousFromMap(hx_obj_1)
 }
 
-func (self *EReg) matchSub(s *string, pos int, len int) bool {
+func (self *EReg) matchSub(s *string, pos int, len_local int) bool {
 	var hx_if_2 int
 	if pos < 0 {
 		hx_if_2 = 0
@@ -108,10 +108,10 @@ func (self *EReg) matchSub(s *string, pos int, len int) bool {
 	}
 	start := hx_if_2
 	var hx_if_3 int
-	if len < 0 {
+	if len_local < 0 {
 		hx_if_3 = hxrt.StringLengthStringPtr(s)
 	} else {
-		hx_if_3 = int((hxrt.Int32Wrap(start) + hxrt.Int32Wrap(len)))
+		hx_if_3 = int((hxrt.Int32Wrap(start) + hxrt.Int32Wrap(len_local)))
 	}
 	limit := hx_if_3
 	if limit > hxrt.StringLengthStringPtr(s) {

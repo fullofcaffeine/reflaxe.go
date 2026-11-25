@@ -60,14 +60,14 @@ func main() {
 		hx_exception_9 := haxe__Exception_caught(hx_caught_8)
 		hx_payload_10 := haxe__Exception_catchValue(hx_caught_8)
 		_ = hx_payload_10
-		var error *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_9)
-		var v_2 any = any(error.__hx_this.get_message())
+		var error_local *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_9)
+		var v_2 any = any(error_local.__hx_this.get_message())
 		hxrt.Println(v_2)
 	})
 	present := hxrt.NewFunction(func(hx_tmp int) int {
 		return 7
 	})
-	clear := hxrt.NewFunction(func() int {
+	clear_local := hxrt.NewFunction(func() int {
 		present = nil
 		return 0
 	})
@@ -75,7 +75,7 @@ func main() {
 		var v_5 any = any(func() int {
 			var hx_callable_18 *hxrt.Function[func(int) int] = present
 			var hx_argument_19 int = func() int {
-				var hx_callable_17 *hxrt.Function[func() int] = clear
+				var hx_callable_17 *hxrt.Function[func() int] = clear_local
 				return hxrt.FunctionCall(hx_callable_17)()
 			}()
 			return hxrt.FunctionCall(hx_callable_18)(hx_argument_19)
@@ -85,8 +85,8 @@ func main() {
 		hx_exception_15 := haxe__Exception_caught(hx_caught_14)
 		hx_payload_16 := haxe__Exception_catchValue(hx_caught_14)
 		_ = hx_payload_16
-		var error_1 *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_15)
-		var v_4 any = any(error_1.__hx_this.get_message())
+		var error_local_1 *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_15)
+		var v_4 any = any(error_local_1.__hx_this.get_message())
 		hxrt.Println(v_4)
 	})
 }

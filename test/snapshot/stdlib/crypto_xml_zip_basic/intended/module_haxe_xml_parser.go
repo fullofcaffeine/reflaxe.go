@@ -257,12 +257,12 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 		case 8:
 			switch c {
 			case 38:
-				var len any = int((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start)))
+				var len_local any = int((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start)))
 				var hx_if_9 *string
-				if len == nil {
+				if len_local == nil {
 					hx_if_9 = hxrt.StringSubstrStringPtr(str, start, 0, false)
 				} else {
-					hx_if_9 = hxrt.StringSubstrStringPtr(str, start, len.(int), true)
+					hx_if_9 = hxrt.StringSubstrStringPtr(str, start, len_local.(int), true)
 				}
 				buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_9)
 				state = any(18)
@@ -273,12 +273,12 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 					hxrt.Throw(haxe__Exception_thrown(New_haxe__xml__XmlParserException(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Invalid unescaped "), hxrt.StringFromCharCode(c)), hxrt.StringFromLiteral(" in attribute value")), str, p)))
 				} else {
 					if c == attrValQuote {
-						var len_1 any = int((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start)))
+						var len_local_1 any = int((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start)))
 						var hx_if_10 *string
-						if len_1 == nil {
+						if len_local_1 == nil {
 							hx_if_10 = hxrt.StringSubstrStringPtr(str, start, 0, false)
 						} else {
-							hx_if_10 = hxrt.StringSubstrStringPtr(str, start, len_1.(int), true)
+							hx_if_10 = hxrt.StringSubstrStringPtr(str, start, len_local_1.(int), true)
 						}
 						buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_10)
 						val := buf.b
@@ -290,12 +290,12 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 				}
 			default:
 				if c == attrValQuote {
-					var len_2 any = int((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start)))
+					var len_local_2 any = int((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start)))
 					var hx_if_11 *string
-					if len_2 == nil {
+					if len_local_2 == nil {
 						hx_if_11 = hxrt.StringSubstrStringPtr(str, start, 0, false)
 					} else {
-						hx_if_11 = hxrt.StringSubstrStringPtr(str, start, len_2.(int), true)
+						hx_if_11 = hxrt.StringSubstrStringPtr(str, start, len_local_2.(int), true)
 					}
 					buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_11)
 					val_1 := buf.b
@@ -352,12 +352,12 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 			}
 		case 13:
 			if c == 60 {
-				var len_3 any = int((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start)))
+				var len_local_3 any = int((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start)))
 				var hx_if_12 *string
-				if len_3 == nil {
+				if len_local_3 == nil {
 					hx_if_12 = hxrt.StringSubstrStringPtr(str, start, 0, false)
 				} else {
-					hx_if_12 = hxrt.StringSubstrStringPtr(str, start, len_3.(int), true)
+					hx_if_12 = hxrt.StringSubstrStringPtr(str, start, len_local_3.(int), true)
 				}
 				buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_12)
 				child := Xml_createPCData(buf.b)
@@ -368,12 +368,12 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 				next = any(2)
 			} else {
 				if c == 38 {
-					var len_4 any = int((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start)))
+					var len_local_4 any = int((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start)))
 					var hx_if_13 *string
-					if len_4 == nil {
+					if len_local_4 == nil {
 						hx_if_13 = hxrt.StringSubstrStringPtr(str, start, 0, false)
 					} else {
-						hx_if_13 = hxrt.StringSubstrStringPtr(str, start, len_4.(int), true)
+						hx_if_13 = hxrt.StringSubstrStringPtr(str, start, len_local_4.(int), true)
 					}
 					buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_13)
 					state = any(18)
@@ -528,12 +528,12 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 						hxrt.Throw(haxe__Exception_thrown(New_haxe__xml__XmlParserException(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Invalid character in entity: "), hxrt.StringFromCharCode(c)), str, p)))
 					}
 					buf.b = hxrt.StringConcatStringPtr(buf.b, hxrt.StringFromLiteral("&"))
-					var len_5 any = int((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start)))
+					var len_local_5 any = int((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start)))
 					var hx_if_26 *string
-					if len_5 == nil {
+					if len_local_5 == nil {
 						hx_if_26 = hxrt.StringSubstrStringPtr(str, start, 0, false)
 					} else {
-						hx_if_26 = hxrt.StringSubstrStringPtr(str, start, len_5.(int), true)
+						hx_if_26 = hxrt.StringSubstrStringPtr(str, start, len_local_5.(int), true)
 					}
 					buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_26)
 					p = int(int32((p - 1)))
@@ -558,12 +558,12 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 			}()), hxrt.StringFromLiteral(">")), str, p)))
 		}
 		if (p != start) || (nsubs == 0) {
-			var len_6 any = int((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start)))
+			var len_local_6 any = int((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start)))
 			var hx_if_27 *string
-			if len_6 == nil {
+			if len_local_6 == nil {
 				hx_if_27 = hxrt.StringSubstrStringPtr(str, start, 0, false)
 			} else {
-				hx_if_27 = hxrt.StringSubstrStringPtr(str, start, len_6.(int), true)
+				hx_if_27 = hxrt.StringSubstrStringPtr(str, start, len_local_6.(int), true)
 			}
 			buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_27)
 			xml_4 := Xml_createPCData(buf.b)
@@ -574,12 +574,12 @@ func haxe__xml__Parser_doParse(str *string, strict bool, p int, parent *Xml) int
 	}
 	if (!strict && hxrt.HaxeEqual(state, any(18))) && hxrt.HaxeEqual(escapeNext, any(13)) {
 		buf.b = hxrt.StringConcatStringPtr(buf.b, hxrt.StringFromLiteral("&"))
-		var len_7 any = int((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start)))
+		var len_local_7 any = int((hxrt.Int32Wrap(p) - hxrt.Int32Wrap(start)))
 		var hx_if_28 *string
-		if len_7 == nil {
+		if len_local_7 == nil {
 			hx_if_28 = hxrt.StringSubstrStringPtr(str, start, 0, false)
 		} else {
-			hx_if_28 = hxrt.StringSubstrStringPtr(str, start, len_7.(int), true)
+			hx_if_28 = hxrt.StringSubstrStringPtr(str, start, len_local_7.(int), true)
 		}
 		buf.b = hxrt.StringConcatStringPtr(buf.b, hx_if_28)
 		xml_5 := Xml_createPCData(buf.b)

@@ -397,8 +397,8 @@ func (self *sys__Http) requestWith(post bool, api *haxe__io__Output, sock *sys__
 					hx_exception_53 := haxe__Exception_caught(hx_caught_52)
 					hx_payload_54 := haxe__Exception_catchValue(hx_caught_52)
 					_ = hx_payload_54
-					var error *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_53)
-					errorMessage = error.__hx_this.get_message()
+					var error_local *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_53)
+					errorMessage = error_local.__hx_this.get_message()
 				})
 			}
 		}
@@ -454,8 +454,8 @@ func (self *sys__Http) pumpUpload(exchange *hxrt.HttpExchange, upload hxrt.Anony
 				_ = hx_tmp
 				sourceError = hxrt.StringFromLiteral("Transfer aborted")
 			} else {
-				var error *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_64)
-				sourceError = error.__hx_this.get_message()
+				var error_local *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_64)
+				sourceError = error_local.__hx_this.get_message()
 			}
 		})
 		if !hxrt.StringEqualStringPtr(sourceError, nil) {
@@ -568,8 +568,8 @@ func (self *sys__Http) handleDataRequest(post bool, api *haxe__io__Output, metho
 		hx_exception_76 := haxe__Exception_caught(hx_caught_75)
 		hx_payload_77 := haxe__Exception_catchValue(hx_caught_75)
 		_ = hx_payload_77
-		var error *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_76)
-		errorMessage = error.__hx_this.get_message()
+		var error_local *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_76)
+		errorMessage = error_local.__hx_this.get_message()
 	})
 	if !hxrt.StringEqualStringPtr(errorMessage, nil) {
 		func() {

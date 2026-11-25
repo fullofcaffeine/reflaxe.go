@@ -118,17 +118,17 @@ func streamRoundTrip(payload *haxe__io__Bytes) *string {
 			}
 			return hx_value_13.(int)
 		}(hxrt.AnonymousGet(result, "read")))))
-		len := func(hx_value_15 any) int {
+		len_local := func(hx_value_15 any) int {
 			if hx_value_15 == nil {
 				var hx_zero_16 int
 				return hx_zero_16
 			}
 			return hx_value_15.(int)
 		}(hxrt.AnonymousGet(result, "write"))
-		if (len < 0) || (len > destination.length) {
+		if (len_local < 0) || (len_local > destination.length) {
 			hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 		}
-		compressedOutput.b = hxrt.BytesBufferAddSlice(compressedOutput.b, destination.__hx_this.getData(), 0, len)
+		compressedOutput.b = hxrt.BytesBufferAddSlice(compressedOutput.b, destination.__hx_this.getData(), 0, len_local)
 		compressDone = func(hx_value_17 any) bool {
 			if hx_value_17 == nil {
 				var hx_zero_18 bool
@@ -156,17 +156,17 @@ func streamRoundTrip(payload *haxe__io__Bytes) *string {
 			}
 			return hx_value_19.(int)
 		}(hxrt.AnonymousGet(result_1, "read")))))
-		len_1 := func(hx_value_21 any) int {
+		len_local_1 := func(hx_value_21 any) int {
 			if hx_value_21 == nil {
 				var hx_zero_22 int
 				return hx_zero_22
 			}
 			return hx_value_21.(int)
 		}(hxrt.AnonymousGet(result_1, "write"))
-		if (len_1 < 0) || (len_1 > destination_1.length) {
+		if (len_local_1 < 0) || (len_local_1 > destination_1.length) {
 			hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 		}
-		restoredOutput.b = hxrt.BytesBufferAddSlice(restoredOutput.b, destination_1.__hx_this.getData(), 0, len_1)
+		restoredOutput.b = hxrt.BytesBufferAddSlice(restoredOutput.b, destination_1.__hx_this.getData(), 0, len_local_1)
 		inflateDone = func(hx_value_23 any) bool {
 			if hx_value_23 == nil {
 				var hx_zero_24 bool

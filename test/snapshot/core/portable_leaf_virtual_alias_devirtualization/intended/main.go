@@ -47,7 +47,7 @@ func (self *Leaf) HxClassName() string {
 
 func main() {
 	leaf := New_Leaf()
-	copy := leaf
-	var v any = any(copy.ping())
+	copy_local := leaf
+	var v any = any(copy_local.ping())
 	hxrt.Println(v)
 }

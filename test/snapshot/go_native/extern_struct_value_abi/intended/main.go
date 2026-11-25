@@ -51,8 +51,8 @@ func (self *ParseResult) HxFunctionReceiver() any {
 	return self.__hx_this
 }
 
-func New_ParseResult(value *time.Time, error *go___Error) *ParseResult {
-	return hx_init_ParseResult(hx_alloc_ParseResult(nil), value, error)
+func New_ParseResult(value *time.Time, error_local *go___Error) *ParseResult {
+	return hx_init_ParseResult(hx_alloc_ParseResult(nil), value, error_local)
 }
 
 func hx_alloc_ParseResult(owner any) *ParseResult {
@@ -65,9 +65,9 @@ func hx_alloc_ParseResult(owner any) *ParseResult {
 	return self
 }
 
-func hx_init_ParseResult(self *ParseResult, value *time.Time, error *go___Error) *ParseResult {
+func hx_init_ParseResult(self *ParseResult, value *time.Time, error_local *go___Error) *ParseResult {
 	self.value = value
-	self.error = error
+	self.error = error_local
 	return self
 }
 

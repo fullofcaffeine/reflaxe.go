@@ -7,12 +7,12 @@ import (
 
 var calls *hxrt.Array = hxrt.NewArray()
 
-func describe(error *go___Error) *string {
+func describe(error_local *go___Error) *string {
 	var hx_if_1 *string
-	if error == nil {
+	if error_local == nil {
 		hx_if_1 = hxrt.StringFromLiteral("null")
 	} else {
-		hx_if_1 = StringTools_replace(error.message, hxrt.StringFromLiteral("\n"), hxrt.StringFromLiteral("|"))
+		hx_if_1 = StringTools_replace(error_local.message, hxrt.StringFromLiteral("\n"), hxrt.StringFromLiteral("|"))
 	}
 	return hx_if_1
 }
@@ -26,13 +26,13 @@ func joinAll(errors_local []*go___Error) *go___Error {
 	}(errors.Join(hxrt.ExportErrors(errors_local, hxrt.ExportLegacyError[*go___Error])...))
 }
 
-func joinWithNull(error *go___Error) *go___Error {
+func joinWithNull(error_local *go___Error) *go___Error {
 	return func(err interface{ Error() string }) *go___Error {
 		if err == nil {
 			return nil
 		}
 		return New_go___Error(hxrt.StringFromLiteral(err.Error()))
-	}(errors.Join([]hxrt.RawError{hxrt.ExportLegacyError(error), nil}...))
+	}(errors.Join([]hxrt.RawError{hxrt.ExportLegacyError(error_local), nil}...))
 }
 
 func legacy(message *string) *go___Error {

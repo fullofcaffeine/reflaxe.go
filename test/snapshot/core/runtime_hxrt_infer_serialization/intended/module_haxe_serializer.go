@@ -196,8 +196,8 @@ func (self *haxe__Serializer) serializeBytes(value *haxe__io__Bytes) {
 	_this_2 := self.buf
 	_this_2.b = hxrt.StringConcatStringPtr(_this_2.b, hxrt.StringFromLiteral(":"))
 	index := 0
-	max := int((hxrt.Int32Wrap(value.length) - hxrt.Int32Wrap(2)))
-	for index < max {
+	max_local := int((hxrt.Int32Wrap(value.length) - hxrt.Int32Wrap(2)))
+	for index < max_local {
 		hx_post_7 := index
 		index = int(int32((index + 1)))
 		pos := hx_post_7
@@ -223,7 +223,7 @@ func (self *haxe__Serializer) serializeBytes(value *haxe__io__Bytes) {
 		c_3 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int((hxrt.Int32Wrap(third) & hxrt.Int32Wrap(63)))))
 		_this_6.b = hxrt.StringConcatStringPtr(_this_6.b, hxrt.StringFromCharCode(c_3))
 	}
-	if index == max {
+	if index == max_local {
 		hx_post_10 := index
 		index = int(int32((index + 1)))
 		pos_3 := hx_post_10
@@ -242,7 +242,7 @@ func (self *haxe__Serializer) serializeBytes(value *haxe__io__Bytes) {
 		c_6 := hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(haxe__Serializer_BASE64, int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(second_1) << uint(2)))) & hxrt.Int32Wrap(63)))))
 		_this_9.b = hxrt.StringConcatStringPtr(_this_9.b, hxrt.StringFromCharCode(c_6))
 	} else {
-		if index == int((hxrt.Int32Wrap(max) + hxrt.Int32Wrap(1))) {
+		if index == int((hxrt.Int32Wrap(max_local) + hxrt.Int32Wrap(1))) {
 			hx_post_12 := index
 			index = int(int32((index + 1)))
 			pos_5 := hx_post_12

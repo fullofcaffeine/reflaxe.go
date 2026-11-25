@@ -4,12 +4,12 @@ import "examples_incident_api_metal/hxrt"
 
 type I_haxe__io__Output interface {
 	writeByte(value int)
-	writeBytes(bytes *haxe__io__Bytes, pos int, len int) int
+	writeBytes(bytes *haxe__io__Bytes, pos int, len_local int) int
 	flush()
 	close()
 	set_bigEndian(value bool) bool
 	write(bytes *haxe__io__Bytes)
-	writeFullBytes(bytes *haxe__io__Bytes, pos int, len int)
+	writeFullBytes(bytes *haxe__io__Bytes, pos int, len_local int)
 	writeFloat(value float64)
 	writeDouble(value float64)
 	writeInt8(value int)
@@ -61,15 +61,15 @@ func (self *haxe__io__Output) writeByte(value int) {
 	}())))
 }
 
-func (self *haxe__io__Output) writeBytes(bytes *haxe__io__Bytes, pos int, len int) int {
-	if ((pos < 0) || (len < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len))) > bytes.length) {
+func (self *haxe__io__Output) writeBytes(bytes *haxe__io__Bytes, pos int, len_local int) int {
+	if ((pos < 0) || (len_local < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len_local))) > bytes.length) {
 		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
-	total := len
-	for len > 0 {
+	total := len_local
+	for len_local > 0 {
 		self.__hx_this.writeByte(bytes.b[pos])
 		pos = int(int32((pos + 1)))
-		len = int(int32((len - 1)))
+		len_local = int(int32((len_local - 1)))
 	}
 	return total
 }
@@ -89,14 +89,14 @@ func (self *haxe__io__Output) write(bytes *haxe__io__Bytes) {
 	self.__hx_this.writeFullBytes(bytes, 0, bytes.length)
 }
 
-func (self *haxe__io__Output) writeFullBytes(bytes *haxe__io__Bytes, pos int, len int) {
-	for len > 0 {
-		count := self.__hx_this.writeBytes(bytes, pos, len)
+func (self *haxe__io__Output) writeFullBytes(bytes *haxe__io__Bytes, pos int, len_local int) {
+	for len_local > 0 {
+		count := self.__hx_this.writeBytes(bytes, pos, len_local)
 		if count == 0 {
 			hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_Blocked))
 		}
 		pos = int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(count)))
-		len = int((hxrt.Int32Wrap(len) - hxrt.Int32Wrap(count)))
+		len_local = int((hxrt.Int32Wrap(len_local) - hxrt.Int32Wrap(count)))
 	}
 }
 

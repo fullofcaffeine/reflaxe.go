@@ -97,8 +97,8 @@ func main() {
 		hx_exception_23 := haxe__Exception_caught(hx_caught_22)
 		hx_payload_24 := haxe__Exception_catchValue(hx_caught_22)
 		_ = hx_payload_24
-		var error *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_23)
-		var v_4 any = any(error.__hx_this.get_message())
+		var error_local *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_23)
+		var v_4 any = any(error_local.__hx_this.get_message())
 		hxrt.Println(v_4)
 	})
 }

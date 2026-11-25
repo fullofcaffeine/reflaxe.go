@@ -49,11 +49,11 @@ func haxe__ds__ArraySort_gcd(m int, n int) int {
 }
 
 func haxe__ds__ArraySort_lower(a *hxrt.Array, cmp *hxrt.Function[func(any, any) int], from int, to int, val int) int {
-	len := int((hxrt.Int32Wrap(to) - hxrt.Int32Wrap(from)))
+	len_local := int((hxrt.Int32Wrap(to) - hxrt.Int32Wrap(from)))
 	var half int
 	var mid int
-	for len > 0 {
-		half = int((hxrt.Int32Wrap(len) >> uint(1)))
+	for len_local > 0 {
+		half = int((hxrt.Int32Wrap(len_local) >> uint(1)))
 		mid = int((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(half)))
 		if func() int {
 			var hx_callable_4 *hxrt.Function[func(any, any) int] = cmp
@@ -62,9 +62,9 @@ func haxe__ds__ArraySort_lower(a *hxrt.Array, cmp *hxrt.Function[func(any, any) 
 			return hxrt.FunctionCall(hx_callable_4)(hx_argument_5, hx_argument_6)
 		}() < 0 {
 			from = int((hxrt.Int32Wrap(mid) + hxrt.Int32Wrap(1)))
-			len = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(len) - hxrt.Int32Wrap(half)))) - hxrt.Int32Wrap(1)))
+			len_local = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(len_local) - hxrt.Int32Wrap(half)))) - hxrt.Int32Wrap(1)))
 		} else {
-			len = half
+			len_local = half
 		}
 	}
 	return from
@@ -151,11 +151,11 @@ func haxe__ds__ArraySort_swap(a *hxrt.Array, i int, j int) {
 }
 
 func haxe__ds__ArraySort_upper(a *hxrt.Array, cmp *hxrt.Function[func(any, any) int], from int, to int, val int) int {
-	len := int((hxrt.Int32Wrap(to) - hxrt.Int32Wrap(from)))
+	len_local := int((hxrt.Int32Wrap(to) - hxrt.Int32Wrap(from)))
 	var half int
 	var mid int
-	for len > 0 {
-		half = int((hxrt.Int32Wrap(len) >> uint(1)))
+	for len_local > 0 {
+		half = int((hxrt.Int32Wrap(len_local) >> uint(1)))
 		mid = int((hxrt.Int32Wrap(from) + hxrt.Int32Wrap(half)))
 		if func() int {
 			var hx_callable_20 *hxrt.Function[func(any, any) int] = cmp
@@ -163,10 +163,10 @@ func haxe__ds__ArraySort_upper(a *hxrt.Array, cmp *hxrt.Function[func(any, any) 
 			var hx_argument_22 any = a.Get(mid)
 			return hxrt.FunctionCall(hx_callable_20)(hx_argument_21, hx_argument_22)
 		}() < 0 {
-			len = half
+			len_local = half
 		} else {
 			from = int((hxrt.Int32Wrap(mid) + hxrt.Int32Wrap(1)))
-			len = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(len) - hxrt.Int32Wrap(half)))) - hxrt.Int32Wrap(1)))
+			len_local = int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(len_local) - hxrt.Int32Wrap(half)))) - hxrt.Int32Wrap(1)))
 		}
 	}
 	return from

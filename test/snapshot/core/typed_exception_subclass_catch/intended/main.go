@@ -55,12 +55,12 @@ func main() {
 		hx_payload_3 := haxe__Exception_catchValue(hx_caught_1)
 		_ = hx_payload_3
 		if hx_is_nominal_DomainError(hx_exception_2) {
-			var error *DomainError = hx_recover_class_DomainError(hx_exception_2)
-			var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("typed:"), error.code))
+			var error_local *DomainError = hx_recover_class_DomainError(hx_exception_2)
+			var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("typed:"), error_local.code))
 			hxrt.Println(v)
 		} else {
-			var error_1 *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_2)
-			var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("base:"), error_1.__hx_this.get_message()))
+			var error_local_1 *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_2)
+			var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("base:"), error_local_1.__hx_this.get_message()))
 			hxrt.Println(v_1)
 		}
 	})
@@ -71,12 +71,12 @@ func main() {
 		hx_payload_6 := haxe__Exception_catchValue(hx_caught_4)
 		_ = hx_payload_6
 		if hx_is_nominal_DomainError(hx_exception_5) {
-			var error_2 *DomainError = hx_recover_class_DomainError(hx_exception_5)
-			var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("typed:"), error_2.code))
+			var error_local_2 *DomainError = hx_recover_class_DomainError(hx_exception_5)
+			var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("typed:"), error_local_2.code))
 			hxrt.Println(v_2)
 		} else {
-			var error_3 *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_5)
-			var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("base:"), error_3.__hx_this.get_message()))
+			var error_local_3 *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_5)
+			var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("base:"), error_local_3.__hx_this.get_message()))
 			hxrt.Println(v_3)
 		}
 	})

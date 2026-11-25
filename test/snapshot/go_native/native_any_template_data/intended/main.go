@@ -48,9 +48,9 @@ func main() {
 	render(hxrt.StringFromLiteral("{{.Missing}} {{.Score}} {{printf \"%.1f\" .Score}} {{.Issue.Priority | printf \"P%d\"}} {{if .Ready}}ready{{end}} {{.Nope}}"), data)
 	render(hxrt.StringFromLiteral("{{.Issue.Title.Missing}}"), data)
 	encoder := json.NewEncoder(os.Stdout)
-	error := hxrt.ImportNativeError(encoder.Encode(data))
-	if error != nil {
-		var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("json: "), hxrt.StdString(error.Text())))
+	error_local := hxrt.ImportNativeError(encoder.Encode(data))
+	if error_local != nil {
+		var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("json: "), hxrt.StdString(error_local.Text())))
 		hxrt.Println(v)
 	}
 	ordered := map[string]any{}
@@ -93,15 +93,15 @@ func render(source *string, data map[string]any) {
 		hxrt.Println(v)
 		return
 	}
-	error := hxrt.ImportNativeError(func(hx_value_12 any) *template.Template {
+	error_local := hxrt.ImportNativeError(func(hx_value_12 any) *template.Template {
 		if hx_value_12 == nil {
 			var hx_zero_13 *template.Template
 			return hx_zero_13
 		}
 		return hx_value_12.(*template.Template)
 	}(parsed.unwrap()).Execute(os.Stdout, data))
-	if error != nil {
-		var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("template execution error: "), hxrt.StdString(error.Text())))
+	if error_local != nil {
+		var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("template execution error: "), hxrt.StdString(error_local.Text())))
 		hxrt.Println(v_1)
 		return
 	}

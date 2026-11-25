@@ -70,8 +70,8 @@ func (self *app__http__TinyHttpServer) serveOnce() {
 		hx_exception_5 := haxe__Exception_caught(hx_caught_4)
 		hx_payload_6 := haxe__Exception_catchValue(hx_caught_4)
 		_ = hx_payload_6
-		var error *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_5)
-		_ = error
+		var error_local *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_5)
+		_ = error_local
 		if peer != nil {
 			self.writeResponse(peer, app__http__HttpResponse_json(500, hxrt.StringFromLiteral("{\"error\":\"server_error\"}")))
 		}

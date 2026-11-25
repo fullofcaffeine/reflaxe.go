@@ -18,8 +18,8 @@ func Parcel_Item(value int) *Parcel {
 }
 
 func main() {
-	make = hxrt.NamedFunction(Parcel_Item, "Parcel.Item")
-	alias := make
+	Main_make = hxrt.NamedFunction(Parcel_Item, "Parcel.Item")
+	alias := Main_make
 	_g := func() *Parcel {
 		var hx_callable_1 *hxrt.Function[func(int) *Parcel] = alias
 		var hx_argument_2 int = 17
@@ -29,7 +29,7 @@ func main() {
 	value := _g_1
 	hxrt.Println(any(value))
 	var v any = any(func() bool {
-		var f1 any = any(make)
+		var f1 any = any(Main_make)
 		return hxrt.ReflectCompareMethods(f1, any(alias))
 	}())
 	hxrt.Println(v)
@@ -37,4 +37,4 @@ func main() {
 	hxrt.Println(v_1)
 }
 
-var make *hxrt.Function[func(int) *Parcel]
+var Main_make *hxrt.Function[func(int) *Parcel]

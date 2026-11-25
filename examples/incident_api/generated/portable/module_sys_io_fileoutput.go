@@ -9,7 +9,7 @@ type I_sys__io__FileOutput interface {
 	close()
 	set_bigEndian(value bool) bool
 	write(bytes *haxe__io__Bytes)
-	writeFullBytes(bytes *haxe__io__Bytes, pos int, len int)
+	writeFullBytes(bytes *haxe__io__Bytes, pos int, len_local int)
 	writeFloat(value float64)
 	writeDouble(value float64)
 	writeInt8(value int)

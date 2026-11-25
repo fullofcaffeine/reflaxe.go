@@ -81,12 +81,12 @@ func main() {
 			return int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(_this_3.b[pos_3]) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(_this_3.b[int((hxrt.Int32Wrap(pos_3)+hxrt.Int32Wrap(1)))]) << uint(8))))))) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(_this_3.b[int((hxrt.Int32Wrap(pos_3)+hxrt.Int32Wrap(2)))]) << uint(16))))))) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(_this_3.b[int((hxrt.Int32Wrap(pos_3)+hxrt.Int32Wrap(3)))]) << uint(24))))))
 		}()
 		return hxrt.StdString(func() float64 {
-			int := this1
+			int_local := this1
 			var hx_if_3 float64
-			if int < 0 {
-				hx_if_3 = (4294967296.0 + float64(int))
+			if int_local < 0 {
+				hx_if_3 = (4294967296.0 + float64(int_local))
 			} else {
-				hx_if_3 = (float64(int) + 0.0)
+				hx_if_3 = (float64(int_local) + 0.0)
 			}
 			return hx_if_3
 		}())
@@ -97,12 +97,12 @@ func main() {
 			return int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(_this_4.b[pos_4]) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(_this_4.b[int((hxrt.Int32Wrap(pos_4)+hxrt.Int32Wrap(1)))]) << uint(8))))))) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(_this_4.b[int((hxrt.Int32Wrap(pos_4)+hxrt.Int32Wrap(2)))]) << uint(16))))))) | hxrt.Int32Wrap(int((hxrt.Int32Wrap(_this_4.b[int((hxrt.Int32Wrap(pos_4)+hxrt.Int32Wrap(3)))]) << uint(24))))))
 		}()
 		return hxrt.StdString(func() float64 {
-			int_1 := this1_1
+			int_local_1 := this1_1
 			var hx_if_4 float64
-			if int_1 < 0 {
-				hx_if_4 = (4294967296.0 + float64(int_1))
+			if int_local_1 < 0 {
+				hx_if_4 = (4294967296.0 + float64(int_local_1))
 			} else {
-				hx_if_4 = (float64(int_1) + 0.0)
+				hx_if_4 = (float64(int_local_1) + 0.0)
 			}
 			return hx_if_4
 		}())

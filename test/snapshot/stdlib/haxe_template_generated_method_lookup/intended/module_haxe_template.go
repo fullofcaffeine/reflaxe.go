@@ -847,17 +847,17 @@ func (self *haxe__Template) makeExpr2(cursor *haxe___Template__ExprCursor) *hxrt
 			cursor.index = int(int32((cursor.index + 1)))
 			hx_if_133 = hx_structural_recover(hx_structural_recover(cursor.tokens.Get(hx_post_132)))
 		}
-		close := hx_if_133
+		close_local := hx_if_133
 		self.__hx_this.skipSpaces(cursor)
-		if (close == nil) || !hxrt.StringEqualStringPtr(func(hx_value_137 any) *string {
+		if (close_local == nil) || !hxrt.StringEqualStringPtr(func(hx_value_137 any) *string {
 			if hx_value_137 == nil {
 				var hx_zero_138 *string
 				return hx_zero_138
 			}
 			return hx_value_137.(*string)
-		}(hxrt.AnonymousGet(close, "p")), hxrt.StringFromLiteral(")")) {
+		}(hxrt.AnonymousGet(close_local, "p")), hxrt.StringFromLiteral(")")) {
 			var hx_if_136 *string
-			if close == nil {
+			if close_local == nil {
 				hx_if_136 = hxrt.StringFromLiteral("<eof>")
 			} else {
 				hx_if_136 = func(hx_value_134 any) *string {
@@ -866,7 +866,7 @@ func (self *haxe__Template) makeExpr2(cursor *haxe___Template__ExprCursor) *hxrt
 						return hx_zero_135
 					}
 					return hx_value_134.(*string)
-				}(hxrt.AnonymousGet(close, "p"))
+				}(hxrt.AnonymousGet(close_local, "p"))
 			}
 			hxrt.Throw(haxe__Exception_thrown(hx_if_136))
 		}

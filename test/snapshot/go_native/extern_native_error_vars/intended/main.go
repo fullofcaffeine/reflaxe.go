@@ -58,8 +58,8 @@ func (self *Holder) HxFunctionReceiver() any {
 	return self.__hx_this
 }
 
-func New_Holder(error *hxrt.NativeErrorValue) *Holder {
-	return hx_init_Holder(hx_alloc_Holder(nil), error)
+func New_Holder(error_local *hxrt.NativeErrorValue) *Holder {
+	return hx_init_Holder(hx_alloc_Holder(nil), error_local)
 }
 
 func hx_alloc_Holder(owner any) *Holder {
@@ -72,8 +72,8 @@ func hx_alloc_Holder(owner any) *Holder {
 	return self
 }
 
-func hx_init_Holder(self *Holder, error *hxrt.NativeErrorValue) *Holder {
-	self.error = error
+func hx_init_Holder(self *Holder, error_local *hxrt.NativeErrorValue) *Holder {
+	self.error = error_local
 	return self
 }
 
@@ -87,12 +87,12 @@ func check(ok bool, label *string) {
 	}
 }
 
-func describe(error *hxrt.NativeErrorValue) *string {
+func describe(error_local *hxrt.NativeErrorValue) *string {
 	var hx_if_1 *string
-	if error == nil {
+	if error_local == nil {
 		hx_if_1 = hxrt.StringFromLiteral("nil")
 	} else {
-		hx_if_1 = hxrt.StdString(error.Text())
+		hx_if_1 = hxrt.StdString(error_local.Text())
 	}
 	return hx_if_1
 }

@@ -29,8 +29,8 @@ func main() {
 	})
 }
 
-func readLater(error *haxe__Exception) *string {
-	return haxe___CallStack__CallStack_Impl__toString(error.__hx_this.get_stack())
+func readLater(error_local *haxe__Exception) *string {
+	return haxe___CallStack__CallStack_Impl__toString(error_local.__hx_this.get_stack())
 }
 
 func secondOrigin() *haxe__Exception {

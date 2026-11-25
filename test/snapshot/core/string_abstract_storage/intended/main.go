@@ -131,15 +131,15 @@ func main() {
 	var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("param.nullable="), nullName(noName)), hxrt.StringFromLiteral(",")), nullName(hxrt.StringFromLiteral("here"))), hxrt.StringFromLiteral(",")), hxrt.StdString((noName == nil))))
 	hxrt.Println(v_5)
 	local := hxrt.StringFromLiteral("local")
-	copy := local
-	back := copy
+	copy_local := local
+	back := copy_local
 	reassigned := hxrt.StringFromLiteral("first")
 	reassigned = hxrt.StringFromLiteral("second")
-	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("local="), local), hxrt.StringFromLiteral(",")), copy), hxrt.StringFromLiteral(",")), back), hxrt.StringFromLiteral(",")), reassigned), hxrt.StringFromLiteral(",")), hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral(""), local), hxrt.StringFromLiteral("!"))), hxrt.StringFromLiteral(",")), hxrt.StdString(StringTools_startsWith(local, hxrt.StringFromLiteral("lo")))))
+	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("local="), local), hxrt.StringFromLiteral(",")), copy_local), hxrt.StringFromLiteral(",")), back), hxrt.StringFromLiteral(",")), reassigned), hxrt.StringFromLiteral(",")), hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral(""), local), hxrt.StringFromLiteral("!"))), hxrt.StringFromLiteral(",")), hxrt.StdString(StringTools_startsWith(local, hxrt.StringFromLiteral("lo")))))
 	hxrt.Println(v_6)
 	joined := hxrt.StringFromLiteral("ab1")
 	literal := hxrt.StringFromLiteral("ab1")
-	var v_7 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("equality="), hxrt.StdString(hxrt.StringEqualStringPtr(joined, literal))), hxrt.StringFromLiteral(",")), hxrt.StdString(!hxrt.StringEqualStringPtr(joined, literal))), hxrt.StringFromLiteral(",")), hxrt.StdString(hxrt.StringEqualStringPtr(local, hxrt.StringFromLiteral("local")))), hxrt.StringFromLiteral(",")), hxrt.StdString(hxrt.StringEqualStringPtr(hxrt.StringFromLiteral("local"), local))), hxrt.StringFromLiteral(",")), hxrt.StdString(hxrt.StringEqualStringPtr(local, copy))))
+	var v_7 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("equality="), hxrt.StdString(hxrt.StringEqualStringPtr(joined, literal))), hxrt.StringFromLiteral(",")), hxrt.StdString(!hxrt.StringEqualStringPtr(joined, literal))), hxrt.StringFromLiteral(",")), hxrt.StdString(hxrt.StringEqualStringPtr(local, hxrt.StringFromLiteral("local")))), hxrt.StringFromLiteral(",")), hxrt.StdString(hxrt.StringEqualStringPtr(hxrt.StringFromLiteral("local"), local))), hxrt.StringFromLiteral(",")), hxrt.StdString(hxrt.StringEqualStringPtr(local, copy_local))))
 	hxrt.Println(v_7)
 	p := New_Person(hxrt.StringFromLiteral("ann"), nil, hxrt.StringFromLiteral("red"))
 	q := New_Person(hxrt.StringFromLiteral("bob"), hxrt.StringFromLiteral("bobby"), hxrt.StringFromLiteral("blue"))

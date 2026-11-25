@@ -33,7 +33,7 @@ func EarlyPosExceptionView_toPosException(value any) *haxe__exceptions__PosExcep
 }
 
 func main() {
-	var error any = New_haxe__exceptions__NotImplementedException(nil, nil, func() hxrt.Anonymous {
+	var error_local any = New_haxe__exceptions__NotImplementedException(nil, nil, func() hxrt.Anonymous {
 		hx_obj_1 := map[string]any{}
 		hx_obj_1["fileName"] = hxrt.StringFromLiteral("Main.hx")
 		hx_obj_1["lineNumber"] = 74
@@ -41,7 +41,7 @@ func main() {
 		hx_obj_1["methodName"] = hxrt.StringFromLiteral("main")
 		return hxrt.AnonymousFromMap(hx_obj_1)
 	}())
-	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Dynamic NotImplementedException is haxe.Exception="), hxrt.StdString(EarlyChecks_isException(error))))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Dynamic NotImplementedException is haxe.Exception="), hxrt.StdString(EarlyChecks_isException(error_local))))
 	hxrt.Println(v)
 	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Dynamic String is haxe.Exception="), hxrt.StdString(EarlyChecks_isException(hxrt.StringFromLiteral("text")))))
 	hxrt.Println(v_1)
@@ -49,14 +49,14 @@ func main() {
 	tree.__hx_this.set(hxrt.StringFromLiteral("a"), 1)
 	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("IMap BalancedTree is BalancedTree="), hxrt.StdString(EarlyChecks_isTree(tree))))
 	hxrt.Println(v_2)
-	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("haxe.Exception NotImplementedException is PosException="), hxrt.StdString(EarlyExceptionViews_isPosException(hx_recover_class_haxe__Exception(error)))))
+	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("haxe.Exception NotImplementedException is PosException="), hxrt.StdString(EarlyExceptionViews_isPosException(hx_recover_class_haxe__Exception(error_local)))))
 	hxrt.Println(v_3)
 	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("haxe.Exception plain is PosException="), hxrt.StdString(EarlyExceptionViews_isPosException(New_haxe__Exception(hxrt.StringFromLiteral("plain"), nil, nil)))))
 	hxrt.Println(v_4)
-	asException := EarlyExceptionViews_toException(error)
+	asException := EarlyExceptionViews_toException(error_local)
 	var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Dynamic as haxe.Exception keeps NotImplementedException="), hxrt.StdString(hx_is_nominal_haxe__exceptions__NotImplementedException(asException))))
 	hxrt.Println(v_5)
-	asPosException := EarlyPosExceptionView_toPosException(error)
+	asPosException := EarlyPosExceptionView_toPosException(error_local)
 	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Dynamic as PosException keeps NotImplementedException="), hxrt.StdString(hx_is_nominal_haxe__exceptions__NotImplementedException(asPosException))))
 	hxrt.Println(v_6)
 	var v_7 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Dynamic null as PosException is null="), hxrt.StdString((EarlyPosExceptionView_toPosException(nil) == nil))))

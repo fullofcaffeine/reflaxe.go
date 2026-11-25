@@ -33,8 +33,8 @@ func checkExceptionContract() {
 		hx_exception_2 := haxe__Exception_caught(hx_caught_1)
 		hx_payload_3 := haxe__Exception_catchValue(hx_caught_1)
 		_ = hx_payload_3
-		var error *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_2)
-		observed = error.__hx_this.get_message()
+		var error_local *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_2)
+		observed = error_local.__hx_this.get_message()
 	})
 	require(hxrt.StringEqualStringPtr(observed, hxrt.StringFromLiteral("portable-beta-error")), hxrt.StringFromLiteral("typed exception message contract"))
 }
@@ -52,11 +52,11 @@ func checkFileLifecycle() {
 		hx_exception_5 := haxe__Exception_caught(hx_caught_4)
 		hx_payload_6 := haxe__Exception_catchValue(hx_caught_4)
 		_ = hx_payload_6
-		var error *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_5)
+		var error_local *haxe__Exception = hx_recover_class_haxe__Exception(hx_exception_5)
 		if sys__FileSystem_exists(hxrt.StringFromLiteral(".portable_beta_contract.txt")) {
 			sys__FileSystem_deleteFile(hxrt.StringFromLiteral(".portable_beta_contract.txt"))
 		}
-		hxrt.Throw(haxe__Exception_thrown(error))
+		hxrt.Throw(haxe__Exception_thrown(error_local))
 	})
 	require(!sys__FileSystem_exists(hxrt.StringFromLiteral(".portable_beta_contract.txt")), hxrt.StringFromLiteral("file cleanup contract"))
 }
@@ -609,8 +609,8 @@ func hxrt__generated_method_field__haxe__io__Bytes(value *haxe__io__Bytes, key s
 	case "blit":
 		return func() *hxrt.Function[func(int, *haxe__io__Bytes, int, int)] {
 			hx_receiver_1 := value
-			return hxrt.BoundFunction(func(pos int, src *haxe__io__Bytes, srcpos int, len int) {
-				hx_receiver_1.__hx_this.blit(pos, src, srcpos, len)
+			return hxrt.BoundFunction(func(pos int, src *haxe__io__Bytes, srcpos int, len_local int) {
+				hx_receiver_1.__hx_this.blit(pos, src, srcpos, len_local)
 			}, func() any {
 				return hx_receiver_1.__hx_this
 			}, "blit")
@@ -627,8 +627,8 @@ func hxrt__generated_method_field__haxe__io__Bytes(value *haxe__io__Bytes, key s
 	case "fill":
 		return func() *hxrt.Function[func(int, int, int)] {
 			hx_receiver_1 := value
-			return hxrt.BoundFunction(func(pos int, len int, value int) {
-				hx_receiver_1.__hx_this.fill(pos, len, value)
+			return hxrt.BoundFunction(func(pos int, len_local int, value int) {
+				hx_receiver_1.__hx_this.fill(pos, len_local, value)
 			}, func() any {
 				return hx_receiver_1.__hx_this
 			}, "fill")
@@ -690,8 +690,8 @@ func hxrt__generated_method_field__haxe__io__Bytes(value *haxe__io__Bytes, key s
 	case "getString":
 		return func() *hxrt.Function[func(int, int, *haxe__io__Encoding) *string] {
 			hx_receiver_1 := value
-			return hxrt.BoundFunction(func(pos int, len int, encoding *haxe__io__Encoding) *string {
-				return hx_receiver_1.__hx_this.getString(pos, len, encoding)
+			return hxrt.BoundFunction(func(pos int, len_local int, encoding *haxe__io__Encoding) *string {
+				return hx_receiver_1.__hx_this.getString(pos, len_local, encoding)
 			}, func() any {
 				return hx_receiver_1.__hx_this
 			}, "getString")
@@ -708,8 +708,8 @@ func hxrt__generated_method_field__haxe__io__Bytes(value *haxe__io__Bytes, key s
 	case "readString":
 		return func() *hxrt.Function[func(int, int) *string] {
 			hx_receiver_1 := value
-			return hxrt.BoundFunction(func(pos int, len int) *string {
-				return hx_receiver_1.__hx_this.readString(pos, len)
+			return hxrt.BoundFunction(func(pos int, len_local int) *string {
+				return hx_receiver_1.__hx_this.readString(pos, len_local)
 			}, func() any {
 				return hx_receiver_1.__hx_this
 			}, "readString")
@@ -771,8 +771,8 @@ func hxrt__generated_method_field__haxe__io__Bytes(value *haxe__io__Bytes, key s
 	case "sub":
 		return func() *hxrt.Function[func(int, int) *haxe__io__Bytes] {
 			hx_receiver_1 := value
-			return hxrt.BoundFunction(func(pos int, len int) *haxe__io__Bytes {
-				return hx_receiver_1.__hx_this.sub(pos, len)
+			return hxrt.BoundFunction(func(pos int, len_local int) *haxe__io__Bytes {
+				return hx_receiver_1.__hx_this.sub(pos, len_local)
 			}, func() any {
 				return hx_receiver_1.__hx_this
 			}, "sub")
@@ -825,8 +825,8 @@ func hxrt__generated_method_field__haxe__io__BytesBuffer(value *haxe__io__BytesB
 	case "addBytes":
 		return func() *hxrt.Function[func(*haxe__io__Bytes, int, int)] {
 			hx_receiver_1 := value
-			return hxrt.BoundFunction(func(source *haxe__io__Bytes, pos int, len int) {
-				hx_receiver_1.__hx_this.addBytes(source, pos, len)
+			return hxrt.BoundFunction(func(source *haxe__io__Bytes, pos int, len_local int) {
+				hx_receiver_1.__hx_this.addBytes(source, pos, len_local)
 			}, func() any {
 				return hx_receiver_1.__hx_this
 			}, "addBytes")
@@ -960,8 +960,8 @@ func hxrt__generated_method_field__haxe__io__Input(value *haxe__io__Input, key s
 	case "readBytes":
 		return func() *hxrt.Function[func(*haxe__io__Bytes, int, int) int] {
 			hx_receiver_1 := value
-			return hxrt.BoundFunction(func(bytes *haxe__io__Bytes, pos int, len int) int {
-				return hx_receiver_1.__hx_this.readBytes(bytes, pos, len)
+			return hxrt.BoundFunction(func(bytes *haxe__io__Bytes, pos int, len_local int) int {
+				return hx_receiver_1.__hx_this.readBytes(bytes, pos, len_local)
 			}, func() any {
 				return hx_receiver_1.__hx_this
 			}, "readBytes")
@@ -987,8 +987,8 @@ func hxrt__generated_method_field__haxe__io__Input(value *haxe__io__Input, key s
 	case "readFullBytes":
 		return func() *hxrt.Function[func(*haxe__io__Bytes, int, int)] {
 			hx_receiver_1 := value
-			return hxrt.BoundFunction(func(bytes *haxe__io__Bytes, pos int, len int) {
-				hx_receiver_1.__hx_this.readFullBytes(bytes, pos, len)
+			return hxrt.BoundFunction(func(bytes *haxe__io__Bytes, pos int, len_local int) {
+				hx_receiver_1.__hx_this.readFullBytes(bytes, pos, len_local)
 			}, func() any {
 				return hx_receiver_1.__hx_this
 			}, "readFullBytes")
@@ -1041,8 +1041,8 @@ func hxrt__generated_method_field__haxe__io__Input(value *haxe__io__Input, key s
 	case "readString":
 		return func() *hxrt.Function[func(int, *haxe__io__Encoding) *string] {
 			hx_receiver_1 := value
-			return hxrt.BoundFunction(func(len int, encoding *haxe__io__Encoding) *string {
-				return hx_receiver_1.__hx_this.readString(len, encoding)
+			return hxrt.BoundFunction(func(len_local int, encoding *haxe__io__Encoding) *string {
+				return hx_receiver_1.__hx_this.readString(len_local, encoding)
 			}, func() any {
 				return hx_receiver_1.__hx_this
 			}, "readString")
@@ -1149,8 +1149,8 @@ func hxrt__generated_method_field__haxe__io__Output(value *haxe__io__Output, key
 	case "writeBytes":
 		return func() *hxrt.Function[func(*haxe__io__Bytes, int, int) int] {
 			hx_receiver_1 := value
-			return hxrt.BoundFunction(func(bytes *haxe__io__Bytes, pos int, len int) int {
-				return hx_receiver_1.__hx_this.writeBytes(bytes, pos, len)
+			return hxrt.BoundFunction(func(bytes *haxe__io__Bytes, pos int, len_local int) int {
+				return hx_receiver_1.__hx_this.writeBytes(bytes, pos, len_local)
 			}, func() any {
 				return hx_receiver_1.__hx_this
 			}, "writeBytes")
@@ -1176,8 +1176,8 @@ func hxrt__generated_method_field__haxe__io__Output(value *haxe__io__Output, key
 	case "writeFullBytes":
 		return func() *hxrt.Function[func(*haxe__io__Bytes, int, int)] {
 			hx_receiver_1 := value
-			return hxrt.BoundFunction(func(bytes *haxe__io__Bytes, pos int, len int) {
-				hx_receiver_1.__hx_this.writeFullBytes(bytes, pos, len)
+			return hxrt.BoundFunction(func(bytes *haxe__io__Bytes, pos int, len_local int) {
+				hx_receiver_1.__hx_this.writeFullBytes(bytes, pos, len_local)
 			}, func() any {
 				return hx_receiver_1.__hx_this
 			}, "writeFullBytes")

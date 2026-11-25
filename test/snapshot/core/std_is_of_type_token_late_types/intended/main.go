@@ -30,7 +30,7 @@ func fail() {
 }
 
 func main() {
-	var error any = New_haxe__exceptions__NotImplementedException(nil, nil, func() hxrt.Anonymous {
+	var error_local any = New_haxe__exceptions__NotImplementedException(nil, nil, func() hxrt.Anonymous {
 		hx_obj_2 := map[string]any{}
 		hx_obj_2["fileName"] = hxrt.StringFromLiteral("Main.hx")
 		hx_obj_2["lineNumber"] = 35
@@ -38,20 +38,20 @@ func main() {
 		hx_obj_2["methodName"] = hxrt.StringFromLiteral("main")
 		return hxrt.AnonymousFromMap(hx_obj_2)
 	}())
-	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("class token NotImplementedException="), hxrt.StdString(ClassTokenCheck_isClass(error, &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.exceptions.NotImplementedException")}))))
+	var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("class token NotImplementedException="), hxrt.StdString(ClassTokenCheck_isClass(error_local, &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.exceptions.NotImplementedException")}))))
 	hxrt.Println(v)
-	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("class token PosException="), hxrt.StdString(ClassTokenCheck_isClass(error, &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.exceptions.PosException")}))))
+	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("class token PosException="), hxrt.StdString(ClassTokenCheck_isClass(error_local, &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.exceptions.PosException")}))))
 	hxrt.Println(v_1)
-	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("class token Exception="), hxrt.StdString(ClassTokenCheck_isClass(error, &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.Exception")}))))
+	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("class token Exception="), hxrt.StdString(ClassTokenCheck_isClass(error_local, &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.Exception")}))))
 	hxrt.Println(v_2)
-	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("class token String="), hxrt.StdString(ClassTokenCheck_isClass(error, &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("String")}))))
+	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("class token String="), hxrt.StdString(ClassTokenCheck_isClass(error_local, &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("String")}))))
 	hxrt.Println(v_3)
 	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("class token on string="), hxrt.StdString(ClassTokenCheck_isClass(hxrt.StringFromLiteral("text"), &hxrt__TypeClassValue{name: hxrt.StringFromLiteral("haxe.exceptions.PosException")}))))
 	hxrt.Println(v_4)
 	var option any = haxe__ds__Option_Some(1)
 	var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("enum token Option="), hxrt.StdString(ClassTokenCheck_isEnum(option, &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral("haxe.ds.Option")}))))
 	hxrt.Println(v_5)
-	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("enum token on error="), hxrt.StdString(ClassTokenCheck_isEnum(error, &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral("haxe.ds.Option")}))))
+	var v_6 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("enum token on error="), hxrt.StdString(ClassTokenCheck_isEnum(error_local, &hxrt__TypeEnumValue{name: hxrt.StringFromLiteral("haxe.ds.Option")}))))
 	hxrt.Println(v_6)
 	hxrt.TryCatch(func() {
 		fail()

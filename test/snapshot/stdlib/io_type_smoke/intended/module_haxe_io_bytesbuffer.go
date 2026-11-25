@@ -11,7 +11,7 @@ type I_haxe__io__BytesBuffer interface {
 	addInt64(value *haxe___Int64_____Int64)
 	addFloat(value float64)
 	addDouble(value float64)
-	addBytes(source *haxe__io__Bytes, pos int, len int)
+	addBytes(source *haxe__io__Bytes, pos int, len_local int)
 	getBytes() *haxe__io__Bytes
 }
 
@@ -81,11 +81,11 @@ func (self *haxe__io__BytesBuffer) addDouble(value float64) {
 	self.__hx_this.addInt64(haxe__io__FPHelper_doubleToI64(value))
 }
 
-func (self *haxe__io__BytesBuffer) addBytes(source *haxe__io__Bytes, pos int, len int) {
-	if ((pos < 0) || (len < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len))) > source.length) {
+func (self *haxe__io__BytesBuffer) addBytes(source *haxe__io__Bytes, pos int, len_local int) {
+	if ((pos < 0) || (len_local < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len_local))) > source.length) {
 		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
-	self.b = hxrt.BytesBufferAddSlice(self.b, source.__hx_this.getData(), pos, len)
+	self.b = hxrt.BytesBufferAddSlice(self.b, source.__hx_this.getData(), pos, len_local)
 }
 
 func (self *haxe__io__BytesBuffer) getBytes() *haxe__io__Bytes {

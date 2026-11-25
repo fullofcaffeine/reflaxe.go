@@ -119,14 +119,14 @@ func haxe__Int64Helper_parseString(sParam *string) *haxe___Int64_____Int64 {
 		sIsNegative = true
 		s = hxrt.StringSubstringStringPtr(s, 1, hxrt.StringLengthStringPtr(s))
 	}
-	len := hxrt.StringLengthStringPtr(s)
+	len_local := hxrt.StringLengthStringPtr(s)
 	_g := 0
-	_g1 := len
+	_g1 := len_local
 	for _g < _g1 {
 		hx_post_6 := _g
 		_g = int(int32((_g + 1)))
 		i := hx_post_6
-		digitInt := int((hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(s, int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(len)-hxrt.Int32Wrap(1))))-hxrt.Int32Wrap(i))))))) - hxrt.Int32Wrap(48)))
+		digitInt := int((hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(hxrt.StringCharCodeAtAnyStringPtr(s, int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(len_local)-hxrt.Int32Wrap(1))))-hxrt.Int32Wrap(i))))))) - hxrt.Int32Wrap(48)))
 		if (digitInt < 0) || (digitInt > 9) {
 			hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("NumberFormatError")))
 		}

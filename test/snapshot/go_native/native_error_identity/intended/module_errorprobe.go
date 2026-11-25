@@ -149,9 +149,9 @@ func ErrorProbe_run() {
 		return func(hx_native_arg_27 string, hx_native_arg_28 fs.FileInfo, hx_native_arg_29 hxrt.RawError) hxrt.RawError {
 			return hxrt.ExportNativeError(hxrt.FunctionCall(hx_native_callback_26)(hxrt.StdString(hx_native_arg_27), hx_native_arg_28, hxrt.ImportNativeError(hx_native_arg_29)))
 		}
-	}(hxrt.NewFunction(func(hx_tmp *string, _1 fs.FileInfo, error *hxrt.NativeErrorValue) *hxrt.NativeErrorValue {
-		observed = error
-		return error
+	}(hxrt.NewFunction(func(hx_tmp *string, _1 fs.FileInfo, error_local *hxrt.NativeErrorValue) *hxrt.NativeErrorValue {
+		observed = error_local
+		return error_local
 	}))))
 	ErrorProbe_check(((observed != nil) && func() bool {
 		var hx_callable_30 *hxrt.Function[func(*hxrt.NativeErrorValue, *hxrt.NativeErrorValue) bool] = matches

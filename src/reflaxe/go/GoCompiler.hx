@@ -355,7 +355,7 @@ class GoCompiler {
 	var requiresStringValueErrorResultNormalization:Bool;
 	final externImportPaths:Map<String, Bool>;
 	final externImportPackages:Map<String, String>;
-	final reservedPackageNames:Map<String, Bool> = [];
+	final reservedGoNames:Map<String, Bool> = [];
 	final usedExternClassPaths:Map<String, Bool>;
 	final sourceModuleRegistry:GoSourceModuleRegistry;
 	final sourceOwnedStdlibPlanner:GoSourceOwnedStdlibPlanner;
@@ -578,7 +578,7 @@ class GoCompiler {
 	}
 
 	function compileResolvedTypes(classes:Array<ClassType>, enums:Array<EnumType>):Array<GoGeneratedFile> {
-		reserveTypedPackageNames();
+		reserveGoNames();
 		projectClasses = classes.copy();
 		projectEnums = enums.copy();
 		sourceOwnedStdlibPlanner.cacheAvailableClasses(classes);
@@ -5583,30 +5583,39 @@ class GoCompiler {
 	}
 
 	/**
-		Reserve typed package qualifiers before allocating any local or
-		selected-main static names.
+		Reserve Go's predeclared identifiers and typed package qualifiers before
+		allocating any local or selected-main static names.
 
-		Extern imports are discovered lazily during lowering, so the used-import
-		map is incomplete here. The completed Haxe module inventory supplies their
-		declared aliases without adding imports. Compiler support imports can also
-		be requested by later recovery; use their existing finite inventory.
-		Locals avoid these names with a `_local` suffix. Selected-main statics,
-		which otherwise print as bare package-level names, use their qualified
+		Why: a Haxe local or selected-main static that takes one of these names
+		shadows it, and generated code in that scope still needs the original
+		(`any`, `string`, `len`, `hxrt`, an imported `strings`), so the Go
+		package stops compiling.
+
+		How: Go's predeclared identifiers are a fixed list
+		(`GoNaming.goPredeclaredIdentifiers`). Extern imports are discovered
+		lazily during lowering, so the used-import map is incomplete here. The
+		completed Haxe module inventory supplies their declared aliases without
+		adding imports. Compiler support imports can also be requested by later
+		recovery; use their existing finite inventory. Locals avoid every
+		reserved name with a `_local` suffix. Selected-main statics, which
+		otherwise print as bare package-level names, use their qualified
 		`Type_field` form instead (see `GoNaming.staticSymbol`).
 	**/
-	function reserveTypedPackageNames():Void {
-		reservedPackageNames.clear();
-		reservedPackageNames.set("hxrt", true);
+	function reserveGoNames():Void {
+		reservedGoNames.clear();
+		for (name in GoNaming.goPredeclaredIdentifiers)
+			reservedGoNames.set(name, true);
+		reservedGoNames.set("hxrt", true);
 		for (path in buildSupportImports(true))
-			reservedPackageNames.set(importAliasForPath(path), true);
+			reservedGoNames.set(importAliasForPath(path), true);
 		for (requirement in compilationContext.surfacePlan.requiredImports)
-			reservedPackageNames.set(importAliasForPath(requirement.path), true);
+			reservedGoNames.set(importAliasForPath(requirement.path), true);
 		for (moduleType in Context.getAllModuleTypes()) {
 			switch (moduleType) {
 				case TClassDecl(ref) if (ref.get().isExtern):
 					var alias = externClassPackageName(ref.get());
 					if (alias != null)
-						reservedPackageNames.set(alias, true);
+						reservedGoNames.set(alias, true);
 				case _:
 			}
 		}
@@ -5631,7 +5640,7 @@ class GoCompiler {
 		}
 
 		var base = normalizeIdent(variable.name);
-		while (reservedPackageNames.exists(base))
+		while (reservedGoNames.exists(base))
 			base += "_local";
 		var currentScope = currentFunctionVarNameScope();
 		var countScope = currentFunctionVarNameCountScope();
@@ -5641,7 +5650,7 @@ class GoCompiler {
 
 		var next = countScope.exists(base) ? countScope.get(base) : 0;
 		var assigned = next == 0 ? base : base + "_" + next;
-		while (reservedPackageNames.exists(assigned) || activeScopesContainLocalName(assigned)) {
+		while (reservedGoNames.exists(assigned) || activeScopesContainLocalName(assigned)) {
 			next++;
 			assigned = base + "_" + next;
 		}
@@ -15696,7 +15705,7 @@ class GoCompiler {
 	function staticSymbol(classType:ClassType, fieldName:String):String {
 		noteStdlibClass(classType);
 		return GoNaming.staticSymbol(classType.pack, classType.name, fieldName, isSelectedMainClass(classType) ? outputIdentity.entrySymbol.value() : null,
-			reservedPackageNames);
+			reservedGoNames);
 	}
 
 	function normalizeIdent(name:String):String {

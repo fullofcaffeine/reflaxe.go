@@ -52,9 +52,9 @@ func check(ok bool, label *string) {
 
 func compactData(source []byte) *string {
 	output := bytes.NewBufferString(*hxrt.StdString(hxrt.StringFromLiteral("")))
-	error := hxrt.ImportNativeError(json.Compact(output, source))
-	if error != nil {
-		hxrt.Throw(haxe__Exception_thrown(hxrt.StdString(error.Text())))
+	error_local := hxrt.ImportNativeError(json.Compact(output, source))
+	if error_local != nil {
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StdString(error_local.Text())))
 	}
 	return hxrt.StdString(output.String())
 }
@@ -80,9 +80,9 @@ func main() {
 	view := buffer.Bytes()
 	view[0] = high
 	check(hxrt.StringEqualStringPtr(hxrt.StdString(hex.EncodeToString(buffer.Bytes())), hxrt.StringFromLiteral("ff62")), hxrt.StringFromLiteral("Buffer.Bytes aliases backing storage"))
-	copy := bytes.Clone(view)
-	copy[1] = octets[0]
-	check((hxrt.StringEqualStringPtr(hxrt.StdString(hex.EncodeToString(copy)), hxrt.StringFromLiteral("ff00")) && hxrt.StringEqualStringPtr(hxrt.StdString(hex.EncodeToString(buffer.Bytes())), hxrt.StringFromLiteral("ff62"))), hxrt.StringFromLiteral("Clone owns a copy"))
+	copy_local := bytes.Clone(view)
+	copy_local[1] = octets[0]
+	check((hxrt.StringEqualStringPtr(hxrt.StdString(hex.EncodeToString(copy_local)), hxrt.StringFromLiteral("ff00")) && hxrt.StringEqualStringPtr(hxrt.StdString(hex.EncodeToString(buffer.Bytes())), hxrt.StringFromLiteral("ff62"))), hxrt.StringFromLiteral("Clone owns a copy"))
 	portable := hxrt.ArrayFromValues(func(hx_sort_src_3 []byte) []any {
 		hx_sort_out_5 := make([]any, 0, len(hx_sort_src_3))
 		for _, hx_sort_item_4 := range hx_sort_src_3 {

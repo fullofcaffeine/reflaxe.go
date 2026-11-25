@@ -159,7 +159,7 @@ func main() {
 	noneMid := hx_recover_class_Mid(none)
 	var v_11 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("null stays null="), hxrt.StdString((noneMid == nil))))
 	hxrt.Println(v_11)
-	error := func(hx_value *haxe__exceptions__NotImplementedException) *haxe__Exception {
+	error_local := func(hx_value *haxe__exceptions__NotImplementedException) *haxe__Exception {
 		if hx_value == nil {
 			return nil
 		}
@@ -172,7 +172,7 @@ func main() {
 		hx_obj_1["methodName"] = hxrt.StringFromLiteral("main")
 		return hxrt.AnonymousFromMap(hx_obj_1)
 	}()))
-	pos := hx_recover_class_haxe__exceptions__PosException(error)
+	pos := hx_recover_class_haxe__exceptions__PosException(error_local)
 	var v_12 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("std exception as PosException="), pos.__hx_this.get_message()))
 	hxrt.Println(v_12)
 }

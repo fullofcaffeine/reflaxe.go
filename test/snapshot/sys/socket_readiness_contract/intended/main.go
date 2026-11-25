@@ -25,7 +25,7 @@ func isBlocked(operation *hxrt.Function[func()]) bool {
 				return false
 			}
 		}(hx_payload_7) {
-			var error *haxe__io__Error = func(hx_value_8 any) *haxe__io__Error {
+			var error_local *haxe__io__Error = func(hx_value_8 any) *haxe__io__Error {
 				if hx_value_8 == nil {
 					var hx_zero_9 *haxe__io__Error
 					return hx_zero_9
@@ -33,11 +33,11 @@ func isBlocked(operation *hxrt.Function[func()]) bool {
 				return hx_value_8.(*haxe__io__Error)
 			}(hx_payload_7)
 			var hx_if_5 bool
-			if error.tag == 0 {
+			if error_local.tag == 0 {
 				hx_if_5 = true
 			} else {
 				hx_if_5 = func() bool {
-					hxrt.Throw(haxe__Exception_thrown(error))
+					hxrt.Throw(haxe__Exception_thrown(error_local))
 					var hx_throw_zero_4 bool
 					return hx_throw_zero_4
 				}()
@@ -151,8 +151,8 @@ func main() {
 		hx_exception_12 := haxe__Exception_caught(hx_caught_11)
 		hx_payload_13 := haxe__Exception_catchValue(hx_caught_11)
 		_ = hx_exception_12
-		var error any = hx_payload_13
-		failed = error
+		var error_local any = hx_payload_13
+		failed = error_local
 	})
 	safeClose(unconnected)
 	safeClose(accepted)

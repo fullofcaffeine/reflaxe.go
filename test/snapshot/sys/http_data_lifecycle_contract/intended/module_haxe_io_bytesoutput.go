@@ -4,12 +4,12 @@ import "snapshot/hxrt"
 
 type I_haxe__io__BytesOutput interface {
 	writeByte(value int)
-	writeBytes(bytes *haxe__io__Bytes, pos int, len int) int
+	writeBytes(bytes *haxe__io__Bytes, pos int, len_local int) int
 	flush()
 	close()
 	set_bigEndian(value bool) bool
 	write(bytes *haxe__io__Bytes)
-	writeFullBytes(bytes *haxe__io__Bytes, pos int, len int)
+	writeFullBytes(bytes *haxe__io__Bytes, pos int, len_local int)
 	writeFloat(value float64)
 	writeDouble(value float64)
 	writeInt8(value int)
@@ -66,13 +66,13 @@ func (self *haxe__io__BytesOutput) writeByte(value int) {
 	_this.b = hxrt.BytesBufferAddByte(_this.b, value)
 }
 
-func (self *haxe__io__BytesOutput) writeBytes(bytes *haxe__io__Bytes, pos int, len int) int {
+func (self *haxe__io__BytesOutput) writeBytes(bytes *haxe__io__Bytes, pos int, len_local int) int {
 	_this := self.b
-	if ((pos < 0) || (len < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len))) > bytes.length) {
+	if ((pos < 0) || (len_local < 0)) || (int((hxrt.Int32Wrap(pos) + hxrt.Int32Wrap(len_local))) > bytes.length) {
 		hxrt.Throw(haxe__Exception_thrown(haxe__io__Error_OutsideBounds))
 	}
-	_this.b = hxrt.BytesBufferAddSlice(_this.b, bytes.__hx_this.getData(), pos, len)
-	return len
+	_this.b = hxrt.BytesBufferAddSlice(_this.b, bytes.__hx_this.getData(), pos, len_local)
+	return len_local
 }
 
 func (self *haxe__io__BytesOutput) getBytes() *haxe__io__Bytes {

@@ -24,8 +24,8 @@ func safe(label *string, fn *hxrt.Function[func() *string]) {
 		hx_exception_2 := haxe__Exception_caught(hx_caught_1)
 		hx_payload_3 := haxe__Exception_catchValue(hx_caught_1)
 		_ = hx_exception_2
-		var error any = hx_payload_3
-		var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(label, hxrt.StringFromLiteral("=!")), hxrt.StdString(error)))
+		var error_local any = hx_payload_3
+		var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(label, hxrt.StringFromLiteral("=!")), hxrt.StdString(error_local)))
 		hxrt.Println(v)
 	})
 }

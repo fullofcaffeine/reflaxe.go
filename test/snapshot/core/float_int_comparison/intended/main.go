@@ -83,7 +83,7 @@ func main() {
 	sample_maybeWhole = nil
 	sample_maybeReal = nil
 	row(hxrt.StringFromLiteral("field"), hxrt.NewArray((float64(meter.count) < meter.ratio), (meter.ratio >= float64(meter.count)), (float64(meter.count) == meter.ratio), (float64(Meter_limit) > Meter_scale), (Meter_scale == float64(Meter_limit)), (Meter_scale <= float64(Meter_limit)), (float64(sample_whole) <= sample_real), (sample_real != float64(sample_whole)), (float64(sample_whole) == sample_real), (float64(meter.count) < Meter_scale), (float64(Meter_limit) == sample_real), (float64(sample_whole) > meter.ratio)))
-	row(hxrt.StringFromLiteral("call"), hxrt.NewArray((float64(whole(2)) < real(2.5)), (real(2.0) == float64(whole(2))), (float64(whole(3)) > 2.5), (2.5 < float64(whole(3))), (real(-1.5) > float64(whole(-2))), (float64(whole(2147483647)) != real(2147483647.0)), (real(f) >= float64(whole(i)))))
+	row(hxrt.StringFromLiteral("call"), hxrt.NewArray((float64(whole(2)) < Main_real(2.5)), (Main_real(2.0) == float64(whole(2))), (float64(whole(3)) > 2.5), (2.5 < float64(whole(3))), (Main_real(-1.5) > float64(whole(-2))), (float64(whole(2147483647)) != Main_real(2147483647.0)), (Main_real(f) >= float64(whole(i)))))
 	ints := hxrt.NewArray(1, 2, 3)
 	reals := hxrt.NewArray(1.5, 2.0, 2.5)
 	row(hxrt.StringFromLiteral("array"), hxrt.NewArray((float64(hxrt.IntFromNullableAny(ints.Get(1))) < func(hx_value_7 any) float64 {
@@ -587,57 +587,57 @@ func main() {
 	huge := -1
 	narrow := 5
 	row(hxrt.StringFromLiteral("uint"), hxrt.NewArray((func() float64 {
-		int := small
+		int_local := small
 		var hx_if_130 float64
-		if int < 0 {
-			hx_if_130 = (4294967296.0 + float64(int))
+		if int_local < 0 {
+			hx_if_130 = (4294967296.0 + float64(int_local))
 		} else {
-			hx_if_130 = (float64(int) + 0.0)
+			hx_if_130 = (float64(int_local) + 0.0)
 		}
 		return hx_if_130
 	}() > f), (f < func() float64 {
-		int_1 := small
+		int_local_1 := small
 		var hx_if_131 float64
-		if int_1 < 0 {
-			hx_if_131 = (4294967296.0 + float64(int_1))
+		if int_local_1 < 0 {
+			hx_if_131 = (4294967296.0 + float64(int_local_1))
 		} else {
-			hx_if_131 = (float64(int_1) + 0.0)
+			hx_if_131 = (float64(int_local_1) + 0.0)
 		}
 		return hx_if_131
 	}()), (func() float64 {
-		int_2 := small
+		int_local_2 := small
 		var hx_if_132 float64
-		if int_2 < 0 {
-			hx_if_132 = (4294967296.0 + float64(int_2))
+		if int_local_2 < 0 {
+			hx_if_132 = (4294967296.0 + float64(int_local_2))
 		} else {
-			hx_if_132 = (float64(int_2) + 0.0)
+			hx_if_132 = (float64(int_local_2) + 0.0)
 		}
 		return hx_if_132
 	}() == 3.0), (func() float64 {
-		int_3 := huge
+		int_local_3 := huge
 		var hx_if_133 float64
-		if int_3 < 0 {
-			hx_if_133 = (4294967296.0 + float64(int_3))
+		if int_local_3 < 0 {
+			hx_if_133 = (4294967296.0 + float64(int_local_3))
 		} else {
-			hx_if_133 = (float64(int_3) + 0.0)
+			hx_if_133 = (float64(int_local_3) + 0.0)
 		}
 		return hx_if_133
 	}() > f), (func() float64 {
-		int_4 := huge
+		int_local_4 := huge
 		var hx_if_134 float64
-		if int_4 < 0 {
-			hx_if_134 = (4294967296.0 + float64(int_4))
+		if int_local_4 < 0 {
+			hx_if_134 = (4294967296.0 + float64(int_local_4))
 		} else {
-			hx_if_134 = (float64(int_4) + 0.0)
+			hx_if_134 = (float64(int_local_4) + 0.0)
 		}
 		return hx_if_134
 	}() > 4000000000.0), (func() float64 {
-		int_5 := huge
+		int_local_5 := huge
 		var hx_if_135 float64
-		if int_5 < 0 {
-			hx_if_135 = (4294967296.0 + float64(int_5))
+		if int_local_5 < 0 {
+			hx_if_135 = (4294967296.0 + float64(int_local_5))
 		} else {
-			hx_if_135 = (float64(int_5) + 0.0)
+			hx_if_135 = (float64(int_local_5) + 0.0)
 		}
 		return hx_if_135
 	}() == 4294967295.0)))
@@ -652,7 +652,7 @@ func noWhole() any {
 	return nil
 }
 
-func real(value float64) float64 {
+func Main_real(value float64) float64 {
 	return value
 }
 

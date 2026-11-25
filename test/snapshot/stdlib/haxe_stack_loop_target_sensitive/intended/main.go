@@ -16,8 +16,8 @@ func main() {
 		hx_exception_2 := haxe__Exception_caught(hx_caught_1)
 		hx_payload_3 := haxe__Exception_catchValue(hx_caught_1)
 		_ = hx_exception_2
-		var error any = hx_payload_3
-		_ = error
+		var error_local any = hx_payload_3
+		_ = error_local
 		exceptionStack := haxe___CallStack__CallStack_Impl__exceptionStack(false)
 		var v_3 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("exc.len="), exceptionStack.Len()))
 		hxrt.Println(v_3)

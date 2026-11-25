@@ -15,8 +15,8 @@ func (self *GoHTTPRequestResult) HxFunctionReceiver() any {
 	return self.__hx_this
 }
 
-func New_GoHTTPRequestResult(request *http.Request, error *go___Error) *GoHTTPRequestResult {
-	return hx_init_GoHTTPRequestResult(hx_alloc_GoHTTPRequestResult(nil), request, error)
+func New_GoHTTPRequestResult(request *http.Request, error_local *go___Error) *GoHTTPRequestResult {
+	return hx_init_GoHTTPRequestResult(hx_alloc_GoHTTPRequestResult(nil), request, error_local)
 }
 
 func hx_alloc_GoHTTPRequestResult(owner any) *GoHTTPRequestResult {
@@ -29,9 +29,9 @@ func hx_alloc_GoHTTPRequestResult(owner any) *GoHTTPRequestResult {
 	return self
 }
 
-func hx_init_GoHTTPRequestResult(self *GoHTTPRequestResult, request *http.Request, error *go___Error) *GoHTTPRequestResult {
+func hx_init_GoHTTPRequestResult(self *GoHTTPRequestResult, request *http.Request, error_local *go___Error) *GoHTTPRequestResult {
 	self.request = request
-	self.error = error
+	self.error = error_local
 	return self
 }
 

@@ -182,9 +182,9 @@ func haxe__Utf8_length(s *string) int {
 	return haxe__io__Bytes_ofString(s, nil).length
 }
 
-func haxe__Utf8_sub(s *string, pos int, len int) *string {
+func haxe__Utf8_sub(s *string, pos int, len_local int) *string {
 	unicode := s
-	return _UnicodeString__UnicodeString_Impl__substr(unicode, pos, len)
+	return _UnicodeString__UnicodeString_Impl__substr(unicode, pos, len_local)
 }
 
 func haxe__Utf8_validate(s *string) bool {

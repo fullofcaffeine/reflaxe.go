@@ -41,9 +41,9 @@ func main() {
 	hxrt.Println(v)
 }
 
-func report(error *hxrt.NativeErrorValue) {
-	if error != nil {
-		var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("error: "), hxrt.StdString(error.Text())))
+func report(error_local *hxrt.NativeErrorValue) {
+	if error_local != nil {
+		var v any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("error: "), hxrt.StdString(error_local.Text())))
 		hxrt.Println(v)
 	}
 }

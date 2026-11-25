@@ -107,8 +107,8 @@ func (self *ParsedInt64) HxFunctionReceiver() any {
 	return self.__hx_this
 }
 
-func New_ParsedInt64(value int64, error *go___Error) *ParsedInt64 {
-	return hx_init_ParsedInt64(hx_alloc_ParsedInt64(nil), value, error)
+func New_ParsedInt64(value int64, error_local *go___Error) *ParsedInt64 {
+	return hx_init_ParsedInt64(hx_alloc_ParsedInt64(nil), value, error_local)
 }
 
 func hx_alloc_ParsedInt64(owner any) *ParsedInt64 {
@@ -121,9 +121,9 @@ func hx_alloc_ParsedInt64(owner any) *ParsedInt64 {
 	return self
 }
 
-func hx_init_ParsedInt64(self *ParsedInt64, value int64, error *go___Error) *ParsedInt64 {
+func hx_init_ParsedInt64(self *ParsedInt64, value int64, error_local *go___Error) *ParsedInt64 {
 	self.value = value
-	self.error = error
+	self.error = error_local
 	return self
 }
 
