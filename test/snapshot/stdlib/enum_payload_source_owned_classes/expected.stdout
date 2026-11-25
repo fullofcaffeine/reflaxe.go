@@ -1,0 +1,5 @@
+constructor=Empty
+index=0
+label=empty
+is Empty=true
+constructs=Empty,Stack,Tree,Buffer

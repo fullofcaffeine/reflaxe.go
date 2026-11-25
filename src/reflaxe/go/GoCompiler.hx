@@ -621,10 +621,15 @@ class GoCompiler {
 		var moduleDecls = new Map<String, Array<GoDecl>>();
 		var moduleBuildConstraints = collectModuleBuildConstraints(classes, enums);
 		refreshBuildConstrainedTypes(moduleBuildConstraints);
+		// The setup above (the leaf-receiver scan in `buildGlobalLeafReceiverTypes`)
+		// can queue a superclass before anything is lowered. Lowering its subclass
+		// queues it again, and that point gives the output its class order, so drop
+		// those early entries. Keep the classes that the enums below require: each
+		// enum is lowered only once, so nothing would queue them again.
+		clearClassMap(pendingRequiredClassesByName);
 		for (enumType in enums) {
 			appendModuleDecls(moduleDecls, enumType.module, lowerModuleDecls(enumType.module, function() return lowerEnumDecls(enumType)));
 		}
-		clearClassMap(pendingRequiredClassesByName);
 		var queuedClassNames = new Map<String, Bool>();
 		var classQueue = classes.copy();
 		for (classType in classes) {
