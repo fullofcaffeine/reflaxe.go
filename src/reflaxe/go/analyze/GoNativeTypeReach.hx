@@ -6,7 +6,8 @@ import reflaxe.go.compiler.GoTypeMapper;
 
 /**
 	What: Answers whether a macro type can reach a `go.*` declaration, and
-	remembers the answer for each typedef, abstract, and statics type it expands.
+	remembers the answer for each typedef, abstract, and `go.*` statics type it
+	expands.
 
 	Why: The native authority gate (`GoProfileContractAnalyzer`) asks this about
 	the type of every field and expression node in every portable class: about
@@ -26,6 +27,18 @@ import reflaxe.go.compiler.GoTypeMapper;
 	rejects two types with one path, private types get module-qualified paths,
 	and the typedef that wraps a statics type (such as `Class<Main>`) names its
 	owner.
+
+	A statics type is the type of an expression that names a class, enum, or
+	abstract, such as `Helper` in `Helper.plain()`; its fields are all the
+	statics of its owner. Only the statics type of a `go.*` owner is expanded.
+	For any other owner it answers false: a member used through it is a separate
+	expression with its own type, so a caller of a go-free `Helper.plain()` is
+	not counted as using `go.*` because another static of `Helper` has a `go.*`
+	type. Module-level functions are statics of their module's `_Fields_` class,
+	so the same holds for them. The statics of a `go.*` owner are walked like
+	any other expansion, so a go-free static of a `go.*` type counts while
+	another of its statics has a `go.*` type (haxe_go-jo2j tracks the `go.*`
+	types whose statics are all go-free).
 
 	An expansion that meets a declaration it is still expanding, or one it has
 	already expanded and found false, answers false for it. That is safe for the
@@ -83,11 +96,11 @@ class GoNativeTypeReach {
 				final anon = ref.get();
 				switch (anon.status) {
 					case AClassStatics(owner):
-						expand(classStatics, GoTypeMapper.declarationPath(owner), () -> walkFields(anon.fields));
+						walkStatics(classStatics, GoTypeMapper.declarationPath(owner), anon.fields);
 					case AEnumStatics(owner):
-						expand(enumStatics, GoTypeMapper.declarationPath(owner), () -> walkFields(anon.fields));
+						walkStatics(enumStatics, GoTypeMapper.declarationPath(owner), anon.fields);
 					case AAbstractStatics(owner):
-						expand(abstractStatics, GoTypeMapper.declarationPath(owner), () -> walkFields(anon.fields));
+						walkStatics(abstractStatics, GoTypeMapper.declarationPath(owner), anon.fields);
 					case _:
 						walkFields(anon.fields);
 				}
@@ -114,6 +127,11 @@ class GoNativeTypeReach {
 			}
 		}
 		return false;
+	}
+
+	/** Answers for the statics type of the declaration at `ownerPath`: false unless the owner is `go.*`. */
+	function walkStatics(memo:Map<String, GoNativeReachAnswer>, ownerPath:String, fields:Array<ClassField>):Bool {
+		return isGoPath(ownerPath) && expand(memo, ownerPath, () -> walkFields(fields));
 	}
 
 	/** Answers for one declaration, expanding it with `explore` the first time it is met. */

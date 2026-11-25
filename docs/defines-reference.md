@@ -193,6 +193,9 @@ are present in report artifacts.
     - `typed` (default): typed analyzer traversal. A module is reported when
       the type of one of its fields or expressions reaches a `go.*`
       declaration, however deeply that declaration is nested in the type.
+      Calling a static or module-level function counts only that function's
+      own type: a caller of a go-free `@:goNative` function is not reported
+      because a sibling function has a `go.*` signature.
     - `scanner`: explicit source scanner (`import`/`using`) for deterministic low-noise module hits.
     - `hybrid`: union of `typed` + `scanner` hits.
 - `reflaxe_go_portable_native_allow=<csv>`

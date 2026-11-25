@@ -28,10 +28,63 @@ class ReachStatics {
 	public static var self = ReachStatics;
 }
 
-/** A class whose statics type refers to itself and reaches `go.*` through a field. */
+/**
+	A class with a `go.*` static field whose statics type refers to itself.
+
+	Its statics type does not reach `go.*`: only the statics of a `go.*` owner
+	count, and an access to `values` has the field's own `go.*` type.
+**/
 class ReachGoStatics {
 	public static var values:Null<go.NativeSlice<Bool>> = null;
 	public static var self = ReachGoStatics;
+}
+
+/** A class with a go-free static next to one whose result type is `go.*`. */
+class ReachMixedStatics {
+	public static function plain():Int {
+		return 1;
+	}
+
+	public static function native():Null<go.NativeSlice<Bool>> {
+		return null;
+	}
+}
+
+/** Calls only go-free statics and module-level functions whose siblings have `go.*` types. */
+class ReachSiblingCaller {
+	public static function run():Int {
+		return ReachMixedStatics.plain() + plainModuleFunction();
+	}
+}
+
+/** Calls a static whose own result type is `go.*`. */
+class ReachNativeCaller {
+	public static function run():Bool {
+		return ReachMixedStatics.native() == null;
+	}
+}
+
+/** Calls a module-level function whose own result type is `go.*`. */
+class ReachNativeModuleCaller {
+	public static function run():Bool {
+		return nativeModuleFunction() == null;
+	}
+}
+
+/** Names a `go.*` class: a call to its go-free static counts while another of its statics has a `go.*` type. */
+class ReachGoOwnerCaller {
+	public static function run():Void {
+		go.Go.spawn(() -> {});
+	}
+}
+
+/** A go-free module-level function next to one whose result type is `go.*`. */
+function plainModuleFunction():Int {
+	return 2;
+}
+
+function nativeModuleFunction():Null<go.NativeSlice<Bool>> {
+	return null;
 }
 
 /** A class with no `go.*` type in any field type or expression. */

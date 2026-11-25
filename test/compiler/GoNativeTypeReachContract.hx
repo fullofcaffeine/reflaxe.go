@@ -29,6 +29,9 @@ import reflaxe.go.analyze.GoProfileContractAnalyzer.GoPortableNativeImportHit;
 	  every ordered pair of questions;
 	- named fixture fields have the expected answers, including cycles through
 	  typedefs and statics types;
+	- naming a type counts only the statics of a `go.*` type, so a caller of a
+	  go-free static or module-level function is not counted because a sibling
+	  has a `go.*` type;
 	- the gate's answers per class and abstract, and its hit list, equal the
 	  same collection over the independent walk, and the gate reports the
 	  `go.*` types behind types that print alike.
@@ -85,10 +88,11 @@ class GoNativeTypeReachContract {
 			case TAnonymous(ref):
 				final anon = ref.get();
 				final fields = () -> all([for (field in anon.fields) field.type]);
+				// Only the statics of a go.* owner are walked.
 				switch (anon.status) {
-					case AClassStatics(owner): declaration("class statics " + owner.toString(), fields);
-					case AEnumStatics(owner): declaration("enum statics " + owner.toString(), fields);
-					case AAbstractStatics(owner): declaration("abstract statics " + owner.toString(), fields);
+					case AClassStatics(owner): isGoPath(owner.toString()) && declaration("class statics " + owner.toString(), fields);
+					case AEnumStatics(owner): isGoPath(owner.toString()) && declaration("enum statics " + owner.toString(), fields);
+					case AAbstractStatics(owner): isGoPath(owner.toString()) && declaration("abstract statics " + owner.toString(), fields);
 					case _: fields();
 				}
 			case TLazy(load): reference(load(), visited);
@@ -195,11 +199,11 @@ class GoNativeTypeReachContract {
 		return current;
 	}
 
-	/** The statics type of a fixture abstract, with the static fields of `fieldsFrom` as its fields. */
-	static function abstractStatics(name:String, fieldsFrom:ClassType):Type {
-		final owner = switch (Context.getType("GoNativeTypeReachContractFixture." + name)) {
+	/** The statics type of the abstract at `path`, with the static fields of `fieldsFrom` as its fields. */
+	static function abstractStatics(path:String, fieldsFrom:ClassType):Type {
+		final owner = switch (Context.getType(path)) {
 			case TAbstract(ref, _): ref;
-			case _: throw "not an abstract: " + name;
+			case _: throw "not an abstract: " + path;
 		};
 		final anon:AnonType = {fields: fieldsFrom.statics.get(), status: AAbstractStatics(owner)};
 		return TAnonymous({get: () -> anon, toString: () -> "<anonymous>"});
@@ -238,6 +242,11 @@ class GoNativeTypeReachContract {
 			load("GoNativeTypeReachContractFixture.ReachPortable"),
 			load("GoNativeTypeReachContractFixture.ReachStatics"),
 			load("GoNativeTypeReachContractFixture.ReachGoStatics"),
+			load("GoNativeTypeReachContractFixture.ReachMixedStatics"),
+			load("GoNativeTypeReachContractFixture.ReachSiblingCaller"),
+			load("GoNativeTypeReachContractFixture.ReachNativeCaller"),
+			load("GoNativeTypeReachContractFixture.ReachNativeModuleCaller"),
+			load("GoNativeTypeReachContractFixture.ReachGoOwnerCaller"),
 			load("GoNativeTypeReachContractPrintFixture"),
 			load("GoNativeTypeReachContractPrintFixture.GoNativeTypeReachContractNestedPrint"),
 			load("GoNativeTypeReachContractPrintFixture.GoNativeTypeReachContractPrintPortable")
@@ -270,8 +279,13 @@ class GoNativeTypeReachContract {
 			question("300 levels plain", nested(300, plainInt)),
 			question("300 levels go", nested(300, goSlice)),
 			// Typed code reaches an abstract's statics through its implementation class, so these are built.
-			question("abstract statics go", abstractStatics("ReachOverInt", load("GoNativeTypeReachContractFixture.ReachGoStatics"))),
-			question("abstract statics plain", abstractStatics("ReachOverSlice", load("GoNativeTypeReachContractFixture.ReachStatics")))
+			question("go abstract statics with go fields", abstractStatics("go.NativeAny", load("GoNativeTypeReachContractFixture.ReachGoStatics"))),
+			// Each owner keeps one set of fields, as in typed code: a path names one statics type.
+			question("go abstract statics with plain fields", abstractStatics("go.Go.__ChanHandle", load("GoNativeTypeReachContractFixture.ReachStatics"))),
+			question("abstract statics with go fields",
+				abstractStatics("GoNativeTypeReachContractFixture.ReachOverInt", load("GoNativeTypeReachContractFixture.ReachGoStatics"))),
+			question("abstract statics with plain fields",
+				abstractStatics("GoNativeTypeReachContractFixture.ReachOverSlice", load("GoNativeTypeReachContractFixture.ReachStatics")))
 		];
 		for (entry in constructed)
 			questions.push(entry);
@@ -321,6 +335,27 @@ class GoNativeTypeReachContract {
 		require(statics.length > 0 && !Lambda.exists(statics, entry -> new GoNativeTypeReach().reaches(entry.type)),
 			"a statics type that reaches no go.* type answered true");
 		require(Lambda.exists(goStatics, entry -> new GoNativeTypeReach().reaches(entry.type)), "a statics type that reaches go.* answered false");
+		final constructedAnswers = [
+			"go abstract statics with go fields" => true,
+			"go abstract statics with plain fields" => false,
+			"abstract statics with go fields" => false,
+			"abstract statics with plain fields" => false
+		];
+		for (label => want in constructedAnswers) {
+			final entry = Lambda.find(questions, entry -> entry.label == label);
+			require(entry != null && new GoNativeTypeReach().reaches(entry.type) == want, "unexpected answer for " + label);
+		}
+
+		// Naming a type counts only the statics of a go.* type; each member used through it has its own type.
+		final callers = [
+			"ReachSiblingCaller" => false,
+			"ReachNativeCaller" => true,
+			"ReachNativeModuleCaller" => true,
+			"ReachGoOwnerCaller" => true
+		];
+		for (name => want in callers)
+			require(GoProfileContractAnalyzer.classUsesGoNative(load("GoNativeTypeReachContractFixture." + name), new GoNativeTypeReach()) == want,
+				"unexpected class answer for " + name);
 
 		// Remembered answers equal the reference for several question orders and for each question alone.
 		final reversed = questions.copy();
@@ -392,7 +427,7 @@ class GoNativeTypeReachContract {
 				case _:
 			}
 		}
-		require(classCount >= 7 && abstractCount >= 4, "fixture modules lost classes or abstracts");
+		require(classCount >= 13 && abstractCount >= 4, "fixture modules lost classes or abstracts");
 		final root = Sys.getCwd();
 		final hits = describe(GoProfileContractAnalyzer.collectPortableNativeImportTypedHits(types, root, []));
 		require(hits == describe(referenceCollect(types, root)), "hit list differs from the reference: " + hits);

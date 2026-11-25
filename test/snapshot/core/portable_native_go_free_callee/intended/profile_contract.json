@@ -1,0 +1,66 @@
+{
+	"schemaVersion": 8,
+	"contract": "portable",
+	"policyPreset": "portable_default",
+	"semanticBoundarySource": "typed_api_or_module",
+	"nativeAuthorityPolicy": "guarded",
+	"nativeAuthorityPolicySource": "policy_preset",
+	"nativeSpecializationPolicy": "proven",
+	"nativeSpecializationPolicySource": "policy_preset",
+	"nativeFallbackPolicy": "allow",
+	"nativeFallbackPolicySource": "policy_preset",
+	"autoLoweringMode": "off",
+	"strictExamples": false,
+	"strictUserBoundaryPolicy": "auto",
+	"strictUserBoundaries": false,
+	"metalFallbackAllowed": false,
+	"metalContractHardError": false,
+	"emitLineDirectives": false,
+	"rawNativeMode": "interp",
+	"hxrtSelectiveEnabled": false,
+	"hxrtForceFullCopy": false,
+	"hxrtNoFeatureInfer": false,
+	"loweringDecisionCount": 0,
+	"loweringDecisionAttemptCount": 0,
+	"loweringDecisionSuccessCount": 0,
+	"loweringDecisionFallbackCount": 0,
+	"nativeFallbackEventCount": 0,
+	"nativeFallbackBoundaryEventCount": 0,
+	"nativeFallbackNonBoundaryEventCount": 0,
+	"metalFallbackViolationCount": 0,
+	"metalFallbackLaneViolationCount": 0,
+	"metalFallbackNonLaneViolationCount": 0,
+	"portableNativeImportScanMode": "typed",
+	"portableNativeImportHitCount": 0,
+	"portableNativeImportTypedHitCount": 0,
+	"portableNativeImportScannerHitCount": 0,
+	"contractDiagnosticCount": 0,
+	"hxrtManualFeatures": [
+	],
+	"nativeBoundaryModules": [
+		"Helper",
+		"Tools"
+	],
+	"metalLaneModules": [
+		"Helper",
+		"Tools"
+	],
+	"portableNativeImportHits": [
+	],
+	"portableNativeImportTypedHits": [
+	],
+	"portableNativeImportScannerHits": [
+	],
+	"contractDiagnostics": [
+	],
+	"loweringDecisions": [
+	],
+	"nativeFallbackEventsByModule": [
+	],
+	"nativeFallbackEvents": [
+	],
+	"metalFallbackViolationsByModule": [
+	],
+	"metalFallbackViolations": [
+	]
+}
