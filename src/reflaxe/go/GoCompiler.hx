@@ -8178,6 +8178,16 @@ class GoCompiler {
 		class. Its rule depends on the writes of `hasGeneratedVirtualCarrier` and
 		`classTypeName`; see `GoStoredValueClassScan`.
 
+		A class that is required while one class is lowered waits in
+		`pendingRequiredClassesByName` and joins `projectClasses` only after that
+		class is lowered. Mapping the target type is what requires a
+		standard-library class, so the target's class is often still waiting there.
+		Without it, the recovery became a plain Go type assertion, which panics on
+		a subclass value, and the result depended on the order in which classes
+		were lowered. The waiting class whose Go name is the target's name is
+		therefore tested too. Only that class is tested, so no other waiting class
+		gains a side effect.
+
 		Value recovery reuses helpers built with this function while
 		`storedValueRecoveryInputs()` is unchanged. A change here that reads more
 		compiler state must add that state there.
@@ -8191,14 +8201,30 @@ class GoCompiler {
 		if (target.sameRepresentation(GoType.qualified("hxrt", "Anonymous")))
 			return structuralObjectLowering.recoverRaw(value);
 		for (source in storedValueClassScan.testedClasses(projectClasses, target)) {
-			if (hasGeneratedVirtualCarrier(source) && target.sameRepresentation(GoType.pointer(GoType.named(classTypeName(source)))))
-				return nominalValueRecovery.recover(value, source);
-			if (source.isInterface && !source.isExtern && target.sameRepresentation(GoType.named(classTypeName(source))))
-				return lowerNilSafeTypeAssertExpr(GoExpr.GoCall(GoExpr.GoIdent("hxrt.ObjectSource"), [value]), target.render());
+			final recovered = recoverStoredClassValue(value, target, source);
+			if (recovered != null)
+				return recovered;
 		}
+		final targetName = target.localNominalName();
+		if (targetName != null)
+			for (source in pendingRequiredClassesByName)
+				if (GoStoredValueClassScan.typeName(source) == targetName) {
+					final recovered = recoverStoredClassValue(value, target, source);
+					if (recovered != null)
+						return recovered;
+				}
 		// The helper parameter is already any: Go boxes concrete arguments there.
 		// Keep the assertion inside that interface boundary without reboxing its input.
 		return lowerNilSafeTypeAssertExpr(value, target.render());
+	}
+
+	/** The recovery of `value` as `source` when `target` is that class's carrier or interface, or null. */
+	function recoverStoredClassValue(value:GoExpr, target:GoType, source:ClassType):Null<GoExpr> {
+		if (hasGeneratedVirtualCarrier(source) && target.sameRepresentation(GoType.pointer(GoType.named(classTypeName(source)))))
+			return nominalValueRecovery.recover(value, source);
+		if (source.isInterface && !source.isExtern && target.sameRepresentation(GoType.named(classTypeName(source))))
+			return lowerNilSafeTypeAssertExpr(GoExpr.GoCall(GoExpr.GoIdent("hxrt.ObjectSource"), [value]), target.render());
+		return null;
 	}
 
 	/**
@@ -8210,8 +8236,9 @@ class GoCompiler {
 		availability facts and this revision are unchanged. The revision must
 		therefore change whenever a fact that those callbacks read changes.
 
-		How: `recoverStoredGoValue` scans `projectClasses`. Which classes it tests
-		depends only on that list, the target and facts fixed for each class. Its
+		How: `recoverStoredGoValue` scans `projectClasses` and then the waiting
+		class with the target's name. Which classes it tests depends only on that
+		list, the pending class queue, the target and facts fixed for each class. Its
 		class checks read the required source-owned and embedded superclass names,
 		the available class and enum tables, and the pending class and enum queues.
 		The import-path lookup reads the extern package aliases. The class list, the
@@ -10610,6 +10637,31 @@ class GoCompiler {
 		return stdIsOfTypeTypeSwitch(valueExpr, [targetGoType]);
 	}
 
+	/**
+		What: Lower a test of a value against a class or interface named by a type
+		literal: `Std.isOfType(value, C)` and the test of a typed `catch`.
+
+		Why: The answer depends on the finished program: on every generated
+		subclass of `C`, and on whether `C` itself is generated. Classes are lowered
+		in name order, and a standard-library class joins the program only when
+		something needs it. A test built while an early class is lowered therefore
+		saw only part of the program. It tested a `Dynamic` value against the
+		subclasses known so far, a value of a base class only against `C` itself,
+		and a value of an interface type not at all. It returned false, for
+		example, for a `NotImplementedException` tested against `haxe.Exception` or
+		`PosException` when a later class created it.
+
+		How: Every test of a non-extern class or interface calls the nominal test
+		`hx_is_nominal_<C>`. `GoNominalTypeTest` builds that helper in the closure
+		loop of `compileResolvedTypes`, from the final class list, so it matches
+		every generated class that declares `C` as an ancestor. Two tests of a
+		value of a class type stay inline because their answers are fixed: a value
+		whose class extends `C` is a `C` when it is not null, and a value whose
+		class neither extends `C` nor is extended by it is never a `C`. Extern
+		targets keep their direct Go type switch. No standard-library class extends
+		an extern class, so the subclasses of an extern are user classes, and every
+		user class is in the list before lowering starts.
+	**/
 	function stdIsOfTypeClassExpr(valueExpr:GoExpr, valueType:Type, targetClass:ClassType):GoExpr {
 		if (!targetClass.isExtern && (targetClass.isInterface || hasGeneratedVirtualCarrier(targetClass)))
 			return nominalTypeTest.matches(valueExpr, targetClass);
@@ -10618,6 +10670,9 @@ class GoCompiler {
 			if (inheritancePath(valueClass, targetClass) != null) {
 				return GoExpr.GoBinary("!=", valueExpr, GoExpr.GoNil);
 			}
+
+			if (!targetClass.isExtern && (valueClass.isInterface || inheritancePath(targetClass, valueClass) != null))
+				return nominalTypeTest.matches(valueExpr, targetClass);
 
 			if (inheritancePath(targetClass, valueClass) != null) {
 				var valueTypeName = "*" + classTypeName(valueClass);
@@ -10635,14 +10690,13 @@ class GoCompiler {
 		if (!isAnyLikeType(valueType) && !isAnonymousObjectType(valueType)) {
 			return GoExpr.GoBoolLiteral(false);
 		}
+		// The nominal test reads the source of structural storage itself.
+		if (!targetClass.isExtern)
+			return nominalTypeTest.matches(valueExpr, targetClass);
 		// Structural storage can retain a generated class. Type observation must
 		// inspect its source, not reject the anonymous static view or wrapper.
 		valueExpr = GoExpr.GoCall(GoExpr.GoIdent("hxrt.ObjectSource"), [valueExpr]);
-		if (!hasGeneratedVirtualCarrier(targetClass)) {
-			return stdIsOfTypeTypeSwitch(valueExpr, stdIsOfTypeClassTypeNames(targetClass));
-		}
-
-		return nominalTypeTest.matches(valueExpr, targetClass);
+		return stdIsOfTypeTypeSwitch(valueExpr, stdIsOfTypeClassTypeNames(targetClass));
 	}
 
 	function stdIsOfTypeEnumExpr(valueExpr:GoExpr, valueType:Type, targetEnum:EnumType):GoExpr {
@@ -10676,6 +10730,17 @@ class GoCompiler {
 		]), [valueExpr]);
 	}
 
+	/**
+		The Go types of the values that are instances of a class without a
+		generated carrier: its own pointer type when it has an instance layout, the
+		pointer types of the classes in `projectClasses` that extend it, and the
+		runtime type-token markers for `Class` and `Enum`.
+
+		The list reads `projectClasses`, which is final only in the closure loop of
+		`compileResolvedTypes`. `dynamicStdClassTypeCases` calls it there. While
+		classes are lowered, only `stdIsOfTypeClassExpr` calls it, for an extern
+		class, whose subclasses are user classes that are in the list from the start.
+	**/
 	function stdIsOfTypeClassTypeNames(targetClass:ClassType):Array<String> {
 		var seen = new Map<String, Bool>();
 		var out = new Array<String>();

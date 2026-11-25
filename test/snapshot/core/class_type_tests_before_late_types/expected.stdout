@@ -1,0 +1,8 @@
+Dynamic NotImplementedException is haxe.Exception=true
+Dynamic String is haxe.Exception=false
+IMap BalancedTree is BalancedTree=true
+haxe.Exception NotImplementedException is PosException=true
+haxe.Exception plain is PosException=false
+Dynamic as haxe.Exception keeps NotImplementedException=true
+Dynamic as PosException keeps NotImplementedException=true
+Dynamic null as PosException is null=true

@@ -90,13 +90,7 @@ func (self *haxe__Exception) String() string {
 
 func haxe__Exception_catchValue(value any) any {
 	if hx_is_nominal_haxe__ValueException(value) {
-		wrapped := func(hx_value_2 any) *haxe__ValueException {
-			if hx_value_2 == nil {
-				var hx_zero_3 *haxe__ValueException
-				return hx_zero_3
-			}
-			return hx_value_2.(*haxe__ValueException)
-		}(hx_recover_class_haxe__ValueException(value))
+		wrapped := hx_recover_class_haxe__ValueException(hx_recover_class_haxe__ValueException(value))
 		return wrapped.value
 	}
 	return value
