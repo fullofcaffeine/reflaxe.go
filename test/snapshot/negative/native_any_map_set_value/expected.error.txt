@@ -1,0 +1,1 @@
+go.NativeAnyMap.set must be called directly

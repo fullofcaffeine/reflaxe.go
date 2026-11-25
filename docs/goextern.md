@@ -256,6 +256,56 @@ Native scalar pointer destinations:
   remains `haxe.Rest<Dynamic>` because that is the Go signature; this carrier
   does not make the generator's broader typed-any boundaries complete.
 
+Strings at `any` parameters:
+
+- A Haxe `String`, or a value of an abstract over `String`, passed to an
+  imported extern parameter typed `Dynamic` or `Any` (Go `any`) arrives as a Go
+  `string`, as it does through `...any`. A null String arrives as `"null"`, as
+  it does at a Go `string` parameter.
+- The conversion follows the argument's static type. A string held in a
+  `Dynamic` value, or inside an Array or anonymous object, keeps its Haxe
+  carrier (`*string`). Build such data with `go.NativeAnyMap` instead.
+- `@:go.import` and `@:go.name` on an `extern abstract` over `String` do not
+  name a Go type; its values are Haxe strings. Declare a named Go type such as
+  `json.Number` as a `@:go.valueType extern class`.
+
+Native `any` data:
+
+Go APIs such as `text/template` and `encoding/json` read their data through
+reflection. Haxe values keep their Haxe carriers inside `Dynamic`: a String
+field of an anonymous object is a `*string`, and a Haxe class has no exported Go
+fields. Use `go.NativeAnyMap` (Go `map[string]any`) and `go.NativeAny` (one Go
+value in an `any`) to build the data that Go code would build:
+
+```haxe
+import go.NativeAnyMap;
+import go.NativeStringSlice;
+
+final issue = new NativeAnyMap();
+issue.set("Title", title);                                   // Go string
+issue.set("Priority", priority);                             // Go int
+issue.set("Labels", NativeStringSlice.fromArray(labels));    // Go []string
+final data = new NativeAnyMap();
+data.set("IssueID", issueId);
+data.set("Issue", issue);                                    // nested map
+template.execute(writer, data);  // extern parameter typed go.NativeAny
+```
+
+- `set(key, value)` stores the key as a Go `string`. The value is a
+  `go.NativeAny`, and its implicit casts store a Go `string`, `int`, `float64`,
+  `bool`, `map[string]any` (`NativeAnyMap`), `[]any`
+  (`go.NativeSlice<go.NativeAny>`) or `[]string` (`go.NativeStringSlice`).
+  `NativeAny.ofFloat(2)` stores `float64`, and `NativeAny.nil()` stores Go
+  `nil`.
+- A template reads `.Issue.Title` from key `"Title"` of the map stored under
+  `"Issue"`; `printf`, `eq`, `range`, `index`, `len`, `%T` and missing keys
+  behave as for Go data. `%T` of a map is `map[string]interface {}`, so a value
+  that Go code stores as a named or struct type, such as `*types.Issue`, prints
+  a different `%T`.
+- A `NativeAny` holds Go data only: pass it to Go, do not read it back as a
+  Haxe value. Call the constructors and `set` directly; method values are not
+  supported.
+
 ### Exact native scalar carriers
 
 Haxe `Int` lowers to Go `int`. Go does not convert implicitly between `int` and

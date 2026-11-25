@@ -32,6 +32,9 @@ class GoTypeMapperContractFixture<T:{x:Int}, U> {
 	public var readOnly:haxe.ds.ReadOnlyArray<Int>;
 	public var bytes:haxe.io.BytesData;
 	public var slice:go.NativeSlice<Bool>;
+	public var anyMap:go.NativeAnyMap;
+	public var anyValue:go.NativeAny;
+	public var anySlice:go.NativeSlice<go.NativeAny>;
 	public var nativeInt64:go.NativeInt64;
 	public var nativeUintptr:go.NativeUintptr;
 	public var nativeUint32:go.NativeUint32;

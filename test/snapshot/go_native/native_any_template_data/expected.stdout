@@ -1,0 +1,10 @@
+bd-1 bd-22
+bd-1          |blocks|Fix the parser|bd-22
+parser,p1 2 p1
+map[string]interface {} string int float64 bool <nil> []string []interface {} map[string]interface {}
+[string one][int 2][float64 3.5][bool false][<nil> <no value>][[]interface {} [nested]]
+<no value> 2 2.0 P1 ready <no value>
+template execution error: template: format:1:8: executing "format" at <.Issue.Title.Missing>: can't evaluate field Missing in type interface {}
+{"Dependency":{"DependsOnID":"bd-22","IssueID":"bd-1","Type":"blocks"},"DependsOnID":"bd-22","Issue":{"ID":"bd-1","Labels":["parser","p1"],"Priority":1,"Title":"Fix the parser"},"IssueID":"bd-1","Items":["one",2,3.5,false,null,["nested"]],"Missing":null,"Ready":true,"Score":2,"Type":"blocks"}
+map,key,value
+{"key":"value"}

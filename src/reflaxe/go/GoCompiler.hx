@@ -4073,6 +4073,8 @@ class GoCompiler {
 			case TCall(callee, args):
 				if (isSuperCtorCall(callee)) {
 					[];
+				} else if (nativeAnyMapSetTarget(callee) != null) {
+					lowerNativeAnyMapSet(callee, args);
 				} else {
 					var arrayCall = asArrayMethodCall(callee);
 					if (arrayCall != null && arrayCall.methodName == "push") {
@@ -6601,7 +6603,12 @@ class GoCompiler {
 						loweredArgs.push(lowerConstructorArg(classType, defaultValue, i, typeParams));
 					}
 				}
-				if (isNativeGoStructExtern(classType)) {
+				if (GoTypeMapper.isNativeAnyMapType(expr.t)) {
+					{
+						expr: GoExpr.GoCompositeLiteral(GoType.map(GoType.parse("string"), GoType.parse("any")), []),
+						isStringLike: false
+					};
+				} else if (isNativeGoStructExtern(classType)) {
 					if (loweredArgs.length != 0) {
 						Context.fatalError("Native Go struct zero-value construction does not accept arguments", expr.pos);
 					}
@@ -7436,6 +7443,9 @@ class GoCompiler {
 				var classType = classRef.get();
 				if (asValue && classType.pack.join(".") == "go" && classType.name == "NativePointer" && resolved.name == "of")
 					Context.fatalError("go.NativePointer.of must be called directly; method values are unsupported", resolved.pos);
+				if (asValue && isNativeAnyImplClass(classType))
+					Context.fatalError("go.NativeAny." + resolved.name + " must be called directly; method values are unsupported",
+						target == null ? resolved.pos : target.pos);
 				if (asValue && GoTypeMapper.nativeScalarCarrierClassGoType(classType) != null)
 					Context.fatalError("go." + classType.name + "." + resolved.name + " must be called directly; method values are unsupported",
 						target == null ? resolved.pos : target.pos);
@@ -7639,6 +7649,8 @@ class GoCompiler {
 					var owner = classRef.c.get();
 					if (owner.pack.join(".") == "go" && owner.name == "NativePointer" && resolved.name == "get")
 						Context.fatalError("go.NativePointer.get must be called directly; method values are unsupported", resolved.pos);
+					if (owner.pack.join(".") == "go" && owner.name == "NativeAnyMap")
+						Context.fatalError("go.NativeAnyMap." + resolved.name + " must be called directly; method values are unsupported", target.pos);
 				}
 				if (classRef == null && isAnonymousObjectType(target.t)) {
 					return {expr: lowerAnonymousFieldRead(lowerExpr(target).expr, resolved.name, resolved.type), isStringLike: false};
@@ -8326,6 +8338,11 @@ class GoCompiler {
 			return nativeScalarConversionCall;
 		}
 
+		var nativeAnyCall = lowerNativeAnyCall(callee, args);
+		if (nativeAnyCall != null) {
+			return nativeAnyCall;
+		}
+
 		var nativeSliceBoundaryCall = lowerNativeSliceBoundaryCall(callee, args, returnType);
 		if (nativeSliceBoundaryCall != null) {
 			return nativeSliceBoundaryCall;
@@ -8511,7 +8528,7 @@ class GoCompiler {
 				loweredArg = isAnonymousObjectType(emittedParamType) ? upcastIfNeeded(loweredArg, paramType == null ? arg.t : paramType,
 					emittedParamType) : adaptErasedFunctionCallArg(loweredArg, loweredArgType, emittedParamType);
 			}
-			loweredArg = normalizeExternCallArg(callee, loweredArg, paramType, index);
+			loweredArg = normalizeExternCallArg(callee, loweredArg, paramType, index, arg.t);
 			loweredArgs.push(loweredArg);
 		}
 		if (functionInfo != null && shouldApplySourceDefaultArgPadding(callee) && loweredArgs.length < functionInfo.defaults.length) {
@@ -8831,6 +8848,133 @@ class GoCompiler {
 			case _:
 				null;
 		};
+	}
+
+	/**
+		What: Lowers the `go.NativeAny` constructors and `go.NativeAnyMap.set`.
+		Why: Go APIs that read data through reflection, such as text/template and
+		encoding/json, must see the Go values that Go code would store in its
+		`map[string]any`, not Haxe carriers such as `*string`.
+		How: `NativeAny` is an abstract over `Any`, so its value is a Go `any`.
+		`ofString` stores the Go string (`*hxrt.StdString(x)`), `ofFloat` a
+		`float64`, also for an untyped integer constant, and `nil` the nil
+		interface; the other constructors already hold their Go value. `set` in
+		an expression position assigns inside a function literal; a statement
+		`set` is lowered by `lowerNativeAnyMapSet` directly.
+	**/
+	function lowerNativeAnyCall(callee:TypedExpr, args:Array<TypedExpr>):Null<LoweredExpr> {
+		if (nativeAnyMapSetTarget(callee) != null) {
+			return {
+				expr: GoExpr.GoCall(GoExpr.GoFuncLiteral([], [], lowerNativeAnyMapSet(callee, args)), []),
+				isStringLike: false
+			};
+		}
+		final constructor = nativeAnyConstructorName(callee);
+		if (constructor == null) {
+			return null;
+		}
+		if (constructor == "nil") {
+			if (args.length != 0)
+				Context.fatalError("go.NativeAny.nil expects no arguments", callee.pos);
+			return {expr: GoExpr.GoNil, isStringLike: false};
+		}
+		if (args.length != 1)
+			Context.fatalError("go.NativeAny." + constructor + " expects exactly one value", callee.pos);
+		final value = lowerCallArgForParamType(args[0], callParamType(callee.t, 0));
+		return {
+			expr: switch (constructor) {
+				case "ofString":
+					nativeGoStringValue(value);
+				case "ofFloat":
+					switch (value) {
+						case GoExpr.GoFloatLiteral(_) | GoExpr.GoCall(GoExpr.GoIdent("float64"), _): value;
+						case _: GoExpr.GoCall(GoExpr.GoIdent("float64"), [value]);
+					}
+				case _:
+					value;
+			},
+			isStringLike: false
+		};
+	}
+
+	/**
+		What: The Go `string` value of one lowered Haxe string.
+		Why: `*hxrt.StdString(x)` is the general projection (null becomes
+		"null"), but a literal already is its Go string, and map keys are usually
+		literals.
+		How: Unwrap `hxrt.StringFromLiteral("...")` to the Go literal; project
+		anything else through `hxrt.StdString`.
+	**/
+	function nativeGoStringValue(value:GoExpr):GoExpr {
+		return switch (value) {
+			case GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringFromLiteral"), [literal = GoExpr.GoStringLiteral(_)]): literal;
+			case _: GoExpr.GoUnary(GoUnaryOperator.Dereference, GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [value]));
+		};
+	}
+
+	/** Names the `go.NativeAny` constructor that `callee` calls directly, or null. */
+	function nativeAnyConstructorName(callee:TypedExpr):Null<String> {
+		return switch (callee.expr) {
+			case TField(_, FStatic(classRef, field)) if (GoTypeMapper.declarationPath(classRef) == "go._NativeAny.NativeAny_Impl_"):
+				GoTypeMapper.referencedFieldName(field);
+			case TMeta(_, inner) | TParenthesis(inner):
+				nativeAnyConstructorName(inner);
+			case _:
+				null;
+		};
+	}
+
+	function isNativeAnyImplClass(classType:ClassType):Bool {
+		return classType.pack.join(".") == "go._NativeAny" && classType.name == "NativeAny_Impl_";
+	}
+
+	/** Returns the map of a direct `go.NativeAnyMap.set` call, or null. */
+	function nativeAnyMapSetTarget(callee:TypedExpr):Null<TypedExpr> {
+		return switch (callee.expr) {
+			case TField(target, FInstance(_, _, field)) if (field.get().name == "set" && GoTypeMapper.isNativeAnyMapType(target.t)):
+				target;
+			case TMeta(_, inner) | TParenthesis(inner):
+				nativeAnyMapSetTarget(inner);
+			case _:
+				null;
+		};
+	}
+
+	/**
+		What: Lowers `map.set(key, value)` on a `go.NativeAnyMap` to the Go map
+		assignment `map[key] = value`, with the key as a Go string.
+		Why: Go has no map-set call, and an assignment is a statement, so the
+		ordinary call lowering cannot express it.
+		How: Lower the map, the key and the value in source order. When a later
+		operand needs statements first, bind the earlier operands to locals so
+		they still run first.
+	**/
+	function lowerNativeAnyMapSet(callee:TypedExpr, args:Array<TypedExpr>):Array<GoStmt> {
+		final target = nativeAnyMapSetTarget(callee);
+		if (target == null || args.length != 2)
+			Context.fatalError("go.NativeAnyMap.set expects one key and one value", callee.pos);
+		final map = lowerExprWithPrefix(target);
+		final key = lowerExprWithPrefix(args[0]);
+		final value = lowerExprWithPrefix(args[1]);
+		final statements = map.prefix.copy();
+		var mapExpr = map.expr;
+		var keyExpr = nativeGoStringValue(key.expr);
+		if (key.prefix.length > 0 || value.prefix.length > 0) {
+			final mapName = freshTempName("hx_native_map");
+			statements.push(GoStmt.GoVarDecl(mapName, "map[string]any", mapExpr, true));
+			mapExpr = GoExpr.GoIdent(mapName);
+		}
+		for (statement in key.prefix)
+			statements.push(statement);
+		if (value.prefix.length > 0) {
+			final keyName = freshTempName("hx_native_key");
+			statements.push(GoStmt.GoVarDecl(keyName, "string", keyExpr, true));
+			keyExpr = GoExpr.GoIdent(keyName);
+		}
+		for (statement in value.prefix)
+			statements.push(statement);
+		statements.push(GoStmt.GoAssign(GoExpr.GoIndex(mapExpr, keyExpr), value.expr));
+		return statements;
 	}
 
 	/**
@@ -9380,7 +9524,7 @@ class GoCompiler {
 						if (paramType != null && widened == null) {
 							loweredArg = upcastIfNeeded(loweredArg, arg.t, paramType, arg);
 						}
-						loweredArg = normalizeExternCallArg(callee, loweredArg, paramType, index);
+						loweredArg = normalizeExternCallArg(callee, loweredArg, paramType, index, arg.t);
 						loweredArgs.push(loweredArg);
 					}
 
@@ -11536,8 +11680,16 @@ class GoCompiler {
 		explicit `Null<String>` parameters and the staged `hxrt` ABI pointer-backed so
 		nil and runtime-owned string carriers remain observable. Export both Haxe
 		error carriers as Go `error` interface values, with null as a nil interface.
+		A parameter whose Go type is `any` (`Dynamic`, `Any`) receives a value whose
+		static type `argType` is a Haxe string carrier (String, or an abstract over
+		String) as a Go `string`, as upstream Go code would pass it. Before, Go APIs
+		such as text/template saw the private `*string` carrier: `%T` printed
+		`*string` and `eq . "x"` failed. A null String becomes "null", as it does
+		for a Go `string` parameter. The rule follows the static type, so a string
+		held in a `Dynamic` value keeps its Haxe carrier; build Go data with
+		`go.NativeAny` instead.
 	**/
-	function normalizeExternCallArg(callee:TypedExpr, argExpr:GoExpr, paramType:Null<Type>, paramIndex:Int):GoExpr {
+	function normalizeExternCallArg(callee:TypedExpr, argExpr:GoExpr, paramType:Null<Type>, paramIndex:Int, argType:Null<Type>):GoExpr {
 		if (paramType != null && isGoImportExternCall(callee)) {
 			switch (Context.follow(paramType)) {
 				case TFun(_, _):
@@ -11563,6 +11715,9 @@ class GoCompiler {
 		}
 		if (isStringType(paramType)) {
 			return GoExpr.GoUnary("*", GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [argExpr]));
+		}
+		if (argType != null && isStringCarrierType(argType) && typeToGoType(paramType) == "any") {
+			return GoExpr.GoUnary(GoUnaryOperator.Dereference, GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [argExpr]));
 		}
 		return argExpr;
 	}
@@ -11603,7 +11758,7 @@ class GoCompiler {
 		final exportError = errorCarrierExportFunction(elementType);
 		final values = restPackValues(source);
 		if (values == null) {
-			final packed = normalizeExternCallArg(callee, lowerCallArgForParamType(source, paramType), paramType, paramIndex);
+			final packed = normalizeExternCallArg(callee, lowerCallArgForParamType(source, paramType), paramType, paramIndex, source.t);
 			if (isStringType(elementType)) {
 				return GoExpr.GoCall(GoExpr.GoIdent("hxrt.StringSlice"), [packed]);
 			}
@@ -11612,7 +11767,7 @@ class GoCompiler {
 		final elementGoType = isStringType(elementType) ? "string" : exportError != null ? "hxrt.RawError" : scalarGoType(elementType);
 		return GoExpr.GoCompositeLiteral(GoType.slice(GoType.parse(elementGoType)), [
 			for (value in values)
-				GoCompositeElement.GoCompositeValue(lowerExternVariadicValue(callee, value, elementType, elementGoType, paramIndex))
+				GoCompositeElement.GoCompositeValue(lowerExternVariadicValue(callee, value, elementType, paramIndex))
 		]);
 	}
 
@@ -11622,16 +11777,12 @@ class GoCompiler {
 		over `String` returned by a nested call, so converting by the value's own
 		type left Haxe string pointers inside a Go `[]string`. Erased `...any`
 		parameters still need Haxe strings as Go string values.
-		How: Treat the declared element as this value's parameter type, reusing the
-		ordinary argument conversion. For an erased element, also project any Haxe
-		string carrier to its Go string value.
+		How: Treat the declared element as this value's parameter type and the
+		value's own type as the argument type, reusing the ordinary argument
+		conversion, which also projects a Haxe string into an erased element.
 	**/
-	function lowerExternVariadicValue(callee:TypedExpr, value:TypedExpr, elementType:Type, elementGoType:String, paramIndex:Int):GoExpr {
-		final lowered = normalizeExternCallArg(callee, lowerCallArgForParamType(value, elementType), elementType, paramIndex);
-		if (elementGoType == "any" && isStringCarrierType(value.t)) {
-			return GoExpr.GoUnary(GoUnaryOperator.Dereference, GoExpr.GoCall(GoExpr.GoIdent("hxrt.StdString"), [lowered]));
-		}
-		return lowered;
+	function lowerExternVariadicValue(callee:TypedExpr, value:TypedExpr, elementType:Type, paramIndex:Int):GoExpr {
+		return normalizeExternCallArg(callee, lowerCallArgForParamType(value, elementType), elementType, paramIndex, value.t);
 	}
 
 	function isImportedExternVariadicCall(callee:TypedExpr):Bool {

@@ -206,6 +206,10 @@ class GoTypeMapperContract {
 		require(sliceElement != null && GoTypeMapper.isBoolType(sliceElement), "go.NativeSlice element");
 		require(goType(get(fixture, "slice")) == "[]bool", "go.NativeSlice carrier");
 		require(GoTypeMapper.nativeScalarCarrierName(get(fixture, "slice")) == null, "go.NativeSlice is not a scalar carrier");
+		require(GoTypeMapper.isNativeAnyMapType(get(fixture, "anyMap")), "go.NativeAnyMap");
+		require(goType(get(fixture, "anyMap")) == "map[string]any", "go.NativeAnyMap carrier");
+		require(goType(get(fixture, "anyValue")) == "any", "go.NativeAny carrier");
+		require(goType(get(fixture, "anySlice")) == "[]any", "go.NativeSlice<go.NativeAny> carrier");
 		for (field => expected in [
 			"nativeInt64" => {carrier: "NativeInt64", goType: "int64"},
 			"nativeUintptr" => {carrier: "NativeUintptr", goType: "uintptr"},

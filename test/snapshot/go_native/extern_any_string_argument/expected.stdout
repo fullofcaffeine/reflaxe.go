@@ -1,0 +1,11 @@
+string|plain|plain |ne
+string|42|42    |eq
+string|label|label |ne
+string|literal|literal|ne
+string|call|call  |ne
+string|null|null  |ne
+string|42|42    |eq
+int|7
+float64|2.5
+bool|true
+plain/5/true

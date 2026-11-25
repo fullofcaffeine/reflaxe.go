@@ -1,0 +1,1 @@
+go.NativeAny.ofString must be called directly

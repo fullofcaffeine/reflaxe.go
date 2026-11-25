@@ -2619,6 +2619,18 @@
       "surface": "runtime"
     },
     {
+      "capability": "native_interop",
+      "classification": "required",
+      "context": "<module>",
+      "exception_id": "native_dynamic_contract",
+      "file": "src/go/NativeAny.hx",
+      "max_count": 1,
+      "metric": "haxe_any",
+      "owner": "go_native_api",
+      "profile": "native_opt_in",
+      "surface": "source_api"
+    },
+    {
       "capability": "dynamic_values",
       "classification": "required",
       "context": "<module>",

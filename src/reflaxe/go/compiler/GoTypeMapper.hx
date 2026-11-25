@@ -122,6 +122,9 @@ class GoTypeMapper {
 		if (isNativeStringSliceType(type)) {
 			return "[]string";
 		}
+		if (isNativeAnyMapType(type)) {
+			return "map[string]any";
+		}
 		var nativeSliceElement = nativeSliceElementType(type);
 		if (nativeSliceElement != null) {
 			return "[]" + arrayElementStorageGoType(nativeSliceElement, classTypeName, enumTypeName);
@@ -540,6 +543,9 @@ class GoTypeMapper {
 		if (isNativeStringSliceType(type)) {
 			return "[]string";
 		}
+		if (isNativeAnyMapType(type)) {
+			return "map[string]any";
+		}
 		var nativeSliceElement = nativeSliceElementType(type);
 		if (nativeSliceElement != null) {
 			return "[]" + arrayElementStorageGoType(nativeSliceElement, classTypeName, enumTypeName);
@@ -829,6 +835,15 @@ class GoTypeMapper {
 	public static function isNativeStringSliceType(type:Type):Bool {
 		return switch (Context.follow(type)) {
 			case TInst(classRef, _): declarationPath(classRef) == "go.NativeStringSlice";
+			case _:
+				false;
+		};
+	}
+
+	/** True only for the explicit native Go `map[string]any` boundary, `go.NativeAnyMap`. */
+	public static function isNativeAnyMapType(type:Type):Bool {
+		return switch (Context.follow(type)) {
+			case TInst(classRef, _): declarationPath(classRef) == "go.NativeAnyMap";
 			case _:
 				false;
 		};
