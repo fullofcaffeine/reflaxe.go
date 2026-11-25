@@ -27,6 +27,7 @@ import reflaxe.go.compiler.GoValueRecovery;
 import reflaxe.go.compiler.GoNominalValueRecovery;
 import reflaxe.go.compiler.GoNominalTypeTest;
 import reflaxe.go.compiler.GoStoredValueClassScan;
+import reflaxe.go.compiler.GoCarrierContractIndex;
 import reflaxe.go.compiler.GoRecoveryAvailability;
 import reflaxe.go.compiler.GoRecoveryDispatch.GoGuardedRecoveryDeclaration;
 import reflaxe.go.compiler.GoNativeTypeEligibility;
@@ -364,6 +365,7 @@ class GoCompiler {
 	final nominalValueRecovery:GoNominalValueRecovery;
 	final nominalTypeTest:GoNominalTypeTest;
 	final storedValueClassScan = new GoStoredValueClassScan();
+	final carrierContractIndex = new GoCarrierContractIndex();
 	final recoveryAvailability:GoRecoveryAvailability;
 	final functionVarNameScopes:Array<Map<Int, String>>;
 	final functionVarNameCountScopes:Array<Map<String, Int>>;
@@ -605,6 +607,7 @@ class GoCompiler {
 		nominalValueRecovery.reset();
 		nominalTypeTest.reset();
 		storedValueClassScan.reset();
+		carrierContractIndex.reset();
 		generatedMethodMetadataPlan = [];
 		generatedFieldMetadataPlan = [];
 		resetRequiredNativeChanElementTypes();
@@ -3582,10 +3585,12 @@ class GoCompiler {
 		How: Walk the class's declared interface graph, inherited class contracts, and
 		reachable subclasses that satisfy an interface through this inherited method.
 		Match the source method name and select the carrier ABI only for that complete
-		method-set family.
+		method-set family. `carrierContractIndex` names the project classes whose
+		declared interface graph has the method name, so only those subclasses are
+		walked; see `GoCarrierContractIndex`.
 	**/
 	function methodUsesCarrierOptionalAbi(classType:ClassType, methodName:String):Bool {
-		function classDeclaresCarrierContract(root:ClassType, promoteSuperclasses:Bool):Bool {
+		function classDeclaresCarrierContract(root:ClassType):Bool {
 			var visitedInterfaces = new Map<String, Bool>();
 
 			function interfaceDeclaresCarrierMethod(interfaceType:ClassType):Bool {
@@ -3611,18 +3616,14 @@ class GoCompiler {
 						return true;
 					}
 				}
-				var superClass = if (promoteSuperclasses) {
-					projectSuperClass(current);
-				} else {
-					current.superClass == null ? null : current.superClass.t.get();
-				}
+				var superClass = projectSuperClass(current);
 				return superClass != null && visitClass(superClass);
 			}
 
 			return visitClass(root);
 		}
 
-		if (classDeclaresCarrierContract(classType, true)) {
+		if (classDeclaresCarrierContract(classType)) {
 			return true;
 		}
 
@@ -3631,8 +3632,8 @@ class GoCompiler {
 		// attached to the defining receiver, so the inherited implementation must use
 		// the same missing-argument carrier as the subclass interface method set.
 		var ownerName = fullClassName(classType);
-		for (candidate in projectClasses) {
-			if (candidate.isInterface || fullClassName(candidate) == ownerName || !classDeclaresCarrierContract(candidate, false)) {
+		for (candidate in carrierContractIndex.contractClasses(projectClasses, methodName)) {
+			if (fullClassName(candidate) == ownerName) {
 				continue;
 			}
 			var current:Null<ClassType> = candidate;
