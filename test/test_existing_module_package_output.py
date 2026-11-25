@@ -133,6 +133,77 @@ def assert_module_files_unchanged(
     case.assertEqual(go_sum, (module_root / "go.sum").read_bytes())
 
 
+LOGGING_GOFMT = """#!/usr/bin/env python3
+import os
+import subprocess
+import sys
+
+LOG = {log!r}
+REAL = {real!r}
+REJECT = {reject!r}
+
+
+def log(line):
+    with open(LOG, "a", encoding="utf-8") as handle:
+        handle.write(line + "\\n")
+
+
+arguments = sys.argv[1:]
+if not arguments:
+    source = sys.stdin.buffer.read()
+    marker = next((entry for entry in REJECT if entry.encode() in source), None)
+    log("stdin " + (marker or "-"))
+    if marker:
+        sys.stderr.write("<standard input>:1:1: fake gofmt rejected " + marker + "\\n")
+        sys.exit(2)
+    completed = subprocess.run([REAL], input=source, capture_output=True)
+    sys.stdout.buffer.write(completed.stdout)
+    sys.stderr.buffer.write(completed.stderr)
+    sys.exit(completed.returncode)
+log("batch " + " ".join(entry if entry.startswith("-") else "<path>" for entry in arguments))
+rejected = []
+for entry in arguments:
+    if os.path.isdir(entry):
+        for name in sorted(os.listdir(entry)):
+            with open(os.path.join(entry, name), "rb") as handle:
+                if any(marker.encode() in handle.read() for marker in REJECT):
+                    rejected.append(os.path.join(entry, name))
+for path in rejected:
+    sys.stderr.write(path + ":1:1: fake batch rejection\\n")
+if rejected:
+    sys.exit(2)
+os.execv(REAL, [REAL] + arguments)
+"""
+
+
+def write_marker_module(module_root: Path) -> None:
+    """Main plus three classes whose generated files carry distinct string markers."""
+    (module_root / "Main.hx").write_text(
+        "class Main { static function main():Void { Sys.println(Alpha.name() + Yankee.name() + Zulu.name()); } }\n",
+        encoding="utf-8",
+    )
+    for name in ("Alpha", "Yankee", "Zulu"):
+        (module_root / f"{name}.hx").write_text(
+            f'class {name} {{ public static function name():String return "zopj-marker-{name.lower()}"; }}\n',
+            encoding="utf-8",
+        )
+
+
+def install_logging_gofmt(module_root: Path, reject: list[str]) -> tuple[dict[str, str], Path]:
+    real = shutil.which("gofmt")
+    if real is None:
+        raise unittest.SkipTest("requires gofmt")
+    tool_dir = module_root / "tools"
+    tool_dir.mkdir()
+    log = module_root / "gofmt.log"
+    formatter = tool_dir / "gofmt"
+    formatter.write_text(LOGGING_GOFMT.format(log=str(log), real=real, reject=reject), encoding="utf-8")
+    formatter.chmod(0o755)
+    environment = haxe_env()
+    environment["PATH"] = str(tool_dir) + os.pathsep + environment["PATH"]
+    return environment, log
+
+
 def generated_sources(package_dir: Path) -> list[Path]:
     return sorted(package_dir.glob("haxego_generated_*.go"))
 
@@ -238,6 +309,72 @@ class ExistingModulePackageOutputTest(unittest.TestCase):
             self.assertIn("Refused generated output: gofmt failed:", output)
             self.assertEqual([], generated_sources(package_dir))
             self.assertEqual(caller_main, (package_dir / "main.go").read_bytes())
+            assert_module_files_unchanged(self, module_root, go_mod, go_sum)
+
+    def test_generated_sources_are_formatted_in_one_gofmt_run(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="haxe-go-package-output-") as raw:
+            module_root = Path(raw)
+            go_mod, go_sum = write_module(module_root)
+            write_marker_module(module_root)
+            write_manifest(
+                module_root,
+                package_dir="cmd/tool",
+                package_name="main",
+                runtime_dir="internal/haxe_hxrt",
+                entrypoint={"kind": "compiler-main"},
+            )
+            environment, log = install_logging_gofmt(module_root, [])
+
+            completed = run_compiler(module_root, "cmd/tool", environment=environment)
+            output = completed.stdout + completed.stderr
+
+            self.assertEqual(0, completed.returncode, output)
+            self.assertEqual(["batch -w <path>"], log.read_text(encoding="utf-8").splitlines())
+            sources = generated_sources(module_root / "cmd" / "tool")
+            self.assertGreaterEqual(len(sources), 4)
+            for source in sources:
+                data = source.read_bytes()
+                formatted = subprocess.run(
+                    [shutil.which("gofmt") or "gofmt"], input=data, capture_output=True, check=True
+                ).stdout
+                self.assertEqual(formatted, data, source.name)
+            assert_module_files_unchanged(self, module_root, go_mod, go_sum)
+
+    def test_rejected_source_reports_the_first_in_plan_order_as_before(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="haxe-go-package-output-") as raw:
+            module_root = Path(raw)
+            go_mod, go_sum = write_module(module_root)
+            write_marker_module(module_root)
+            package_dir = module_root / "cmd" / "tool"
+            write_manifest(
+                module_root,
+                package_dir="cmd/tool",
+                package_name="main",
+                runtime_dir="internal/haxe_hxrt",
+                entrypoint={"kind": "compiler-main"},
+            )
+            environment, log = install_logging_gofmt(
+                module_root, ["zopj-marker-zulu", "zopj-marker-yankee"]
+            )
+
+            completed = run_compiler(module_root, "cmd/tool", environment=environment)
+            output = completed.stdout + completed.stderr
+
+            self.assertNotEqual(0, completed.returncode, output)
+            # The message of a gofmt that formats each file from standard input, as
+            # before: the first rejected file in plan order, nothing from the batch.
+            self.assertIn(
+                "[GO-OUTPUT-PATH-006] Refused generated output: gofmt failed: "
+                "<standard input>:1:1: fake gofmt rejected zopj-marker-yankee.",
+                output,
+            )
+            self.assertNotIn("zopj-marker-zulu", output)
+            self.assertNotIn("fake batch rejection", output)
+            calls = log.read_text(encoding="utf-8").splitlines()
+            self.assertEqual("batch -w <path>", calls[0])
+            self.assertEqual("stdin zopj-marker-yankee", calls[-1])
+            self.assertEqual(["stdin -"] * (len(calls) - 2), calls[1:-1])
+            self.assertEqual([], generated_sources(package_dir))
             assert_module_files_unchanged(self, module_root, go_mod, go_sum)
 
     def test_caller_bridge_joins_nested_main_package_and_runs(self) -> None:

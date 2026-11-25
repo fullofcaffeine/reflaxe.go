@@ -533,6 +533,13 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 			return;
 		}
 
+		if (existingModuleOutputPlan != null) {
+			// One gofmt run for every generated source; `add` still formats any source it did not cover.
+			existingModuleOutputPlan.preformat([
+				for (file in generatedFiles)
+					{path: generatedSourcePath(file.relativePath), source: file.contents}
+			]);
+		}
 		for (file in generatedFiles) {
 			saveGeneratedFile(generatedSourcePath(file.relativePath), file.contents);
 		}
