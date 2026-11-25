@@ -1,0 +1,13 @@
+leaf as Mid tag=leaf
+leaf as Mid describe=Leaf(leaf)
+leaf as Mid midName=midName:leaf
+leaf as Mid isOfType Leaf=true
+leaf as Mid keeps identity=true
+write through Mid seen by Base=changed
+tip as Mid=Leaf(tip)
+tip as Leaf from Mid=Leaf(tip)
+exact Mid=Mid(mid)
+caster toMid=Leaf(tip)
+caster toLeaf=Leaf(tip)
+null stays null=true
+std exception as PosException=late

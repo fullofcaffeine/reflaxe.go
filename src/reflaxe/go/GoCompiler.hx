@@ -13823,15 +13823,22 @@ class GoCompiler {
 	}
 
 	/**
-		What: Lower a Haxe-proven concrete subclass cast through the generated virtual
-		receiver carried by its statically typed base pointer.
+		What: Lower a Haxe-proven concrete subclass cast through the canonical object
+		that its statically typed base pointer carries.
 
 		Why: Go embedding supports the forward `Child -> Base` selector path but does
-		not make `*Base` assignable to `*Child`. Haxe downcasts still have access to the
-		canonical concrete object through the base carrier's `__hx_this` field.
+		not make `*Base` assignable to `*Child`. The base carrier's `__hx_this` field
+		holds the canonical object, but that object can be any subclass of the target.
+		With `Leaf extends Mid extends Base`, a `Base` that holds a `Leaf` keeps a
+		`*Leaf` there, so an assertion to the exact `*Mid` panicked. Haxe accepts the
+		cast, because the runtime value is a `Mid`.
 
-		How: Admit only a generated class-to-descendant relation, preserve null, and
-		assert the virtual receiver to the exact target pointer. Interface casts retain
+		How: Admit only a generated class-to-descendant relation and call the nominal
+		recovery `hx_recover_class_<Target>`. It resolves the canonical object,
+		preserves null, returns the target's embedded base for each generated subclass,
+		and asserts the exact target pointer for any other value, which panics as
+		before. The closure loop builds it from the final class list, so a target that
+		joins the program late is recovered in the same way. Interface casts retain
 		their separate ordinary Go assertion path.
 	**/
 	function lowerConcreteClassDowncastExpr(expr:GoExpr, fromType:Type, toType:Type):Null<GoExpr> {
@@ -13846,14 +13853,7 @@ class GoCompiler {
 		if (fullClassName(fromClass) == fullClassName(toClass)) {
 			return null;
 		}
-
-		var sourcePointerType = GoType.pointer(GoType.named(classTypeName(fromClass)));
-		var targetPointerType = GoType.pointer(GoType.named(classTypeName(toClass)));
-		var value = GoExpr.GoIdent("hx_value");
-		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: "hx_value", typeName: sourcePointerType}], [targetPointerType], [
-			GoStmt.GoIf(GoExpr.GoBinary(GoBinaryOperator.Equal, value, GoExpr.GoNil), [GoStmt.GoReturn(GoExpr.GoNil)], null),
-			GoStmt.GoReturn(GoExpr.GoTypeAssert(GoExpr.GoSelector(value, "__hx_this"), targetPointerType))
-		]), [expr]);
+		return nominalValueRecovery.recover(expr, toClass);
 	}
 
 	/**
