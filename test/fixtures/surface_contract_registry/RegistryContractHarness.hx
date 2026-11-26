@@ -1,6 +1,7 @@
 #if macro
 import haxe.crypto.Base64;
 import haxe.io.Bytes;
+import reflaxe.go.CompilationContext;
 import reflaxe.go.GoProfile;
 import reflaxe.go.compiler.GoBuildContext;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureId;
@@ -23,6 +24,7 @@ import reflaxe.go.compiler.GoSurfaceContractRegistry.GoSurfaceNominalKind;
 import reflaxe.go.compiler.GoSurfaceContractRegistry.GoSurfaceTypePattern;
 import reflaxe.go.compiler.GoSurfaceContractRegistry.GoSurfaceValidationCode;
 import reflaxe.go.compiler.GoSurfacePlanner;
+import reflaxe.go.compiler.GoSurfacePlanner.GoSurfacePlanDecision;
 import reflaxe.go.compiler.GoSurfacePlanner.GoSurfacePlanReason;
 import reflaxe.go.compiler.GoSurfacePlanner.GoSurfacePlanSelection;
 import reflaxe.go.compiler.GoTypeUsageLedger.GoImmutableList;
@@ -380,6 +382,7 @@ class RegistryContractHarness {
 			"every admitted String decision must permit the governed String fast path");
 		assertTrue(!GoSurfacePlanner.allObservedUsesSelectNative(portablePlan, GoSurfaceId.HaxeArray, GoNativeRepresentation.GoSlice),
 			"a fallback decision must veto a carrier-specific fast path");
+		assertStringFastpathDecisions(portablePlan);
 		Sys.println("SURFACE_REGISTRY_JSON=" + Base64.encode(Bytes.ofString(firstJson)));
 		Sys.println("surface registry macro contract passed");
 	}
@@ -758,6 +761,84 @@ class RegistryContractHarness {
 
 	static function stringShape():GoTypeShape {
 		return GoTypeShape.Nominal(GoTypeUsageTargetKind.Class, "String", GoImmutableList.fromArray([]));
+	}
+
+	/**
+		Why: `CompilationContext.selectsStringFastpath()` keeps its first answer for
+		the whole compile, so an answer must not depend on which context or plan was
+		asked before.
+
+		What: Asks contexts built from an empty plan, the portable plan, and a copy
+		of it whose String decisions fall back, twice each in two interleaved orders,
+		and compares every answer with the planner predicate itself.
+
+		How: The copy changes only the selection of the String decisions. The
+		portable preset enables the string fast path, so each answer must equal the
+		predicate.
+	**/
+	static function assertStringFastpathDecisions(portablePlan:reflaxe.go.compiler.GoSurfacePlanner.GoSurfacePlanSnapshot):Void {
+		final vetoedPlan = withFallbackStringDecisions(portablePlan);
+		assertTrue(!GoSurfacePlanner.allObservedUsesSelectNative(vetoedPlan, GoSurfaceId.HaxeString, GoNativeRepresentation.GoString),
+			"the vetoed copy must contain a String decision that falls back");
+		final buildContext = GoBuildContext.legacyDefaults(GoProfile.Portable);
+		assertTrue(buildContext.portableStringFastpathEnabled, "the portable preset must enable the string fast path");
+		final plans = [GoSurfacePlanner.emptySnapshot(), portablePlan, vetoedPlan];
+		final contexts = [
+			for (plan in plans)
+				CompilationContext.fromBuildContext(buildContext, null, null, plan)
+		];
+		for (round in 0...2) {
+			for (order in [[2, 0, 1], [1, 2, 0]]) {
+				for (index in order) {
+					assertEquals(GoSurfacePlanner.allObservedUsesSelectNative(plans[index], GoSurfaceId.HaxeString, GoNativeRepresentation.GoString),
+						contexts[index].selectsStringFastpath(), 'string fast path of plan ${index} (round ${round})');
+				}
+			}
+		}
+	}
+
+	/** A copy of `plan` in which every String decision selects its fallback. */
+	static function withFallbackStringDecisions(plan:reflaxe.go.compiler.GoSurfacePlanner.GoSurfacePlanSnapshot):reflaxe.go.compiler.GoSurfacePlanner.GoSurfacePlanSnapshot {
+		final decisions = [
+			for (decision in plan.decisions)
+				decision.surfaceId != GoSurfaceId.HaxeString ? decision : fallbackCopy(decision)
+		];
+		return {
+			schemaVersion: plan.schemaVersion,
+			authority: plan.authority,
+			nativeSpecializationPolicy: plan.nativeSpecializationPolicy,
+			nativeSpecializationPolicySource: plan.nativeSpecializationPolicySource,
+			decisionCount: plan.decisionCount,
+			nativeCount: plan.nativeCount,
+			fallbackCount: plan.fallbackCount,
+			existingCount: plan.existingCount,
+			requiredImports: plan.requiredImports,
+			requiredRuntimeFeatures: plan.requiredRuntimeFeatures,
+			decisions: GoImmutableList.fromArray(decisions)
+		};
+	}
+
+	/** `decision` with its selection changed to a fallback. */
+	static function fallbackCopy(decision:GoSurfacePlanDecision):GoSurfacePlanDecision {
+		return {
+			module: decision.module,
+			location: decision.location,
+			usageLevel: decision.usageLevel,
+			surfaceId: decision.surfaceId,
+			usedType: decision.usedType,
+			contractVersion: decision.contractVersion,
+			eligibilityOutcome: decision.eligibilityOutcome,
+			eligibilityReason: decision.eligibilityReason,
+			eligibilityDetail: decision.eligibilityDetail,
+			selection: GoSurfacePlanSelection.Fallback,
+			selectionReason: GoSurfacePlanReason.CarrierNotActivated,
+			selectedRepresentation: decision.selectedRepresentation,
+			fallbackReason: "contract fixture",
+			imports: decision.imports,
+			runtimeRequirements: decision.runtimeRequirements,
+			noHxrtStatus: decision.noHxrtStatus,
+			selectedNoHxrtEligible: decision.selectedNoHxrtEligible
+		};
 	}
 
 	static function assertTrue(condition:Bool, message:String):Void {
