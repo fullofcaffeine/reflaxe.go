@@ -555,13 +555,7 @@ func main() {
 	_g_7 := New_haxe__ds__StringMap()
 	_g_7.__hx_this.set(hxrt.StringFromLiteral("r"), any(0.5))
 	ratios := _g_7
-	ratio := func(hx_value_111 any) float64 {
-		if hx_value_111 == nil {
-			var hx_zero_112 float64
-			return hx_zero_112
-		}
-		return hx_value_111.(float64)
-	}(ratios.__hx_this.get(hxrt.StringFromLiteral("r")))
+	ratio := hxrt.DynamicToFloatSlot(ratios.__hx_this.get(hxrt.StringFromLiteral("r")))
 	var v_25 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("int="), countOf(5)), hxrt.StringFromLiteral(",")), total), hxrt.StringFromLiteral(",")), optCount(nil)), hxrt.StringFromLiteral(",")), optCount(4)), hxrt.StringFromLiteral(",")), levelOf(any(2))))
 	hxrt.Println(v_25)
 	var v_26 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("float.bool="), ratioOf(2.5)), hxrt.StringFromLiteral(",")), ratio), hxrt.StringFromLiteral(",")), hxrt.StdString(flagOf(true))), hxrt.StringFromLiteral(",")), hxrt.StdString(flagOf(false))))
@@ -577,16 +571,16 @@ func modeOf(s *string) *string {
 }
 
 func nameKind(n *string) *string {
-	var hx_switch_113 *string
+	var hx_switch_111 *string
 	switch *hxrt.StdString(n) {
 	case *hxrt.StdString(hxrt.StringFromLiteral("alpha")):
-		hx_switch_113 = hxrt.StringFromLiteral("first")
+		hx_switch_111 = hxrt.StringFromLiteral("first")
 	case *hxrt.StdString(hxrt.StringFromLiteral("beta")):
-		hx_switch_113 = hxrt.StringFromLiteral("second")
+		hx_switch_111 = hxrt.StringFromLiteral("second")
 	default:
-		hx_switch_113 = hxrt.StringFromLiteral("other")
+		hx_switch_111 = hxrt.StringFromLiteral("other")
 	}
-	return hx_switch_113
+	return hx_switch_111
 }
 
 func nameToString(n *string) *string {
@@ -594,33 +588,33 @@ func nameToString(n *string) *string {
 }
 
 func nullName(n *string) *string {
-	var hx_if_114 *string
+	var hx_if_112 *string
 	if n == nil {
-		hx_if_114 = hxrt.StringFromLiteral("null")
+		hx_if_112 = hxrt.StringFromLiteral("null")
 	} else {
-		hx_if_114 = n
+		hx_if_112 = n
 	}
-	return hx_if_114
+	return hx_if_112
 }
 
 func optColor(c *string) *string {
-	var hx_if_115 *string
+	var hx_if_113 *string
 	if c == nil {
-		hx_if_115 = hxrt.StringFromLiteral("none")
+		hx_if_113 = hxrt.StringFromLiteral("none")
 	} else {
-		hx_if_115 = c
+		hx_if_113 = c
 	}
-	return hx_if_115
+	return hx_if_113
 }
 
 func optCount(c any) *string {
-	var hx_if_116 *string
+	var hx_if_114 *string
 	if hxrt.AnyEqualsNull(c) {
-		hx_if_116 = hxrt.StringFromLiteral("none")
+		hx_if_114 = hxrt.StringFromLiteral("none")
 	} else {
-		hx_if_116 = hxrt.StdString(c)
+		hx_if_114 = hxrt.StdString(c)
 	}
-	return hx_if_116
+	return hx_if_114
 }
 
 func optDefName(n *string) *string {
@@ -631,13 +625,13 @@ func optDefName(n *string) *string {
 }
 
 func optName(n *string) *string {
-	var hx_if_117 *string
+	var hx_if_115 *string
 	if n == nil {
-		hx_if_117 = hxrt.StringFromLiteral("none")
+		hx_if_115 = hxrt.StringFromLiteral("none")
 	} else {
-		hx_if_117 = n
+		hx_if_115 = n
 	}
-	return hx_if_117
+	return hx_if_115
 }
 
 func plainText(p *string) *string {
@@ -646,13 +640,7 @@ func plainText(p *string) *string {
 }
 
 func ratioOf(r any) float64 {
-	return func(hx_value_118 any) float64 {
-		if hx_value_118 == nil {
-			var hx_zero_119 float64
-			return hx_zero_119
-		}
-		return hx_value_118.(float64)
-	}(r)
+	return hxrt.DynamicToFloatSlot(r)
 }
 
 func stringToName(s *string) *string {
@@ -664,12 +652,12 @@ func tagText(t *string) *string {
 }
 
 func textInfo(t *string) *string {
-	return hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringSubstrStringPtr(t, 1, 0, false), hxrt.StringFromLiteral(":")), hxrt.ArrayFromValues(func(hx_sort_src_120 []*string) []any {
-		hx_sort_out_122 := make([]any, 0, len(hx_sort_src_120))
-		for _, hx_sort_item_121 := range hx_sort_src_120 {
-			hx_sort_out_122 = append(hx_sort_out_122, hx_sort_item_121)
+	return hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringSubstrStringPtr(t, 1, 0, false), hxrt.StringFromLiteral(":")), hxrt.ArrayFromValues(func(hx_sort_src_116 []*string) []any {
+		hx_sort_out_118 := make([]any, 0, len(hx_sort_src_116))
+		for _, hx_sort_item_117 := range hx_sort_src_116 {
+			hx_sort_out_118 = append(hx_sort_out_118, hx_sort_item_117)
 		}
-		return hx_sort_out_122
+		return hx_sort_out_118
 	}(hxrt.StringSplitStringPtr(t, hxrt.StringFromLiteral("o")))).Len())
 }
 

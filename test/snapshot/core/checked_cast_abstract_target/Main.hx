@@ -30,8 +30,9 @@ enum abstract Color(Int) to Int {
 	A checked cast to an abstract tests the value against the abstract's
 	underlying run-time type, which Haxe's typer records as the cast's module
 	type: Int for `Integer` and `Color`, Float for `Real`, the class Animal for
-	`Pet`. The cast still throws Haxe's catchable "Class cast error" for a value
-	of another type.
+	`Pet`. An Int passes the cast to `Real` and still reads as a Float
+	(haxe_go-gjqe). The cast still throws Haxe's catchable "Class cast error"
+	for a value of another type.
 **/
 class Main {
 	static function main():Void {
@@ -39,6 +40,8 @@ class Main {
 		Sys.println("Integer from String: " + ((n : Int) + 1));
 		var half:Dynamic = 2.5;
 		Sys.println("Dynamic as Real: " + ((cast(half, Real) : Float) * 2));
+		var seven:Dynamic = 7;
+		Sys.println("Dynamic Int as Real: " + ((cast(seven, Real) : Float) / 2));
 		var dog:Dynamic = new Dog();
 		Sys.println("Dynamic as Pet: " + (cast(dog, Pet) : Animal).sound());
 		var one:Dynamic = 1;

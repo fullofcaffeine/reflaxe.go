@@ -13,6 +13,16 @@ enum GoTypeMapperContractKind {
 	Plain;
 }
 
+/** Abstracts whose underlying types lead to Int or Float, or stop before them. */
+private enum abstract Level(Int) to Int {
+	var Low = 1;
+}
+
+private abstract Meters(Float) from Float from Int to Float {}
+private abstract Distance(Meters) from Meters to Meters {}
+private abstract Wrap<V>(V) {}
+private abstract MaybeCount(Null<Int>) {}
+
 /** Field types that `GoTypeMapperContract` asks the type mapper about. */
 class GoTypeMapperContractFixture<T:{x:Int}, U> {
 	public var id:Id;
@@ -41,6 +51,13 @@ class GoTypeMapperContractFixture<T:{x:Int}, U> {
 	public var nativeUint16:go.NativeUint16;
 	public var nativeUint:go.NativeUint;
 	public var map:Map<String, Int>;
+	public var level:Level;
+	public var meters:Meters;
+	public var distance:Distance;
+	public var maybeMeters:Null<Meters>;
+	public var wrappedInt:Wrap<Int>;
+	public var wrappedText:Wrap<String>;
+	public var maybeCount:MaybeCount;
 
 	public static var created:Int = 0;
 

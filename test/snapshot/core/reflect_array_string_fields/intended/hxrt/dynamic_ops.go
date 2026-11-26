@@ -314,10 +314,25 @@ func DynamicToFloat(value any) float64 {
 //   - Any other value raises "Invalid operation: expected Float-compatible
 //     value" or "Invalid operation: expected Bool value".
 // How: Null is checked with isAnyNil, so a null pointer stored in the `any`
-// (a null String) also counts as null.
+// (a null String) also counts as null. The Float helpers first test for a
+// float64 and an `int`, the values that generated code stores, so the usual
+// read costs one type switch, like the plain `.(float64)` assertion that the
+// compiler emits where the static type proves a float64.
+//
+// The compiler also calls the Float helpers for a value whose static type
+// does not prove a float64 (haxe_go-gjqe): a Float read of an abstract over
+// Float (`(r : Float)` with `abstract Real(Float)`, which Go stores as `any`)
+// or `cast value` of a type parameter. An unsafe or checked cast or a
+// `Dynamic` value can put an Int there, and `--interp` reads it as a Float.
 
 // DynamicToFloatSlot converts a `Dynamic` value for a Float slot.
 func DynamicToFloatSlot(value any) float64 {
+	switch number := value.(type) {
+	case float64:
+		return number
+	case int:
+		return float64(number)
+	}
 	if isAnyNil(value) {
 		return 0
 	}
@@ -325,8 +340,15 @@ func DynamicToFloatSlot(value any) float64 {
 }
 
 // DynamicToNullableFloat converts a `Dynamic` value for a `Null<Float>`
-// slot: null stays null, and a number is stored as a Go float64.
+// slot: null stays null, and a number is stored as a Go float64. A float64
+// is returned in the same `any`, so it is not boxed again.
 func DynamicToNullableFloat(value any) any {
+	switch number := value.(type) {
+	case float64:
+		return value
+	case int:
+		return float64(number)
+	}
 	if isAnyNil(value) {
 		return nil
 	}

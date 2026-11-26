@@ -1,0 +1,6 @@
+real from dynamic: 3.5
+real from int: 1.5 3.5
+real field: 1.5
+count as float: 2.5
+level as float: 1.5
+typed float: 0.75

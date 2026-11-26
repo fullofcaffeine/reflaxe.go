@@ -6785,6 +6785,10 @@ class GoCompiler {
 				// `Any` promoted to them) converts like an implicit slot does.
 				var dynamicCast = isDynamicValueType(inner.t)
 					&& !isDynamicValueType(expr.t) ? lowerDynamicSlotExpr(castExpr, expr.t) : null;
+				// A Float read of an abstract over Float or of a type parameter
+				// (`(r : Float)`, `cast value`) can find an Int there.
+				if (dynamicCast == null && innerGoType == "any" && !storageTransparentArrayCast)
+					dynamicCast = lowerUnprovenFloatRead(castExpr, inner.t, expr.t);
 				// `castLoweringTypesAnyOperand` mirrors which branches below type an `any`
 				// operand; keep the two in step.
 				if (dynamicCast != null) {
@@ -12853,17 +12857,23 @@ class GoCompiler {
 
 	/**
 		What: Reports whether an `Int` (or `Null<Int>`) value enters a `Float` (or
-		`Null<Float>`) slot.
+		`Null<Float>`) slot. An abstract over Int counts as an Int value, and an
+		abstract over Float as a Float slot (haxe_go-gjqe).
 		Why: Haxe unifies Int with Float implicitly. The typed AST keeps the value's
 		Int type and adds no cast node, so only the slot's expected type shows that
 		Go needs a `float64` conversion. Go never converts `int` to `float64` by
-		itself.
-		How: Compare the Haxe types only. Both predicates follow `Null<T>`, so
-		nullable values and slots are included; they do not map types to Go, so the
-		check has no side effects at the many boundaries that call it.
+		itself. Haxe stores an abstract's value as its underlying type, so an
+		abstract over Int entering a Float slot (`var f:Float = count`) and an Int
+		entering an abstract over Float (`var m:Meters = 7`) need the same
+		conversion.
+		How: Compare the Haxe types only (`GoTypeMapper.isIntValueType` and
+		`isFloatValueType`, which follow abstracts to their underlying types). Both
+		predicates follow `Null<T>`, so nullable values and slots are included; they
+		do not map types to Go, so the check has no side effects at the many
+		boundaries that call it.
 	**/
 	function isIntToFloatWidening(sourceType:Type, targetType:Type):Bool {
-		return isIntType(sourceType) && isFloatType(targetType);
+		return isFloatValueType(targetType) && isIntValueType(sourceType);
 	}
 
 	/**
@@ -12878,13 +12888,18 @@ class GoCompiler {
 		storage (a `Null<Float>` field) would hold a Go `int`. Seeing the Int value
 		lets the receiving slot decide how the constant is written, so
 		already-correct output keeps its plain constants.
+		An enum abstract constant such as `Level.High` is typed as `cast 3` to
+		the abstract; its value is that Int, so a Float slot can still write the
+		constant `3.0`.
 		How: Match a direct `TCast(value, null)` from Int to Float, or a Float
 		constant whose text is exactly a 32-bit Int, which becomes that Int
-		literal. Return the expression itself otherwise.
+		literal. An unsafe cast of an Int to an abstract over Int is looked
+		through. Return the expression itself otherwise.
 	**/
 	function implicitIntToFloatSource(source:TypedExpr):TypedExpr {
 		return switch (source.expr) {
 			case TCast(inner, null) if (isIntToFloatWidening(inner.t, source.t)): inner;
+			case TCast(inner, null) if (!isIntType(source.t) && isIntValueType(source.t) && isIntValueType(inner.t)): implicitIntToFloatSource(inner);
 			case TConst(TFloat(text)) if (isFloatType(source.t)): wholeFloatConstantAsInt(source, text);
 			case _: source;
 		};
@@ -12901,7 +12916,9 @@ class GoCompiler {
 
 	/**
 		What: Lowers an Int value that enters a Float slot, returning null when the
-		value is not an Int or the slot is not a Float.
+		value is not an Int or the slot is not a Float. A value of an abstract over
+		Float that enters a Float or `Null<Float>` slot is read with
+		`lowerFloatAbstractSlot`.
 		Why: This is the one conversion point for every typed slot that receives a
 		value: returns, assignments, locals, call and constructor arguments,
 		collection writes, structure fields, value branches and casts. Without it
@@ -12909,29 +12926,61 @@ class GoCompiler {
 		`int` that a later `float64` read rejects at run time.
 		How: Lower the value at its own Int type first, so existing storage recovery
 		(for example an erased Array element) still applies, then widen it with
-		`widenIntToFloat`. A `Null<Float>` slot keeps null. Pass `declaredStorage`
-		only when the destination is declared with an explicit Go type (a return,
-		a plain assignment, a typed parameter): Go converts an untyped Int constant
-		there, so the constant stays as written. Otherwise (`:=` and `any`
-		storage) a constant becomes a Float constant.
+		`widenIntToFloat`. A `Null<Float>` slot (also `Null<T>` of an abstract over
+		Float) keeps null. Pass `declaredStorage` only when the destination is
+		declared with an explicit Go type (a return, a plain assignment, a typed
+		parameter): Go converts an untyped Int constant there, so the constant
+		stays as written. Otherwise (`:=` and `any` storage, which includes every
+		abstract over Float) a constant becomes a Float constant. A value of an
+		abstract over Int is stored as Go `any` unless the abstract is a core one
+		such as `haxe.Int32`; it is recovered as an Int before it is converted.
 	**/
 	function lowerIntToFloatSlot(source:TypedExpr, targetType:Type, ?declaredStorage:Type):Null<LoweredExprWithPrefix> {
 		var value = implicitIntToFloatSource(source);
 		if (!isIntToFloatWidening(value.t, targetType)) {
-			return null;
+			return lowerFloatAbstractSlot(source, targetType);
 		}
-		if (isNullablePrimitiveType(targetType)) {
+		var intAbstract = !isIntType(value.t);
+		var erasedAbstract = intAbstract && valueStorageGoType(value.t) == "any";
+		if (isNullablePrimitiveType(targetType) || isNullableFloatValueType(targetType)) {
 			var stored = lowerExprWithExpectedUpcast(value, value.t);
-			var erased = isNullablePrimitiveType(value.t) && nonNullPrimitiveExprGoType(value) == null;
+			var erased = (isNullablePrimitiveType(value.t) || erasedAbstract) && nonNullPrimitiveExprGoType(value) == null;
 			return {prefix: stored.prefix, expr: widenIntToFloat(stored.expr, erased, true, false), isStringLike: false};
+		}
+		var typedSlot = declaredStorage != null && isFloatType(declaredStorage) && !isNullablePrimitiveType(declaredStorage);
+		if (intAbstract) {
+			var storedAbstract = lowerExprWithExpectedUpcast(value, value.t);
+			return {prefix: storedAbstract.prefix, expr: widenIntToFloat(storedAbstract.expr, erasedAbstract, false, typedSlot), isStringLike: false};
 		}
 		var intType = Context.follow(value.t);
 		var lowered = lowerExprWithExpectedUpcast(value, intType);
 		var erased = !isSharedArrayElementExpr(value)
 			&& nonNullPrimitiveExprGoType(value) == null
 			&& (exprBackedByAny(value) || shouldForceAnyCoerce(value.t, intType));
-		var typedSlot = declaredStorage != null && isFloatType(declaredStorage) && !isNullablePrimitiveType(declaredStorage);
 		return {prefix: lowered.prefix, expr: widenIntToFloat(lowered.expr, erased, false, typedSlot), isStringLike: false};
+	}
+
+	/**
+		What: Reads a value of an abstract over Float for a Float or `Null<Float>`
+		slot, and returns null for every other value or slot.
+		Why: Such an abstract is stored as Go `any` and can hold an Int (see
+		`lowerUnprovenFloatRead`). Haxe adds no cast when its value enters a
+		`Null<Float>` slot (`var n:Null<Float> = real`), so the `any` was copied
+		unchanged and broke the rule that `Null<Float>` storage holds a float64:
+		a later Float read of it stopped the program.
+		How: Lower the value at its own type, then convert it with
+		`lowerUnprovenFloatRead`.
+	**/
+	function lowerFloatAbstractSlot(source:TypedExpr, targetType:Type):Null<LoweredExprWithPrefix> {
+		if (!isFloatType(targetType)
+			|| isFloatType(source.t)
+			|| !isFloatValueType(source.t)
+			|| valueStorageGoType(source.t) != "any") {
+			return null;
+		}
+		var lowered = lowerExprWithExpectedUpcast(source, source.t);
+		var read = lowerUnprovenFloatRead(lowered.expr, source.t, targetType);
+		return read == null ? null : {prefix: lowered.prefix, expr: read, isStringLike: false};
 	}
 
 	/**
@@ -13041,6 +13090,33 @@ class GoCompiler {
 		return null;
 	}
 
+	/**
+		What: Converts a Go `any` value for a Float or `Null<Float>` slot when the
+		value's static type does not prove that it holds a Go float64: an abstract
+		over Float, a type parameter, or another erased type. Returns null when
+		the slot is not a Float, or when the static type (Float or `Null<Float>`)
+		proves the storage.
+		Why: An abstract over Float is stored as Go `any`, and Haxe adds no
+		conversion when an unsafe `cast`, a checked cast or a `Dynamic` value puts
+		an Int into it (`var r:Real = cast d`), or when `cast value` reads a type
+		parameter holding an Int as a Float. `--interp` keeps that Int and reads
+		it as a Float. A Go `.(float64)` assertion stopped the program with a
+		panic that Haxe `try`/`catch` cannot handle (haxe_go-gjqe). Every Int that
+		enters a Float or `Null<Float>` slot is converted when it is written (see
+		`lowerIntToFloatSlot` and `lowerDynamicSlotExpr`), so those reads keep the
+		plain assertion and pay no type switch.
+		How: Use the `Dynamic` slot helpers through `lowerDynamicSlotExpr`:
+		`hxrt.DynamicToFloatSlot` reads a float64 or an Int (null reads as 0, as
+		the plain assertion did), and `hxrt.DynamicToNullableFloat` keeps null.
+		Any other value raises a catchable Haxe error.
+	**/
+	function lowerUnprovenFloatRead(expr:GoExpr, fromType:Type, slotType:Type):Null<GoExpr> {
+		if (isFloatType(fromType) || !isFloatType(slotType)) {
+			return null;
+		}
+		return lowerDynamicSlotExpr(expr, slotType);
+	}
+
 	function coerceAnyExprToType(expr:GoExpr, fromType:Type, toType:Type, ?fromAnyOverride:Bool = false):GoExpr {
 		// An Int value entering a Float slot was already recovered and converted by
 		// lowerIntToFloatSlot; recovering it again as an erased float64 would be wrong.
@@ -13068,7 +13144,8 @@ class GoCompiler {
 			return GoExpr.GoCall(GoExpr.GoIdent("hxrt.IntFromNullableAny"), [expr]);
 		}
 		if (isFloatType(toType) || isNullableFloatType(toType)) {
-			return lowerNilSafeTypeAssertExpr(expr, "float64");
+			var unprovenRead = lowerUnprovenFloatRead(expr, fromType, toType);
+			return unprovenRead != null ? unprovenRead : lowerNilSafeTypeAssertExpr(expr, "float64");
 		}
 		if (isBoolType(toType) || isNullableBoolType(toType)) {
 			return lowerNilSafeTypeAssertExpr(expr, "bool");
@@ -13132,9 +13209,13 @@ class GoCompiler {
 		Why: A `Null<Float>` operand is Go `any`. Arithmetic on a null
 		`Null<Float>` raises an error in `--interp`, neko and python, so its read
 		must not turn null into `0`.
+		An operand of an abstract over Int (`price * count` with
+		`abstract Count(Int)`) is stored as Go `any` and holds an Int.
 		How: Keep an operand already proven non-null (a narrowed local or a
 		non-null fact). Otherwise read the storage with
-		`nullableNumericStorageRead`, the read of `++`, `--` and unary `-`.
+		`nullableNumericStorageRead`, the read of `++`, `--` and unary `-`. An
+		erased abstract over Int is recovered as an Int first (see
+		`widenIntToFloat`).
 	**/
 	function floatOperandExpr(expr:GoExpr, operandType:Type, ?operand:TypedExpr):GoExpr {
 		if (isNullableFloatType(operandType)) {
@@ -13142,6 +13223,9 @@ class GoCompiler {
 				return expr;
 			}
 			return nullableNumericStorageRead(expr, operandType);
+		}
+		if (!isIntType(operandType) && isIntValueType(operandType) && valueStorageGoType(operandType) == "any") {
+			return widenIntToFloat(expr, true, false, false);
 		}
 		return GoExprOperatorOps.floatOperandExpr(expr, isFloatType(operandType));
 	}
@@ -14303,6 +14387,18 @@ class GoCompiler {
 
 	function isFloatType(type:Type):Bool {
 		return GoTypeMapper.isFloatType(type);
+	}
+
+	function isIntValueType(type:Type):Bool {
+		return GoTypeMapper.isIntValueType(type);
+	}
+
+	function isFloatValueType(type:Type):Bool {
+		return GoTypeMapper.isFloatValueType(type);
+	}
+
+	function isNullableFloatValueType(type:Type):Bool {
+		return GoTypeMapper.isNullableFloatValueType(type);
 	}
 
 	function isAnyLikeType(type:Type):Bool {

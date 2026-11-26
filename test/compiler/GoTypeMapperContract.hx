@@ -19,7 +19,9 @@ import reflaxe.go.compiler.GoTypeMapper;
 	Proves the first promise for root, packaged, private, typedef, enum, and type
 	parameter declarations. Proves the mapper still recognizes each declaration it
 	checks by path, and that two private abstracts with the same name in different
-	modules keep their own Go carriers in either query order.
+	modules keep their own Go carriers in either query order. Proves the same for
+	the remembered answer of `isIntValueType`, and that the Int and Float value
+	predicates follow abstracts to their underlying types (haxe_go-gjqe).
 
 	How
 	After the initialization macros, loads two fixture classes, compares every
@@ -175,6 +177,32 @@ class GoTypeMapperContract {
 				require(goType(get(fixture, "id")) == "*string", "string-backed Id after reuse");
 			}
 		}
+		// The underlying Int answer is remembered by path, so it must also keep them apart.
+		for (round in 0...2) {
+			if (round == 0) {
+				require(!GoTypeMapper.isIntValueType(get(fixture, "id")), "string-backed Id is not an Int value");
+				require(GoTypeMapper.isIntValueType(get(other, "id")), "int-backed Id is an Int value");
+			} else {
+				require(GoTypeMapper.isIntValueType(get(other, "id")), "int-backed Id after reuse");
+				require(!GoTypeMapper.isIntValueType(get(fixture, "id")), "string-backed Id after reuse");
+			}
+		}
+
+		// Int-to-Float widening follows abstracts to their underlying Int or Float.
+		require(GoTypeMapper.isIntValueType(get(fixture, "int32")), "haxe.Int32 is an Int value");
+		require(GoTypeMapper.isIntValueType(get(fixture, "nullableInt")), "Null<Int> is an Int value");
+		require(GoTypeMapper.isIntValueType(get(fixture, "level")), "enum abstract over Int is an Int value");
+		require(!GoTypeMapper.isFloatValueType(get(fixture, "level")), "enum abstract over Int is not a Float value");
+		require(GoTypeMapper.isFloatValueType(get(fixture, "meters")), "abstract over Float is a Float value");
+		require(!GoTypeMapper.isIntValueType(get(fixture, "meters")), "abstract over Float is not an Int value");
+		require(GoTypeMapper.isFloatValueType(get(fixture, "distance")), "abstract over an abstract over Float");
+		require(GoTypeMapper.isNullableFloatValueType(get(fixture, "maybeMeters")), "Null<abstract over Float>");
+		require(!GoTypeMapper.isNullableFloatValueType(get(fixture, "meters")), "abstract over Float is not Null<T>");
+		require(GoTypeMapper.isIntValueType(get(fixture, "wrappedInt")), "Wrap<Int> applies its type parameter");
+		require(!GoTypeMapper.isIntValueType(get(fixture, "wrappedText")), "Wrap<String> applies its type parameter");
+		require(!GoTypeMapper.isIntValueType(get(fixture, "maybeCount")), "abstract over Null<Int> keeps its own recovery");
+		require(!GoTypeMapper.isIntValueType(get(fixture, "map")) && !GoTypeMapper.isFloatValueType(get(fixture, "map")), "Map");
+		require(!GoTypeMapper.isIntValueType(get(fixture, "text")) && !GoTypeMapper.isFloatValueType(get(fixture, "text")), "String");
 
 		require(GoTypeMapper.isAnonymousObjectType(get(fixture, "row")), "typedef structure");
 		require(GoTypeMapper.isAnonymousObjectType(get(fixture, "empty")), "empty structure");

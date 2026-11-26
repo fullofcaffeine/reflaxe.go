@@ -374,6 +374,110 @@ class GoTypeMapper {
 		};
 	}
 
+	/**
+		What: Whether a value of `type` is a Haxe Int at run time: an Int (see
+		`isIntType`), or a value of an abstract whose underlying types lead to Int,
+		such as `abstract Count(Int)`, an enum abstract over Int or `haxe.Int32`.
+		Why: Haxe stores an abstract's value as its underlying type and adds no
+		conversion when an abstract over Int enters a Float slot through its
+		`to Int`. The Int-to-Float widening must see such a value as an Int, or Go
+		receives an `int` (or an `any` holding one) where it needs a `float64`.
+		How: See `underlyingScalarPath`.
+	**/
+	public static function isIntValueType(type:Type):Bool {
+		return isIntType(type) || underlyingScalarPath(type) == "Int";
+	}
+
+	/**
+		What: Whether a value of `type` is a Haxe Float at run time: a Float (see
+		`isFloatType`), or a value of an abstract whose underlying types lead to
+		Float, such as `abstract Meters(Float) from Int`.
+		Why: An Int that enters such an abstract (through `from Int`, or through
+		`from Float`, which Int unifies with) is not converted by Haxe. Converting
+		it when it is written keeps the abstract's storage a float64.
+		How: See `underlyingScalarPath`.
+	**/
+	public static function isFloatValueType(type:Type):Bool {
+		return isFloatType(type) || underlyingScalarPath(type) == "Float";
+	}
+
+	/** `Null<T>` of a Float or of an abstract over Float (see `isFloatValueType`). */
+	public static function isNullableFloatValueType(type:Type):Bool {
+		return switch (type) {
+			case TAbstract(abstractRef, params): declarationPath(abstractRef) == "Null" && params.length == 1 && isFloatValueType(params[0]);
+			case TMono(ref): var resolved = ref.get(); resolved != null && isNullableFloatValueType(resolved);
+			case TType(_, _): isNullableFloatValueType(TypeTools.follow(type, true));
+			case TLazy(f):
+				isNullableFloatValueType(f());
+			case _:
+				false;
+		};
+	}
+
+	/**
+		What: Returns "Int" or "Float" when `type` is an ordinary abstract whose
+		underlying types lead to Haxe's Int or Float, and null otherwise.
+		Why: `isIntValueType` and `isFloatValueType` share this walk. Abstracts over
+		Int and Float are stored as Go `any` (see `abstractGoType`), except the
+		core ones (`haxe.Int32` is a Go `int`), so the caller decides the storage.
+		The Int-to-Float widening asks at every slot that receives a value, so the
+		answer for an abstract without type parameters is remembered by its path
+		(see `abstractDeclarations` for why a path is a safe key).
+		How: Follow `type` like `Context.follow` (typedefs and `Null<T>`), then
+		follow each abstract to its underlying type with the applied type
+		parameters. The walk stops at a `@:coreType` abstract other than Int and
+		Float, at a `Null<T>` inside an abstract (that value can be null, so it
+		keeps its own recovery), and after a fixed depth in case of a cycle.
+	**/
+	static function underlyingScalarPath(type:Type):Null<String> {
+		return abstractScalarPath(Context.follow(type), 0);
+	}
+
+	/** Remembered `abstractScalarPath` answers by abstract path; "" means none. */
+	static final abstractScalarPaths = new Map<String, String>();
+
+	static function abstractScalarPath(type:Type, depth:Int):Null<String> {
+		return switch (type) {
+			case TAbstract(abstractRef, params):
+				var path = declarationPath(abstractRef);
+				if (path == "Int" || path == "Float") {
+					return path;
+				}
+				var cached = abstractScalarPaths.get(path);
+				if (cached != null) {
+					return cached == "" ? null : cached;
+				}
+				var abstractType = abstractDeclaration(abstractRef);
+				var found:Null<String> = null;
+				if (!abstractType.meta.has(":coreType") && depth < 16) {
+					var underlying = TypeTools.applyTypeParameters(abstractType.type, abstractType.params, params);
+					found = abstractScalarPath(followKeepingNull(underlying), depth + 1);
+				}
+				if (abstractType.params.length == 0) {
+					abstractScalarPaths.set(path, found == null ? "" : found);
+				}
+				found;
+			case _:
+				null;
+		};
+	}
+
+	/** Follows monomorphs, lazy types and typedefs, but keeps a `Null<T>` wrapper. */
+	static function followKeepingNull(type:Type):Type {
+		return switch (type) {
+			case TMono(ref):
+				var resolved = ref.get();
+				resolved == null ? type : followKeepingNull(resolved);
+			case TLazy(resolve):
+				followKeepingNull(resolve());
+			case TType(typeRef, params):
+				var typedefType = typeRef.get();
+				followKeepingNull(TypeTools.applyTypeParameters(typedefType.type, typedefType.params, params));
+			case _:
+				type;
+		};
+	}
+
 	public static function isStdClassMetaType(type:Type):Bool {
 		var followed = Context.follow(type);
 		return switch (followed) {

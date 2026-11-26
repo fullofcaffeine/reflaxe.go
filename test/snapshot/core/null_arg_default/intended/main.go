@@ -788,55 +788,31 @@ func main() {
 	var this1 float64
 	this1 = 10
 	var meters any = any(this1)
-	row(hxrt.StringFromLiteral("abstract"), hxrt.NewArray(_Main__Meters_Impl__plus(func(hx_value_145 any) float64 {
+	row(hxrt.StringFromLiteral("abstract"), hxrt.NewArray(_Main__Meters_Impl__plus(hxrt.DynamicToFloatSlot(meters), 0.5, 2), _Main__Meters_Impl__plus(hxrt.DynamicToFloatSlot(meters), func(hx_value_145 any) float64 {
 		if hx_value_145 == nil {
-			var hx_zero_146 float64
-			return hx_zero_146
+			return 0.5
 		}
 		return hx_value_145.(float64)
-	}(meters), 0.5, 2), _Main__Meters_Impl__plus(func(hx_value_147 any) float64 {
+	}(nf), 2), _Main__Meters_Impl__plus(hxrt.DynamicToFloatSlot(meters), func(hx_value_146 any) float64 {
+		if hx_value_146 == nil {
+			return 0.5
+		}
+		return hx_value_146.(float64)
+	}(nf), func(hx_value_147 any) int {
 		if hx_value_147 == nil {
-			var hx_zero_148 float64
-			return hx_zero_148
+			return 2
 		}
-		return hx_value_147.(float64)
-	}(meters), func(hx_value_149 any) float64 {
+		return hxrt.IntFromNullableAny(hx_value_147)
+	}(ni)), _Main__Meters_Impl__plus(hxrt.DynamicToFloatSlot(meters), func(hx_value_148 any) float64 {
+		if hx_value_148 == nil {
+			return 0.5
+		}
+		return hx_value_148.(float64)
+	}(zeroF), func(hx_value_149 any) int {
 		if hx_value_149 == nil {
-			return 0.5
-		}
-		return hx_value_149.(float64)
-	}(nf), 2), _Main__Meters_Impl__plus(func(hx_value_150 any) float64 {
-		if hx_value_150 == nil {
-			var hx_zero_151 float64
-			return hx_zero_151
-		}
-		return hx_value_150.(float64)
-	}(meters), func(hx_value_152 any) float64 {
-		if hx_value_152 == nil {
-			return 0.5
-		}
-		return hx_value_152.(float64)
-	}(nf), func(hx_value_153 any) int {
-		if hx_value_153 == nil {
 			return 2
 		}
-		return hxrt.IntFromNullableAny(hx_value_153)
-	}(ni)), _Main__Meters_Impl__plus(func(hx_value_154 any) float64 {
-		if hx_value_154 == nil {
-			var hx_zero_155 float64
-			return hx_zero_155
-		}
-		return hx_value_154.(float64)
-	}(meters), func(hx_value_156 any) float64 {
-		if hx_value_156 == nil {
-			return 0.5
-		}
-		return hx_value_156.(float64)
-	}(zeroF), func(hx_value_157 any) int {
-		if hx_value_157 == nil {
-			return 2
-		}
-		return hxrt.IntFromNullableAny(hx_value_157)
+		return hxrt.IntFromNullableAny(hx_value_149)
 	}(zeroI))))
 }
 
@@ -860,22 +836,22 @@ func nullInt(x int) any {
 }
 
 func optBool(x bool) bool {
-	return func(hx_value_158 any) bool {
-		if hx_value_158 == nil {
-			var hx_zero_159 bool
-			return hx_zero_159
+	return func(hx_value_150 any) bool {
+		if hx_value_150 == nil {
+			var hx_zero_151 bool
+			return hx_zero_151
 		}
-		return hx_value_158.(bool)
+		return hx_value_150.(bool)
 	}(x)
 }
 
 func optFloat(x float64) float64 {
-	return func(hx_value_160 any) float64 {
-		if hx_value_160 == nil {
-			var hx_zero_161 float64
-			return hx_zero_161
+	return func(hx_value_152 any) float64 {
+		if hx_value_152 == nil {
+			var hx_zero_153 float64
+			return hx_zero_153
 		}
-		return hx_value_160.(float64)
+		return hx_value_152.(float64)
 	}(x)
 }
 
@@ -961,16 +937,16 @@ func hx_alloc_SubCounter(owner any) *SubCounter {
 }
 
 func hx_init_SubCounter(self *SubCounter, start any, on any, label *string) *SubCounter {
-	hx_init_Counter(self.Counter, func(hx_value_162 any) float64 {
-		if hx_value_162 == nil {
+	hx_init_Counter(self.Counter, func(hx_value_154 any) float64 {
+		if hx_value_154 == nil {
 			return 0.25
 		}
-		return hx_value_162.(float64)
-	}(start), 2, func(hx_value_163 any) bool {
-		if hx_value_163 == nil {
+		return hx_value_154.(float64)
+	}(start), 2, func(hx_value_155 any) bool {
+		if hx_value_155 == nil {
 			return true
 		}
-		return hx_value_163.(bool)
+		return hx_value_155.(bool)
 	}(on), label)
 	return self
 }

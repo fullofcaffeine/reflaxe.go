@@ -99,13 +99,7 @@ func main() {
 		return hx_value_1.(int)
 	}(n)) + hxrt.Int32Wrap(1))))))
 	var half any = 2.5
-	var v any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("Dynamic as Real: "), (func(hx_value_4 any) float64 {
-		if hx_value_4 == nil {
-			var hx_zero_5 float64
-			return hx_zero_5
-		}
-		return hx_value_4.(float64)
-	}(func(hx_cast_3 any) any {
+	var v any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("Dynamic as Real: "), (hxrt.DynamicToFloatSlot(func(hx_cast_3 any) any {
 		if !hxrt.AnyEqualsNull(hx_cast_3) && !func(hx_value any) bool {
 			switch hx_value.(type) {
 			case int:
@@ -143,17 +137,56 @@ func main() {
 		return hx_cast_3
 	}(half)) * float64(2))))
 	hxrt.Println(v)
-	var dog any = New_Dog()
-	var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Dynamic as Pet: "), hx_recover_class_Animal(func(hx_cast_6 any) any {
-		if !hxrt.AnyEqualsNull(hx_cast_6) && !hx_is_nominal_Animal(hx_cast_6) {
+	var seven any = 7
+	var v_1 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("Dynamic Int as Real: "), (hxrt.DynamicToFloatSlot(func(hx_cast_4 any) any {
+		if !hxrt.AnyEqualsNull(hx_cast_4) && !func(hx_value any) bool {
+			switch hx_value.(type) {
+			case int:
+				return true
+			case int8:
+				return true
+			case int16:
+				return true
+			case int32:
+				return true
+			case int64:
+				return true
+			case uint:
+				return true
+			case uint8:
+				return true
+			case uint16:
+				return true
+			case uint32:
+				return true
+			case uint64:
+				return true
+			case uintptr:
+				return true
+			case float32:
+				return true
+			case float64:
+				return true
+			default:
+				return false
+			}
+		}(hx_cast_4) {
 			hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Class cast error")))
 		}
-		return hx_cast_6
-	}(dog)).__hx_this.sound()))
+		return hx_cast_4
+	}(seven)) / float64(2))))
 	hxrt.Println(v_1)
+	var dog any = New_Dog()
+	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Dynamic as Pet: "), hx_recover_class_Animal(func(hx_cast_5 any) any {
+		if !hxrt.AnyEqualsNull(hx_cast_5) && !hx_is_nominal_Animal(hx_cast_5) {
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Class cast error")))
+		}
+		return hx_cast_5
+	}(dog)).__hx_this.sound()))
+	hxrt.Println(v_2)
 	var one any = 1
-	var v_2 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Dynamic as Color: "), hxrt.StdString(hxrt.HaxeEqual(func(hx_cast_7 any) any {
-		if !hxrt.AnyEqualsNull(hx_cast_7) && !func(hx_value any) bool {
+	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Dynamic as Color: "), hxrt.StdString(hxrt.HaxeEqual(func(hx_cast_6 any) any {
+		if !hxrt.AnyEqualsNull(hx_cast_6) && !func(hx_value any) bool {
 			switch hx_value.(type) {
 			case int:
 				return true
@@ -180,16 +213,16 @@ func main() {
 			default:
 				return false
 			}
-		}(hx_cast_7) {
+		}(hx_cast_6) {
 			hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Class cast error")))
 		}
-		return hx_cast_7
+		return hx_cast_6
 	}(one), any(1)))))
-	hxrt.Println(v_2)
+	hxrt.Println(v_3)
 	var text any = hxrt.StringFromLiteral("text")
 	hxrt.TryCatch(func() {
-		func(hx_cast_13 any) any {
-			if !hxrt.AnyEqualsNull(hx_cast_13) && !func(hx_value any) bool {
+		func(hx_cast_12 any) any {
+			if !hxrt.AnyEqualsNull(hx_cast_12) && !func(hx_value any) bool {
 				switch hx_value.(type) {
 				case int:
 					return true
@@ -216,16 +249,16 @@ func main() {
 				default:
 					return false
 				}
-			}(hx_cast_13) {
+			}(hx_cast_12) {
 				hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Class cast error")))
 			}
-			return hx_cast_13
+			return hx_cast_12
 		}(text)
 		hxrt.Println(any(hxrt.StringFromLiteral("not reached")))
-	}, func(hx_caught_8 any) {
-		hx_exception_9 := haxe__Exception_caught(hx_caught_8)
-		hx_payload_10 := haxe__Exception_catchValue(hx_caught_8)
-		_ = hx_exception_9
+	}, func(hx_caught_7 any) {
+		hx_exception_8 := haxe__Exception_caught(hx_caught_7)
+		hx_payload_9 := haxe__Exception_catchValue(hx_caught_7)
+		_ = hx_exception_8
 		if func(hx_value any) bool {
 			switch hx_value.(type) {
 			case *string:
@@ -233,17 +266,17 @@ func main() {
 			default:
 				return false
 			}
-		}(hx_payload_10) {
-			var message *string = func(hx_value_11 any) *string {
-				if hx_value_11 == nil {
-					var hx_zero_12 *string
-					return hx_zero_12
+		}(hx_payload_9) {
+			var message *string = func(hx_value_10 any) *string {
+				if hx_value_10 == nil {
+					var hx_zero_11 *string
+					return hx_zero_11
 				}
-				return hx_value_11.(*string)
-			}(hx_payload_10)
+				return hx_value_10.(*string)
+			}(hx_payload_9)
 			hxrt.Println(any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("caught: "), message)))
 		} else {
-			hxrt.Throw(hx_caught_8)
+			hxrt.Throw(hx_caught_7)
 		}
 	})
 }

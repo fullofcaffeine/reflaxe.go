@@ -10,8 +10,10 @@
 
 	The cases cover abstracts over Int, Float, String, Bool, a class, an enum
 	and another abstract, enum abstracts over Int and String, `Null<T>` and
-	`Dynamic` operands, null operands, casts used only as statements and
-	values that must keep throwing the catchable "Class cast error". Haxe's
+	`Dynamic` operands, null operands, an Int that passes a cast to an
+	abstract over Float and is then read as a Float (haxe_go-gjqe), casts used
+	only as statements and values that must keep throwing the catchable
+	"Class cast error". Haxe's
 	own tests/unit Issue2957 is the first case: an `@:from` conversion that
 	returns `cast(Std.parseInt(s), Integer)`.
 **/
@@ -107,6 +109,7 @@ class Main {
 		var quarter:Null<Float> = 2.25;
 		attempt("Null<Float> as Real", () -> "" + ((cast(quarter, Real) : Float) * 2));
 		attempt("Dynamic 7 as Real", () -> Std.string(cast(seven, Real)));
+		attempt("Dynamic 7 as Real read as Float", () -> "" + ((cast(seven, Real) : Float) / 2));
 		attempt("Dynamic 1.5 as Real", () -> "" + (cast(half, Real) : Float));
 		attempt("Dynamic text as Real", () -> "" + (cast(text, Real) : Float));
 
