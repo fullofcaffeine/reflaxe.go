@@ -226,25 +226,19 @@ func InteractiveCli_printUsage(runtime profile__TodoRuntime) {
 func InteractiveCli_run(runtime profile__TodoRuntime) {
 	app := New_app__TodoApp(runtime)
 	InteractiveCli_loadState(app)
-	args := hxrt.ArrayFromValues(func(hx_sort_src_19 []*string) []any {
-		hx_sort_out_21 := make([]any, 0, len(hx_sort_src_19))
-		for _, hx_sort_item_20 := range hx_sort_src_19 {
-			hx_sort_out_21 = append(hx_sort_out_21, hx_sort_item_20)
-		}
-		return hx_sort_out_21
-	}(hxrt.SysArgs()))
+	args := Sys_args()
 	if args.Len() == 0 {
 		InteractiveCli_printUsage(runtime)
 		return
 	}
 	i := 0
 	for i < args.Len() {
-		cmd := func(hx_value_22 any) *string {
-			if hx_value_22 == nil {
-				var hx_zero_23 *string
-				return hx_zero_23
+		cmd := func(hx_value_19 any) *string {
+			if hx_value_19 == nil {
+				var hx_zero_20 *string
+				return hx_zero_20
 			}
-			return hx_value_22.(*string)
+			return hx_value_19.(*string)
 		}(args.Get(i))
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("reset")) {
 			app = New_app__TodoApp(runtime)
@@ -281,23 +275,23 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 				InteractiveCli_failUsage(hxrt.StringFromLiteral("add requires <priority> <title_token>"))
 				return
 			}
-			priority := InteractiveCli_parsePositiveInt(func(hx_value_24 any) *string {
-				if hx_value_24 == nil {
-					var hx_zero_25 *string
-					return hx_zero_25
+			priority := InteractiveCli_parsePositiveInt(func(hx_value_21 any) *string {
+				if hx_value_21 == nil {
+					var hx_zero_22 *string
+					return hx_zero_22
 				}
-				return hx_value_24.(*string)
+				return hx_value_21.(*string)
 			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))))
 			if priority < 0 {
 				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid priority: "), args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))))
 				return
 			}
-			title := InteractiveCli_decodeToken(func(hx_value_28 any) *string {
-				if hx_value_28 == nil {
-					var hx_zero_29 *string
-					return hx_zero_29
+			title := InteractiveCli_decodeToken(func(hx_value_25 any) *string {
+				if hx_value_25 == nil {
+					var hx_zero_26 *string
+					return hx_zero_26
 				}
-				return hx_value_28.(*string)
+				return hx_value_25.(*string)
 			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))))
 			app.add(title, priority)
 			InteractiveCli_saveState(app)
@@ -310,12 +304,12 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 				InteractiveCli_failUsage(hxrt.StringFromLiteral("toggle requires <id>"))
 				return
 			}
-			id := InteractiveCli_parsePositiveInt(func(hx_value_30 any) *string {
-				if hx_value_30 == nil {
-					var hx_zero_31 *string
-					return hx_zero_31
+			id := InteractiveCli_parsePositiveInt(func(hx_value_27 any) *string {
+				if hx_value_27 == nil {
+					var hx_zero_28 *string
+					return hx_zero_28
 				}
-				return hx_value_30.(*string)
+				return hx_value_27.(*string)
 			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))))
 			if id < 0 {
 				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid id: "), args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))))
@@ -335,23 +329,23 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 				InteractiveCli_failUsage(hxrt.StringFromLiteral("tag requires <id> <tag_token>"))
 				return
 			}
-			id_1 := InteractiveCli_parsePositiveInt(func(hx_value_34 any) *string {
-				if hx_value_34 == nil {
-					var hx_zero_35 *string
-					return hx_zero_35
+			id_1 := InteractiveCli_parsePositiveInt(func(hx_value_31 any) *string {
+				if hx_value_31 == nil {
+					var hx_zero_32 *string
+					return hx_zero_32
 				}
-				return hx_value_34.(*string)
+				return hx_value_31.(*string)
 			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))))
 			if id_1 < 0 {
 				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid id: "), args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))))
 				return
 			}
-			tag := InteractiveCli_decodeToken(func(hx_value_38 any) *string {
-				if hx_value_38 == nil {
-					var hx_zero_39 *string
-					return hx_zero_39
+			tag := InteractiveCli_decodeToken(func(hx_value_35 any) *string {
+				if hx_value_35 == nil {
+					var hx_zero_36 *string
+					return hx_zero_36
 				}
-				return hx_value_38.(*string)
+				return hx_value_35.(*string)
 			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))))
 			if app.tag(id_1, tag) {
 				InteractiveCli_saveState(app)
@@ -367,31 +361,31 @@ func InteractiveCli_run(runtime profile__TodoRuntime) {
 				InteractiveCli_failUsage(hxrt.StringFromLiteral("batch requires <priority> <title1_token> <title2_token>"))
 				return
 			}
-			priority_1 := InteractiveCli_parsePositiveInt(func(hx_value_40 any) *string {
-				if hx_value_40 == nil {
-					var hx_zero_41 *string
-					return hx_zero_41
+			priority_1 := InteractiveCli_parsePositiveInt(func(hx_value_37 any) *string {
+				if hx_value_37 == nil {
+					var hx_zero_38 *string
+					return hx_zero_38
 				}
-				return hx_value_40.(*string)
+				return hx_value_37.(*string)
 			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))))
 			if priority_1 < 0 {
 				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid priority: "), args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))))
 				return
 			}
 			titles := hxrt.NewArray()
+			titles.Push(InteractiveCli_decodeToken(func(hx_value_42 any) *string {
+				if hx_value_42 == nil {
+					var hx_zero_43 *string
+					return hx_zero_43
+				}
+				return hx_value_42.(*string)
+			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2)))))))
 			titles.Push(InteractiveCli_decodeToken(func(hx_value_45 any) *string {
 				if hx_value_45 == nil {
 					var hx_zero_46 *string
 					return hx_zero_46
 				}
 				return hx_value_45.(*string)
-			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2)))))))
-			titles.Push(InteractiveCli_decodeToken(func(hx_value_48 any) *string {
-				if hx_value_48 == nil {
-					var hx_zero_49 *string
-					return hx_zero_49
-				}
-				return hx_value_48.(*string)
 			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3)))))))
 			added := app.addMany(titles, priority_1)
 			if added > 0 {
@@ -414,13 +408,13 @@ func InteractiveCli_saveState(app *app__TodoApp) {
 		item := hx_recover_class_model__TodoItem(items.Get(_g))
 		_g = int(int32((_g + 1)))
 		out = hxrt.StringConcatStringPtr(out, hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(InteractiveCli_encodeField(item.title), hxrt.StringFromLiteral("\t")), item.priority), hxrt.StringFromLiteral("\t")), func() *string {
-			var hx_if_50 *string
+			var hx_if_47 *string
 			if item.done {
-				hx_if_50 = hxrt.StringFromLiteral("1")
+				hx_if_47 = hxrt.StringFromLiteral("1")
 			} else {
-				hx_if_50 = hxrt.StringFromLiteral("0")
+				hx_if_47 = hxrt.StringFromLiteral("0")
 			}
-			return hx_if_50
+			return hx_if_47
 		}()), hxrt.StringFromLiteral("\t")), InteractiveCli_encodeTags(item.tags)), hxrt.StringFromLiteral("\n")))
 	}
 	sys__io__File_saveContent(hxrt.StringFromLiteral(".tui_todo_state.txt"), out)

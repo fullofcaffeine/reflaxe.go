@@ -24,6 +24,10 @@ import sys.io.FileOutput;
 	  explicit compiler diagnostic instead of substituting wall-clock time. Simple
 	  one-step capabilities are inline so direct calls retain Go-shaped output while
 	  first-class function references still materialize the source-owned contract.
+	- A method that converts to or from a `go.*` type (`args`, `command`) is not
+	  inline. Haxe copies an inline body into the caller, so the conversion would
+	  become `go.*` use in a portable caller's module, and the native authority
+	  gate (`reflaxe_go_native_authority=guarded`) would report that caller.
 	- `@:dce` lets Haxe drop the methods a program never reaches. Haxe's default
 	  `--dce std` trims only files under Haxe's own standard-library directory, so
 	  without it this staged override counted as user code and every method was
@@ -47,7 +51,13 @@ class Sys {
 		NativeConsole.println(v);
 	}
 
-	public static inline function args():Array<String> {
+	/**
+		What: Return the command-line arguments after the program name.
+		Why: The runtime returns them as a `go.NativeSlice`. An inline body would put
+		that `go.*` value into every portable caller (see the class notes).
+		How: Convert to a Haxe `Array` here, in a method that stays in this module.
+	**/
+	public static function args():Array<String> {
 		return NativeSys.args().toArray();
 	}
 
@@ -98,8 +108,10 @@ class Sys {
 		What: Run a shell command or direct executable and return its exit code.
 		Why: A null argument array selects host-shell parsing in the upstream contract; a non-null array must bypass the shell.
 		How: Preserve nullability across the typed runtime boundary so `hxrt` can choose the correct launch mode.
+		The method is not inline: its `go.NativeSlice` conversion must stay in this
+		module instead of being copied into portable callers (see the class notes).
 	**/
-	public static inline function command(cmd:String, ?args:Array<String>):Int {
+	public static function command(cmd:String, ?args:Array<String>):Int {
 		return NativeSys.command(cmd, args == null ? null : NativeSlice.fromArray(args));
 	}
 

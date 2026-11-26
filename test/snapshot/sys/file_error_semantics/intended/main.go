@@ -26,28 +26,7 @@ func main() {
 	hxrt.Println(v_3)
 	locked := hxrt.StringConcatStringPtr(root, hxrt.StringFromLiteral("/locked.txt"))
 	sys__io__File_saveContent(locked, hxrt.StringFromLiteral("secret"))
-	args := hxrt.NewArray(hxrt.StringFromLiteral("000"), locked)
-	hxrt.SysCommand(hxrt.StringFromLiteral("chmod"), func() []*string {
-		var hx_if_6 []*string
-		if args == nil {
-			hx_if_6 = nil
-		} else {
-			hx_if_6 = func(hx_lambda_raw_1 []any) []*string {
-				hx_lambda_out_2 := make([]*string, 0, len(hx_lambda_raw_1))
-				for _, hx_lambda_item_3 := range hx_lambda_raw_1 {
-					hx_lambda_out_2 = append(hx_lambda_out_2, func(hx_value_4 any) *string {
-						if hx_value_4 == nil {
-							var hx_zero_5 *string
-							return hx_zero_5
-						}
-						return hx_value_4.(*string)
-					}(hx_lambda_item_3))
-				}
-				return hx_lambda_out_2
-			}(args.Values())
-		}
-		return hx_if_6
-	}())
+	Sys_command(hxrt.StringFromLiteral("chmod"), hxrt.NewArray(hxrt.StringFromLiteral("000"), locked))
 	var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("permission.read.throws="), hxrt.StdString(throws(hxrt.NewFunction(func() {
 		sys__io__File_getContent(locked)
 	})))))
@@ -56,55 +35,34 @@ func main() {
 		sys__io__File_saveContent(locked, hxrt.StringFromLiteral("replacement"))
 	})))))
 	hxrt.Println(v_5)
-	args_1 := hxrt.NewArray(hxrt.StringFromLiteral("600"), locked)
-	hxrt.SysCommand(hxrt.StringFromLiteral("chmod"), func() []*string {
-		var hx_if_12 []*string
-		if args_1 == nil {
-			hx_if_12 = nil
-		} else {
-			hx_if_12 = func(hx_lambda_raw_7 []any) []*string {
-				hx_lambda_out_8 := make([]*string, 0, len(hx_lambda_raw_7))
-				for _, hx_lambda_item_9 := range hx_lambda_raw_7 {
-					hx_lambda_out_8 = append(hx_lambda_out_8, func(hx_value_10 any) *string {
-						if hx_value_10 == nil {
-							var hx_zero_11 *string
-							return hx_zero_11
-						}
-						return hx_value_10.(*string)
-					}(hx_lambda_item_9))
-				}
-				return hx_lambda_out_8
-			}(args_1.Values())
-		}
-		return hx_if_12
-	}())
+	Sys_command(hxrt.StringFromLiteral("chmod"), hxrt.NewArray(hxrt.StringFromLiteral("600"), locked))
 	sys__FileSystem_deleteFile(locked)
 	sys__FileSystem_deleteDirectory(root)
 }
 
 func throws(action *hxrt.Function[func()]) bool {
-	hx_try_return_13 := false
-	var hx_try_value_14 bool
+	hx_try_return_1 := false
+	var hx_try_value_2 bool
 	hxrt.TryCatch(func() {
 		func() {
-			var hx_callable_18 *hxrt.Function[func()] = action
-			hxrt.FunctionCall(hx_callable_18)()
+			var hx_callable_6 *hxrt.Function[func()] = action
+			hxrt.FunctionCall(hx_callable_6)()
 		}()
-		hx_try_value_14 = false
-		hx_try_return_13 = true
+		hx_try_value_2 = false
+		hx_try_return_1 = true
 		return
-	}, func(hx_caught_15 any) {
-		hx_exception_16 := haxe__Exception_caught(hx_caught_15)
-		hx_payload_17 := haxe__Exception_catchValue(hx_caught_15)
-		_ = hx_exception_16
-		var hx_tmp any = hx_payload_17
+	}, func(hx_caught_3 any) {
+		hx_exception_4 := haxe__Exception_caught(hx_caught_3)
+		hx_payload_5 := haxe__Exception_catchValue(hx_caught_3)
+		_ = hx_exception_4
+		var hx_tmp any = hx_payload_5
 		_ = hx_tmp
-		hx_try_value_14 = true
-		hx_try_return_13 = true
+		hx_try_value_2 = true
+		hx_try_return_1 = true
 		return
 	})
-	if hx_try_return_13 {
-		return hx_try_value_14
+	if hx_try_return_1 {
+		return hx_try_value_2
 	}
 	return false
 }

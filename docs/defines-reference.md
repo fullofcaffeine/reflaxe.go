@@ -195,7 +195,11 @@ are present in report artifacts.
       declaration, however deeply that declaration is nested in the type.
       Calling a static or module-level function counts only that function's
       own type: a caller of a go-free `@:goNative` function is not reported
-      because a sibling function has a `go.*` signature.
+      because a sibling function has a `go.*` signature. Haxe copies the body
+      of an `inline` function into each caller, so `go.*` types in that body
+      count against the caller's module. For this reason the staged std
+      methods that convert to or from a `go.*` type (such as `Sys.args` and
+      `Sys.command`) are not inline.
     - `scanner`: explicit source scanner (`import`/`using`) for deterministic low-noise module hits.
     - `hybrid`: union of `typed` + `scanner` hits.
 - `reflaxe_go_portable_native_allow=<csv>`

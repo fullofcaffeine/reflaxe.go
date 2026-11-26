@@ -75,25 +75,19 @@ func InteractiveCli_printUsage(runtime app__runtime__PulseRuntime) {
 
 func InteractiveCli_run(runtime app__runtime__PulseRuntime) {
 	frames := Harness_baselineFrames()
-	args := hxrt.ArrayFromValues(func(hx_sort_src_1 []*string) []any {
-		hx_sort_out_3 := make([]any, 0, len(hx_sort_src_1))
-		for _, hx_sort_item_2 := range hx_sort_src_1 {
-			hx_sort_out_3 = append(hx_sort_out_3, hx_sort_item_2)
-		}
-		return hx_sort_out_3
-	}(hxrt.SysArgs()))
+	args := Sys_args()
 	if args.Len() == 0 {
 		InteractiveCli_printUsage(runtime)
 		return
 	}
 	i := 0
 	for i < args.Len() {
-		cmd := func(hx_value_4 any) *string {
-			if hx_value_4 == nil {
-				var hx_zero_5 *string
-				return hx_zero_5
+		cmd := func(hx_value_1 any) *string {
+			if hx_value_1 == nil {
+				var hx_zero_2 *string
+				return hx_zero_2
 			}
-			return hx_value_4.(*string)
+			return hx_value_1.(*string)
 		}(args.Get(i))
 		if hxrt.StringEqualStringPtr(cmd, hxrt.StringFromLiteral("help")) {
 			InteractiveCli_printHelp(runtime)
@@ -133,30 +127,30 @@ func InteractiveCli_run(runtime app__runtime__PulseRuntime) {
 				InteractiveCli_failUsage(hxrt.StringFromLiteral("ingest requires <source_token> <value> <region_token>"))
 				return
 			}
-			source := InteractiveCli_decodeToken(func(hx_value_6 any) *string {
-				if hx_value_6 == nil {
-					var hx_zero_7 *string
-					return hx_zero_7
+			source := InteractiveCli_decodeToken(func(hx_value_3 any) *string {
+				if hx_value_3 == nil {
+					var hx_zero_4 *string
+					return hx_zero_4
 				}
-				return hx_value_6.(*string)
+				return hx_value_3.(*string)
 			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(1))))))
-			value := InteractiveCli_parsePositiveInt(func(hx_value_8 any) *string {
-				if hx_value_8 == nil {
-					var hx_zero_9 *string
-					return hx_zero_9
+			value := InteractiveCli_parsePositiveInt(func(hx_value_5 any) *string {
+				if hx_value_5 == nil {
+					var hx_zero_6 *string
+					return hx_zero_6
 				}
-				return hx_value_8.(*string)
+				return hx_value_5.(*string)
 			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))))
 			if value < 0 {
 				InteractiveCli_failUsage(hxrt.StringConcatAny(hxrt.StringFromLiteral("invalid value: "), args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(2))))))
 				return
 			}
-			region := InteractiveCli_decodeToken(func(hx_value_12 any) *string {
-				if hx_value_12 == nil {
-					var hx_zero_13 *string
-					return hx_zero_13
+			region := InteractiveCli_decodeToken(func(hx_value_9 any) *string {
+				if hx_value_9 == nil {
+					var hx_zero_10 *string
+					return hx_zero_10
 				}
-				return hx_value_12.(*string)
+				return hx_value_9.(*string)
 			}(args.Get(int((hxrt.Int32Wrap(i) + hxrt.Int32Wrap(3))))))
 			sequence := InteractiveCli_nextSequence(frames)
 			frames.Push(New_app__core__PulseIngressFrame(sequence, source, value, region))

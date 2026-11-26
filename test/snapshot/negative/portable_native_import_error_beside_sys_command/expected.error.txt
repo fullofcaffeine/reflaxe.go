@@ -1,0 +1,1 @@
+NativeAuthorityGate: module `Main` uses typed `go.*` APIs outside an explicit `@:goNative` module while `reflaxe_go_native_authority=guarded` is active.

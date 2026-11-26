@@ -13,13 +13,7 @@ func main() {
 		return hx_value_1.(*string)
 	}(environment.__hx_this.get(hxrt.StringFromLiteral("HAXE_GO_SYS_METHOD_SELECTION"))))
 	hxrt.Println(v)
-	arguments := hxrt.ArrayFromValues(func(hx_sort_src_3 []*string) []any {
-		hx_sort_out_5 := make([]any, 0, len(hx_sort_src_3))
-		for _, hx_sort_item_4 := range hx_sort_src_3 {
-			hx_sort_out_5 = append(hx_sort_out_5, hx_sort_item_4)
-		}
-		return hx_sort_out_5
-	}(hxrt.SysArgs()))
+	arguments := Sys_args()
 	if (arguments.Len() > 0) && hxrt.StringEqualAny(arguments.Get(0), hxrt.StringFromLiteral("read")) {
 		var v_1 any = any(Sys_getChar(false))
 		hxrt.Println(v_1)
