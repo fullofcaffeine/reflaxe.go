@@ -65,14 +65,14 @@ func (self *haxe__ds__ObjectMap) remove(key any) bool {
 }
 
 func (self *haxe__ds__ObjectMap) keys() hxrt.Anonymous {
-	keys := hxrt.ObjectMapKeys(self.h)
+	keys_local := hxrt.ObjectMapKeys(self.h)
 	index := 0
 	hx_obj_1 := map[string]any{}
 	hx_obj_1["hasNext"] = hxrt.NewFunction(func() bool {
-		return (index < len(keys))
+		return (index < len(keys_local))
 	})
 	hx_obj_1["next"] = hxrt.NewFunction(func() any {
-		return keys[func() int {
+		return keys_local[func() int {
 			hx_post_2 := index
 			index = int(int32((index + 1)))
 			return hx_post_2
@@ -83,14 +83,14 @@ func (self *haxe__ds__ObjectMap) keys() hxrt.Anonymous {
 
 func (self *haxe__ds__ObjectMap) iterator() hxrt.Anonymous {
 	_gthis := self
-	keys := hxrt.ObjectMapKeys(self.h)
+	keys_local := hxrt.ObjectMapKeys(self.h)
 	index := 0
 	hx_obj_3 := map[string]any{}
 	hx_obj_3["hasNext"] = hxrt.NewFunction(func() bool {
-		return (index < len(keys))
+		return (index < len(keys_local))
 	})
 	hx_obj_3["next"] = hxrt.NewFunction(func() any {
-		return hxrt.ObjectMapGet(_gthis.h, keys[func() int {
+		return hxrt.ObjectMapGet(_gthis.h, keys_local[func() int {
 			hx_post_4 := index
 			index = int(int32((index + 1)))
 			return hx_post_4
@@ -101,17 +101,17 @@ func (self *haxe__ds__ObjectMap) iterator() hxrt.Anonymous {
 
 func (self *haxe__ds__ObjectMap) keyValueIterator() hxrt.Anonymous {
 	_gthis := self
-	keys := self.__hx_this.keys()
+	keys_local := self.__hx_this.keys()
 	hx_obj_5 := map[string]any{}
 	hx_obj_5["hasNext"] = hxrt.NewFunction(func() bool {
 		return func() bool {
-			var hx_callable_6 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(keys, "hasNext"))
+			var hx_callable_6 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(keys_local, "hasNext"))
 			return hxrt.FunctionCall(hx_callable_6)()
 		}()
 	})
 	hx_obj_5["next"] = hxrt.NewFunction(func() hxrt.Anonymous {
 		var key any = func() any {
-			var hx_callable_7 *hxrt.Function[func() any] = hx_recover_callable_c5309b43(hxrt.AnonymousGet(keys, "next"))
+			var hx_callable_7 *hxrt.Function[func() any] = hx_recover_callable_c5309b43(hxrt.AnonymousGet(keys_local, "next"))
 			return hxrt.FunctionCall(hx_callable_7)()
 		}()
 		hx_obj_8 := map[string]any{}

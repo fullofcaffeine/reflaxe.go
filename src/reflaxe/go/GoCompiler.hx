@@ -359,6 +359,7 @@ class GoCompiler {
 	final externImportPaths:Map<String, Bool>;
 	final externImportPackages:Map<String, String>;
 	final reservedGoNames:Map<String, Bool> = [];
+	final mainStaticGoNames:Map<String, Bool> = [];
 	final usedExternClassPaths:Map<String, Bool>;
 	final sourceModuleRegistry:GoSourceModuleRegistry;
 	final sourceOwnedStdlibPlanner:GoSourceOwnedStdlibPlanner;
@@ -583,6 +584,7 @@ class GoCompiler {
 
 	function compileResolvedTypes(classes:Array<ClassType>, enums:Array<EnumType>):Array<GoGeneratedFile> {
 		reserveGoNames();
+		reserveMainStaticGoNames(classes);
 		projectClasses = classes.copy();
 		projectEnums = enums.copy();
 		sourceOwnedStdlibPlanner.cacheAvailableClasses(classes);
@@ -5625,6 +5627,46 @@ class GoCompiler {
 		}
 	}
 
+	/**
+		Reserve the Go name of every selected-main static for locals.
+
+		Why: selected-main statics print as bare package-level names (`count`,
+		`helper`), and every class of the program lowers into that one Go
+		package. A Haxe local, parameter, loop or catch variable, or local
+		function with the same name is legal Haxe, because Haxe code reaches the
+		static through `Main.count`. In Go the local shadows the package-level
+		name for its whole scope, so `Main.helper(1, 2)` fails `go build` and
+		`Main.count` silently reads or writes the local.
+
+		What: fills `mainStaticGoNames` with the symbol `staticSymbol` gives each
+		static of the selected main class, bare or qualified.
+
+		How: runs after `reserveGoNames`, because a static's symbol depends on
+		those reservations, and before any body is lowered. `localVarName` then
+		gives every local with one of these names the `_local` suffix, the same
+		escape it uses for predeclared identifiers and package names. Renaming
+		the local keeps the static's Go name stable for every other reference
+		and for Go code that calls it. The rule holds in every function, even
+		one that never names the static, so it stays correct however lowering
+		nests generated code (for example a dynamic method body that becomes a
+		closure inside the generated constructor). The cost is a cosmetic
+		rename of such locals, including in staged standard-library code.
+	**/
+	function reserveMainStaticGoNames(classes:Array<ClassType>):Void {
+		mainStaticGoNames.clear();
+		for (classType in classes)
+			if (isSelectedMainClass(classType))
+				for (field in classType.statics.get()) {
+					final symbol = GoNaming.staticSymbol(classType.pack, classType.name, field.name, outputIdentity.entrySymbol.value(), reservedGoNames);
+					mainStaticGoNames.set(symbol, true);
+				}
+	}
+
+	/** Whether a local must not take `name`; see `reserveGoNames` and `reserveMainStaticGoNames`. */
+	function isReservedLocalGoName(name:String):Bool {
+		return reservedGoNames.exists(name) || mainStaticGoNames.exists(name);
+	}
+
 	function activeScopesContainLocalName(candidate:String):Bool {
 		for (scope in functionVarNameScopes)
 			for (name in scope)
@@ -5644,7 +5686,7 @@ class GoCompiler {
 		}
 
 		var base = normalizeIdent(variable.name);
-		while (reservedGoNames.exists(base))
+		while (isReservedLocalGoName(base))
 			base += "_local";
 		var currentScope = currentFunctionVarNameScope();
 		var countScope = currentFunctionVarNameCountScope();
@@ -5654,7 +5696,7 @@ class GoCompiler {
 
 		var next = countScope.exists(base) ? countScope.get(base) : 0;
 		var assigned = next == 0 ? base : base + "_" + next;
-		while (reservedGoNames.exists(assigned) || activeScopesContainLocalName(assigned)) {
+		while (isReservedLocalGoName(assigned) || activeScopesContainLocalName(assigned)) {
 			next++;
 			assigned = base + "_" + next;
 		}

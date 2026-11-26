@@ -39,8 +39,8 @@ func (self *Fields) HxFunctionReceiver() any {
 	return self.__hx_this
 }
 
-func New_Fields(struct_ int, const_ int, goto_ int) *Fields {
-	return hx_init_Fields(hx_alloc_Fields(nil), struct_, const_, goto_)
+func New_Fields(struct__local int, const__local int, goto__local int) *Fields {
+	return hx_init_Fields(hx_alloc_Fields(nil), struct__local, const__local, goto__local)
 }
 
 func hx_alloc_Fields(owner any) *Fields {
@@ -53,10 +53,10 @@ func hx_alloc_Fields(owner any) *Fields {
 	return self
 }
 
-func hx_init_Fields(self *Fields, struct_ int, const_ int, goto_ int) *Fields {
-	self.struct_ = struct_
-	self.const_ = const_
-	self.goto_ = goto_
+func hx_init_Fields(self *Fields, struct__local int, const__local int, goto__local int) *Fields {
+	self.struct_ = struct__local
+	self.const_ = const__local
+	self.goto_ = goto__local
 	return self
 }
 
@@ -66,25 +66,25 @@ func (self *Fields) HxClassName() string {
 
 var const_ int = 2
 
-func goto_(struct_ int, const_ int, goto_ any) int {
-	return int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(struct_) + hxrt.Int32Wrap(const_)))) + hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(func() any {
+func goto_(struct__local int, const__local int, goto__local any) int {
+	return int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(struct__local) + hxrt.Int32Wrap(const__local)))) + hxrt.Int32Wrap(hxrt.IntFromNullableAny(hxrt.IntFromNullableAny(func() any {
 		var hx_if_1 any
-		if goto_ == nil {
+		if goto__local == nil {
 			hx_if_1 = 0
 		} else {
-			hx_if_1 = goto_.(int)
+			hx_if_1 = goto__local.(int)
 		}
 		return hx_if_1
 	}())))))
 }
 
 func locals() {
-	struct_ := 3
-	const_ := 4
-	goto_ := 5
-	hxrt.Println(any(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(struct_) + hxrt.Int32Wrap(const_)))) + hxrt.Int32Wrap(goto_)))))
-	twice := hxrt.NewFunction(func(struct__1 int) int {
-		return int((hxrt.Int32Wrap(struct__1) * hxrt.Int32Wrap(2)))
+	struct__local := 3
+	const__local := 4
+	goto__local := 5
+	hxrt.Println(any(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(struct__local) + hxrt.Int32Wrap(const__local)))) + hxrt.Int32Wrap(goto__local)))))
+	twice := hxrt.NewFunction(func(struct__local_1 int) int {
+		return int((hxrt.Int32Wrap(struct__local_1) * hxrt.Int32Wrap(2)))
 	})
 	var v any = any(func() int {
 		var hx_callable_2 *hxrt.Function[func(int) int] = twice
@@ -92,11 +92,11 @@ func locals() {
 		return hxrt.FunctionCall(hx_callable_2)(hx_argument_3)
 	}())
 	hxrt.Println(v)
-	const__1 := hxrt.NewFunction(func(goto__1 int) int {
-		return int((hxrt.Int32Wrap(goto__1) + hxrt.Int32Wrap(100)))
+	const__local_1 := hxrt.NewFunction(func(goto__local_1 int) int {
+		return int((hxrt.Int32Wrap(goto__local_1) + hxrt.Int32Wrap(100)))
 	})
 	var v_1 any = any(func() int {
-		var hx_callable_4 *hxrt.Function[func(int) int] = const__1
+		var hx_callable_4 *hxrt.Function[func(int) int] = const__local_1
 		var hx_argument_5 int = 1
 		return hxrt.FunctionCall(hx_callable_4)(hx_argument_5)
 	}())
@@ -121,14 +121,14 @@ func locals() {
 				return false
 			}
 		}(hx_payload_8) {
-			var struct__1 *string = func(hx_value_9 any) *string {
+			var struct__local_1 *string = func(hx_value_9 any) *string {
 				if hx_value_9 == nil {
 					var hx_zero_10 *string
 					return hx_zero_10
 				}
 				return hx_value_9.(*string)
 			}(hx_payload_8)
-			hxrt.Println(any(struct__1))
+			hxrt.Println(any(struct__local_1))
 		} else {
 			hxrt.Throw(hx_caught_6)
 		}
@@ -137,10 +137,10 @@ func locals() {
 	_g1 := _g.params[0].(int)
 	_g2 := _g.params[1].(int)
 	_g_1 := _g.params[2].(int)
-	struct__2 := _g1
-	const__2 := _g2
-	goto__1 := _g_1
-	hxrt.Println(any(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(struct__2) * hxrt.Int32Wrap(100)))) + hxrt.Int32Wrap(int((hxrt.Int32Wrap(const__2) * hxrt.Int32Wrap(10))))))) + hxrt.Int32Wrap(goto__1)))))
+	struct__local_2 := _g1
+	const__local_2 := _g2
+	goto__local_1 := _g_1
+	hxrt.Println(any(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(struct__local_2) * hxrt.Int32Wrap(100)))) + hxrt.Int32Wrap(int((hxrt.Int32Wrap(const__local_2) * hxrt.Int32Wrap(10))))))) + hxrt.Int32Wrap(goto__local_1)))))
 }
 
 func main() {

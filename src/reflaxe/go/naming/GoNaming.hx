@@ -148,7 +148,9 @@ class GoNaming {
 		names are lowercase by convention and every predeclared identifier is
 		lowercase. Callers pass the names reserved before lowering (see
 		`GoCompiler.reserveGoNames`), so every reference to one static gets the
-		same symbol.
+		same symbol. A local with that symbol would hide the static inside its
+		function, so no local takes a selected-main static's symbol (see
+		`GoCompiler.reserveMainStaticGoNames`).
 	**/
 	public static function staticSymbol(pack:Array<String>, typeName:String, fieldName:String, selectedMainEntrySymbol:Null<String>,
 			reservedGoNames:Map<String, Bool>):String {

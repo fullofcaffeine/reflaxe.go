@@ -168,8 +168,8 @@ func (self *SnapshotInlineThrowAccessors) HxFunctionReceiver() any {
 	return self.__hx_this
 }
 
-func New_SnapshotInlineThrowAccessors(valid bool, textValue *string, intValue int, boolValue bool, nullableValue *SnapshotInlineThrowBox, genericValue any) *SnapshotInlineThrowAccessors {
-	return hx_init_SnapshotInlineThrowAccessors(hx_alloc_SnapshotInlineThrowAccessors(nil), valid, textValue, intValue, boolValue, nullableValue, genericValue)
+func New_SnapshotInlineThrowAccessors(valid bool, textValue *string, intValue int, boolValue bool, nullableValue *SnapshotInlineThrowBox, genericValue_local any) *SnapshotInlineThrowAccessors {
+	return hx_init_SnapshotInlineThrowAccessors(hx_alloc_SnapshotInlineThrowAccessors(nil), valid, textValue, intValue, boolValue, nullableValue, genericValue_local)
 }
 
 func hx_alloc_SnapshotInlineThrowAccessors(owner any) *SnapshotInlineThrowAccessors {
@@ -182,13 +182,13 @@ func hx_alloc_SnapshotInlineThrowAccessors(owner any) *SnapshotInlineThrowAccess
 	return self
 }
 
-func hx_init_SnapshotInlineThrowAccessors(self *SnapshotInlineThrowAccessors, valid bool, textValue *string, intValue int, boolValue bool, nullableValue *SnapshotInlineThrowBox, genericValue any) *SnapshotInlineThrowAccessors {
+func hx_init_SnapshotInlineThrowAccessors(self *SnapshotInlineThrowAccessors, valid bool, textValue *string, intValue int, boolValue bool, nullableValue *SnapshotInlineThrowBox, genericValue_local any) *SnapshotInlineThrowAccessors {
 	self.valid = valid
 	self.textValue = textValue
 	self.intValue = intValue
 	self.boolValue = boolValue
 	self.nullableValue = nullableValue
-	self.genericValue = genericValue
+	self.genericValue = genericValue_local
 	return self
 }
 
