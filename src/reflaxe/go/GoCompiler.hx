@@ -28,6 +28,7 @@ import reflaxe.go.compiler.GoNominalValueRecovery;
 import reflaxe.go.compiler.GoNominalTypeTest;
 import reflaxe.go.compiler.GoStoredValueClassScan;
 import reflaxe.go.compiler.GoCarrierContractIndex;
+import reflaxe.go.compiler.GoDeclaredFunctionMemo;
 import reflaxe.go.compiler.GoRecoveryAvailability;
 import reflaxe.go.compiler.GoRecoveryDispatch.GoGuardedRecoveryDeclaration;
 import reflaxe.go.compiler.GoNativeTypeEligibility;
@@ -341,6 +342,10 @@ class GoCompiler {
 	final mainIdentity:GoMainIdentity;
 	final outputIdentity:GoOutputIdentity;
 	final staticFunctionInfos:Map<String, FunctionInfo>;
+
+	/** Declared functions of callees and static methods, decoded once per method; see `GoDeclaredFunctionMemo`. */
+	final declaredFunctions:GoDeclaredFunctionMemo;
+
 	final localFunctionScopes:Array<Map<String, FunctionInfo>>;
 	final localLambdaAliasScopes:Array<Map<String, String>>;
 	final localRestIteratorScopes:Array<Array<String>>;
@@ -451,6 +456,7 @@ class GoCompiler {
 		};
 		this.outputIdentity = outputIdentity == null ? GoOutputIdentity.standalone(this.compilationContext.runtimeImportPath) : outputIdentity;
 		staticFunctionInfos = new Map<String, FunctionInfo>();
+		declaredFunctions = new GoDeclaredFunctionMemo(stableDeclaredFunction);
 		localFunctionScopes = [];
 		localLambdaAliasScopes = [];
 		localRestIteratorScopes = [];
@@ -2142,7 +2148,7 @@ class GoCompiler {
 		for (classType in classes) {
 			var fields = classType.statics.get();
 			for (field in fields) {
-				var func = stableDeclaredFunction(field);
+				var func = declaredFunctions.get(classType, field);
 				if (func != null) {
 					staticFunctionInfos.set(staticSymbol(classType, field.name), buildFunctionInfo(func));
 				}
@@ -6072,7 +6078,7 @@ class GoCompiler {
 			case TField(_, FStatic(classRef, field)):
 				var classType = classRef.get();
 				var resolved = field.get();
-				var func = stableDeclaredFunction(resolved);
+				var func = declaredFunctions.get(classType, resolved);
 				var symbol = staticSymbol(classType, resolved.name);
 				if (func == null) {
 					null;
@@ -6087,7 +6093,10 @@ class GoCompiler {
 					staticFunctionInfos.set(symbol, info);
 					info;
 				}
-			case TField(_, FInstance(_, _, field)) | TField(_, FAnon(field)) | TField(_, FClosure(_, field)):
+			case TField(_, FInstance(classRef, _, field)):
+				var func = declaredFunctions.get(classRef.get(), field.get());
+				func == null ? null : buildFunctionInfo(func);
+			case TField(_, FAnon(field)) | TField(_, FClosure(_, field)):
 				var func = stableDeclaredFunction(field.get());
 				func == null ? null : buildFunctionInfo(func);
 			case TLocal(variable):

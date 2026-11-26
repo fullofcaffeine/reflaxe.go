@@ -43,6 +43,7 @@ def main() -> int:
         ["haxe", "-cp", "src", "-cp", "test/compiler", "--macro", "GoStoredValueClassScanContract.check()", "--no-output"],
         ["haxe", "-cp", "src", "-cp", "test/compiler", "--macro", "GoCarrierContractIndexContract.check()", "--no-output"],
         ["haxe", "-cp", "src", "-cp", "test/compiler", "--macro", "GoNominalAncestryContract.check()", "--no-output"],
+        ["haxe", "-cp", "src", "-cp", "test/compiler", "--macro", "GoDeclaredFunctionMemoContract.check()", "--no-output"],
         ["haxe", "-cp", "src", "-cp", "test/compiler", "--macro", "GoTypeMapperContract.check()", "--no-output"],
         ["haxe", "-cp", "src", "-cp", "test/compiler", "--macro", "GoNativeTypeReachContract.check()", "--no-output"],
         ["haxe", "-cp", "src", "-cp", "test/compiler", "-main", "GoSourceFormatterContract", "--interp"],
