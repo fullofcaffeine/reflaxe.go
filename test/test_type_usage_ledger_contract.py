@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import subprocess
 import unittest
@@ -70,6 +71,31 @@ class TypeUsageLedgerContractTest(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         self.assertIn("type shape contract passed", proc.stdout + proc.stderr)
 
+    def test_compiler_tracker_matches_the_reflaxe_tracker(self) -> None:
+        # The compiler's tracker keeps enum, typedef, and abstract ids for the
+        # whole compilation. This macro contract compares its maps with the
+        # unchanged vendored Reflaxe tracker and the ledger reports built on them.
+        proc = subprocess.run(
+            [
+                "haxe",
+                "-cp",
+                "src",
+                "-cp",
+                "test/compiler",
+                "-lib",
+                "reflaxe",
+                "--macro",
+                "GoTypeUsageTrackerContract.check()",
+                "--no-output",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertIn("type usage tracker contract passed", proc.stdout + proc.stderr)
+
     def test_tracker_runs_for_ledger_modules_and_report_is_deterministic(self) -> None:
         # Reflaxe's own option would build a map for every module type; the
         # compiler builds it in setupModule only for modules the ledger reads.
@@ -79,7 +105,14 @@ class TypeUsageLedgerContractTest(unittest.TestCase):
         self.assertNotIn("trackUsedTypes: true", compiler_init)
         self.assertIn("override public function setupModule(", compiler_source)
         self.assertIn("GoTypeUsageLedger.isProjectOwner(moduleType)", compiler_source)
+        self.assertIn("typeUsageTracker.track(moduleType)", compiler_source)
         self.assertNotIn("getTypeUsage()", compiler_source)
+        self.assertNotIn("TypeUsageTracker.trackTypesInModuleType", compiler_source)
+        # Reflaxe adds haxe.Function entries only after TypeUsageTracker.init();
+        # the compiler's tracker matches Reflaxe only while nothing calls it.
+        init_call = re.compile(r"TypeUsageTracker\.init\(\)\s*;")
+        for source in [*(ROOT / "src").rglob("*.hx"), *(ROOT / "vendor").rglob("*.hx")]:
+            self.assertIsNone(init_call.search(source.read_text(encoding="utf-8")), str(source))
 
         first = self.compile_fixture()
         first_bytes = (OUT / "type_usage.json").read_bytes()

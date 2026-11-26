@@ -58,6 +58,17 @@ and compiler types whose maps the ledger never reads. During each project
 class, enum, typedef, or abstract callback, `GoTypeUsageLedger` consumes the
 current `TypeUsageMap`.
 
+The map comes from `GoTypeUsageTracker`. It follows the rules of Reflaxe's
+`TypeUsageTracker` and returns the same map, but it reads each enum, typedef,
+and abstract declaration only once per compilation instead of once for every
+expression that names it. Reflaxe needs a declaration's id for every type it
+records, and reading an abstract rebuilds its whole declaration, so this was
+most of the tracker's time in large programs. Classes are still read every
+time, because type parameter classes print alike: every local `pick<V>` owns a
+`pick.V`. `GoTypeUsageTrackerContract` compares the two trackers' maps on
+fixture and standard-library modules, using the unchanged vendored Reflaxe
+tracker as the reference.
+
 The ledger records the seven Reflaxe usage levels with stable names:
 
 - `expression`
@@ -154,6 +165,9 @@ npm run test:type-usage-ledger
 python3 test/run-snapshots.py --case core/type_usage_ledger --runtime
 npm run test:auto-planner:schema
 ```
+
+`npm run test:type-usage-ledger` also runs `GoTypeUsageTrackerContract`
+(see Collection above).
 
 The contract checks deterministic bytes across repeated compilations, deep
 read-only publication, preserved generic/function/anonymous relationships,

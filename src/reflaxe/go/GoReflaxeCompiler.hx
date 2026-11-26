@@ -6,7 +6,6 @@ import haxe.macro.Context;
 import haxe.macro.Type;
 import haxe.macro.TypedExprTools;
 import reflaxe.GenericCompiler;
-import reflaxe.compiler.TypeUsageTracker;
 import reflaxe.compiler.TypeUsageTracker.TypeUsageMap;
 import reflaxe.data.ClassFuncData;
 import reflaxe.data.ClassVarData;
@@ -45,6 +44,7 @@ import reflaxe.go.compiler.GoSurfacePlanner.GoSurfacePlanDecision;
 import reflaxe.go.compiler.GoTypeUsageLedger;
 import reflaxe.go.compiler.GoTypeUsageLedger.GoImmutableList;
 import reflaxe.go.compiler.GoTypeUsageLedger.GoTypeUsageLedgerSnapshot;
+import reflaxe.go.compiler.GoTypeUsageTracker;
 import reflaxe.output.DataAndFileInfo;
 import reflaxe.output.StringOrBytes;
 import sys.FileSystem;
@@ -260,6 +260,9 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 	var moduleFileGuard:Null<GoModuleFileGuard> = null;
 	var typeUsageLedger:GoTypeUsageLedger = new GoTypeUsageLedger();
 
+	/** Builds the type-usage maps; it keeps declaration ids for one compilation. */
+	var typeUsageTracker:GoTypeUsageTracker = new GoTypeUsageTracker();
+
 	/** The type-usage map of the module type in `setupModule`, when the ledger will read it. */
 	var currentTypeUsage:Null<TypeUsageMap> = null;
 
@@ -287,13 +290,14 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 
 		How
 		`CompilerInit` turns `trackUsedTypes` off, so Reflaxe's `setupModule` only
-		records the current module. This override then runs the tracker itself
-		and keeps the map for the compile callbacks.
+		records the current module. This override then builds the map with
+		`GoTypeUsageTracker`, which gives the map of Reflaxe's `TypeUsageTracker`
+		while reading each enum, typedef, and abstract only once per compilation,
+		and keeps it for the compile callbacks.
 	**/
 	override public function setupModule(moduleType:Null<ModuleType>):Void {
 		super.setupModule(moduleType);
-		currentTypeUsage = moduleType != null
-			&& GoTypeUsageLedger.isProjectOwner(moduleType) ? TypeUsageTracker.trackTypesInModuleType(moduleType) : null;
+		currentTypeUsage = moduleType != null && GoTypeUsageLedger.isProjectOwner(moduleType) ? typeUsageTracker.track(moduleType) : null;
 	}
 
 	override public function filterTypes(moduleTypes:Array<ModuleType>):Array<ModuleType> {
@@ -313,6 +317,7 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		projectMode = GoProjectMode.Standalone;
 		moduleFileGuard = null;
 		typeUsageLedger = new GoTypeUsageLedger();
+		typeUsageTracker = new GoTypeUsageTracker();
 		lastTypeUsageReport = GoTypeUsageLedger.emptySnapshot();
 		lastSurfaceContractReport = GoSurfaceContractRegistry.emptySnapshot();
 		try {
