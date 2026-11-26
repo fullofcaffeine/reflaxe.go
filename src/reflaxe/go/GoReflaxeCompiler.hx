@@ -730,6 +730,42 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		return empty.iterator();
 	}
 
+	/**
+		Ask Reflaxe to build no per-field data, because the Go lowering reads
+		fields from the `ClassType`.
+
+		Why
+		Before `compileClassImpl`, Reflaxe's `transpileClass` builds a
+		`ClassFuncData` for each method, which decodes the method's body again,
+		and a `ClassVarData` for each variable. `compileClassImpl` ignores both.
+		On the BeadsHX compile that was 2,033 decoded method bodies and about
+		0.5 s.
+
+		What
+		False for every field. Reflaxe documents false as: build no
+		`ClassFuncData` or `ClassVarData` for the field, which stays accessible
+		from the `ClassType`. Reflaxe warned "Function information not found."
+		for a method it could not describe, because the method's type is not a
+		function type, unless `ignoreBodilessFunctions` is on. This gives the same
+		warning at the same point, so the compile output does not change.
+
+		How
+		Reflaxe asks this for each non-extern field just before it would build the
+		field's data. `GoClassFieldDataContract` pins both answers.
+	**/
+	override public function shouldGenerateClassField(field:ClassField):Bool {
+		switch (field.kind) {
+			case FMethod(_) if (!options.ignoreBodilessFunctions):
+				switch (field.type) {
+					case TFun(_, _):
+					case _:
+						Context.warning("Function information not found.", field.pos);
+				}
+			case FMethod(_) | FVar(_, _):
+		}
+		return false;
+	}
+
 	public function compileClassImpl(classType:ClassType, varFields:Array<ClassVarData>, funcFields:Array<ClassFuncData>):Null<GoReflaxeStagedOutput> {
 		var currentModule = getCurrentModule();
 		if (currentModule != null) {
