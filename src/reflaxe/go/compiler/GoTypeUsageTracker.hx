@@ -1,6 +1,7 @@
 package reflaxe.go.compiler;
 
 #if (macro || reflaxe_runtime)
+import haxe.ds.ReadOnlyArray;
 import haxe.macro.Context;
 import haxe.macro.Type;
 import haxe.macro.TypedExprTools;
@@ -22,6 +23,27 @@ using reflaxe.helpers.ModuleTypeHelper;
 private typedef GoTypeUsageEntry = {
 	final usage:TypeOrModuleType;
 	var levels:Int;
+}
+
+/**
+	One field of a class with its decoded body.
+
+	Why
+	The tracker and the type-usage ledger both walk every field body of a
+	project class. `ClassField.expr()` builds the whole typed body again as new
+	macro values on every call, so decoding it once for both halves that cost.
+
+	What
+	`field` as `ClassType.constructor`, `fields`, or `statics` returned it, and
+	`body`, the value of `field.expr()`.
+
+	How
+	`GoTypeUsageTracker.readClassFields(...)` reads them; the tracker publishes
+	the list it walked as `GoTypeUsageTracker.classFields`.
+**/
+typedef GoTrackedClassField = {
+	final field:ClassField;
+	final body:Null<TypedExpr>;
 }
 
 /**
@@ -79,11 +101,38 @@ class GoTypeUsageTracker {
 	/** Entries of the module type being tracked, by id. */
 	var entries:Map<String, GoTypeUsageEntry> = [];
 
+	/**
+		The fields and bodies of the class the last `track(...)` call walked, in
+		the order it walked them, or null when that module type was not a class.
+		The type-usage ledger reads them instead of decoding the bodies again.
+	**/
+	public var classFields(default, null):Null<ReadOnlyArray<GoTrackedClassField>> = null;
+
 	public function new() {}
+
+	/**
+		Read the constructor, instance fields, and static fields of a class, in
+		that order, with each body decoded once.
+	**/
+	public static function readClassFields(classType:ClassType):Array<GoTrackedClassField> {
+		final result:Array<GoTrackedClassField> = [];
+		if (classType.constructor != null)
+			result.push(trackedField(classType.constructor.get()));
+		for (field in classType.fields.get())
+			result.push(trackedField(field));
+		for (field in classType.statics.get())
+			result.push(trackedField(field));
+		return result;
+	}
+
+	static function trackedField(field:ClassField):GoTrackedClassField {
+		return {field: field, body: field.expr()};
+	}
 
 	/** Build the type-usage map of one module type. */
 	public function track(moduleType:ModuleType):TypeUsageMap {
 		entries = [];
+		classFields = null;
 		switch (moduleType) {
 			case TClassDecl(classRef):
 				final classType = classRef.get();
@@ -91,12 +140,10 @@ class GoTypeUsageTracker {
 					recordExtended(classType.superClass.t, classType.superClass.params);
 				for (implemented in classType.interfaces)
 					recordExtended(implemented.t, implemented.params);
-				if (classType.constructor != null)
-					recordField(classType.constructor.get());
-				for (field in classType.fields.get())
-					recordField(field);
-				for (field in classType.statics.get())
-					recordField(field);
+				final fields = readClassFields(classType);
+				for (tracked in fields)
+					recordField(tracked);
+				classFields = fields;
 			case TEnumDecl(enumRef):
 				final enumType = enumRef.get();
 				// Visit constructors in the map's own key order, as Reflaxe does.
@@ -120,8 +167,9 @@ class GoTypeUsageTracker {
 	}
 
 	/** Record a field's body first, then its declared type. */
-	function recordField(field:ClassField):Void {
-		final body = field.expr();
+	function recordField(tracked:GoTrackedClassField):Void {
+		final field = tracked.field;
+		final body = tracked.body;
 		if (body != null)
 			recordExpression(body);
 		switch (field.kind) {

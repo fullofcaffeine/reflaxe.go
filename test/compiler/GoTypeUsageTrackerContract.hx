@@ -6,6 +6,7 @@ import reflaxe.compiler.TypeUsageTracker.TypeOrModuleType;
 import reflaxe.compiler.TypeUsageTracker.TypeUsageMap;
 import reflaxe.go.compiler.GoTypeUsageLedger;
 import reflaxe.go.compiler.GoTypeUsageTracker;
+import reflaxe.go.compiler.GoTypeUsageTracker.GoTrackedClassField;
 import reflaxe.helpers.TypeHelper;
 
 using reflaxe.helpers.ModuleTypeHelper;
@@ -29,7 +30,11 @@ using reflaxe.helpers.ModuleTypeHelper;
 	  level has the same entries in the same order. An entry is compared by its
 	  id, its kind, and its ledger shape, so the two fixture modules' type
 	  parameters `pick.V`, which print alike, are told apart;
-	- a ledger fed with either map writes the same report;
+	- a ledger fed with either map writes the same report, also when the one fed
+	  with the compiler's map reuses the fields and bodies the tracker decoded
+	  (`classFields`) and the other decodes them itself;
+	- `classFields` lists a class's constructor, instance fields, and static
+	  fields with their bodies, and is null after tracking any other module type;
 	- the fixture maps use every level;
 	- the tracker kept ids only for enums, typedefs, and abstracts, and kept one
 	  for each of the same-named private declarations of the two modules.
@@ -120,6 +125,34 @@ class GoTypeUsageTrackerContract {
 		}
 	}
 
+	/** `classFields` names every field of a class in Reflaxe's order with its body, and is null for other module types. */
+	static function requireClassFields(moduleType:ModuleType, classFields:Null<haxe.ds.ReadOnlyArray<GoTrackedClassField>>):Void {
+		switch (moduleType) {
+			case TClassDecl(classRef):
+				final classType = classRef.get();
+				final expected:Array<ClassField> = classType.constructor == null ? [] : [classType.constructor.get()];
+				for (field in classType.fields.get())
+					expected.push(field);
+				for (field in classType.statics.get())
+					expected.push(field);
+				require(classFields != null, "class fields of " + moduleType.getPath());
+				if (classFields == null)
+					return;
+				require(classFields.length == expected.length, "class field count of " + moduleType.getPath());
+				for (index in 0...expected.length) {
+					final tracked = classFields[index];
+					final name = moduleType.getPath() + "." + expected[index].name;
+					require(tracked.field.name == expected[index].name, "class field " + index + ": " + name);
+					final body = expected[index].expr();
+					require((tracked.body == null) == (body == null), "body of " + name);
+					if (body != null && tracked.body != null)
+						require(haxe.macro.TypedExprTools.toString(tracked.body) == haxe.macro.TypedExprTools.toString(body), "body of " + name);
+				}
+			case _:
+				require(classFields == null, "no class fields for " + moduleType.getPath());
+		}
+	}
+
 	static function run():Void {
 		final fixtureTypes:Array<ModuleType> = [];
 		for (module in FIXTURE_MODULES)
@@ -152,12 +185,13 @@ class GoTypeUsageTrackerContract {
 				final moduleType = ordered[index];
 				final expected = TypeUsageTracker.trackTypesInModuleType(moduleType);
 				final actual = tracker.track(moduleType);
+				requireClassFields(moduleType, tracker.classFields);
 				final expectedText = render(expected, shapes);
 				final actualText = render(actual, shapes);
 				require(actualText == expectedText, "map of " + moduleType.getPath() + ":\n" + actualText + "\ninstead of\n" + expectedText);
 				if (round == 0) {
 					expectedLedger.collect(moduleType, expected);
-					actualLedger.collect(moduleType, actual);
+					actualLedger.collect(moduleType, actual, tracker.classFields);
 					if (index < fixtureTypes.length) {
 						for (level in actual.keys()) {
 							final values = actual.get(level);

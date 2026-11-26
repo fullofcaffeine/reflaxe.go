@@ -69,6 +69,14 @@ time, because type parameter classes print alike: every local `pick<V>` owns a
 fixture and standard-library modules, using the unchanged vendored Reflaxe
 tracker as the reference.
 
+The ledger walks every field body of a project class too. The tracker decodes
+each body once and the compiler hands the ledger those fields and bodies
+(`GoTypeUsageTracker.classFields`), so a body is not built twice. Between the
+tracker's read in `setupModule` and the class callback, Reflaxe only asks
+which classes and fields to generate, so the ledger sees the same values it
+would read itself. `GoTypeUsageTrackerContract` also checks that a report
+built from the shared fields equals one whose ledger decodes them itself.
+
 The ledger records the seven Reflaxe usage levels with stable names:
 
 - `expression`

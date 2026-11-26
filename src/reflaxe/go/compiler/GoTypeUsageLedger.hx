@@ -1,6 +1,7 @@
 package reflaxe.go.compiler;
 
 #if (macro || reflaxe_runtime)
+import haxe.ds.ReadOnlyArray;
 import haxe.macro.Context;
 import haxe.macro.PositionTools;
 import haxe.macro.Type;
@@ -9,6 +10,7 @@ import reflaxe.compiler.TypeUsageTracker.TypeOrModuleType;
 import reflaxe.compiler.TypeUsageTracker.TypeUsageLevel;
 import reflaxe.compiler.TypeUsageTracker.TypeUsageMap;
 import reflaxe.go.compiler.GoHxrtFeatureAnalyzer.GoHxrtFeatureReason;
+import reflaxe.go.compiler.GoTypeUsageTracker.GoTrackedClassField;
 import reflaxe.helpers.TypeHelper;
 
 using reflaxe.helpers.BaseTypeHelper;
@@ -447,7 +449,19 @@ class GoTypeUsageLedger {
 
 	public function new() {}
 
-	public function collect(moduleType:ModuleType, usage:Null<TypeUsageMap>):Void {
+	/**
+		Record the evidence of one module type.
+
+		Why / What / How
+		- `usage` is the type-usage map of `moduleType`.
+		- `classFields` are the fields and bodies of a class, in constructor,
+		  instance, static order, as `GoTypeUsageTracker` decoded them for `usage`.
+		  The compiler passes them so that each body is decoded once. When it is
+		  null, the ledger reads the fields itself. Both give the same evidence
+		  because nothing changes a class between the tracker's read and this call
+		  (`GoReflaxeCompiler.setupModule(...)` explains the order).
+	**/
+	public function collect(moduleType:ModuleType, usage:Null<TypeUsageMap>, ?classFields:ReadOnlyArray<GoTrackedClassField>):Void {
 		if (!isProjectOwner(moduleType)) {
 			return;
 		}
@@ -467,7 +481,7 @@ class GoTypeUsageLedger {
 		}
 
 		collectTypeUsage(entry, usage);
-		collectMemberUsage(entry, moduleType);
+		collectMemberUsage(entry, moduleType, classFields);
 	}
 
 	public function snapshot(capabilityReasons:Array<GoHxrtFeatureReason>, runtimeImportPath:String):GoTypeUsageLedgerSnapshot {
@@ -744,7 +758,7 @@ class GoTypeUsageLedger {
 		}
 	}
 
-	function collectMemberUsage(module:MutableModuleEvidence, owner:ModuleType):Void {
+	function collectMemberUsage(module:MutableModuleEvidence, owner:ModuleType, classFields:Null<ReadOnlyArray<GoTrackedClassField>>):Void {
 		switch (owner) {
 			case TClassDecl(classRef):
 				var classType = classRef.get();
@@ -754,27 +768,23 @@ class GoTypeUsageLedger {
 				for (implemented in classType.interfaces) {
 					addTypeShape(module, GoTypeUsageLevelId.ExtendedFrom, TInst(implemented.t, implemented.params));
 				}
-				if (classType.constructor != null) {
-					collectClassFieldExpr(module, classType.constructor.get());
-				}
-				for (field in classType.fields.get()) {
-					collectClassFieldExpr(module, field);
-				}
-				for (field in classType.statics.get()) {
-					collectClassFieldExpr(module, field);
+				var fields:ReadOnlyArray<GoTrackedClassField> = classFields == null ? GoTypeUsageTracker.readClassFields(classType) : classFields;
+				for (tracked in fields) {
+					collectClassFieldExpr(module, tracked);
 				}
 			case TEnumDecl(_) | TTypeDecl(_) | TAbstract(_):
 		}
 	}
 
-	function collectClassFieldExpr(module:MutableModuleEvidence, field:ClassField):Void {
+	function collectClassFieldExpr(module:MutableModuleEvidence, tracked:GoTrackedClassField):Void {
+		var field = tracked.field;
 		switch (field.kind) {
 			case FVar(_, _):
 				addTypeShape(module, GoTypeUsageLevelId.VariableDeclaration, field.type);
 			case FMethod(_):
 				addTypeShape(module, GoTypeUsageLevelId.FunctionDeclaration, field.type);
 		}
-		var expression = field.expr();
+		var expression = tracked.body;
 		if (expression == null) {
 			return;
 		}

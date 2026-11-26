@@ -1,6 +1,7 @@
 package reflaxe.go;
 
 #if (macro || reflaxe_runtime)
+import haxe.ds.ReadOnlyArray;
 import haxe.io.Path;
 import haxe.macro.Context;
 import haxe.macro.Type;
@@ -45,6 +46,7 @@ import reflaxe.go.compiler.GoTypeUsageLedger;
 import reflaxe.go.compiler.GoTypeUsageLedger.GoImmutableList;
 import reflaxe.go.compiler.GoTypeUsageLedger.GoTypeUsageLedgerSnapshot;
 import reflaxe.go.compiler.GoTypeUsageTracker;
+import reflaxe.go.compiler.GoTypeUsageTracker.GoTrackedClassField;
 import reflaxe.output.DataAndFileInfo;
 import reflaxe.output.StringOrBytes;
 import sys.FileSystem;
@@ -266,6 +268,9 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 	/** The type-usage map of the module type in `setupModule`, when the ledger will read it. */
 	var currentTypeUsage:Null<TypeUsageMap> = null;
 
+	/** The fields and bodies the tracker decoded for `currentTypeUsage`, when that module type is a class. */
+	var currentClassFields:Null<ReadOnlyArray<GoTrackedClassField>> = null;
+
 	var lastTypeUsageReport:GoTypeUsageLedgerSnapshot = GoTypeUsageLedger.emptySnapshot();
 	var lastSurfaceContractReport:GoSurfaceContractRegistrySnapshot = GoSurfaceContractRegistry.emptySnapshot();
 
@@ -294,10 +299,18 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 		`GoTypeUsageTracker`, which gives the map of Reflaxe's `TypeUsageTracker`
 		while reading each enum, typedef, and abstract only once per compilation,
 		and keeps it for the compile callbacks.
+
+		The ledger also walks every field body of a class, so the compiler hands it
+		the fields and bodies the tracker decoded (`currentClassFields`) instead of
+		letting it decode them again. That gives the ledger the same values:
+		between this call and the class's compile callback Reflaxe only asks
+		`shouldGenerateClass` and `shouldGenerateClassField`, which read the class
+		without typing anything, and Haxe has finished typing before the pass.
 	**/
 	override public function setupModule(moduleType:Null<ModuleType>):Void {
 		super.setupModule(moduleType);
 		currentTypeUsage = moduleType != null && GoTypeUsageLedger.isProjectOwner(moduleType) ? typeUsageTracker.track(moduleType) : null;
+		currentClassFields = currentTypeUsage == null ? null : typeUsageTracker.classFields;
 	}
 
 	override public function filterTypes(moduleTypes:Array<ModuleType>):Array<ModuleType> {
@@ -769,7 +782,7 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 	public function compileClassImpl(classType:ClassType, varFields:Array<ClassVarData>, funcFields:Array<ClassFuncData>):Null<GoReflaxeStagedOutput> {
 		var currentModule = getCurrentModule();
 		if (currentModule != null) {
-			typeUsageLedger.collect(currentModule, currentTypeUsage);
+			typeUsageLedger.collect(currentModule, currentTypeUsage, currentClassFields);
 		}
 		selectedClasses.push(classType);
 		return null;
@@ -778,7 +791,7 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 	public function compileEnumImpl(enumType:EnumType, options:Array<EnumOptionData>):Null<GoReflaxeStagedOutput> {
 		var currentModule = getCurrentModule();
 		if (currentModule != null) {
-			typeUsageLedger.collect(currentModule, currentTypeUsage);
+			typeUsageLedger.collect(currentModule, currentTypeUsage, currentClassFields);
 		}
 		selectedEnums.push(enumType);
 		return null;
@@ -787,7 +800,7 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 	override public function compileTypedefImpl(typedefType:DefType):Null<GoReflaxeStagedOutput> {
 		var currentModule = getCurrentModule();
 		if (currentModule != null) {
-			typeUsageLedger.collect(currentModule, currentTypeUsage);
+			typeUsageLedger.collect(currentModule, currentTypeUsage, currentClassFields);
 		}
 		return null;
 	}
@@ -795,7 +808,7 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 	override public function compileAbstractImpl(abstractType:AbstractType):Null<GoReflaxeStagedOutput> {
 		var currentModule = getCurrentModule();
 		if (currentModule != null) {
-			typeUsageLedger.collect(currentModule, currentTypeUsage);
+			typeUsageLedger.collect(currentModule, currentTypeUsage, currentClassFields);
 		}
 		return null;
 	}

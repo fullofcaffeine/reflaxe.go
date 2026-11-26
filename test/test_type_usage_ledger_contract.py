@@ -106,6 +106,18 @@ class TypeUsageLedgerContractTest(unittest.TestCase):
         self.assertIn("override public function setupModule(", compiler_source)
         self.assertIn("GoTypeUsageLedger.isProjectOwner(moduleType)", compiler_source)
         self.assertIn("typeUsageTracker.track(moduleType)", compiler_source)
+        # The ledger walks the bodies the tracker decoded instead of decoding
+        # every class body a second time.
+        self.assertIn(
+            "currentClassFields = currentTypeUsage == null ? null : typeUsageTracker.classFields;",
+            compiler_source,
+        )
+        self.assertEqual(
+            compiler_source.count(
+                "typeUsageLedger.collect(currentModule, currentTypeUsage, currentClassFields);"
+            ),
+            4,
+        )
         self.assertNotIn("getTypeUsage()", compiler_source)
         self.assertNotIn("TypeUsageTracker.trackTypesInModuleType", compiler_source)
         # Reflaxe adds haxe.Function entries only after TypeUsageTracker.init();
