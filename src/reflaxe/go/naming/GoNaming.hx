@@ -1,27 +1,8 @@
 package reflaxe.go.naming;
 
-class GoNaming {
-	static final goKeywords = [
-		"func",
-		"type",
-		"var",
-		"map",
-		"range",
-		"package",
-		"return",
-		"if",
-		"else",
-		"for",
-		"go",
-		"defer",
-		"select",
-		"chan",
-		"switch",
-		"fallthrough",
-		"default",
-		"case"
-	];
+import reflaxe.go.ast.GoPackageName;
 
+class GoNaming {
 	/**
 		Go's predeclared identifiers: the universe-block types, constants, zero
 		value and builtin functions listed in the Go specification.
@@ -127,10 +108,11 @@ class GoNaming {
 			normalized = "hx_" + normalized;
 		}
 
-		for (keyword in goKeywords) {
-			if (normalized == keyword) {
-				return normalized + "_";
-			}
+		// A Go keyword cannot be an identifier. Haxe reserves most of them too,
+		// but `struct`, `const` and `goto` are ordinary Haxe names, so check the
+		// whole Go keyword set rather than a partial copy of it.
+		if (GoPackageName.isKeyword(normalized)) {
+			return normalized + "_";
 		}
 
 		return normalized;

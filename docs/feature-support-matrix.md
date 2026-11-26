@@ -158,7 +158,7 @@ Coverage is tracked in explicit tiers; a surface can appear in multiple tiers, a
 | Type-value expressions (`TTypeExpr`) for class/enum refs | Supported | `type_expr_contract` |
 | `Type` reflection subset (`getClass`, `getSuperClass`, `getClassFields`, `getInstanceFields`, `resolveClass`, `createInstance`, `createEmptyInstance`, `getEnum`, `getEnumConstructs`, `resolveEnum`, `createEnum`, `createEnumIndex`, `allEnums`, `enumConstructor`, `enumIndex`, `enumParameters`, `enumEq`) | Supported | `type_reflection_contract`, `type_reflection_extended_contract` |
 | Unsigned right shift behavior | Supported | `core/unsigned_shift`, `core/unsigned_shift_assign` |
-| Naming/mangling and deterministic code shape | Supported (locals and selected-main statics avoid Go predeclared identifiers and imported package names: locals take a `_local` suffix, statics the qualified `Main_*` form) | `core/naming_mangling`, `core/main_static_predeclared_names`, `go_native/import_static_symbol_name`, `core/optimized_ast_policy` |
+| Naming/mangling and deterministic code shape | Supported (names equal to any Go keyword, including `struct`, `const` and `goto`, take a trailing `_`; locals and selected-main statics avoid Go predeclared identifiers and imported package names: locals take a `_local` suffix, statics the qualified `Main_*` form) | `core/naming_mangling`, `core/go_keyword_names`, `core/main_static_predeclared_names`, `go_native/import_static_symbol_name`, `core/optimized_ast_policy` |
 | HXML define/include resolution | Supported | `core/nested_hxml_define_detection`, `core/nested_hxml_long_define_detection`, `core/nested_hxml_quoted_define_detection`, `core/nested_hxml_root_relative_include_detection` |
 
 ### Semantic diff fixture coverage

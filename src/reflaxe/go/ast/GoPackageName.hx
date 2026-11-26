@@ -45,7 +45,16 @@ abstract GoPackageName(String) {
 		return true;
 	}
 
-	static function isKeyword(value:String):Bool {
+	/**
+		What: Test whether a name is one of Go's 25 keywords (the Go
+		specification's "Keywords" section).
+		Why: a keyword cannot be a Go identifier. This is the one copy of the
+		keyword set: package names are checked here, and
+		`GoNaming.normalizeIdent` uses it to escape other generated names.
+		A partial second copy once missed `struct`, `const` and `goto`.
+		How: exact, case-sensitive match against the complete keyword set.
+	**/
+	public static function isKeyword(value:String):Bool {
 		return switch (value) {
 			case "break", "default", "func", "interface", "select", "case", "defer", "go", "map", "struct", "chan", "else", "goto", "package", "switch",
 				"const", "fallthrough", "if", "range", "type", "continue", "for", "import", "return", "var": true;
