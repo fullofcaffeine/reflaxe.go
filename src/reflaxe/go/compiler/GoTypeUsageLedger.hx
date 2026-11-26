@@ -365,10 +365,32 @@ private typedef MutableNativeImportEvidence = {
 	final location:String;
 }
 
+/**
+	The path and native import of one declaration, read together.
+
+	Why
+	Naming a member's target read the declaration once for its path
+	(`ModuleTypeHelper.getPath(...)`) and again for its `@:go.import`
+	metadata. A large program records tens of thousands of member usages, and
+	each read builds the whole declaration again.
+
+	What
+	`path` is `ModuleTypeHelper.getPath(...)` of the declaration. `importPath`
+	is the trimmed string of its first `@:go.import` entry with one non-empty
+	string argument, or null.
+
+	How
+	`GoTypeUsageLedger.readDeclarationTarget(...)` computes both from one read.
+**/
+private typedef DeclarationTarget = {
+	final path:String;
+	final importPath:Null<String>;
+}
+
 private typedef ResolvedMember = {
 	final target:String;
 	final member:String;
-	final moduleType:Null<ModuleType>;
+	final declaration:Null<DeclarationTarget>;
 }
 
 /**
@@ -446,6 +468,52 @@ class GoTypeUsageLedger {
 		survives into the next one on a compilation server.
 	**/
 	final declarationFactsByPath:Map<String, DeclarationFacts> = [];
+
+	/**
+		Paths and native imports of enums, typedefs, and abstracts, kept for this
+		ledger.
+
+		Why
+		Member usages and type-usage entries name the same few enums and abstracts
+		(`Int`, `Null`, `haxe.ds.Option`) many thousands of times, and each name
+		read the declaration again (see `DeclarationTarget`).
+
+		What
+		Maps a kind letter plus the reference's type path to the target of that one
+		declaration. Classes are never kept, because type parameter classes print
+		alike (see `declarationFactsByPath`).
+
+		How
+		The key names one declaration for the reasons `declarationFactsByPath`
+		gives. The path reads only the declaration's module and name. The import
+		path reads its metadata, which the compiler never edits (it has no
+		`meta.add` or `meta.remove`) and which Haxe has finished typing before the
+		Reflaxe pass, the same rule `GoTypeMapper.abstractDeclaration(...)` relies
+		on. So a kept value is the value a new read would give. The ledger is
+		created again for each compilation.
+	**/
+	final declarationTargetsByPath:Map<String, DeclarationTarget> = [];
+
+	/**
+		JSON of every shape without children, by kind and path.
+
+		Why
+		Most shapes the ledger renders are leaves or are made of them: a named type
+		without type arguments (`Int`, `String`, the owner class), a type
+		parameter, or an unknown marker. Building the same string again for each
+		of them took most of the render time of a large compile.
+
+		What
+		Maps `kind + "\u0000" + path` to the JSON of the leaf with that kind string
+		and path.
+
+		How
+		`renderShapeJson(...)` builds a leaf's JSON from nothing but its kind
+		string and path, and no kind string contains `"\u0000"`, so a kept string is
+		exactly the string a new render builds. Haxe resets macro statics for every
+		compilation (this map is not `@:persistent`).
+	**/
+	static final leafShapeJsonByKey:Map<String, String> = [];
 
 	public function new() {}
 
@@ -650,13 +718,14 @@ class GoTypeUsageLedger {
 		- Registry and planner reports must identify the same used type without
 		  maintaining independent encoders.
 		- The result contains only the stable macro-object-free shape algebra.
+		- A leaf's JSON is built once per compilation (see `leafShapeJsonByKey`).
 	**/
 	public static function renderShapeJson(shape:GoTypeShape):String {
 		return switch (shape) {
 			case Nominal(kind, path, parameters):
-				shapeObjectJson(kind, path, shapeListJson(parameters), "[]", "null", "[]");
+				parameters.length == 0 ? leafShapeJson(kind, path) : shapeObjectJson(kind, path, shapeListJson(parameters), "[]", "null", "[]");
 			case TypeParameter(path):
-				shapeObjectJson("type_parameter", path, "[]", "[]", "null", "[]");
+				leafShapeJson("type_parameter", path);
 			case Function(arguments, returnType):
 				var argumentJson = new Array<String>();
 				for (argument in arguments) {
@@ -679,8 +748,19 @@ class GoTypeUsageLedger {
 			case DynamicShape(inner):
 				shapeObjectJson("dynamic", "", "[]", "[]", inner == null ? "null" : renderShapeJson(inner), "[]");
 			case UnknownShape(reason):
-				shapeObjectJson("unknown", reason, "[]", "[]", "null", "[]");
+				leafShapeJson("unknown", reason);
 		};
+	}
+
+	/** The JSON of a shape without children: `shapeObjectJson(kind, path, "[]", "[]", "null", "[]")`. */
+	static function leafShapeJson(kind:String, path:String):String {
+		final key = kind + "\u0000" + path;
+		var json = leafShapeJsonByKey.get(key);
+		if (json == null) {
+			json = shapeObjectJson(kind, path, "[]", "[]", "null", "[]");
+			leafShapeJsonByKey.set(key, json);
+		}
+		return json;
 	}
 
 	static function shapeObjectJson(kind:String, path:String, parameters:String, arguments:String, returnType:String, fields:String):String {
@@ -745,14 +825,23 @@ class GoTypeUsageLedger {
 			}
 			var outwardLevel = GoTypeUsageLevelId.fromReflaxe(level);
 			for (value in values) {
-				var evidence = typeUsageEvidence(value, outwardLevel);
-				if (evidence == null) {
-					continue;
-				}
-				addTypeUsage(module, evidence);
-				var targetModule = moduleTypeForUsage(value);
-				if (targetModule != null) {
-					addNativeImport(module, targetModule, GoNativeImportUsageKind.fromTypeUsage(outwardLevel), module.location);
+				switch (value) {
+					case EModuleType(moduleType):
+						var declaration = declarationTarget(moduleType);
+						addTypeUsage(module, {
+							level: outwardLevel,
+							shape: declarationShape(moduleType, declaration.path)
+						});
+						addNativeImport(module, declaration, GoNativeImportUsageKind.fromTypeUsage(outwardLevel), module.location);
+					case EType(type):
+						addTypeUsage(module, {
+							level: outwardLevel,
+							shape: typeShape(type)
+						});
+						var targetModule = TypeHelper.toModuleType(type);
+						if (targetModule != null) {
+							addNativeImport(module, declarationTarget(targetModule), GoNativeImportUsageKind.fromTypeUsage(outwardLevel), module.location);
+						}
 				}
 			}
 		}
@@ -792,21 +881,21 @@ class GoTypeUsageLedger {
 			switch (expr.expr) {
 				case TNew(classRef, parameters, _):
 					addTypeShape(module, GoTypeUsageLevelId.Constructed, TInst(classRef, parameters));
-					var target:ModuleType = TClassDecl(classRef);
-					addMemberUsage(module, GoMemberUsageKind.Construct, target.getPath(), "new", target, expr.pos);
+					var target = declarationTarget(TClassDecl(classRef));
+					addMemberUsage(module, GoMemberUsageKind.Construct, target.path, "new", target, expr.pos);
 				case TVar(variable, _):
 					addTypeShape(module, GoTypeUsageLevelId.VariableType, variable.t);
 				case TField(targetExpr, access):
 					addTypeShape(module, GoTypeUsageLevelId.Expression, expr.t);
 					var resolved = resolveMember(access, targetExpr.t);
 					if (resolved != null) {
-						addMemberUsage(module, GoMemberUsageKind.FieldAccess, resolved.target, resolved.member, resolved.moduleType, expr.pos);
+						addMemberUsage(module, GoMemberUsageKind.FieldAccess, resolved.target, resolved.member, resolved.declaration, expr.pos);
 					}
 				case TCall(callee, _):
 					addTypeShape(module, GoTypeUsageLevelId.Expression, expr.t);
 					var resolved = resolveCallee(callee);
 					if (resolved != null) {
-						addMemberUsage(module, GoMemberUsageKind.Call, resolved.target, resolved.member, resolved.moduleType, expr.pos);
+						addMemberUsage(module, GoMemberUsageKind.Call, resolved.target, resolved.member, resolved.declaration, expr.pos);
 					}
 				case _:
 					addTypeShape(module, GoTypeUsageLevelId.Expression, expr.t);
@@ -840,7 +929,7 @@ class GoTypeUsageLedger {
 		module.typeUsages.set(evidence.level + "\u0000" + shapeJson, {evidence: evidence, shapeJson: shapeJson});
 	}
 
-	function addMemberUsage(module:MutableModuleEvidence, kind:GoMemberUsageKind, target:String, member:String, targetModule:Null<ModuleType>,
+	function addMemberUsage(module:MutableModuleEvidence, kind:GoMemberUsageKind, target:String, member:String, declaration:Null<DeclarationTarget>,
 			pos:haxe.macro.Expr.Position):Void {
 		var location = locationLabel(module.module, pos);
 		var evidence:GoMemberUsageEvidence = {
@@ -850,18 +939,18 @@ class GoTypeUsageLedger {
 			location: location
 		};
 		module.memberUsages.set(memberUsageKey(evidence), evidence);
-		if (targetModule != null) {
-			addNativeImport(module, targetModule, GoNativeImportUsageKind.fromMemberUsage(kind), location);
+		if (declaration != null) {
+			addNativeImport(module, declaration, GoNativeImportUsageKind.fromMemberUsage(kind), location);
 		}
 	}
 
-	function addNativeImport(module:MutableModuleEvidence, target:ModuleType, usageKind:GoNativeImportUsageKind, location:String):Void {
-		var importPath = goImportPath(target);
+	function addNativeImport(module:MutableModuleEvidence, declaration:DeclarationTarget, usageKind:GoNativeImportUsageKind, location:String):Void {
+		var importPath = declaration.importPath;
 		if (importPath == null) {
 			return;
 		}
 		var evidence:MutableNativeImportEvidence = {
-			target: target.getPath(),
+			target: declaration.path,
 			metadataImportPath: importPath,
 			usageKind: usageKind,
 			location: location
@@ -869,18 +958,45 @@ class GoTypeUsageLedger {
 		module.nativeImports.set(nativeImportKey(evidence), evidence);
 	}
 
-	function typeUsageEvidence(value:TypeOrModuleType, level:GoTypeUsageLevelId):Null<GoTypeUsageEvidence> {
-		return switch (value) {
-			case EModuleType(moduleType):
-				{
-					level: level,
-					shape: moduleTypeShape(moduleType)
-				};
-			case EType(type):
-				{
-					level: level,
-					shape: typeShape(type)
-				};
+	/**
+		Return the path and native import of one declaration.
+
+		Why / What / How
+		- An enum, typedef, or abstract is read the first time this ledger sees it
+		  (see `declarationTargetsByPath`).
+		- A class is read on every call, because type parameter classes print
+		  alike; the one read gives both values.
+	**/
+	function declarationTarget(moduleType:ModuleType):DeclarationTarget {
+		return switch (moduleType) {
+			case TClassDecl(classRef):
+				readDeclarationTarget(classRef.get());
+			case TEnumDecl(enumRef):
+				namedDeclarationTarget("E", enumRef);
+			case TTypeDecl(typeRef):
+				namedDeclarationTarget("T", typeRef);
+			case TAbstract(abstractRef):
+				namedDeclarationTarget("A", abstractRef);
+		};
+	}
+
+	function namedDeclarationTarget<T:BaseType>(prefix:String, ref:Ref<T>):DeclarationTarget {
+		var key = prefix + GoTypeMapper.declarationPath(ref);
+		var target = declarationTargetsByPath.get(key);
+		if (target == null) {
+			target = readDeclarationTarget(ref.get());
+			declarationTargetsByPath.set(key, target);
+		}
+		return target;
+	}
+
+	/** Build a `DeclarationTarget` from one read of the declaration. */
+	static function readDeclarationTarget(declaration:BaseType):DeclarationTarget {
+		var module = declaration.module;
+		var name = declaration.name;
+		return {
+			path: StringTools.endsWith(module, name) ? module : module + "." + name,
+			importPath: goImportPath(declaration.meta)
 		};
 	}
 
@@ -1089,19 +1205,15 @@ class GoTypeUsageLedger {
 	}
 
 	static function moduleTypeShape(moduleType:ModuleType):GoTypeShape {
-		return Nominal(moduleKind(moduleType), moduleType.getPath(), GoImmutableList.fromArray([]));
+		return declarationShape(moduleType, moduleType.getPath());
 	}
 
-	static function moduleTypeForUsage(value:TypeOrModuleType):Null<ModuleType> {
-		return switch (value) {
-			case EModuleType(moduleType):
-				moduleType;
-			case EType(type):
-				TypeHelper.toModuleType(type);
-		};
+	/** The shape of a declaration named in a type-usage map: no type arguments. */
+	static function declarationShape(moduleType:ModuleType, path:String):GoTypeShape {
+		return Nominal(moduleKind(moduleType), path, GoImmutableList.fromArray([]));
 	}
 
-	static function resolveCallee(expr:TypedExpr):Null<ResolvedMember> {
+	function resolveCallee(expr:TypedExpr):Null<ResolvedMember> {
 		return switch (expr.expr) {
 			case TField(target, access):
 				resolveMember(access, target.t);
@@ -1112,43 +1224,45 @@ class GoTypeUsageLedger {
 		};
 	}
 
-	static function resolveMember(access:FieldAccess, targetType:Type):Null<ResolvedMember> {
+	/**
+		Name the target and member of one field access.
+
+		Why / What / How
+		- The target is the declaration's path from `declarationTarget(...)`, or a
+		  placeholder for anonymous, unowned, and dynamic accesses.
+		- A field reference prints exactly the field's name
+		  (`GoTypeMapper.referencedFieldName(...)`), so the field is never decoded.
+		  `GoTypeUsageLedgerContract` pins this for every kind of field access.
+	**/
+	function resolveMember(access:FieldAccess, targetType:Type):Null<ResolvedMember> {
 		return switch (access) {
 			case FInstance(classRef, _, fieldRef):
-				var moduleType:ModuleType = TClassDecl(classRef);
-				{target: moduleType.getPath(), member: fieldRef.get().name, moduleType: moduleType};
+				var declaration = declarationTarget(TClassDecl(classRef));
+				{target: declaration.path, member: GoTypeMapper.referencedFieldName(fieldRef), declaration: declaration};
 			case FStatic(classRef, fieldRef):
-				var moduleType:ModuleType = TClassDecl(classRef);
-				{target: moduleType.getPath(), member: fieldRef.get().name, moduleType: moduleType};
+				var declaration = declarationTarget(TClassDecl(classRef));
+				{target: declaration.path, member: GoTypeMapper.referencedFieldName(fieldRef), declaration: declaration};
 			case FEnum(enumRef, enumField):
-				var moduleType:ModuleType = TEnumDecl(enumRef);
-				{target: moduleType.getPath(), member: enumField.name, moduleType: moduleType};
+				var declaration = declarationTarget(TEnumDecl(enumRef));
+				{target: declaration.path, member: enumField.name, declaration: declaration};
 			case FClosure(classRef, fieldRef):
 				var moduleType:Null<ModuleType> = classRef == null ? TypeHelper.toModuleType(targetType) : TClassDecl(classRef.c);
+				var declaration = moduleType == null ? null : declarationTarget(moduleType);
 				{
-					target: moduleType == null ? "<function>" : moduleType.getPath(),
-					member: fieldRef.get().name,
-					moduleType: moduleType
+					target: declaration == null ? "<function>" : declaration.path,
+					member: GoTypeMapper.referencedFieldName(fieldRef),
+					declaration: declaration
 				};
 			case FAnon(fieldRef):
-				{target: "<anonymous>", member: fieldRef.get().name, moduleType: null};
+				{target: "<anonymous>", member: GoTypeMapper.referencedFieldName(fieldRef), declaration: null};
 			case FDynamic(name):
 				var moduleType = TypeHelper.toModuleType(targetType);
-				{target: moduleType == null ? "<dynamic>" : moduleType.getPath(), member: name, moduleType: moduleType};
+				var declaration = moduleType == null ? null : declarationTarget(moduleType);
+				{target: declaration == null ? "<dynamic>" : declaration.path, member: name, declaration: declaration};
 		};
 	}
 
-	static function goImportPath(moduleType:ModuleType):Null<String> {
-		var metadata = switch (moduleType) {
-			case TClassDecl(classRef):
-				classRef.get().meta;
-			case TEnumDecl(enumRef):
-				enumRef.get().meta;
-			case TTypeDecl(typeRef):
-				typeRef.get().meta;
-			case TAbstract(abstractRef):
-				abstractRef.get().meta;
-		};
+	static function goImportPath(metadata:Null<MetaAccess>):Null<String> {
 		if (metadata == null) {
 			return null;
 		}

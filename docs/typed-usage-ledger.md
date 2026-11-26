@@ -93,6 +93,15 @@ returns, sorted anonymous fields, dynamic inner types, and deterministic
 recursion markers. These are typed AST observations; the collector does not
 reread source text or retain macro objects.
 
+A large program names the same declarations many thousands of times, so the
+collector avoids reading a declaration more often than it must. It reads a
+class once for both its path and its `@:go.import` metadata, keeps the path and
+import of each enum, typedef, and abstract by type path, names a field by
+printing its reference instead of decoding it, and builds the JSON of each
+shape without children (`Int`, `String`, a type parameter) once. Classes are
+not kept, for the same reason as in the tracker. `GoTypeUsageLedgerContract`
+and `GoTypeShapeContract` compare these answers with the plain reads.
+
 ### Locations and paths
 
 Locations use `Module:line`, such as `Main:6`. Reports therefore remain useful
@@ -174,8 +183,8 @@ python3 test/run-snapshots.py --case core/type_usage_ledger --runtime
 npm run test:auto-planner:schema
 ```
 
-`npm run test:type-usage-ledger` also runs `GoTypeUsageTrackerContract`
-(see Collection above).
+`npm run test:type-usage-ledger` also runs `GoTypeUsageTrackerContract`,
+`GoTypeShapeContract`, and `GoTypeUsageLedgerContract` (see Collection above).
 
 The contract checks deterministic bytes across repeated compilations, deep
 read-only publication, preserved generic/function/anonymous relationships,

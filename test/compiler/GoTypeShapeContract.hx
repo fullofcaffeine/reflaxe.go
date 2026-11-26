@@ -19,16 +19,20 @@ using reflaxe.helpers.ModuleTypeHelper;
 
 	Why
 	The ledger keeps the path and id of each enum, typedef, and abstract it has
-	read, and reads a class only once per use. These shortcuts must give exactly
-	the shapes and recursion decisions of the plain conversion. Otherwise the
-	type-usage report, and every registry decision built on it, would change.
+	read, and reads a class only once per use. It also keeps the JSON of every
+	shape without children (a named type without type arguments, a type
+	parameter, an unknown marker). These shortcuts must give exactly the shapes,
+	recursion decisions, and JSON of the plain conversion and render. Otherwise
+	the type-usage report, and every registry decision built on it, would change.
 
 	What
 	Proves, with one shared ledger and in both query orders, for every field
 	and expression type of two fixture modules:
 	- `trailId(...)` equals `TypeHelper.getUniqueId(...)`;
-	- the shape renders to the same JSON as `plainShape(...)`.
-	Also proves that same-named private declarations and type parameters that
+	- the shape renders to the same JSON as `plainShape(...)` rendered by
+	  `plainRender(...)`, the render as it was before it kept leaf JSON.
+	Also proves that leaves with one path but different kinds keep different
+	JSON, that same-named private declarations and type parameters that
 	print alike (`pick.V`) keep their own module paths, that nested iterators
 	still meet the recursion guard, and that a monomorph Haxe binds after one
 	conversion is seen bound by the next conversion through the same ledger.
@@ -39,6 +43,7 @@ using reflaxe.helpers.ModuleTypeHelper;
 	compares each conversion with `plainShape(...)`. That function is the
 	conversion as it was before the ledger kept declaration facts: it reads every
 	declaration through the upstream `TypeHelper` and `ModuleTypeHelper`.
+	Leaf JSON is compared before and after it is kept.
 **/
 @:access(reflaxe.go.compiler.GoTypeUsageLedger)
 class GoTypeShapeContract {
@@ -149,10 +154,32 @@ class GoTypeShapeContract {
 			final ordered = round == 0 ? types : [for (index in 0...types.length) types[types.length - 1 - index]];
 			for (type in ordered) {
 				require(ledger.trailId(type) == TypeHelper.getUniqueId(type), "trail id of " + Std.string(type));
-				final expected = render(plainShape(type));
+				final expected = plainRender(plainShape(type));
 				final actual = render(ledger.typeShape(type));
 				require(actual == expected, "shape of " + Std.string(type) + ": " + actual + " instead of " + expected);
 			}
+		}
+		require(GoTypeUsageLedger.leafShapeJsonByKey.keys().hasNext(), "leaf JSON was kept");
+
+		// Leaf JSON is kept by kind and path: leaves that share a path keep their own JSON.
+		for (path in ["GoTypeShapeContractFixture", "recursive"]) {
+			final leaves = [
+				GoTypeShape.Nominal(GoTypeUsageTargetKind.Class, path, GoImmutableList.fromArray([])),
+				GoTypeShape.Nominal(GoTypeUsageTargetKind.Enum, path, GoImmutableList.fromArray([])),
+				GoTypeShape.Nominal(GoTypeUsageTargetKind.Typedef, path, GoImmutableList.fromArray([])),
+				GoTypeShape.Nominal(GoTypeUsageTargetKind.Abstract, path, GoImmutableList.fromArray([])),
+				GoTypeShape.TypeParameter(path),
+				GoTypeShape.UnknownShape(GoUnknownTypeShapeReason.Recursive)
+			];
+			final seen = new Map<String, Bool>();
+			for (round in 0...2)
+				for (leaf in leaves) {
+					final json = render(leaf);
+					require(json == plainRender(leaf), "leaf " + Std.string(leaf) + " in round " + round + ": " + json);
+					if (round == 0)
+						seen.set(json, true);
+				}
+			require([for (json in seen.keys()) json].length == leaves.length, "distinct leaf JSON for " + path);
 		}
 
 		// Same-named private declarations keep their own module paths.
@@ -264,6 +291,50 @@ class GoTypeShapeContract {
 				var moduleType:ModuleType = TAbstract(abstractRef);
 				plainNominalShape(GoTypeUsageTargetKind.Abstract, moduleType.getPath(), parameters, activeTrail, depth);
 		};
+	}
+
+	/**
+		The ledger's render before it kept leaf JSON, kept as the oracle for this
+		contract. Do not optimize it.
+	**/
+	static function plainRender(shape:GoTypeShape):String {
+		return switch (shape) {
+			case Nominal(kind, path, parameters):
+				plainObject(kind, path, "[" + [for (parameter in parameters) plainRender(parameter)].join(",") + "]", "[]", "null", "[]");
+			case TypeParameter(path):
+				plainObject("type_parameter", path, "[]", "[]", "null", "[]");
+			case Function(arguments, returnType):
+				final argumentJson = [
+					for (argument in arguments)
+						'{"name":"'
+						+ GoTypeUsageLedger.jsonEscape(argument.name)
+						+ '","optional":'
+						+ argument.optional
+						+ ',"shape":'
+						+ plainRender(argument.shape)
+						+ "}"];
+				plainObject("function", "", "[]", "[" + argumentJson.join(",") + "]", plainRender(returnType), "[]");
+			case Anonymous(fields):
+				final fieldJson = [
+					for (field in fields)
+						'{"name":"'
+						+ GoTypeUsageLedger.jsonEscape(field.name)
+						+ '","optional":'
+						+ field.optional
+						+ ',"shape":'
+						+ plainRender(field.shape)
+						+ "}"];
+				plainObject("anonymous", "", "[]", "[]", "null", "[" + fieldJson.join(",") + "]");
+			case DynamicShape(inner):
+				plainObject("dynamic", "", "[]", "[]", inner == null ? "null" : plainRender(inner), "[]");
+			case UnknownShape(reason):
+				plainObject("unknown", reason, "[]", "[]", "null", "[]");
+		};
+	}
+
+	static function plainObject(kind:String, path:String, parameters:String, arguments:String, returnType:String, fields:String):String {
+		return '{"kind":"' + GoTypeUsageLedger.jsonEscape(kind) + '","path":"' + GoTypeUsageLedger.jsonEscape(path) + '","parameters":' + parameters
+			+ ',"arguments":' + arguments + ',"returnType":' + returnType + ',"fields":' + fields + "}";
 	}
 
 	static function plainNominalShape(kind:GoTypeUsageTargetKind, path:String, parameters:Array<Type>, trail:Array<String>, depth:Int):GoTypeShape {

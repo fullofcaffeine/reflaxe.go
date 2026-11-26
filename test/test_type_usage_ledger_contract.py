@@ -96,6 +96,32 @@ class TypeUsageLedgerContractTest(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         self.assertIn("type usage tracker contract passed", proc.stdout + proc.stderr)
 
+    def test_ledger_names_members_and_imports_like_the_plain_reads(self) -> None:
+        # The ledger reads a class once for its path and native import, keeps
+        # the targets of enums, typedefs, and abstracts, and names fields from
+        # their references. This macro contract compares every answer with the
+        # reads it replaced and checks the native imports of the fixture report.
+        proc = subprocess.run(
+            [
+                "haxe",
+                "-cp",
+                "src",
+                "-cp",
+                "test/compiler",
+                "-lib",
+                "reflaxe",
+                "--macro",
+                "GoTypeUsageLedgerContract.check()",
+                "--no-output",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertIn("type usage ledger contract passed", proc.stdout + proc.stderr)
+
     def test_tracker_runs_for_ledger_modules_and_report_is_deterministic(self) -> None:
         # Reflaxe's own option would build a map for every module type; the
         # compiler builds it in setupModule only for modules the ledger reads.
