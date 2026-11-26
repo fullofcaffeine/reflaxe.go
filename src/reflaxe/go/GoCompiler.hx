@@ -6770,8 +6770,9 @@ class GoCompiler {
 				// Check the cast itself: inlining can erase its surrounding API call.
 				if (isArrayType(inner.t) && isAnonymousObjectType(expr.t))
 					Context.fatalError("Array-to-structural casts are not supported on Go; retain a concrete iterable carrier", expr.pos);
-				if (isTestedCheckedCast(expr))
-					return {expr: lowerCheckedCastExpr(inner, expr.t, expr.pos), isStringLike: isStringType(expr.t)};
+				final checkedTestType = checkedCastTestType(expr);
+				if (checkedTestType != null && isTestedCheckedCast(expr))
+					return {expr: lowerCheckedCastExpr(inner, checkedTestType, expr.t, expr.pos), isStringLike: isStringType(expr.t)};
 				var loweredInner = lowerExpr(inner);
 				var innerGoType = typeToGoType(inner.t);
 				var castGoType = typeToGoType(expr.t);
@@ -10729,18 +10730,7 @@ class GoCompiler {
 	function stdIsOfTypeTargetType(expr:TypedExpr):Null<Type> {
 		return switch (expr.expr) {
 			case TTypeExpr(moduleType):
-				switch (moduleType) {
-					case TClassDecl(classRef):
-						TInst(classRef, []);
-					case TEnumDecl(enumRef):
-						TEnum(enumRef, []);
-					case TTypeDecl(typeRef):
-						Context.follow(TType(typeRef, []));
-					case TAbstract(abstractRef):
-						TAbstract(abstractRef, []);
-					case _:
-						null;
-				}
+				moduleTypeTestType(moduleType);
 			case TMeta(_, inner):
 				stdIsOfTypeTargetType(inner);
 			case TParenthesis(inner):
@@ -10749,6 +10739,31 @@ class GoCompiler {
 				stdIsOfTypeTargetType(inner);
 			case _:
 				null;
+		};
+	}
+
+	/**
+		What: The type that a run-time type test of `moduleType` compares a value
+		against, as in `Std.isOfType(value, T)` and a checked `cast(value, T)`.
+
+		Why: A type test names a declaration, not an applied type, so the
+		declaration's type parameters stay empty. The test lowering reads only
+		the declaration: a class, an enum, a run-time-value abstract such as Int,
+		or the type a typedef names.
+
+		How: Build the bare type of the declaration; follow a typedef to the type
+		it names.
+	**/
+	function moduleTypeTestType(moduleType:ModuleType):Type {
+		return switch (moduleType) {
+			case TClassDecl(classRef):
+				TInst(classRef, []);
+			case TEnumDecl(enumRef):
+				TEnum(enumRef, []);
+			case TTypeDecl(typeRef):
+				Context.follow(TType(typeRef, []));
+			case TAbstract(abstractRef):
+				TAbstract(abstractRef, []);
 		};
 	}
 
@@ -14428,26 +14443,54 @@ class GoCompiler {
 		cast (an upcast, or a value of the same Go type) keeps the plain cast
 		lowering, so it does not pay for a test whose answer is known.
 
-		How: the typer records the checked target as the cast's module type. The
-		operand proves the cast when its class is the target class or extends it,
-		or when it has the target's own non-`any` Go type. Interfaces that a class
-		implements are not followed; such a cast keeps the test, which is still
-		correct.
+		How: the test type comes from `checkedCastTestType`. The operand proves
+		the cast when its class is the test class or extends it, or when it has
+		the test type's own non-`any` Go type. Interfaces that a class implements
+		are not followed; such a cast keeps the test, which is still correct.
 	**/
 	function isTestedCheckedCast(expr:TypedExpr):Bool {
+		final testType = checkedCastTestType(expr);
+		if (testType == null)
+			return false;
 		return switch (expr.expr) {
-			case TCast(inner, moduleType) if (moduleType != null):
+			case TCast(inner, _):
 				final sourceClass = classFromType(inner.t);
-				final targetClass = classFromType(expr.t);
+				final targetClass = classFromType(testType);
 				if (sourceClass != null && targetClass != null && inheritancePath(sourceClass, targetClass) != null) {
 					false;
 				} else {
-					final targetGoType = typeToGoType(expr.t);
+					final targetGoType = typeToGoType(testType);
 					targetGoType == "any" || typeToGoType(inner.t) != targetGoType
 					;
 				}
 			case _:
 				false;
+		};
+	}
+
+	/**
+		What: The type that a checked cast `cast(value, T)` tests its value
+		against, or null for an unchecked `cast value`.
+
+		Why: The cast's static type is `T`, but the run-time test is the one
+		Haxe's typer records as the cast's module type. An abstract has no
+		run-time type of its own unless it is marked `@:runtimeValue`, so the
+		typer follows it to its underlying type: `cast(n, Integer)` for
+		`abstract Integer(Int)` records Int, an abstract over a class records
+		the class, and an enum abstract records its underlying Int or String.
+		`--interp` and the other targets test that recorded type. Testing the
+		static type instead treated `Integer` as an unknown type whose test
+		always fails, so every non-null value threw "Class cast error" (Haxe's
+		tests/unit Issue2957).
+
+		How: Read the cast's module type as a type-test target.
+	**/
+	function checkedCastTestType(expr:TypedExpr):Null<Type> {
+		return switch (expr.expr) {
+			case TCast(_, moduleType):
+				moduleType == null ? null : moduleTypeTestType(moduleType);
+			case _:
+				null;
 		};
 	}
 
@@ -14463,23 +14506,24 @@ class GoCompiler {
 		*main.Mid") that no Haxe `catch` could handle.
 
 		How: pass the operand to a function literal as `any`. A value that is not
-		null and fails the `Std.isOfType` test for `T` throws "Class cast error"
-		the way a Haxe `throw` statement does. Otherwise the value takes the
-		conversion of a cast of a `Dynamic` value. The test only reads the
-		operand's static type, so it is given a `Dynamic`-typed stand-in for the
-		`any` parameter.
+		null and fails the `Std.isOfType` test for `testType` (from
+		`checkedCastTestType`) throws "Class cast error" the way a Haxe `throw`
+		statement does. Otherwise the value takes the conversion of a cast of a
+		`Dynamic` value to the cast's static type `castType`, which keeps the
+		abstract's own storage. The test only reads the operand's static type,
+		so it is given a `Dynamic`-typed stand-in for the `any` parameter.
 	**/
-	function lowerCheckedCastExpr(inner:TypedExpr, targetType:Type, pos:Position):GoExpr {
+	function lowerCheckedCastExpr(inner:TypedExpr, testType:Type, castType:Type, pos:Position):GoExpr {
 		final valueName = freshTempName("hx_cast");
 		final value = GoExpr.GoIdent(valueName);
 		final erasedOperand:TypedExpr = {expr: TIdent(valueName), t: TDynamic(null), pos: pos};
 		final fails = GoExpr.GoBinary("&&", GoExpr.GoUnary("!", GoExpr.GoCall(GoExpr.GoIdent("hxrt.AnyEqualsNull"), [value])),
-			GoExpr.GoUnary("!", lowerStdIsOfTypeExpr(value, erasedOperand, targetType)));
+			GoExpr.GoUnary("!", lowerStdIsOfTypeExpr(value, erasedOperand, testType)));
 		final error = exceptionSourceCall("thrown", lowerConst(TString("Class cast error")).expr);
-		final converted = lowerDynamicSlotExpr(value, targetType);
-		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: valueName, typeName: "any"}], [typeToGoType(targetType)], [
+		final converted = lowerDynamicSlotExpr(value, castType);
+		return GoExpr.GoCall(GoExpr.GoFuncLiteral([{name: valueName, typeName: "any"}], [typeToGoType(castType)], [
 			GoStmt.GoIf(fails, [GoStmt.GoExprStmt(GoExpr.GoCall(GoExpr.GoIdent("hxrt.Throw"), [error]))], null),
-			GoStmt.GoReturn(converted != null ? converted : lowerNullableAwareTypeAssertExpr(value, targetType))
+			GoStmt.GoReturn(converted != null ? converted : lowerNullableAwareTypeAssertExpr(value, castType))
 		]), [lowerExpr(inner).expr]);
 	}
 

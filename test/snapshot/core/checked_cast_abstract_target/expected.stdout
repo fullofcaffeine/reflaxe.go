@@ -1,0 +1,5 @@
+Integer from String: 6
+Dynamic as Real: 5
+Dynamic as Pet: dog
+Dynamic as Color: true
+caught: Class cast error
