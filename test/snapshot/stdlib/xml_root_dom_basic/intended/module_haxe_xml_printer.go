@@ -40,13 +40,13 @@ func hx_init_haxe__xml__Printer(self *haxe__xml__Printer, pretty bool) *haxe__xm
 }
 
 func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
-	var _g any = value.nodeType
+	_g := value.nodeType
 	switch _g {
 	case 0:
 		_this := self.output
 		_this.b = hxrt.StringConcatStringPtr(_this.b, hxrt.StdString(hxrt.StringConcatStringPtr(tabs, hxrt.StringFromLiteral("<"))))
-		if !hxrt.HaxeEqual(value.nodeType, Xml_Element) {
-			hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(value.nodeType)))))
+		if value.nodeType != Xml_Element {
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(value.nodeType))))
 		}
 		input := value.nodeName
 		_this_1 := self.output
@@ -97,8 +97,8 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 			}
 			_this_8 := self.output
 			_this_8.b = hxrt.StringConcatStringPtr(_this_8.b, hxrt.StdString(hxrt.StringConcatStringPtr(tabs, hxrt.StringFromLiteral("</"))))
-			if !hxrt.HaxeEqual(value.nodeType, Xml_Element) {
-				hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(value.nodeType)))))
+			if value.nodeType != Xml_Element {
+				hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(value.nodeType))))
 			}
 			input_2 := value.nodeName
 			_this_9 := self.output
@@ -118,8 +118,8 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 			}
 		}
 	case 1:
-		if hxrt.HaxeEqual(value.nodeType, Xml_Document) || hxrt.HaxeEqual(value.nodeType, Xml_Element) {
-			hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(value.nodeType)))))
+		if (value.nodeType == Xml_Document) || (value.nodeType == Xml_Element) {
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(value.nodeType))))
 		}
 		nodeValue := value.nodeValue
 		if hxrt.StringLengthStringPtr(nodeValue) != 0 {
@@ -134,8 +134,8 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 	case 2:
 		_this_16 := self.output
 		_this_16.b = hxrt.StringConcatStringPtr(_this_16.b, hxrt.StdString(hxrt.StringConcatStringPtr(tabs, hxrt.StringFromLiteral("<![CDATA["))))
-		if hxrt.HaxeEqual(value.nodeType, Xml_Document) || hxrt.HaxeEqual(value.nodeType, Xml_Element) {
-			hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(value.nodeType)))))
+		if (value.nodeType == Xml_Document) || (value.nodeType == Xml_Element) {
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(value.nodeType))))
 		}
 		input_4 := value.nodeValue
 		_this_17 := self.output
@@ -147,8 +147,8 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 			_this_19.b = hxrt.StringConcatStringPtr(_this_19.b, hxrt.StringFromLiteral("\n"))
 		}
 	case 3:
-		if hxrt.HaxeEqual(value.nodeType, Xml_Document) || hxrt.HaxeEqual(value.nodeType, Xml_Element) {
-			hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(value.nodeType)))))
+		if (value.nodeType == Xml_Document) || (value.nodeType == Xml_Element) {
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(value.nodeType))))
 		}
 		commentContent := value.nodeValue
 		commentContent = StringTools_replace(commentContent, hxrt.StringFromLiteral("\n"), hxrt.StringFromLiteral(""))
@@ -166,8 +166,8 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 		}
 	case 4:
 		input_6 := hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("<!DOCTYPE "), func() *string {
-			if hxrt.HaxeEqual(value.nodeType, Xml_Document) || hxrt.HaxeEqual(value.nodeType, Xml_Element) {
-				hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(value.nodeType)))))
+			if (value.nodeType == Xml_Document) || (value.nodeType == Xml_Element) {
+				hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(value.nodeType))))
 			}
 			return value.nodeValue
 		}()), hxrt.StringFromLiteral(">"))
@@ -179,8 +179,8 @@ func (self *haxe__xml__Printer) writeNode(value *Xml, tabs *string) {
 		}
 	case 5:
 		input_7 := hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("<?"), func() *string {
-			if hxrt.HaxeEqual(value.nodeType, Xml_Document) || hxrt.HaxeEqual(value.nodeType, Xml_Element) {
-				hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(value.nodeType)))))
+			if (value.nodeType == Xml_Document) || (value.nodeType == Xml_Element) {
+				hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(value.nodeType))))
 			}
 			return value.nodeValue
 		}()), hxrt.StringFromLiteral("?>"))
@@ -229,14 +229,14 @@ func (self *haxe__xml__Printer) hasChildren(value *Xml) bool {
 		hx_post_6 := _g_current
 		_g_current = int(int32((_g_current + 1)))
 		child := hx_recover_class_Xml(_g_array.Get(hx_post_6))
-		var _g any = child.nodeType
+		_g := child.nodeType
 		switch _g {
 		case 0, 1:
 			return true
 		case 2, 3:
 			if hxrt.StringLengthStringPtr(StringTools_ltrim(func() *string {
-				if hxrt.HaxeEqual(child.nodeType, Xml_Document) || hxrt.HaxeEqual(child.nodeType, Xml_Element) {
-					hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(child.nodeType)))))
+				if (child.nodeType == Xml_Document) || (child.nodeType == Xml_Element) {
+					hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(child.nodeType))))
 				}
 				return child.nodeValue
 			}())) != 0 {

@@ -9,7 +9,7 @@ type I_haxe__Timer interface {
 type haxe__Timer struct {
 	__hx_this    I_haxe__Timer
 	thread       *sys__thread__Thread
-	eventHandler any
+	eventHandler int
 	run          *hxrt.Function[func()]
 }
 
@@ -46,9 +46,9 @@ func hx_init_haxe__Timer(self *haxe__Timer, time_ms int) *haxe__Timer {
 }
 
 func (self *haxe__Timer) stop() {
-	if !hxrt.HaxeEqual(self.eventHandler, any(0)) {
+	if self.eventHandler != 0 {
 		self.thread.__hx_this.get_events().__hx_this.cancel(self.eventHandler)
-		self.eventHandler = any(0)
+		self.eventHandler = 0
 	}
 }
 

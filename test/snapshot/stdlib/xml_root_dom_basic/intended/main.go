@@ -27,7 +27,7 @@ func main() {
 	hxrt.Println(v_1)
 	var v_2 any = any(parsed.__hx_this.toString())
 	hxrt.Println(v_2)
-	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("type="), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(parsedCData.__hx_this.firstElement().__hx_this.firstChild().nodeType))))
+	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("type="), _Xml__XmlType_Impl__toString(parsedCData.__hx_this.firstElement().__hx_this.firstChild().nodeType)))
 	hxrt.Println(v_3)
 	var v_4 any = any(parsedCData.__hx_this.toString())
 	hxrt.Println(v_4)

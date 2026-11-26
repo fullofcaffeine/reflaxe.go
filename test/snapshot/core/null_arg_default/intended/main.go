@@ -261,87 +261,92 @@ func main() {
 	}(falseB)), staticBool(false)))
 	row(hxrt.StringFromLiteral("static.string"), hxrt.NewArray(staticString(hxrt.StringFromLiteral("dflt")), staticString(nil), staticString(ns), staticString(empty), staticString(hxrt.StringFromLiteral("x"))))
 	row(hxrt.StringFromLiteral("static.enum"), hxrt.NewArray(staticShade(Shade_Dark), staticShade(nil), staticShade(nshade), staticShade(Shade_Light)))
-	row(hxrt.StringFromLiteral("static.level"), hxrt.NewArray(staticLevel(2), staticLevel(nlevel), staticLevel(any(1))))
-	row(hxrt.StringFromLiteral("opt.float"), hxrt.NewArray(optFloat(4.5), optFloat(4.5), optFloat(func(hx_value_10 any) float64 {
+	row(hxrt.StringFromLiteral("static.level"), hxrt.NewArray(staticLevel(2), staticLevel(func(hx_value_10 any) int {
 		if hx_value_10 == nil {
-			return 4.5
+			return 2
 		}
-		return hx_value_10.(float64)
-	}(nf)), optFloat(func(hx_value_11 any) float64 {
+		return hxrt.IntFromNullableAny(hx_value_10)
+	}(nlevel)), staticLevel(1)))
+	row(hxrt.StringFromLiteral("opt.float"), hxrt.NewArray(optFloat(4.5), optFloat(4.5), optFloat(func(hx_value_11 any) float64 {
 		if hx_value_11 == nil {
 			return 4.5
 		}
 		return hx_value_11.(float64)
-	}(zeroF)), optFloat(0.75)))
-	row(hxrt.StringFromLiteral("opt.int"), hxrt.NewArray(optInt(6), optInt(6), optInt(func(hx_value_12 any) int {
+	}(nf)), optFloat(func(hx_value_12 any) float64 {
 		if hx_value_12 == nil {
-			return 6
+			return 4.5
 		}
-		return hxrt.IntFromNullableAny(hx_value_12)
-	}(ni)), optInt(func(hx_value_13 any) int {
+		return hx_value_12.(float64)
+	}(zeroF)), optFloat(0.75)))
+	row(hxrt.StringFromLiteral("opt.int"), hxrt.NewArray(optInt(6), optInt(6), optInt(func(hx_value_13 any) int {
 		if hx_value_13 == nil {
 			return 6
 		}
 		return hxrt.IntFromNullableAny(hx_value_13)
-	}(zeroI)), optInt(8)))
-	row(hxrt.StringFromLiteral("opt.bool"), hxrt.NewArray(optBool(true), optBool(true), optBool(func(hx_value_14 any) bool {
+	}(ni)), optInt(func(hx_value_14 any) int {
 		if hx_value_14 == nil {
-			return true
+			return 6
 		}
-		return hx_value_14.(bool)
-	}(nb)), optBool(func(hx_value_15 any) bool {
+		return hxrt.IntFromNullableAny(hx_value_14)
+	}(zeroI)), optInt(8)))
+	row(hxrt.StringFromLiteral("opt.bool"), hxrt.NewArray(optBool(true), optBool(true), optBool(func(hx_value_15 any) bool {
 		if hx_value_15 == nil {
 			return true
 		}
 		return hx_value_15.(bool)
+	}(nb)), optBool(func(hx_value_16 any) bool {
+		if hx_value_16 == nil {
+			return true
+		}
+		return hx_value_16.(bool)
 	}(falseB)), optBool(false)))
 	row(hxrt.StringFromLiteral("opt.string"), hxrt.NewArray(optString(hxrt.StringFromLiteral("opt")), optString(nil), optString(ns), optString(empty)))
-	row(hxrt.StringFromLiteral("nullable.int"), hxrt.NewArray(nullInt(9), nullInt(9), nullInt(func(hx_value_16 any) int {
-		if hx_value_16 == nil {
-			return 9
-		}
-		return hxrt.IntFromNullableAny(hx_value_16)
-	}(ni)), nullInt(func(hx_value_17 any) int {
+	row(hxrt.StringFromLiteral("nullable.int"), hxrt.NewArray(nullInt(9), nullInt(9), nullInt(func(hx_value_17 any) int {
 		if hx_value_17 == nil {
 			return 9
 		}
 		return hxrt.IntFromNullableAny(hx_value_17)
-	}(zeroI)), nullInt(12)))
-	row(hxrt.StringFromLiteral("mixed"), hxrt.NewArray(mixed(1, 0.5, true, hxrt.StringFromLiteral("d")), mixed(1, func(hx_value_18 any) float64 {
+	}(ni)), nullInt(func(hx_value_18 any) int {
 		if hx_value_18 == nil {
-			return 0.5
+			return 9
 		}
-		return hx_value_18.(float64)
-	}(nf), true, hxrt.StringFromLiteral("d")), mixed(1, func(hx_value_19 any) float64 {
+		return hxrt.IntFromNullableAny(hx_value_18)
+	}(zeroI)), nullInt(12)))
+	row(hxrt.StringFromLiteral("mixed"), hxrt.NewArray(mixed(1, 0.5, true, hxrt.StringFromLiteral("d")), mixed(1, func(hx_value_19 any) float64 {
 		if hx_value_19 == nil {
 			return 0.5
 		}
 		return hx_value_19.(float64)
-	}(nf), func(hx_value_20 any) bool {
+	}(nf), true, hxrt.StringFromLiteral("d")), mixed(1, func(hx_value_20 any) float64 {
 		if hx_value_20 == nil {
-			return true
+			return 0.5
 		}
-		return hx_value_20.(bool)
-	}(nb), hxrt.StringFromLiteral("d")), mixed(1, func(hx_value_21 any) float64 {
+		return hx_value_20.(float64)
+	}(nf), func(hx_value_21 any) bool {
 		if hx_value_21 == nil {
-			return 0.5
+			return true
 		}
-		return hx_value_21.(float64)
-	}(nf), func(hx_value_22 any) bool {
+		return hx_value_21.(bool)
+	}(nb), hxrt.StringFromLiteral("d")), mixed(1, func(hx_value_22 any) float64 {
 		if hx_value_22 == nil {
-			return true
-		}
-		return hx_value_22.(bool)
-	}(nb), ns), mixed(1, func(hx_value_23 any) float64 {
-		if hx_value_23 == nil {
 			return 0.5
 		}
-		return hx_value_23.(float64)
-	}(zeroF), func(hx_value_24 any) bool {
-		if hx_value_24 == nil {
+		return hx_value_22.(float64)
+	}(nf), func(hx_value_23 any) bool {
+		if hx_value_23 == nil {
 			return true
 		}
-		return hx_value_24.(bool)
+		return hx_value_23.(bool)
+	}(nb), ns), mixed(1, func(hx_value_24 any) float64 {
+		if hx_value_24 == nil {
+			return 0.5
+		}
+		return hx_value_24.(float64)
+	}(zeroF), func(hx_value_25 any) bool {
+		if hx_value_25 == nil {
+			return true
+		}
+		return hx_value_25.(bool)
 	}(falseB), empty)))
 	row(hxrt.StringFromLiteral("forward"), hxrt.NewArray(forward(nil, nil, nil), forward(nil, nil, nil), forward(nf, ni, nb), forward(0.0, 0, false)))
 	holder := New_Holder()
@@ -349,60 +354,60 @@ func main() {
 	var nulls_0 any
 	nulls_0 = nil
 	nulls_1 = 0
-	row(hxrt.StringFromLiteral("sources"), hxrt.NewArray(staticFloat(func(hx_value_25 any) float64 {
-		if hx_value_25 == nil {
+	row(hxrt.StringFromLiteral("sources"), hxrt.NewArray(staticFloat(func(hx_value_26 any) float64 {
+		if hx_value_26 == nil {
 			return 1.5
 		}
-		return hx_value_25.(float64)
-	}(holder.f)), staticInt(func(hx_value_26 any) int {
-		if hx_value_26 == nil {
+		return hx_value_26.(float64)
+	}(holder.f)), staticInt(func(hx_value_27 any) int {
+		if hx_value_27 == nil {
 			return 3
 		}
-		return hxrt.IntFromNullableAny(hx_value_26)
-	}(holder.i)), staticBool(func(hx_value_27 any) bool {
-		if hx_value_27 == nil {
+		return hxrt.IntFromNullableAny(hx_value_27)
+	}(holder.i)), staticBool(func(hx_value_28 any) bool {
+		if hx_value_28 == nil {
 			return true
 		}
-		return hx_value_27.(bool)
-	}(holder.b)), staticFloat(func(hx_value_28 any) float64 {
-		if hx_value_28 == nil {
+		return hx_value_28.(bool)
+	}(holder.b)), staticFloat(func(hx_value_29 any) float64 {
+		if hx_value_29 == nil {
 			return 1.5
 		}
-		return hx_value_28.(float64)
-	}(nothingFloat())), staticInt(func(hx_value_29 any) int {
-		if hx_value_29 == nil {
-			return 3
-		}
-		return hxrt.IntFromNullableAny(hx_value_29)
-	}(nothingInt())), staticInt(func(hx_value_30 any) int {
+		return hx_value_29.(float64)
+	}(nothingFloat())), staticInt(func(hx_value_30 any) int {
 		if hx_value_30 == nil {
 			return 3
 		}
 		return hxrt.IntFromNullableAny(hx_value_30)
-	}(nulls_0)), staticInt(func(hx_value_31 any) int {
+	}(nothingInt())), staticInt(func(hx_value_31 any) int {
 		if hx_value_31 == nil {
 			return 3
 		}
 		return hxrt.IntFromNullableAny(hx_value_31)
+	}(nulls_0)), staticInt(func(hx_value_32 any) int {
+		if hx_value_32 == nil {
+			return 3
+		}
+		return hxrt.IntFromNullableAny(hx_value_32)
 	}(nulls_1))))
 	holder.f = 0.0
 	holder.i = 0
 	holder.b = false
-	row(hxrt.StringFromLiteral("sources.set"), hxrt.NewArray(staticFloat(func(hx_value_32 any) float64 {
-		if hx_value_32 == nil {
+	row(hxrt.StringFromLiteral("sources.set"), hxrt.NewArray(staticFloat(func(hx_value_33 any) float64 {
+		if hx_value_33 == nil {
 			return 1.5
 		}
-		return hx_value_32.(float64)
-	}(holder.f)), staticInt(func(hx_value_33 any) int {
-		if hx_value_33 == nil {
+		return hx_value_33.(float64)
+	}(holder.f)), staticInt(func(hx_value_34 any) int {
+		if hx_value_34 == nil {
 			return 3
 		}
-		return hxrt.IntFromNullableAny(hx_value_33)
-	}(holder.i)), staticBool(func(hx_value_34 any) bool {
-		if hx_value_34 == nil {
+		return hxrt.IntFromNullableAny(hx_value_34)
+	}(holder.i)), staticBool(func(hx_value_35 any) bool {
+		if hx_value_35 == nil {
 			return true
 		}
-		return hx_value_34.(bool)
+		return hx_value_35.(bool)
 	}(holder.b))))
 	if nf == nil {
 		nf = 6.5
@@ -410,81 +415,76 @@ func main() {
 	if ni != nil {
 		row(hxrt.StringFromLiteral("narrowed"), hxrt.NewArray(staticInt(ni.(int))))
 	}
-	row(hxrt.StringFromLiteral("assigned"), hxrt.NewArray(staticFloat(func(hx_value_35 any) float64 {
-		if hx_value_35 == nil {
+	row(hxrt.StringFromLiteral("assigned"), hxrt.NewArray(staticFloat(func(hx_value_36 any) float64 {
+		if hx_value_36 == nil {
 			return 1.5
 		}
-		return hx_value_35.(float64)
+		return hx_value_36.(float64)
 	}(nf))))
 	nf = nil
 	counter := New_Counter(0.25, 2, true, hxrt.StringFromLiteral("ctr"))
-	row(hxrt.StringFromLiteral("method"), hxrt.NewArray(counter.__hx_this.bump(10, 1.5, true, hxrt.StringFromLiteral("tag")), counter.__hx_this.bump(func(hx_value_36 any) int {
-		if hx_value_36 == nil {
-			return 10
-		}
-		return hxrt.IntFromNullableAny(hx_value_36)
-	}(ni), 1.5, true, hxrt.StringFromLiteral("tag")), counter.__hx_this.bump(func(hx_value_37 any) int {
+	row(hxrt.StringFromLiteral("method"), hxrt.NewArray(counter.__hx_this.bump(10, 1.5, true, hxrt.StringFromLiteral("tag")), counter.__hx_this.bump(func(hx_value_37 any) int {
 		if hx_value_37 == nil {
 			return 10
 		}
 		return hxrt.IntFromNullableAny(hx_value_37)
-	}(ni), func(hx_value_38 any) float64 {
+	}(ni), 1.5, true, hxrt.StringFromLiteral("tag")), counter.__hx_this.bump(func(hx_value_38 any) int {
 		if hx_value_38 == nil {
-			return 1.5
+			return 10
 		}
-		return hx_value_38.(float64)
-	}(nf), true, hxrt.StringFromLiteral("tag")), counter.__hx_this.bump(func(hx_value_39 any) int {
+		return hxrt.IntFromNullableAny(hx_value_38)
+	}(ni), func(hx_value_39 any) float64 {
 		if hx_value_39 == nil {
-			return 10
+			return 1.5
 		}
-		return hxrt.IntFromNullableAny(hx_value_39)
-	}(ni), func(hx_value_40 any) float64 {
+		return hx_value_39.(float64)
+	}(nf), true, hxrt.StringFromLiteral("tag")), counter.__hx_this.bump(func(hx_value_40 any) int {
 		if hx_value_40 == nil {
-			return 1.5
+			return 10
 		}
-		return hx_value_40.(float64)
-	}(nf), func(hx_value_41 any) bool {
+		return hxrt.IntFromNullableAny(hx_value_40)
+	}(ni), func(hx_value_41 any) float64 {
 		if hx_value_41 == nil {
-			return true
+			return 1.5
 		}
-		return hx_value_41.(bool)
-	}(nb), hxrt.StringFromLiteral("tag")), counter.__hx_this.bump(func(hx_value_42 any) int {
+		return hx_value_41.(float64)
+	}(nf), func(hx_value_42 any) bool {
 		if hx_value_42 == nil {
-			return 10
+			return true
 		}
-		return hxrt.IntFromNullableAny(hx_value_42)
-	}(ni), func(hx_value_43 any) float64 {
+		return hx_value_42.(bool)
+	}(nb), hxrt.StringFromLiteral("tag")), counter.__hx_this.bump(func(hx_value_43 any) int {
 		if hx_value_43 == nil {
-			return 1.5
-		}
-		return hx_value_43.(float64)
-	}(nf), func(hx_value_44 any) bool {
-		if hx_value_44 == nil {
-			return true
-		}
-		return hx_value_44.(bool)
-	}(nb), ns), counter.__hx_this.bump(func(hx_value_45 any) int {
-		if hx_value_45 == nil {
 			return 10
 		}
-		return hxrt.IntFromNullableAny(hx_value_45)
-	}(zeroI), func(hx_value_46 any) float64 {
-		if hx_value_46 == nil {
+		return hxrt.IntFromNullableAny(hx_value_43)
+	}(ni), func(hx_value_44 any) float64 {
+		if hx_value_44 == nil {
 			return 1.5
 		}
-		return hx_value_46.(float64)
-	}(zeroF), func(hx_value_47 any) bool {
-		if hx_value_47 == nil {
+		return hx_value_44.(float64)
+	}(nf), func(hx_value_45 any) bool {
+		if hx_value_45 == nil {
 			return true
 		}
-		return hx_value_47.(bool)
-	}(falseB), empty)))
-	row(hxrt.StringFromLiteral("ctor"), hxrt.NewArray(New_Counter(0.25, 2, true, hxrt.StringFromLiteral("ctr")).text, New_Counter(func(hx_value_48 any) float64 {
-		if hx_value_48 == nil {
-			return 0.25
+		return hx_value_45.(bool)
+	}(nb), ns), counter.__hx_this.bump(func(hx_value_46 any) int {
+		if hx_value_46 == nil {
+			return 10
 		}
-		return hx_value_48.(float64)
-	}(nf), 2, true, hxrt.StringFromLiteral("ctr")).text, New_Counter(func(hx_value_49 any) float64 {
+		return hxrt.IntFromNullableAny(hx_value_46)
+	}(zeroI), func(hx_value_47 any) float64 {
+		if hx_value_47 == nil {
+			return 1.5
+		}
+		return hx_value_47.(float64)
+	}(zeroF), func(hx_value_48 any) bool {
+		if hx_value_48 == nil {
+			return true
+		}
+		return hx_value_48.(bool)
+	}(falseB), empty)))
+	row(hxrt.StringFromLiteral("ctor"), hxrt.NewArray(New_Counter(0.25, 2, true, hxrt.StringFromLiteral("ctr")).text, New_Counter(func(hx_value_49 any) float64 {
 		if hx_value_49 == nil {
 			return 0.25
 		}
@@ -494,31 +494,36 @@ func main() {
 			return 0.25
 		}
 		return hx_value_50.(float64)
-	}(nf), func(hx_value_51 any) int {
+	}(nf), 2, true, hxrt.StringFromLiteral("ctr")).text, New_Counter(func(hx_value_51 any) float64 {
 		if hx_value_51 == nil {
-			return 2
-		}
-		return hxrt.IntFromNullableAny(hx_value_51)
-	}(ni), func(hx_value_52 any) bool {
-		if hx_value_52 == nil {
-			return true
-		}
-		return hx_value_52.(bool)
-	}(nb), ns).text, New_Counter(func(hx_value_53 any) float64 {
-		if hx_value_53 == nil {
 			return 0.25
 		}
-		return hx_value_53.(float64)
-	}(zeroF), func(hx_value_54 any) int {
-		if hx_value_54 == nil {
+		return hx_value_51.(float64)
+	}(nf), func(hx_value_52 any) int {
+		if hx_value_52 == nil {
 			return 2
 		}
-		return hxrt.IntFromNullableAny(hx_value_54)
-	}(zeroI), func(hx_value_55 any) bool {
-		if hx_value_55 == nil {
+		return hxrt.IntFromNullableAny(hx_value_52)
+	}(ni), func(hx_value_53 any) bool {
+		if hx_value_53 == nil {
 			return true
 		}
-		return hx_value_55.(bool)
+		return hx_value_53.(bool)
+	}(nb), ns).text, New_Counter(func(hx_value_54 any) float64 {
+		if hx_value_54 == nil {
+			return 0.25
+		}
+		return hx_value_54.(float64)
+	}(zeroF), func(hx_value_55 any) int {
+		if hx_value_55 == nil {
+			return 2
+		}
+		return hxrt.IntFromNullableAny(hx_value_55)
+	}(zeroI), func(hx_value_56 any) bool {
+		if hx_value_56 == nil {
+			return true
+		}
+		return hx_value_56.(bool)
 	}(falseB), empty).text))
 	row(hxrt.StringFromLiteral("super.ctor"), hxrt.NewArray(New_SubCounter(nil, nil, nil).text, New_SubCounter(nf, nb, ns).text, New_SubCounter(0.0, false, hxrt.StringFromLiteral("")).text))
 	var child Pricer = New_ChildPricer()
@@ -544,35 +549,35 @@ func main() {
 		return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatAny(x.(float64), hxrt.StringFromLiteral("*")), n.(int)), hxrt.StringFromLiteral("*")), s)
 	})
 	row(hxrt.StringFromLiteral("local"), hxrt.NewArray(func() *string {
-		var hx_callable_56 *hxrt.Function[func(any, any, *string) *string] = localScale
-		var hx_argument_57 any = 8.5
-		var hx_argument_58 any = 2
-		var hx_argument_59 *string = hxrt.StringFromLiteral("loc")
-		return hxrt.FunctionCall(hx_callable_56)(hx_argument_57, hx_argument_58, hx_argument_59)
+		var hx_callable_57 *hxrt.Function[func(any, any, *string) *string] = localScale
+		var hx_argument_58 any = 8.5
+		var hx_argument_59 any = 2
+		var hx_argument_60 *string = hxrt.StringFromLiteral("loc")
+		return hxrt.FunctionCall(hx_callable_57)(hx_argument_58, hx_argument_59, hx_argument_60)
 	}(), func() *string {
-		var hx_callable_60 *hxrt.Function[func(any, any, *string) *string] = localScale
-		var hx_argument_61 any = nf
-		var hx_argument_62 any = 2
-		var hx_argument_63 *string = hxrt.StringFromLiteral("loc")
-		return hxrt.FunctionCall(hx_callable_60)(hx_argument_61, hx_argument_62, hx_argument_63)
+		var hx_callable_61 *hxrt.Function[func(any, any, *string) *string] = localScale
+		var hx_argument_62 any = nf
+		var hx_argument_63 any = 2
+		var hx_argument_64 *string = hxrt.StringFromLiteral("loc")
+		return hxrt.FunctionCall(hx_callable_61)(hx_argument_62, hx_argument_63, hx_argument_64)
 	}(), func() *string {
-		var hx_callable_64 *hxrt.Function[func(any, any, *string) *string] = localScale
-		var hx_argument_65 any = nf
-		var hx_argument_66 any = ni
-		var hx_argument_67 *string = hxrt.StringFromLiteral("loc")
-		return hxrt.FunctionCall(hx_callable_64)(hx_argument_65, hx_argument_66, hx_argument_67)
+		var hx_callable_65 *hxrt.Function[func(any, any, *string) *string] = localScale
+		var hx_argument_66 any = nf
+		var hx_argument_67 any = ni
+		var hx_argument_68 *string = hxrt.StringFromLiteral("loc")
+		return hxrt.FunctionCall(hx_callable_65)(hx_argument_66, hx_argument_67, hx_argument_68)
 	}(), func() *string {
-		var hx_callable_68 *hxrt.Function[func(any, any, *string) *string] = localScale
-		var hx_argument_69 any = nf
-		var hx_argument_70 any = ni
-		var hx_argument_71 *string = ns
-		return hxrt.FunctionCall(hx_callable_68)(hx_argument_69, hx_argument_70, hx_argument_71)
+		var hx_callable_69 *hxrt.Function[func(any, any, *string) *string] = localScale
+		var hx_argument_70 any = nf
+		var hx_argument_71 any = ni
+		var hx_argument_72 *string = ns
+		return hxrt.FunctionCall(hx_callable_69)(hx_argument_70, hx_argument_71, hx_argument_72)
 	}(), func() *string {
-		var hx_callable_72 *hxrt.Function[func(any, any, *string) *string] = localScale
-		var hx_argument_73 any = zeroF
-		var hx_argument_74 any = zeroI
-		var hx_argument_75 *string = empty
-		return hxrt.FunctionCall(hx_callable_72)(hx_argument_73, hx_argument_74, hx_argument_75)
+		var hx_callable_73 *hxrt.Function[func(any, any, *string) *string] = localScale
+		var hx_argument_74 any = zeroF
+		var hx_argument_75 any = zeroI
+		var hx_argument_76 *string = empty
+		return hxrt.FunctionCall(hx_callable_73)(hx_argument_74, hx_argument_75, hx_argument_76)
 	}()))
 	var closure *hxrt.Function[func(*string, any, any) *string] = hxrt.NewFunction(func(s *string, b any, k any) *string {
 		if s == nil {
@@ -587,54 +592,54 @@ func main() {
 		return hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(s, hxrt.StringFromLiteral(":")), hxrt.StdString(b.(bool))), hxrt.StringFromLiteral(":")), k.(int))
 	})
 	row(hxrt.StringFromLiteral("closure"), hxrt.NewArray(func() *string {
-		var hx_callable_76 *hxrt.Function[func(*string, any, any) *string] = closure
-		var hx_argument_77 *string = hxrt.StringFromLiteral("cl")
-		var hx_argument_78 any = false
-		var hx_argument_79 any = 11
-		return hxrt.FunctionCall(hx_callable_76)(hx_argument_77, hx_argument_78, hx_argument_79)
+		var hx_callable_77 *hxrt.Function[func(*string, any, any) *string] = closure
+		var hx_argument_78 *string = hxrt.StringFromLiteral("cl")
+		var hx_argument_79 any = false
+		var hx_argument_80 any = 11
+		return hxrt.FunctionCall(hx_callable_77)(hx_argument_78, hx_argument_79, hx_argument_80)
 	}(), func() *string {
-		var hx_callable_80 *hxrt.Function[func(*string, any, any) *string] = closure
-		var hx_argument_81 *string = nil
-		var hx_argument_82 any = false
-		var hx_argument_83 any = 11
-		return hxrt.FunctionCall(hx_callable_80)(hx_argument_81, hx_argument_82, hx_argument_83)
+		var hx_callable_81 *hxrt.Function[func(*string, any, any) *string] = closure
+		var hx_argument_82 *string = nil
+		var hx_argument_83 any = false
+		var hx_argument_84 any = 11
+		return hxrt.FunctionCall(hx_callable_81)(hx_argument_82, hx_argument_83, hx_argument_84)
 	}(), func() *string {
-		var hx_callable_84 *hxrt.Function[func(*string, any, any) *string] = closure
-		var hx_argument_85 *string = ns
-		var hx_argument_86 any = nb
-		var hx_argument_87 any = 11
-		return hxrt.FunctionCall(hx_callable_84)(hx_argument_85, hx_argument_86, hx_argument_87)
+		var hx_callable_85 *hxrt.Function[func(*string, any, any) *string] = closure
+		var hx_argument_86 *string = ns
+		var hx_argument_87 any = nb
+		var hx_argument_88 any = 11
+		return hxrt.FunctionCall(hx_callable_85)(hx_argument_86, hx_argument_87, hx_argument_88)
 	}(), func() *string {
-		var hx_callable_88 *hxrt.Function[func(*string, any, any) *string] = closure
-		var hx_argument_89 *string = ns
-		var hx_argument_90 any = nb
-		var hx_argument_91 any = ni
-		return hxrt.FunctionCall(hx_callable_88)(hx_argument_89, hx_argument_90, hx_argument_91)
+		var hx_callable_89 *hxrt.Function[func(*string, any, any) *string] = closure
+		var hx_argument_90 *string = ns
+		var hx_argument_91 any = nb
+		var hx_argument_92 any = ni
+		return hxrt.FunctionCall(hx_callable_89)(hx_argument_90, hx_argument_91, hx_argument_92)
 	}(), func() *string {
-		var hx_callable_92 *hxrt.Function[func(*string, any, any) *string] = closure
-		var hx_argument_93 *string = empty
-		var hx_argument_94 any = falseB
-		var hx_argument_95 any = zeroI
-		return hxrt.FunctionCall(hx_callable_92)(hx_argument_93, hx_argument_94, hx_argument_95)
+		var hx_callable_93 *hxrt.Function[func(*string, any, any) *string] = closure
+		var hx_argument_94 *string = empty
+		var hx_argument_95 any = falseB
+		var hx_argument_96 any = zeroI
+		return hxrt.FunctionCall(hx_callable_93)(hx_argument_94, hx_argument_95, hx_argument_96)
 	}()))
-	hx_callable_96 := hxrt.NamedFunction(staticInt, "Main.staticInt")
-	hx_normalized_callable_97 := hxrt.AdaptFunction(hx_callable_96, func(x any) int {
+	hx_callable_97 := hxrt.NamedFunction(staticInt, "Main.staticInt")
+	hx_normalized_callable_98 := hxrt.AdaptFunction(hx_callable_97, func(x any) int {
 		if x == nil {
 			x = 3
 		}
-		return hxrt.FunctionCall(hx_callable_96)(hxrt.IntFromNullableAny(x))
+		return hxrt.FunctionCall(hx_callable_97)(hxrt.IntFromNullableAny(x))
 	})
-	var intValue *hxrt.Function[func(any) int] = hx_normalized_callable_97
-	hx_callable_98 := hxrt.NamedFunction(staticString, "Main.staticString")
-	hx_normalized_callable_99 := hxrt.AdaptFunction(hx_callable_98, func(x *string) *string {
+	var intValue *hxrt.Function[func(any) int] = hx_normalized_callable_98
+	hx_callable_99 := hxrt.NamedFunction(staticString, "Main.staticString")
+	hx_normalized_callable_100 := hxrt.AdaptFunction(hx_callable_99, func(x *string) *string {
 		if x == nil {
 			x = hxrt.StringFromLiteral("dflt")
 		}
-		return hxrt.FunctionCall(hx_callable_98)(x)
+		return hxrt.FunctionCall(hx_callable_99)(x)
 	})
-	stringValue := hx_normalized_callable_99
-	hx_callable_107 := func() *hxrt.Function[func(any, any, any, *string) *string] {
-		hx_receiver_100 := counter
+	stringValue := hx_normalized_callable_100
+	hx_callable_108 := func() *hxrt.Function[func(any, any, any, *string) *string] {
+		hx_receiver_101 := counter
 		return hxrt.BoundFunction(func(by any, scale any, on any, tag *string) *string {
 			if by == nil {
 				by = 10
@@ -648,30 +653,30 @@ func main() {
 			if tag == nil {
 				tag = hxrt.StringFromLiteral("tag")
 			}
-			return hx_receiver_100.__hx_this.bump(func(hx_value_101 any) int {
-				if hx_value_101 == nil {
-					var hx_zero_102 int
-					return hx_zero_102
+			return hx_receiver_101.__hx_this.bump(func(hx_value_102 any) int {
+				if hx_value_102 == nil {
+					var hx_zero_103 int
+					return hx_zero_103
 				}
-				return hx_value_101.(int)
-			}(by), func(hx_value_103 any) float64 {
-				if hx_value_103 == nil {
-					var hx_zero_104 float64
-					return hx_zero_104
+				return hx_value_102.(int)
+			}(by), func(hx_value_104 any) float64 {
+				if hx_value_104 == nil {
+					var hx_zero_105 float64
+					return hx_zero_105
 				}
-				return hx_value_103.(float64)
-			}(scale), func(hx_value_105 any) bool {
-				if hx_value_105 == nil {
-					var hx_zero_106 bool
-					return hx_zero_106
+				return hx_value_104.(float64)
+			}(scale), func(hx_value_106 any) bool {
+				if hx_value_106 == nil {
+					var hx_zero_107 bool
+					return hx_zero_107
 				}
-				return hx_value_105.(bool)
+				return hx_value_106.(bool)
 			}(on), tag)
 		}, func() any {
-			return hx_receiver_100.__hx_this
+			return hx_receiver_101.__hx_this
 		}, "bump")
 	}()
-	hx_normalized_callable_112 := hxrt.AdaptFunction(hx_callable_107, func(by any, scale any, on any, tag *string) *string {
+	hx_normalized_callable_113 := hxrt.AdaptFunction(hx_callable_108, func(by any, scale any, on any, tag *string) *string {
 		if by == nil {
 			by = 10
 		}
@@ -684,135 +689,135 @@ func main() {
 		if tag == nil {
 			tag = hxrt.StringFromLiteral("tag")
 		}
-		return hxrt.FunctionCall(hx_callable_107)(hxrt.IntFromNullableAny(by), func(hx_value_108 any) float64 {
-			if hx_value_108 == nil {
-				var hx_zero_109 float64
-				return hx_zero_109
+		return hxrt.FunctionCall(hx_callable_108)(hxrt.IntFromNullableAny(by), func(hx_value_109 any) float64 {
+			if hx_value_109 == nil {
+				var hx_zero_110 float64
+				return hx_zero_110
 			}
-			return hx_value_108.(float64)
-		}(scale), func(hx_value_110 any) bool {
-			if hx_value_110 == nil {
-				var hx_zero_111 bool
-				return hx_zero_111
+			return hx_value_109.(float64)
+		}(scale), func(hx_value_111 any) bool {
+			if hx_value_111 == nil {
+				var hx_zero_112 bool
+				return hx_zero_112
 			}
-			return hx_value_110.(bool)
+			return hx_value_111.(bool)
 		}(on), tag)
 	})
-	var bound *hxrt.Function[func(any, any, any, *string) *string] = hx_normalized_callable_112
+	var bound *hxrt.Function[func(any, any, any, *string) *string] = hx_normalized_callable_113
 	row(hxrt.StringFromLiteral("values"), hxrt.NewArray(func() int {
-		var hx_callable_113 *hxrt.Function[func(any) int] = intValue
-		var hx_argument_114 any = nil
-		return hxrt.FunctionCall(hx_callable_113)(hx_argument_114)
+		var hx_callable_114 *hxrt.Function[func(any) int] = intValue
+		var hx_argument_115 any = nil
+		return hxrt.FunctionCall(hx_callable_114)(hx_argument_115)
 	}(), func() int {
-		var hx_callable_115 *hxrt.Function[func(any) int] = intValue
-		var hx_argument_116 any = ni
-		return hxrt.FunctionCall(hx_callable_115)(hx_argument_116)
+		var hx_callable_116 *hxrt.Function[func(any) int] = intValue
+		var hx_argument_117 any = ni
+		return hxrt.FunctionCall(hx_callable_116)(hx_argument_117)
 	}(), func() int {
-		var hx_callable_117 *hxrt.Function[func(any) int] = intValue
-		var hx_argument_118 any = zeroI
-		return hxrt.FunctionCall(hx_callable_117)(hx_argument_118)
+		var hx_callable_118 *hxrt.Function[func(any) int] = intValue
+		var hx_argument_119 any = zeroI
+		return hxrt.FunctionCall(hx_callable_118)(hx_argument_119)
 	}(), func() *string {
-		var hx_callable_119 *hxrt.Function[func(*string) *string] = stringValue
-		var hx_argument_120 *string = ns
-		return hxrt.FunctionCall(hx_callable_119)(hx_argument_120)
+		var hx_callable_120 *hxrt.Function[func(*string) *string] = stringValue
+		var hx_argument_121 *string = ns
+		return hxrt.FunctionCall(hx_callable_120)(hx_argument_121)
 	}(), func() *string {
-		var hx_callable_121 *hxrt.Function[func(any, any, any, *string) *string] = bound
-		var hx_argument_122 any = nil
+		var hx_callable_122 *hxrt.Function[func(any, any, any, *string) *string] = bound
 		var hx_argument_123 any = nil
 		var hx_argument_124 any = nil
-		var hx_argument_125 *string = nil
-		return hxrt.FunctionCall(hx_callable_121)(hx_argument_122, hx_argument_123, hx_argument_124, hx_argument_125)
+		var hx_argument_125 any = nil
+		var hx_argument_126 *string = nil
+		return hxrt.FunctionCall(hx_callable_122)(hx_argument_123, hx_argument_124, hx_argument_125, hx_argument_126)
 	}(), func() *string {
-		var hx_callable_126 *hxrt.Function[func(any, any, any, *string) *string] = bound
-		var hx_argument_127 any = ni
-		var hx_argument_128 any = nf
-		var hx_argument_129 any = nb
-		var hx_argument_130 *string = ns
-		return hxrt.FunctionCall(hx_callable_126)(hx_argument_127, hx_argument_128, hx_argument_129, hx_argument_130)
+		var hx_callable_127 *hxrt.Function[func(any, any, any, *string) *string] = bound
+		var hx_argument_128 any = ni
+		var hx_argument_129 any = nf
+		var hx_argument_130 any = nb
+		var hx_argument_131 *string = ns
+		return hxrt.FunctionCall(hx_callable_127)(hx_argument_128, hx_argument_129, hx_argument_130, hx_argument_131)
 	}()))
-	hx_callable_131 := hxrt.NamedFunction(staticInt, "Main.staticInt")
-	hx_normalized_callable_132 := hxrt.AdaptFunction(hx_callable_131, func(x any) int {
+	hx_callable_132 := hxrt.NamedFunction(staticInt, "Main.staticInt")
+	hx_normalized_callable_133 := hxrt.AdaptFunction(hx_callable_132, func(x any) int {
 		if x == nil {
 			x = 3
 		}
-		return hxrt.FunctionCall(hx_callable_131)(hxrt.IntFromNullableAny(x))
+		return hxrt.FunctionCall(hx_callable_132)(hxrt.IntFromNullableAny(x))
 	})
-	var dynamicInt any = hx_normalized_callable_132
-	hx_callable_133 := hxrt.NamedFunction(staticString, "Main.staticString")
-	hx_normalized_callable_134 := hxrt.AdaptFunction(hx_callable_133, func(x *string) *string {
+	var dynamicInt any = hx_normalized_callable_133
+	hx_callable_134 := hxrt.NamedFunction(staticString, "Main.staticString")
+	hx_normalized_callable_135 := hxrt.AdaptFunction(hx_callable_134, func(x *string) *string {
 		if x == nil {
 			x = hxrt.StringFromLiteral("dflt")
 		}
-		return hxrt.FunctionCall(hx_callable_133)(x)
+		return hxrt.FunctionCall(hx_callable_134)(x)
 	})
-	var dynamicString any = hx_normalized_callable_134
+	var dynamicString any = hx_normalized_callable_135
 	row(hxrt.StringFromLiteral("dynamic"), hxrt.NewArray(reflaxe__go___internal__CompilerReflect_callMethod(dynamicInt, []any{nil}), reflaxe__go___internal__CompilerReflect_callMethod(dynamicInt, []any{0}), reflaxe__go___internal__CompilerReflect_callMethod(dynamicString, []any{nil})))
 	var three any = 3
-	row(hxrt.StringFromLiteral("widen"), hxrt.NewArray(staticFloat(func(hx_value_135 any) float64 {
-		if hx_value_135 == nil {
-			return 1.5
-		}
-		return float64(hxrt.IntFromNullableAny(hx_value_135))
-	}(ni)), staticFloat(func(hx_value_136 any) float64 {
+	row(hxrt.StringFromLiteral("widen"), hxrt.NewArray(staticFloat(func(hx_value_136 any) float64 {
 		if hx_value_136 == nil {
 			return 1.5
 		}
 		return float64(hxrt.IntFromNullableAny(hx_value_136))
-	}(three)), optFloat(func(hx_value_137 any) float64 {
+	}(ni)), staticFloat(func(hx_value_137 any) float64 {
 		if hx_value_137 == nil {
-			return 4.5
+			return 1.5
 		}
 		return float64(hxrt.IntFromNullableAny(hx_value_137))
-	}(ni)), optFloat(func(hx_value_138 any) float64 {
+	}(three)), optFloat(func(hx_value_138 any) float64 {
 		if hx_value_138 == nil {
 			return 4.5
 		}
 		return float64(hxrt.IntFromNullableAny(hx_value_138))
+	}(ni)), optFloat(func(hx_value_139 any) float64 {
+		if hx_value_139 == nil {
+			return 4.5
+		}
+		return float64(hxrt.IntFromNullableAny(hx_value_139))
 	}(three)), func() *string {
-		var hx_callable_140 *hxrt.Function[func(any, any, *string) *string] = localScale
-		var hx_argument_141 any = func(hx_value_139 any) any {
-			if hx_value_139 == nil {
+		var hx_callable_141 *hxrt.Function[func(any, any, *string) *string] = localScale
+		var hx_argument_142 any = func(hx_value_140 any) any {
+			if hx_value_140 == nil {
 				return nil
 			}
-			return float64(hxrt.IntFromNullableAny(hx_value_139))
+			return float64(hxrt.IntFromNullableAny(hx_value_140))
 		}(ni)
-		var hx_argument_142 any = 2
-		var hx_argument_143 *string = hxrt.StringFromLiteral("loc")
-		return hxrt.FunctionCall(hx_callable_140)(hx_argument_141, hx_argument_142, hx_argument_143)
-	}(), child.price(func(hx_value_144 any) any {
-		if hx_value_144 == nil {
+		var hx_argument_143 any = 2
+		var hx_argument_144 *string = hxrt.StringFromLiteral("loc")
+		return hxrt.FunctionCall(hx_callable_141)(hx_argument_142, hx_argument_143, hx_argument_144)
+	}(), child.price(func(hx_value_145 any) any {
+		if hx_value_145 == nil {
 			return nil
 		}
-		return float64(hxrt.IntFromNullableAny(hx_value_144))
+		return float64(hxrt.IntFromNullableAny(hx_value_145))
 	}(ni), three, nil)))
 	var this1 float64
 	this1 = 10
-	var meters any = any(this1)
-	row(hxrt.StringFromLiteral("abstract"), hxrt.NewArray(_Main__Meters_Impl__plus(hxrt.DynamicToFloatSlot(meters), 0.5, 2), _Main__Meters_Impl__plus(hxrt.DynamicToFloatSlot(meters), func(hx_value_145 any) float64 {
-		if hx_value_145 == nil {
-			return 0.5
-		}
-		return hx_value_145.(float64)
-	}(nf), 2), _Main__Meters_Impl__plus(hxrt.DynamicToFloatSlot(meters), func(hx_value_146 any) float64 {
+	meters := this1
+	row(hxrt.StringFromLiteral("abstract"), hxrt.NewArray(_Main__Meters_Impl__plus(meters, 0.5, 2), _Main__Meters_Impl__plus(meters, func(hx_value_146 any) float64 {
 		if hx_value_146 == nil {
 			return 0.5
 		}
 		return hx_value_146.(float64)
-	}(nf), func(hx_value_147 any) int {
+	}(nf), 2), _Main__Meters_Impl__plus(meters, func(hx_value_147 any) float64 {
 		if hx_value_147 == nil {
-			return 2
-		}
-		return hxrt.IntFromNullableAny(hx_value_147)
-	}(ni)), _Main__Meters_Impl__plus(hxrt.DynamicToFloatSlot(meters), func(hx_value_148 any) float64 {
-		if hx_value_148 == nil {
 			return 0.5
 		}
-		return hx_value_148.(float64)
-	}(zeroF), func(hx_value_149 any) int {
-		if hx_value_149 == nil {
+		return hx_value_147.(float64)
+	}(nf), func(hx_value_148 any) int {
+		if hx_value_148 == nil {
 			return 2
 		}
-		return hxrt.IntFromNullableAny(hx_value_149)
+		return hxrt.IntFromNullableAny(hx_value_148)
+	}(ni)), _Main__Meters_Impl__plus(meters, func(hx_value_149 any) float64 {
+		if hx_value_149 == nil {
+			return 0.5
+		}
+		return hx_value_149.(float64)
+	}(zeroF), func(hx_value_150 any) int {
+		if hx_value_150 == nil {
+			return 2
+		}
+		return hxrt.IntFromNullableAny(hx_value_150)
 	}(zeroI))))
 }
 
@@ -836,22 +841,22 @@ func nullInt(x int) any {
 }
 
 func optBool(x bool) bool {
-	return func(hx_value_150 any) bool {
-		if hx_value_150 == nil {
-			var hx_zero_151 bool
-			return hx_zero_151
+	return func(hx_value_151 any) bool {
+		if hx_value_151 == nil {
+			var hx_zero_152 bool
+			return hx_zero_152
 		}
-		return hx_value_150.(bool)
+		return hx_value_151.(bool)
 	}(x)
 }
 
 func optFloat(x float64) float64 {
-	return func(hx_value_152 any) float64 {
-		if hx_value_152 == nil {
-			var hx_zero_153 float64
-			return hx_zero_153
+	return func(hx_value_153 any) float64 {
+		if hx_value_153 == nil {
+			var hx_zero_154 float64
+			return hx_zero_154
 		}
-		return hx_value_152.(float64)
+		return hx_value_153.(float64)
 	}(x)
 }
 
@@ -883,11 +888,8 @@ func staticInt(x int) int {
 	return x
 }
 
-func staticLevel(x any) int {
-	if x == nil {
-		x = 2
-	}
-	return hxrt.IntFromNullableAny(x)
+func staticLevel(x int) int {
+	return x
 }
 
 func staticShade(x *Shade) *string {
@@ -937,16 +939,16 @@ func hx_alloc_SubCounter(owner any) *SubCounter {
 }
 
 func hx_init_SubCounter(self *SubCounter, start any, on any, label *string) *SubCounter {
-	hx_init_Counter(self.Counter, func(hx_value_154 any) float64 {
-		if hx_value_154 == nil {
+	hx_init_Counter(self.Counter, func(hx_value_155 any) float64 {
+		if hx_value_155 == nil {
 			return 0.25
 		}
-		return hx_value_154.(float64)
-	}(start), 2, func(hx_value_155 any) bool {
-		if hx_value_155 == nil {
+		return hx_value_155.(float64)
+	}(start), 2, func(hx_value_156 any) bool {
+		if hx_value_156 == nil {
 			return true
 		}
-		return hx_value_155.(bool)
+		return hx_value_156.(bool)
 	}(on), label)
 	return self
 }
@@ -955,10 +957,10 @@ func (self *SubCounter) HxClassName() string {
 	return "SubCounter"
 }
 
-func _Main__Meters_Impl___new(value float64) any {
+func _Main__Meters_Impl___new(value float64) float64 {
 	var this1 float64
 	this1 = value
-	return any(this1)
+	return this1
 }
 
 func _Main__Meters_Impl__plus(this1 float64, by float64, times int) float64 {

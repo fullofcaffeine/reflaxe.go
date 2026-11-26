@@ -53,7 +53,7 @@ func main() {
 	hxrt.Println(any(hxrt.StringFromLiteral("loop.promised_after=done")))
 	loop := New_sys__thread__EventLoop()
 	repeats := 0
-	var handler any = any(0)
+	handler := 0
 	handler = loop.__hx_this.repeat(hxrt.NewFunction(func() {
 		repeats = int(int32((repeats + 1)))
 		hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("loop.repeat="), repeats)))
@@ -766,9 +766,9 @@ func hxrt__generated_method_field__sys__thread__EventLoop(value *sys__thread__Ev
 	}
 	switch key {
 	case "cancel":
-		return func() *hxrt.Function[func(any)] {
+		return func() *hxrt.Function[func(int)] {
 			hx_receiver_1 := value
-			return hxrt.BoundFunction(func(eventHandler any) {
+			return hxrt.BoundFunction(func(eventHandler int) {
 				hx_receiver_1.__hx_this.cancel(eventHandler)
 			}, func() any {
 				return hx_receiver_1.__hx_this
@@ -802,9 +802,9 @@ func hxrt__generated_method_field__sys__thread__EventLoop(value *sys__thread__Ev
 			}, "promise")
 		}()
 	case "repeat":
-		return func() *hxrt.Function[func(*hxrt.Function[func()], int) any] {
+		return func() *hxrt.Function[func(*hxrt.Function[func()], int) int] {
 			hx_receiver_1 := value
-			return hxrt.BoundFunction(func(event *hxrt.Function[func()], intervalMs int) any {
+			return hxrt.BoundFunction(func(event *hxrt.Function[func()], intervalMs int) int {
 				return hx_receiver_1.__hx_this.repeat(event, intervalMs)
 			}, func() any {
 				return hx_receiver_1.__hx_this
@@ -2911,9 +2911,22 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 			}
 			return hx_value_5.(bool)
 		}(argument_1))
+	case *hxrt.Function[func(int)]:
+		var argument_0 any = nil
+		if 0 < len(arguments) {
+			argument_0 = arguments[0]
+		}
+		hxrt.FunctionCall(source)(func(hx_value_7 any) int {
+			if hx_value_7 == nil {
+				var hx_zero_8 int
+				return hx_zero_8
+			}
+			return hx_value_7.(int)
+		}(argument_0))
+		return nil
 	case *hxrt.Function[func() *sys__thread__NextEventTime]:
 		return hxrt.FunctionCall(source)()
-	case *hxrt.Function[func(*hxrt.Function[func()], int) any]:
+	case *hxrt.Function[func(*hxrt.Function[func()], int) int]:
 		var argument_0 any = nil
 		if 0 < len(arguments) {
 			argument_0 = arguments[0]
@@ -2922,12 +2935,12 @@ func reflaxe__go___internal__CompilerReflect_callMethod(value any, arguments []a
 		if 1 < len(arguments) {
 			argument_1 = arguments[1]
 		}
-		return hxrt.FunctionCall(source)(hx_recover_callable_2d8d0a91(argument_0), func(hx_value_7 any) int {
-			if hx_value_7 == nil {
-				var hx_zero_8 int
-				return hx_zero_8
+		return hxrt.FunctionCall(source)(hx_recover_callable_2d8d0a91(argument_0), func(hx_value_9 any) int {
+			if hx_value_9 == nil {
+				var hx_zero_10 int
+				return hx_zero_10
 			}
-			return hx_value_7.(int)
+			return hx_value_9.(int)
 		}(argument_1))
 	case *hxrt.Function[func() *sys__thread__EventLoop]:
 		return hxrt.FunctionCall(source)()
@@ -3111,6 +3124,23 @@ func hx_recover_callable_37a9c0ad(value any) *hxrt.Function[func(any) bool] {
 				return hx_value_19.(bool)
 			}(nil)
 		})
+	case *hxrt.Function[func(int)]:
+		return hxrt.ProjectFunction(source, func(arg_0 any) bool {
+			hxrt.FunctionCall(source)(func(hx_value_21 any) int {
+				if hx_value_21 == nil {
+					var hx_zero_22 int
+					return hx_zero_22
+				}
+				return hx_value_21.(int)
+			}(arg_0))
+			return func(hx_value_23 any) bool {
+				if hx_value_23 == nil {
+					var hx_zero_24 bool
+					return hx_zero_24
+				}
+				return hx_value_23.(bool)
+			}(nil)
+		})
 	default:
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
 		return nil
@@ -3160,21 +3190,15 @@ func hx_recover_callable_4f8fe1be(value any) *hxrt.Function[func(*string, *strin
 				return hx_value_3.(bool)
 			}(arg_1)))
 		})
-	case *hxrt.Function[func(*hxrt.Function[func()], int) any]:
+	case *hxrt.Function[func(*hxrt.Function[func()], int) int]:
 		return hxrt.ProjectFunction(source, func(arg_0 *string, arg_1 *string) int {
-			return func(hx_value_9 any) int {
-				if hx_value_9 == nil {
-					var hx_zero_10 int
-					return hx_zero_10
-				}
-				return hx_value_9.(int)
-			}(hxrt.FunctionCall(source)(hx_recover_callable_2d8d0a91(arg_0), func(hx_value_7 any) int {
+			return hxrt.FunctionCall(source)(hx_recover_callable_2d8d0a91(arg_0), func(hx_value_7 any) int {
 				if hx_value_7 == nil {
 					var hx_zero_8 int
 					return hx_zero_8
 				}
 				return hx_value_7.(int)
-			}(arg_1)))
+			}(arg_1))
 		})
 	default:
 		hxrt.Throw(hxrt.StringFromLiteral("Invalid function value"))
@@ -3244,6 +3268,17 @@ func hx_recover_callable_f4ee5029(value any) *hxrt.Function[func(any) any] {
 	case *hxrt.Function[func(*hxrt.Function[func()])]:
 		return hxrt.ProjectFunction(source, func(arg_0 any) any {
 			hxrt.FunctionCall(source)(hx_recover_callable_2d8d0a91(arg_0))
+			return nil
+		})
+	case *hxrt.Function[func(int)]:
+		return hxrt.ProjectFunction(source, func(arg_0 any) any {
+			hxrt.FunctionCall(source)(func(hx_value_5 any) int {
+				if hx_value_5 == nil {
+					var hx_zero_6 int
+					return hx_zero_6
+				}
+				return hx_value_5.(int)
+			}(arg_0))
 			return nil
 		})
 	default:

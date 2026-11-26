@@ -15,7 +15,7 @@ type hxrt__TypeEnumValue struct {
 
 func main() {
 	method := hxrt.StringFromLiteral("POST")
-	var status any = any(200)
+	status := 200
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("method="), method)))
 	hxrt.Println(any(hxrt.StringConcatAny(hxrt.StringFromLiteral("status="), status)))
 	base := New_haxe__http__HttpBase(hxrt.StringFromLiteral("http://example.com"))

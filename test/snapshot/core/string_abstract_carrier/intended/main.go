@@ -11,7 +11,7 @@ func main() {
 	nullBacked := _Main__Token_Impl__make(nil)
 	var this1_1 int
 	this1_1 = 7
-	var count any = any(this1_1)
+	count := this1_1
 	var this1_2 *string
 	this1_2 = hxrt.StringFromLiteral("applied")
 	boxed := this1_2
@@ -33,14 +33,8 @@ func main() {
 	}
 	var this1_6 int
 	this1_6 = 9
-	var boxedInt any = any(this1_6)
-	if !hxrt.StringEqualStringPtr(boxed, hxrt.StringFromLiteral("applied")) || (func(hx_value_1 any) int {
-		if hx_value_1 == nil {
-			var hx_zero_2 int
-			return hx_zero_2
-		}
-		return hx_value_1.(int)
-	}(boxedInt) != 9) {
+	boxedInt := this1_6
+	if !hxrt.StringEqualStringPtr(boxed, hxrt.StringFromLiteral("applied")) || (boxedInt != 9) {
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("applied backing changed")))
 	}
 	if !hxrt.StringEqualStringPtr(token, hxrt.StringFromLiteral("exact bytes")) || !hxrt.StringEqualStringPtr(nested, hxrt.StringFromLiteral("nested")) {
@@ -49,13 +43,7 @@ func main() {
 	if (absent != nil) || !hxrt.StringEqualStringPtr(nullBacked, nil) {
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("nil string changed")))
 	}
-	if func(hx_value_3 any) int {
-		if hx_value_3 == nil {
-			var hx_zero_4 int
-			return hx_zero_4
-		}
-		return hx_value_3.(int)
-	}(count) != 7 {
+	if count != 7 {
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("non-string fallback changed")))
 	}
 	hxrt.Println(any(hxrt.StringFromLiteral("string abstract carrier: PASS")))
@@ -71,10 +59,10 @@ func _Main__Box_Impl__value(this1 any) any {
 	return this1
 }
 
-func _Main__Count_Impl___new(raw int) any {
+func _Main__Count_Impl___new(raw int) int {
 	var this1 int
 	this1 = raw
-	return any(this1)
+	return this1
 }
 
 func _Main__Count_Impl__value(this1 int) int {

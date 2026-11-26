@@ -5206,12 +5206,12 @@ func hxrt__generated_field_set__Xml(value *Xml, key string, incoming any) bool {
 		}
 	case "nodeType":
 		if incoming == nil {
-			var zero any
+			var zero int
 			value.nodeType = zero
 			return true
 		}
 		switch typed := incoming.(type) {
-		case any:
+		case int:
 			value.nodeType = typed
 			return true
 		default:

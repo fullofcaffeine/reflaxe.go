@@ -61,8 +61,8 @@ func compareNames(x *string, y *string) int {
 	return hx_if_3
 }
 
-func countOf(c any) int {
-	return hxrt.IntFromNullableAny(c)
+func countOf(c int) int {
+	return c
 }
 
 func defColor(c *string) *string {
@@ -90,14 +90,8 @@ func firstOf(xs *hxrt.Array) any {
 	return xs.Get(0)
 }
 
-func flagOf(f any) bool {
-	return func(hx_value_4 any) bool {
-		if hx_value_4 == nil {
-			var hx_zero_5 bool
-			return hx_zero_5
-		}
-		return hx_value_4.(bool)
-	}(f)
+func flagOf(f bool) bool {
+	return f
 }
 
 func idName(n *string) *string {
@@ -108,8 +102,8 @@ func labelText(l *string) *string {
 	return l
 }
 
-func levelOf(l any) int {
-	return hxrt.IntFromNullableAny(l)
+func levelOf(l int) int {
+	return l
 }
 
 func looseText(l any) *string {
@@ -153,54 +147,54 @@ func main() {
 	hxrt.Println(v_9)
 	names := hxrt.NewArray(hxrt.StringFromLiteral("c"), hxrt.StringFromLiteral("a"), hxrt.StringFromLiteral("b"))
 	names.Push(hxrt.StringFromLiteral("d"))
-	hxrt.ArraySort(names, func(hx_comparator_9 *hxrt.Function[func(*string, *string) int]) *hxrt.Function[func(any, any) int] {
-		return hxrt.AdaptFunction(hx_comparator_9, func(hx_cmp_left_7 any, hx_cmp_right_8 any) int {
-			return hxrt.FunctionCall(hx_comparator_9)(func(hx_value_10 any) *string {
+	hxrt.ArraySort(names, func(hx_comparator_7 *hxrt.Function[func(*string, *string) int]) *hxrt.Function[func(any, any) int] {
+		return hxrt.AdaptFunction(hx_comparator_7, func(hx_cmp_left_5 any, hx_cmp_right_6 any) int {
+			return hxrt.FunctionCall(hx_comparator_7)(func(hx_value_8 any) *string {
+				if hx_value_8 == nil {
+					var hx_zero_9 *string
+					return hx_zero_9
+				}
+				return hx_value_8.(*string)
+			}(hx_cmp_left_5), func(hx_value_10 any) *string {
 				if hx_value_10 == nil {
 					var hx_zero_11 *string
 					return hx_zero_11
 				}
 				return hx_value_10.(*string)
-			}(hx_cmp_left_7), func(hx_value_12 any) *string {
-				if hx_value_12 == nil {
-					var hx_zero_13 *string
-					return hx_zero_13
-				}
-				return hx_value_12.(*string)
-			}(hx_cmp_right_8))
+			}(hx_cmp_right_6))
 		})
 	}(hxrt.NamedFunction(compareNames, "Main.compareNames")))
-	first := func(hx_value_14 any) *string {
+	first := func(hx_value_12 any) *string {
+		if hx_value_12 == nil {
+			var hx_zero_13 *string
+			return hx_zero_13
+		}
+		return hx_value_12.(*string)
+	}(names.Get(0))
+	firstText := func(hx_value_14 any) *string {
 		if hx_value_14 == nil {
 			var hx_zero_15 *string
 			return hx_zero_15
 		}
 		return hx_value_14.(*string)
-	}(names.Get(0))
-	firstText := func(hx_value_16 any) *string {
+	}(names.Get(1))
+	generic := func(hx_value_16 any) *string {
 		if hx_value_16 == nil {
 			var hx_zero_17 *string
 			return hx_zero_17
 		}
 		return hx_value_16.(*string)
-	}(names.Get(1))
-	generic := func(hx_value_18 any) *string {
-		if hx_value_18 == nil {
-			var hx_zero_19 *string
-			return hx_zero_19
-		}
-		return hx_value_18.(*string)
 	}(firstOf(names))
 	_g := hxrt.NewArray()
 	_g1 := 0
 	_g2 := names
 	for _g1 < _g2.Len() {
-		v_10 := func(hx_value_20 any) *string {
-			if hx_value_20 == nil {
-				var hx_zero_21 *string
-				return hx_zero_21
+		v_10 := func(hx_value_18 any) *string {
+			if hx_value_18 == nil {
+				var hx_zero_19 *string
+				return hx_zero_19
 			}
-			return hx_value_20.(*string)
+			return hx_value_18.(*string)
 		}(_g2.Get(_g1))
 		_g1 = int(int32((_g1 + 1)))
 		_g.Push(hxrt.StringLengthStringPtr(v_10))
@@ -210,12 +204,12 @@ func main() {
 	_g1_1 := 0
 	_g2_1 := names
 	for _g1_1 < _g2_1.Len() {
-		v_11 := func(hx_value_23 any) *string {
-			if hx_value_23 == nil {
-				var hx_zero_24 *string
-				return hx_zero_24
+		v_11 := func(hx_value_21 any) *string {
+			if hx_value_21 == nil {
+				var hx_zero_22 *string
+				return hx_zero_22
 			}
-			return hx_value_23.(*string)
+			return hx_value_21.(*string)
 		}(_g2_1.Get(_g1_1))
 		_g1_1 = int(int32((_g1_1 + 1)))
 		if !hxrt.StringEqualStringPtr(v_11, hxrt.StringFromLiteral("a")) {
@@ -224,57 +218,57 @@ func main() {
 	}
 	kept := _g_1
 	var v_12 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("array="), hxrt.StringJoinAny(names.Values(), hxrt.StringFromLiteral("|"))), hxrt.StringFromLiteral(",")), names.Len()), hxrt.StringFromLiteral(",")), first), hxrt.StringFromLiteral(",")), firstText), hxrt.StringFromLiteral(",")), generic), hxrt.StringFromLiteral(",")), func() int {
-		hx_indexof_target_26 := names
-		var hx_indexof_value_27 *string = hxrt.StringFromLiteral("b")
-		hx_indexof_length_28 := hx_indexof_target_26.Len()
-		hx_indexof_index_29 := 0
-		for hx_indexof_index_29 < hx_indexof_length_28 {
-			hx_indexof_element_30 := func(hx_value_31 any) *string {
-				if hx_value_31 == nil {
-					var hx_zero_32 *string
-					return hx_zero_32
+		hx_indexof_target_24 := names
+		var hx_indexof_value_25 *string = hxrt.StringFromLiteral("b")
+		hx_indexof_length_26 := hx_indexof_target_24.Len()
+		hx_indexof_index_27 := 0
+		for hx_indexof_index_27 < hx_indexof_length_26 {
+			hx_indexof_element_28 := func(hx_value_29 any) *string {
+				if hx_value_29 == nil {
+					var hx_zero_30 *string
+					return hx_zero_30
 				}
-				return hx_value_31.(*string)
-			}(hx_indexof_target_26.Get(hx_indexof_index_29))
-			if hxrt.StringEqualStringPtr(hx_indexof_element_30, hx_indexof_value_27) {
-				return hx_indexof_index_29
+				return hx_value_29.(*string)
+			}(hx_indexof_target_24.Get(hx_indexof_index_27))
+			if hxrt.StringEqualStringPtr(hx_indexof_element_28, hx_indexof_value_25) {
+				return hx_indexof_index_27
 			}
-			hx_indexof_index_29 = (hx_indexof_index_29 + 1)
+			hx_indexof_index_27 = (hx_indexof_index_27 + 1)
 		}
 		return -1
 	}()), hxrt.StringFromLiteral(",")), hxrt.StdString(func() bool {
-		hx_contains_target_33 := names
-		var hx_contains_value_34 *string = hxrt.StringFromLiteral("zz")
-		hx_contains_length_35 := hx_contains_target_33.Len()
-		hx_contains_index_36 := 0
-		for hx_contains_index_36 < hx_contains_length_35 {
-			hx_contains_element_37 := func(hx_value_38 any) *string {
-				if hx_value_38 == nil {
-					var hx_zero_39 *string
-					return hx_zero_39
+		hx_contains_target_31 := names
+		var hx_contains_value_32 *string = hxrt.StringFromLiteral("zz")
+		hx_contains_length_33 := hx_contains_target_31.Len()
+		hx_contains_index_34 := 0
+		for hx_contains_index_34 < hx_contains_length_33 {
+			hx_contains_element_35 := func(hx_value_36 any) *string {
+				if hx_value_36 == nil {
+					var hx_zero_37 *string
+					return hx_zero_37
 				}
-				return hx_value_38.(*string)
-			}(hx_contains_target_33.Get(hx_contains_index_36))
-			if hxrt.StringEqualStringPtr(hx_contains_element_37, hx_contains_value_34) {
+				return hx_value_36.(*string)
+			}(hx_contains_target_31.Get(hx_contains_index_34))
+			if hxrt.StringEqualStringPtr(hx_contains_element_35, hx_contains_value_32) {
 				return true
 			}
-			hx_contains_index_36 = (hx_contains_index_36 + 1)
+			hx_contains_index_34 = (hx_contains_index_34 + 1)
 		}
 		return false
 	}())), hxrt.StringFromLiteral(",")), hxrt.StringJoinAny(lengths.Values(), hxrt.StringFromLiteral("|"))), hxrt.StringFromLiteral(",")), hxrt.StringJoinAny(kept.Values(), hxrt.StringFromLiteral("|"))))
 	hxrt.Println(v_12)
-	hx_array_target_40 := names
-	hx_array_index_41 := 2
-	hx_array_target_40.Set(hx_array_index_41, hxrt.StringFromLiteral("bb"))
+	hx_array_target_38 := names
+	hx_array_index_39 := 2
+	hx_array_target_38.Set(hx_array_index_39, hxrt.StringFromLiteral("bb"))
 	loopOut := hxrt.NewArray()
 	_g_2 := 0
 	for _g_2 < names.Len() {
-		n := func(hx_value_42 any) *string {
-			if hx_value_42 == nil {
-				var hx_zero_43 *string
-				return hx_zero_43
+		n := func(hx_value_40 any) *string {
+			if hx_value_40 == nil {
+				var hx_zero_41 *string
+				return hx_zero_41
 			}
-			return hx_value_42.(*string)
+			return hx_value_40.(*string)
 		}(names.Get(_g_2))
 		_g_2 = int(int32((_g_2 + 1)))
 		s := n
@@ -286,115 +280,115 @@ func main() {
 	byKey.__hx_this.set(hxrt.StringFromLiteral("k1"), hxrt.StringFromLiteral("v1"))
 	byKey.__hx_this.set(hxrt.StringFromLiteral("k2"), hxrt.StringFromLiteral("v2"))
 	hxrt.StringFromLiteral("v2")
-	got := func(hx_value_45 any) *string {
+	got := func(hx_value_43 any) *string {
+		if hx_value_43 == nil {
+			var hx_zero_44 *string
+			return hx_zero_44
+		}
+		return hx_value_43.(*string)
+	}(byKey.__hx_this.get(hxrt.StringFromLiteral("k1")))
+	gotText := func(hx_value_45 any) *string {
 		if hx_value_45 == nil {
 			var hx_zero_46 *string
 			return hx_zero_46
 		}
 		return hx_value_45.(*string)
-	}(byKey.__hx_this.get(hxrt.StringFromLiteral("k1")))
-	gotText := func(hx_value_47 any) *string {
+	}(byKey.__hx_this.get(hxrt.StringFromLiteral("k2")))
+	missing := func(hx_value_47 any) *string {
 		if hx_value_47 == nil {
 			var hx_zero_48 *string
 			return hx_zero_48
 		}
 		return hx_value_47.(*string)
-	}(byKey.__hx_this.get(hxrt.StringFromLiteral("k2")))
-	missing := func(hx_value_49 any) *string {
-		if hx_value_49 == nil {
-			var hx_zero_50 *string
-			return hx_zero_50
-		}
-		return hx_value_49.(*string)
 	}(byKey.__hx_this.get(hxrt.StringFromLiteral("none")))
 	_g_3 := hxrt.NewArray()
 	k := byKey.__hx_this.keys()
 	for func() bool {
-		var hx_callable_51 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(k, "hasNext"))
-		return hxrt.FunctionCall(hx_callable_51)()
+		var hx_callable_49 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(k, "hasNext"))
+		return hxrt.FunctionCall(hx_callable_49)()
 	}() {
 		k_1 := func() *string {
-			var hx_callable_52 *hxrt.Function[func() *string] = hx_recover_callable_b9d17ba0(hxrt.AnonymousGet(k, "next"))
-			return hxrt.FunctionCall(hx_callable_52)()
+			var hx_callable_50 *hxrt.Function[func() *string] = hx_recover_callable_b9d17ba0(hxrt.AnonymousGet(k, "next"))
+			return hxrt.FunctionCall(hx_callable_50)()
 		}()
 		_g_3.Push(k_1)
 	}
 	keys := _g_3
-	hxrt.ArraySort(keys, func(hx_comparator_56 *hxrt.Function[func(*string, *string) int]) *hxrt.Function[func(any, any) int] {
-		return hxrt.AdaptFunction(hx_comparator_56, func(hx_cmp_left_54 any, hx_cmp_right_55 any) int {
-			return hxrt.FunctionCall(hx_comparator_56)(func(hx_value_57 any) *string {
+	hxrt.ArraySort(keys, func(hx_comparator_54 *hxrt.Function[func(*string, *string) int]) *hxrt.Function[func(any, any) int] {
+		return hxrt.AdaptFunction(hx_comparator_54, func(hx_cmp_left_52 any, hx_cmp_right_53 any) int {
+			return hxrt.FunctionCall(hx_comparator_54)(func(hx_value_55 any) *string {
+				if hx_value_55 == nil {
+					var hx_zero_56 *string
+					return hx_zero_56
+				}
+				return hx_value_55.(*string)
+			}(hx_cmp_left_52), func(hx_value_57 any) *string {
 				if hx_value_57 == nil {
 					var hx_zero_58 *string
 					return hx_zero_58
 				}
 				return hx_value_57.(*string)
-			}(hx_cmp_left_54), func(hx_value_59 any) *string {
-				if hx_value_59 == nil {
-					var hx_zero_60 *string
-					return hx_zero_60
-				}
-				return hx_value_59.(*string)
-			}(hx_cmp_right_55))
+			}(hx_cmp_right_53))
 		})
 	}(hxrt.NamedFunction(compareNames, "Main.compareNames")))
 	_g_4 := hxrt.NewArray()
 	v_14 := byKey.__hx_this.iterator()
 	for func() bool {
-		var hx_callable_61 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(v_14, "hasNext"))
-		return hxrt.FunctionCall(hx_callable_61)()
+		var hx_callable_59 *hxrt.Function[func() bool] = hx_recover_callable_cf6928b1(hxrt.AnonymousGet(v_14, "hasNext"))
+		return hxrt.FunctionCall(hx_callable_59)()
 	}() {
 		v_15 := func() *string {
-			var hx_callable_62 *hxrt.Function[func() *string] = hx_recover_callable_b9d17ba0(hxrt.AnonymousGet(v_14, "next"))
-			return hxrt.FunctionCall(hx_callable_62)()
+			var hx_callable_60 *hxrt.Function[func() *string] = hx_recover_callable_b9d17ba0(hxrt.AnonymousGet(v_14, "next"))
+			return hxrt.FunctionCall(hx_callable_60)()
 		}()
 		_g_4.Push(v_15)
 	}
 	values := _g_4
-	hxrt.ArraySort(values, func(hx_comparator_66 *hxrt.Function[func(*string, *string) int]) *hxrt.Function[func(any, any) int] {
-		return hxrt.AdaptFunction(hx_comparator_66, func(hx_cmp_left_64 any, hx_cmp_right_65 any) int {
-			return hxrt.FunctionCall(hx_comparator_66)(func(hx_value_67 any) *string {
+	hxrt.ArraySort(values, func(hx_comparator_64 *hxrt.Function[func(*string, *string) int]) *hxrt.Function[func(any, any) int] {
+		return hxrt.AdaptFunction(hx_comparator_64, func(hx_cmp_left_62 any, hx_cmp_right_63 any) int {
+			return hxrt.FunctionCall(hx_comparator_64)(func(hx_value_65 any) *string {
+				if hx_value_65 == nil {
+					var hx_zero_66 *string
+					return hx_zero_66
+				}
+				return hx_value_65.(*string)
+			}(hx_cmp_left_62), func(hx_value_67 any) *string {
 				if hx_value_67 == nil {
 					var hx_zero_68 *string
 					return hx_zero_68
 				}
 				return hx_value_67.(*string)
-			}(hx_cmp_left_64), func(hx_value_69 any) *string {
-				if hx_value_69 == nil {
-					var hx_zero_70 *string
-					return hx_zero_70
-				}
-				return hx_value_69.(*string)
-			}(hx_cmp_right_65))
+			}(hx_cmp_right_63))
 		})
 	}(hxrt.NamedFunction(compareNames, "Main.compareNames")))
-	var v_16 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("map="), got), hxrt.StringFromLiteral(",")), gotText), hxrt.StringFromLiteral(",")), missing), hxrt.StringFromLiteral(",")), hxrt.StdString(func(hx_value_71 any) bool {
-		if hx_value_71 == nil {
-			var hx_zero_72 bool
-			return hx_zero_72
+	var v_16 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("map="), got), hxrt.StringFromLiteral(",")), gotText), hxrt.StringFromLiteral(",")), missing), hxrt.StringFromLiteral(",")), hxrt.StdString(func(hx_value_69 any) bool {
+		if hx_value_69 == nil {
+			var hx_zero_70 bool
+			return hx_zero_70
 		}
-		return hx_value_71.(bool)
+		return hx_value_69.(bool)
 	}(byKey.__hx_this.exists(hxrt.StringFromLiteral("k1"))))), hxrt.StringFromLiteral(",")), hxrt.StringJoinAny(keys.Values(), hxrt.StringFromLiteral("|"))), hxrt.StringFromLiteral(",")), hxrt.StringJoinAny(values.Values(), hxrt.StringFromLiteral("|"))))
 	hxrt.Println(v_16)
 	byName := New_haxe__ds__StringMap()
 	byName.__hx_this.set(hxrt.StringFromLiteral("n1"), 1)
 	nameKey := hxrt.StringFromLiteral("n1")
-	var v_17 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("map.key="), func(hx_value_73 any) any {
-		if hx_value_73 == nil {
+	var v_17 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("map.key="), func(hx_value_71 any) any {
+		if hx_value_71 == nil {
 			return nil
 		}
-		return hx_value_73.(int)
-	}(byName.__hx_this.get(nameKey))), hxrt.StringFromLiteral(",")), hxrt.StdString(func(hx_value_74 any) bool {
+		return hx_value_71.(int)
+	}(byName.__hx_this.get(nameKey))), hxrt.StringFromLiteral(",")), hxrt.StdString(func(hx_value_72 any) bool {
+		if hx_value_72 == nil {
+			var hx_zero_73 bool
+			return hx_zero_73
+		}
+		return hx_value_72.(bool)
+	}(byName.__hx_this.exists(hxrt.StringFromLiteral("n1"))))), hxrt.StringFromLiteral(",")), hxrt.StdString(func(hx_value_74 any) bool {
 		if hx_value_74 == nil {
 			var hx_zero_75 bool
 			return hx_zero_75
 		}
 		return hx_value_74.(bool)
-	}(byName.__hx_this.exists(hxrt.StringFromLiteral("n1"))))), hxrt.StringFromLiteral(",")), hxrt.StdString(func(hx_value_76 any) bool {
-		if hx_value_76 == nil {
-			var hx_zero_77 bool
-			return hx_zero_77
-		}
-		return hx_value_76.(bool)
 	}(byName.__hx_this.exists(hxrt.StringFromLiteral("n2"))))))
 	hxrt.Println(v_17)
 	c := hxrt.StringFromLiteral("green")
@@ -403,23 +397,23 @@ func main() {
 	colors.Push(hxrt.StringFromLiteral("green"))
 	colorMap := New_haxe__ds__StringMap()
 	colorMap.__hx_this.set(hxrt.StringFromLiteral("sky"), hxrt.StringFromLiteral("blue"))
-	var v_18 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("enumAbstract="), colorLetter(c)), hxrt.StringFromLiteral(",")), colorText), hxrt.StringFromLiteral(",")), hxrt.StringJoinAny(colors.Values(), hxrt.StringFromLiteral("|"))), hxrt.StringFromLiteral(",")), hxrt.StdString(hxrt.StringEqualStringPtr(c, hxrt.StringFromLiteral("green")))), hxrt.StringFromLiteral(",")), hxrt.StdString(hxrt.HaxeEqual(colors.Get(1), hxrt.StringFromLiteral("blue")))), hxrt.StringFromLiteral(",")), optColor(nil)), hxrt.StringFromLiteral(",")), optColor(hxrt.StringFromLiteral("blue"))), hxrt.StringFromLiteral(",")), defColor(hxrt.StringFromLiteral("green"))), hxrt.StringFromLiteral(",")), defColor(nil)), hxrt.StringFromLiteral(",")), defColor(hxrt.StringFromLiteral("red"))), hxrt.StringFromLiteral(",")), func(hx_value_79 any) *string {
-		if hx_value_79 == nil {
-			var hx_zero_80 *string
-			return hx_zero_80
+	var v_18 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("enumAbstract="), colorLetter(c)), hxrt.StringFromLiteral(",")), colorText), hxrt.StringFromLiteral(",")), hxrt.StringJoinAny(colors.Values(), hxrt.StringFromLiteral("|"))), hxrt.StringFromLiteral(",")), hxrt.StdString(hxrt.StringEqualStringPtr(c, hxrt.StringFromLiteral("green")))), hxrt.StringFromLiteral(",")), hxrt.StdString(hxrt.HaxeEqual(colors.Get(1), hxrt.StringFromLiteral("blue")))), hxrt.StringFromLiteral(",")), optColor(nil)), hxrt.StringFromLiteral(",")), optColor(hxrt.StringFromLiteral("blue"))), hxrt.StringFromLiteral(",")), defColor(hxrt.StringFromLiteral("green"))), hxrt.StringFromLiteral(",")), defColor(nil)), hxrt.StringFromLiteral(",")), defColor(hxrt.StringFromLiteral("red"))), hxrt.StringFromLiteral(",")), func(hx_value_77 any) *string {
+		if hx_value_77 == nil {
+			var hx_zero_78 *string
+			return hx_zero_78
 		}
-		return hx_value_79.(*string)
+		return hx_value_77.(*string)
 	}(colorMap.__hx_this.get(hxrt.StringFromLiteral("sky")))))
 	hxrt.Println(v_18)
 	m := modeOf(hxrt.StringFromLiteral("fast"))
-	var hx_switch_81 *string
+	var hx_switch_79 *string
 	switch *hxrt.StdString(m) {
 	case *hxrt.StdString(hxrt.StringFromLiteral("fast")):
-		hx_switch_81 = hxrt.StringFromLiteral("F")
+		hx_switch_79 = hxrt.StringFromLiteral("F")
 	case *hxrt.StdString(hxrt.StringFromLiteral("slow")):
-		hx_switch_81 = hxrt.StringFromLiteral("S")
+		hx_switch_79 = hxrt.StringFromLiteral("S")
 	}
-	modeLetter := hx_switch_81
+	modeLetter := hx_switch_79
 	var v_19 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("enumAbstract.from="), m), hxrt.StringFromLiteral(",")), hxrt.StdString(hxrt.StringEqualStringPtr(m, hxrt.StringFromLiteral("fast")))), hxrt.StringFromLiteral(",")), defMode(hxrt.StringFromLiteral("slow"))), hxrt.StringFromLiteral(",")), defMode(nil)), hxrt.StringFromLiteral(",")), modeLetter))
 	hxrt.Println(v_19)
 	fn := hxrt.NamedFunction(nameToString, "Main.nameToString")
@@ -429,97 +423,97 @@ func main() {
 		return hxrt.StringConcatStringPtr(s_1, hxrt.StringFromLiteral("!"))
 	})
 	pick := hxrt.NewFunction(func(n_1 *string, extra *string) *string {
-		var hx_if_82 *string
+		var hx_if_80 *string
 		if extra == nil {
-			hx_if_82 = n_1
+			hx_if_80 = n_1
 		} else {
-			hx_if_82 = extra
+			hx_if_80 = extra
 		}
-		return hx_if_82
+		return hx_if_80
 	})
 	var v_20 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("function="), func() *string {
-		var hx_callable_83 *hxrt.Function[func(*string) *string] = fn
-		var hx_argument_84 *string = hxrt.StringFromLiteral("f1")
+		var hx_callable_81 *hxrt.Function[func(*string) *string] = fn
+		var hx_argument_82 *string = hxrt.StringFromLiteral("f1")
+		return hxrt.FunctionCall(hx_callable_81)(hx_argument_82)
+	}()), hxrt.StringFromLiteral(",")), func() *string {
+		var hx_callable_83 *hxrt.Function[func(*string) *string] = fromText
+		var hx_argument_84 *string = hxrt.StringFromLiteral("f2")
 		return hxrt.FunctionCall(hx_callable_83)(hx_argument_84)
 	}()), hxrt.StringFromLiteral(",")), func() *string {
-		var hx_callable_85 *hxrt.Function[func(*string) *string] = fromText
-		var hx_argument_86 *string = hxrt.StringFromLiteral("f2")
+		var hx_callable_85 *hxrt.Function[func(*string) *string] = closure
+		var hx_argument_86 *string = hxrt.StringFromLiteral("f3")
 		return hxrt.FunctionCall(hx_callable_85)(hx_argument_86)
 	}()), hxrt.StringFromLiteral(",")), func() *string {
-		var hx_callable_87 *hxrt.Function[func(*string) *string] = closure
-		var hx_argument_88 *string = hxrt.StringFromLiteral("f3")
-		return hxrt.FunctionCall(hx_callable_87)(hx_argument_88)
+		var hx_callable_87 *hxrt.Function[func(*string, *string) *string] = pick
+		var hx_argument_88 *string = hxrt.StringFromLiteral("f4")
+		var hx_argument_89 *string = nil
+		return hxrt.FunctionCall(hx_callable_87)(hx_argument_88, hx_argument_89)
 	}()), hxrt.StringFromLiteral(",")), func() *string {
-		var hx_callable_89 *hxrt.Function[func(*string, *string) *string] = pick
-		var hx_argument_90 *string = hxrt.StringFromLiteral("f4")
-		var hx_argument_91 *string = nil
-		return hxrt.FunctionCall(hx_callable_89)(hx_argument_90, hx_argument_91)
-	}()), hxrt.StringFromLiteral(",")), func() *string {
-		var hx_callable_92 *hxrt.Function[func(*string, *string) *string] = pick
-		var hx_argument_93 *string = hxrt.StringFromLiteral("f4")
-		var hx_argument_94 *string = hxrt.StringFromLiteral("f5")
-		return hxrt.FunctionCall(hx_callable_92)(hx_argument_93, hx_argument_94)
+		var hx_callable_90 *hxrt.Function[func(*string, *string) *string] = pick
+		var hx_argument_91 *string = hxrt.StringFromLiteral("f4")
+		var hx_argument_92 *string = hxrt.StringFromLiteral("f5")
+		return hxrt.FunctionCall(hx_callable_90)(hx_argument_91, hx_argument_92)
 	}()))
 	hxrt.Println(v_20)
-	hx_obj_95 := map[string]any{}
-	hx_obj_95["name"] = hxrt.StringFromLiteral("anon")
-	hx_obj_95["color"] = hxrt.StringFromLiteral("red")
-	entry := hxrt.AnonymousFromMap(hx_obj_95)
-	hx_obj_96 := map[string]any{}
-	hx_obj_96["name"] = hxrt.StringFromLiteral("anon2")
-	entry2 := hxrt.AnonymousFromMap(hx_obj_96)
-	var v_21 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("anon="), func(hx_value_97 any) *string {
+	hx_obj_93 := map[string]any{}
+	hx_obj_93["name"] = hxrt.StringFromLiteral("anon")
+	hx_obj_93["color"] = hxrt.StringFromLiteral("red")
+	entry := hxrt.AnonymousFromMap(hx_obj_93)
+	hx_obj_94 := map[string]any{}
+	hx_obj_94["name"] = hxrt.StringFromLiteral("anon2")
+	entry2 := hxrt.AnonymousFromMap(hx_obj_94)
+	var v_21 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("anon="), func(hx_value_95 any) *string {
+		if hx_value_95 == nil {
+			var hx_zero_96 *string
+			return hx_zero_96
+		}
+		return hx_value_95.(*string)
+	}(hxrt.AnonymousGet(entry, "name"))), hxrt.StringFromLiteral(",")), func(hx_value_97 any) *string {
 		if hx_value_97 == nil {
 			var hx_zero_98 *string
 			return hx_zero_98
 		}
 		return hx_value_97.(*string)
-	}(hxrt.AnonymousGet(entry, "name"))), hxrt.StringFromLiteral(",")), func(hx_value_99 any) *string {
+	}(hxrt.AnonymousGet(entry, "color"))), hxrt.StringFromLiteral(",")), func(hx_value_99 any) *string {
 		if hx_value_99 == nil {
 			var hx_zero_100 *string
 			return hx_zero_100
 		}
 		return hx_value_99.(*string)
-	}(hxrt.AnonymousGet(entry, "color"))), hxrt.StringFromLiteral(",")), func(hx_value_101 any) *string {
+	}(hxrt.AnonymousGet(entry2, "name"))), hxrt.StringFromLiteral(",")), func(hx_value_101 any) *string {
 		if hx_value_101 == nil {
 			var hx_zero_102 *string
 			return hx_zero_102
 		}
 		return hx_value_101.(*string)
-	}(hxrt.AnonymousGet(entry2, "name"))), hxrt.StringFromLiteral(",")), func(hx_value_103 any) *string {
+	}(hxrt.AnonymousGet(entry2, "color"))))
+	hxrt.Println(v_21)
+	wrapped := Wrap_W(hxrt.StringFromLiteral("wrapped"), hxrt.StringFromLiteral("blue"))
+	_g_5 := func(hx_value_103 any) *string {
 		if hx_value_103 == nil {
 			var hx_zero_104 *string
 			return hx_zero_104
 		}
 		return hx_value_103.(*string)
-	}(hxrt.AnonymousGet(entry2, "color"))))
-	hxrt.Println(v_21)
-	wrapped := Wrap_W(hxrt.StringFromLiteral("wrapped"), hxrt.StringFromLiteral("blue"))
-	_g_5 := func(hx_value_105 any) *string {
+	}(wrapped.params[0])
+	_g1_2 := func(hx_value_105 any) *string {
 		if hx_value_105 == nil {
 			var hx_zero_106 *string
 			return hx_zero_106
 		}
 		return hx_value_105.(*string)
-	}(wrapped.params[0])
-	_g1_2 := func(hx_value_107 any) *string {
-		if hx_value_107 == nil {
-			var hx_zero_108 *string
-			return hx_zero_108
-		}
-		return hx_value_107.(*string)
 	}(wrapped.params[1])
 	n_1 := _g_5
 	wc := _g1_2
 	var v_22 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("enum="), nameToString(n_1)), hxrt.StringFromLiteral(",")), wc))
 	hxrt.Println(v_22)
 	var d any = local
-	fromDyn := func(hx_value_109 any) *string {
-		if hx_value_109 == nil {
-			var hx_zero_110 *string
-			return hx_zero_110
+	fromDyn := func(hx_value_107 any) *string {
+		if hx_value_107 == nil {
+			var hx_zero_108 *string
+			return hx_zero_108
 		}
-		return hx_value_109.(*string)
+		return hx_value_107.(*string)
 	}(d)
 	fromDynText := fromDyn
 	var v_23 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("dynamic="), fromDynText), hxrt.StringFromLiteral(",")), hxrt.StdString(d)), hxrt.StringFromLiteral(",")), hxrt.StdString(func(hx_value any) bool {
@@ -547,21 +541,32 @@ func main() {
 	total := 0
 	_g_6 := 0
 	for _g_6 < counts.Len() {
-		var k_2 any = counts.Get(_g_6)
+		k_2 := hxrt.IntFromNullableAny(counts.Get(_g_6))
 		_g_6 = int(int32((_g_6 + 1)))
-		kv := hxrt.IntFromNullableAny(k_2)
+		kv := k_2
 		total = int((hxrt.Int32Wrap(total) + hxrt.Int32Wrap(kv)))
 	}
 	_g_7 := New_haxe__ds__StringMap()
-	_g_7.__hx_this.set(hxrt.StringFromLiteral("r"), any(0.5))
+	_g_7.__hx_this.set(hxrt.StringFromLiteral("r"), 0.5)
 	ratios := _g_7
-	ratio := hxrt.DynamicToFloatSlot(ratios.__hx_this.get(hxrt.StringFromLiteral("r")))
-	var v_25 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("int="), countOf(5)), hxrt.StringFromLiteral(",")), total), hxrt.StringFromLiteral(",")), optCount(nil)), hxrt.StringFromLiteral(",")), optCount(4)), hxrt.StringFromLiteral(",")), levelOf(any(2))))
+	ratio := func(hx_value_110 any) float64 {
+		if hx_value_110 == nil {
+			var hx_zero_111 float64
+			return hx_zero_111
+		}
+		return hx_value_110.(float64)
+	}(func(hx_value_109 any) any {
+		if hx_value_109 == nil {
+			return nil
+		}
+		return hx_value_109.(float64)
+	}(ratios.__hx_this.get(hxrt.StringFromLiteral("r"))))
+	var v_25 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("int="), countOf(5)), hxrt.StringFromLiteral(",")), total), hxrt.StringFromLiteral(",")), optCount(nil)), hxrt.StringFromLiteral(",")), optCount(4)), hxrt.StringFromLiteral(",")), levelOf(2)))
 	hxrt.Println(v_25)
 	var v_26 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("float.bool="), ratioOf(2.5)), hxrt.StringFromLiteral(",")), ratio), hxrt.StringFromLiteral(",")), hxrt.StdString(flagOf(true))), hxrt.StringFromLiteral(",")), hxrt.StdString(flagOf(false))))
 	hxrt.Println(v_26)
-	var intBox any = 9
-	intBoxValue := hxrt.IntFromNullableAny(intBox)
+	intBox := 9
+	intBoxValue := intBox
 	var v_27 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("dynamicAbstract="), looseText(hxrt.StringFromLiteral("text"))), hxrt.StringFromLiteral(",")), looseText(42)), hxrt.StringFromLiteral(",")), intBoxValue))
 	hxrt.Println(v_27)
 }
@@ -571,16 +576,16 @@ func modeOf(s *string) *string {
 }
 
 func nameKind(n *string) *string {
-	var hx_switch_111 *string
+	var hx_switch_112 *string
 	switch *hxrt.StdString(n) {
 	case *hxrt.StdString(hxrt.StringFromLiteral("alpha")):
-		hx_switch_111 = hxrt.StringFromLiteral("first")
+		hx_switch_112 = hxrt.StringFromLiteral("first")
 	case *hxrt.StdString(hxrt.StringFromLiteral("beta")):
-		hx_switch_111 = hxrt.StringFromLiteral("second")
+		hx_switch_112 = hxrt.StringFromLiteral("second")
 	default:
-		hx_switch_111 = hxrt.StringFromLiteral("other")
+		hx_switch_112 = hxrt.StringFromLiteral("other")
 	}
-	return hx_switch_111
+	return hx_switch_112
 }
 
 func nameToString(n *string) *string {
@@ -588,33 +593,33 @@ func nameToString(n *string) *string {
 }
 
 func nullName(n *string) *string {
-	var hx_if_112 *string
-	if n == nil {
-		hx_if_112 = hxrt.StringFromLiteral("null")
-	} else {
-		hx_if_112 = n
-	}
-	return hx_if_112
-}
-
-func optColor(c *string) *string {
 	var hx_if_113 *string
-	if c == nil {
-		hx_if_113 = hxrt.StringFromLiteral("none")
+	if n == nil {
+		hx_if_113 = hxrt.StringFromLiteral("null")
 	} else {
-		hx_if_113 = c
+		hx_if_113 = n
 	}
 	return hx_if_113
 }
 
-func optCount(c any) *string {
+func optColor(c *string) *string {
 	var hx_if_114 *string
-	if hxrt.AnyEqualsNull(c) {
+	if c == nil {
 		hx_if_114 = hxrt.StringFromLiteral("none")
 	} else {
-		hx_if_114 = hxrt.StdString(c)
+		hx_if_114 = c
 	}
 	return hx_if_114
+}
+
+func optCount(c any) *string {
+	var hx_if_115 *string
+	if c == nil {
+		hx_if_115 = hxrt.StringFromLiteral("none")
+	} else {
+		hx_if_115 = hxrt.StdString(c.(int))
+	}
+	return hx_if_115
 }
 
 func optDefName(n *string) *string {
@@ -625,13 +630,13 @@ func optDefName(n *string) *string {
 }
 
 func optName(n *string) *string {
-	var hx_if_115 *string
+	var hx_if_116 *string
 	if n == nil {
-		hx_if_115 = hxrt.StringFromLiteral("none")
+		hx_if_116 = hxrt.StringFromLiteral("none")
 	} else {
-		hx_if_115 = n
+		hx_if_116 = n
 	}
-	return hx_if_115
+	return hx_if_116
 }
 
 func plainText(p *string) *string {
@@ -639,8 +644,8 @@ func plainText(p *string) *string {
 	return hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringToUpperCaseStringPtr(p), hxrt.StringFromLiteral("/")), raw)
 }
 
-func ratioOf(r any) float64 {
-	return hxrt.DynamicToFloatSlot(r)
+func ratioOf(r float64) float64 {
+	return r
 }
 
 func stringToName(s *string) *string {
@@ -652,12 +657,12 @@ func tagText(t *string) *string {
 }
 
 func textInfo(t *string) *string {
-	return hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringSubstrStringPtr(t, 1, 0, false), hxrt.StringFromLiteral(":")), hxrt.ArrayFromValues(func(hx_sort_src_116 []*string) []any {
-		hx_sort_out_118 := make([]any, 0, len(hx_sort_src_116))
-		for _, hx_sort_item_117 := range hx_sort_src_116 {
-			hx_sort_out_118 = append(hx_sort_out_118, hx_sort_item_117)
+	return hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringSubstrStringPtr(t, 1, 0, false), hxrt.StringFromLiteral(":")), hxrt.ArrayFromValues(func(hx_sort_src_117 []*string) []any {
+		hx_sort_out_119 := make([]any, 0, len(hx_sort_src_117))
+		for _, hx_sort_item_118 := range hx_sort_src_117 {
+			hx_sort_out_119 = append(hx_sort_out_119, hx_sort_item_118)
 		}
-		return hx_sort_out_118
+		return hx_sort_out_119
 	}(hxrt.StringSplitStringPtr(t, hxrt.StringFromLiteral("o")))).Len())
 }
 

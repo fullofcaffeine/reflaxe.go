@@ -102,7 +102,7 @@ func boolSwitch(flag bool) *string {
 	}
 }
 
-func colorName(color any) *string {
+func colorName(color int) *string {
 	switch color {
 	case 0:
 		return hxrt.StringFromLiteral("red")
@@ -289,7 +289,7 @@ func main() {
 	}
 	var v_3 any = any(hxrt.StringJoinAny(log.Values(), hxrt.StringFromLiteral(",")))
 	hxrt.Println(v_3)
-	var v_4 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(colorName(any(1)), hxrt.StringFromLiteral(" ")), loopUntil(10)), hxrt.StringFromLiteral(" ")), intDefault(0)), hxrt.StringFromLiteral(" ")), stringWildcard(hxrt.StringFromLiteral("b"))))
+	var v_4 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(colorName(1), hxrt.StringFromLiteral(" ")), loopUntil(10)), hxrt.StringFromLiteral(" ")), intDefault(0)), hxrt.StringFromLiteral(" ")), stringWildcard(hxrt.StringFromLiteral("b"))))
 	hxrt.Println(v_4)
 	var v_5 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(boolSwitch(false), hxrt.StringFromLiteral(" ")), ifChain(-2)), hxrt.StringFromLiteral(" ")), ifChain(0)), hxrt.StringFromLiteral(" ")), ifChain(3)))
 	hxrt.Println(v_5)

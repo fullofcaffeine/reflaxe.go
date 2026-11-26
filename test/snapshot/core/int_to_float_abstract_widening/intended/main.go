@@ -2,29 +2,29 @@ package main
 
 import "snapshot/hxrt"
 
-func countAsFloat(count any) float64 {
-	return float64(hxrt.IntFromNullableAny(count))
+func countAsFloat(count int) float64 {
+	return float64(count)
 }
 
-func halfReal(value any) float64 {
-	return (hxrt.DynamicToFloatSlot(value) / float64(2))
+func halfReal(value float64) float64 {
+	return (value / float64(2))
 }
 
 func main() {
 	var seven any = 7
-	var fromDynamic any = seven
+	fromDynamic := hxrt.DynamicToFloatSlot(seven)
 	var v any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("real from dynamic: "), halfReal(fromDynamic)))
 	hxrt.Println(v)
 	three := 3
-	var fromLocal any = float64(three)
-	var fromLiteral any = 7.0
+	fromLocal := float64(three)
+	fromLiteral := 7.0
 	var v_1 any = any(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("real from int: "), halfReal(fromLocal)), hxrt.StringFromLiteral(" ")), halfReal(fromLiteral)))
 	hxrt.Println(v_1)
 	track := New_Track()
 	track.length = float64(three)
 	var v_2 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("real field: "), halfReal(track.length)))
 	hxrt.Println(v_2)
-	var count any = 5
+	count := 5
 	var v_3 any = any(hxrt.StringConcatAny(hxrt.StringFromLiteral("count as float: "), (countAsFloat(count) / float64(2))))
 	hxrt.Println(v_3)
 	level := 3.0
@@ -45,7 +45,7 @@ type I_Track interface {
 
 type Track struct {
 	__hx_this I_Track
-	length    any
+	length    float64
 }
 
 func (self *Track) HxFunctionReceiver() any {

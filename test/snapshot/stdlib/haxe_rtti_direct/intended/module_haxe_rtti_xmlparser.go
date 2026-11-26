@@ -1269,11 +1269,11 @@ func (self *haxe__rtti__XmlParser) xroot(x *Xml) {
 
 func (self *haxe__rtti__XmlParser) processElement(x *Xml) *haxe__rtti__TypeTree {
 	var hx_if_281 *string
-	if hxrt.HaxeEqual(x.nodeType, Xml_Document) {
+	if x.nodeType == Xml_Document {
 		hx_if_281 = hxrt.StringFromLiteral("Document")
 	} else {
-		if !hxrt.HaxeEqual(x.nodeType, Xml_Element) {
-			hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(x.nodeType)))))
+		if x.nodeType != Xml_Element {
+			hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(x.nodeType))))
 		}
 		hx_if_281 = x.nodeName
 	}
@@ -2029,7 +2029,7 @@ func (self *haxe__rtti__XmlParser) requireFirstElement(x *Xml) *Xml {
 
 func (self *haxe__rtti__XmlParser) nodeDisplayName(x *Xml) *string {
 	var hx_if_383 *string
-	if hxrt.HaxeEqual(x.nodeType, Xml_Document) {
+	if x.nodeType == Xml_Document {
 		hx_if_383 = hxrt.StringFromLiteral("Document")
 	} else {
 		hx_if_383 = self.__hx_this.elementName(x)
@@ -2038,8 +2038,8 @@ func (self *haxe__rtti__XmlParser) nodeDisplayName(x *Xml) *string {
 }
 
 func (self *haxe__rtti__XmlParser) elementName(x *Xml) *string {
-	if !hxrt.HaxeEqual(x.nodeType, Xml_Element) {
-		hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(x.nodeType)))))
+	if x.nodeType != Xml_Element {
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, expected Element but found "), _Xml__XmlType_Impl__toString(x.nodeType))))
 	}
 	name := x.nodeName
 	var hx_if_384 *string
@@ -2069,11 +2069,11 @@ func (self *haxe__rtti__XmlParser) innerData(x *Xml) *string {
 	if it_current < it_array.Len() {
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(self.__hx_this.nodeDisplayName(x), hxrt.StringFromLiteral(" does not only have data"))))
 	}
-	if !hxrt.HaxeEqual(value.nodeType, Xml_PCData) && !hxrt.HaxeEqual(value.nodeType, Xml_CData) {
+	if (value.nodeType != Xml_PCData) && (value.nodeType != Xml_CData) {
 		hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(self.__hx_this.nodeDisplayName(x), hxrt.StringFromLiteral(" does not have data"))))
 	}
-	if hxrt.HaxeEqual(value.nodeType, Xml_Document) || hxrt.HaxeEqual(value.nodeType, Xml_Element) {
-		hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(hxrt.IntFromNullableAny(value.nodeType)))))
+	if (value.nodeType == Xml_Document) || (value.nodeType == Xml_Element) {
+		hxrt.Throw(haxe__Exception_thrown(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Bad node type, unexpected "), _Xml__XmlType_Impl__toString(value.nodeType))))
 	}
 	return value.nodeValue
 }

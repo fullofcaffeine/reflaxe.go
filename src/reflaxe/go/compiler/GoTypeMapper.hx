@@ -226,19 +226,43 @@ class GoTypeMapper {
 		};
 	}
 
+	/**
+		What: Whether a value of `type` is a Haxe Bool at run time: Bool, or an
+		abstract whose underlying types lead to Bool (`abstract Flag(Bool)`, an
+		enum abstract over Bool). `Null<T>` is followed, so callers that care
+		about null ask `isNullablePrimitiveType` first.
+		Why: Haxe stores an abstract's value as its underlying type, and such an
+		abstract is stored as a Go `bool` (see `abstractGoType`), so every
+		conversion, condition and operator treats it as a Bool.
+		How: See `abstractScalarPath`.
+	**/
 	public static function isBoolType(type:Type):Bool {
 		var followed = Context.follow(type);
 		return switch (followed) {
-			case TAbstract(abstractRef, _): declarationPath(abstractRef) == "Bool";
+			case TAbstract(abstractRef, _): declarationPath(abstractRef) == "Bool" || abstractScalarPath(followed, 0) == "Bool";
 			case _:
 				false;
 		};
 	}
 
+	/**
+		What: Whether a value of `type` is a Haxe Int at run time: Int, UInt, or an
+		abstract whose underlying types lead to Int, such as `abstract Count(Int)`,
+		an enum abstract over Int or `haxe.Int32`. `Null<T>` is followed, so
+		callers that care about null ask `isNullablePrimitiveType` first.
+		Why: Haxe stores an abstract's value as its underlying type and adds no
+		conversion when the value enters an Int slot through `to Int`, or when a
+		forwarded `@:op` (one without a body) applies Int arithmetic to it. Such
+		an abstract is stored as a Go `int` (see `abstractGoType`), so every
+		conversion and operator, including the 32-bit wrap of Int arithmetic,
+		treats it as an Int (haxe_go-5yxq).
+		How: See `abstractScalarPath`.
+	**/
 	public static function isIntType(type:Type):Bool {
 		var followed = Context.follow(type);
 		return switch (followed) {
-			case TAbstract(abstractRef, _): var path = declarationPath(abstractRef); path == "Int" || path == "UInt";
+			case TAbstract(abstractRef, _): var path = declarationPath(abstractRef); path == "Int" || path == "UInt" || abstractScalarPath(followed,
+					0) == "Int";
 			case _:
 				false;
 		};
@@ -365,82 +389,47 @@ class GoTypeMapper {
 		return isIntType(type) || isHaxeInt32Type(type);
 	}
 
+	/**
+		What: Whether a value of `type` is a Haxe Float at run time: Float, or an
+		abstract whose underlying types lead to Float, such as
+		`abstract Meters(Float) from Int`. `Null<T>` is followed, so callers that
+		care about null ask `isNullablePrimitiveType` first.
+		Why: Such an abstract is stored as a Go `float64` (see `abstractGoType`).
+		An Int that enters it (through `from Int`, or through `from Float`, which
+		Int unifies with) is not converted by Haxe, so the Int-to-Float widening
+		converts it when it is written.
+		How: See `abstractScalarPath`.
+	**/
 	public static function isFloatType(type:Type):Bool {
 		var followed = Context.follow(type);
 		return switch (followed) {
-			case TAbstract(abstractRef, _): declarationPath(abstractRef) == "Float";
+			case TAbstract(abstractRef, _): declarationPath(abstractRef) == "Float" || abstractScalarPath(followed, 0) == "Float";
 			case _:
 				false;
 		};
 	}
 
 	/**
-		What: Whether a value of `type` is a Haxe Int at run time: an Int (see
-		`isIntType`), or a value of an abstract whose underlying types lead to Int,
-		such as `abstract Count(Int)`, an enum abstract over Int or `haxe.Int32`.
-		Why: Haxe stores an abstract's value as its underlying type and adds no
-		conversion when an abstract over Int enters a Float slot through its
-		`to Int`. The Int-to-Float widening must see such a value as an Int, or Go
-		receives an `int` (or an `any` holding one) where it needs a `float64`.
-		How: See `underlyingScalarPath`.
+		What: Returns "Int", "Float" or "Bool" when `type` is Haxe's Int, Float or
+		Bool, or an abstract whose underlying types lead to one of them, and null
+		otherwise.
+		Why: `isIntType`, `isFloatType`, `isBoolType` and `abstractGoType` share
+		this walk, so the storage of such an abstract and every conversion of its
+		values agree. The compiler asks at nearly every value, so the answer for
+		an abstract without type parameters is remembered by its path (see
+		`abstractDeclarations` for why a path is a safe key).
+		How: Follow each abstract to its underlying type with the applied type
+		parameters (typedefs and monomorphs are followed too, `Null<T>` is kept).
+		The walk stops at a `@:coreType` abstract other than Int, Float and Bool,
+		at a `Null<T>` inside an abstract (such a value can be null, so it keeps
+		nil-capable storage), and after a fixed depth in case of a cycle. Callers
+		pass a type already followed with `Context.follow`.
 	**/
-	public static function isIntValueType(type:Type):Bool {
-		return isIntType(type) || underlyingScalarPath(type) == "Int";
-	}
-
-	/**
-		What: Whether a value of `type` is a Haxe Float at run time: a Float (see
-		`isFloatType`), or a value of an abstract whose underlying types lead to
-		Float, such as `abstract Meters(Float) from Int`.
-		Why: An Int that enters such an abstract (through `from Int`, or through
-		`from Float`, which Int unifies with) is not converted by Haxe. Converting
-		it when it is written keeps the abstract's storage a float64.
-		How: See `underlyingScalarPath`.
-	**/
-	public static function isFloatValueType(type:Type):Bool {
-		return isFloatType(type) || underlyingScalarPath(type) == "Float";
-	}
-
-	/** `Null<T>` of a Float or of an abstract over Float (see `isFloatValueType`). */
-	public static function isNullableFloatValueType(type:Type):Bool {
-		return switch (type) {
-			case TAbstract(abstractRef, params): declarationPath(abstractRef) == "Null" && params.length == 1 && isFloatValueType(params[0]);
-			case TMono(ref): var resolved = ref.get(); resolved != null && isNullableFloatValueType(resolved);
-			case TType(_, _): isNullableFloatValueType(TypeTools.follow(type, true));
-			case TLazy(f):
-				isNullableFloatValueType(f());
-			case _:
-				false;
-		};
-	}
-
-	/**
-		What: Returns "Int" or "Float" when `type` is an ordinary abstract whose
-		underlying types lead to Haxe's Int or Float, and null otherwise.
-		Why: `isIntValueType` and `isFloatValueType` share this walk. Abstracts over
-		Int and Float are stored as Go `any` (see `abstractGoType`), except the
-		core ones (`haxe.Int32` is a Go `int`), so the caller decides the storage.
-		The Int-to-Float widening asks at every slot that receives a value, so the
-		answer for an abstract without type parameters is remembered by its path
-		(see `abstractDeclarations` for why a path is a safe key).
-		How: Follow `type` like `Context.follow` (typedefs and `Null<T>`), then
-		follow each abstract to its underlying type with the applied type
-		parameters. The walk stops at a `@:coreType` abstract other than Int and
-		Float, at a `Null<T>` inside an abstract (that value can be null, so it
-		keeps its own recovery), and after a fixed depth in case of a cycle.
-	**/
-	static function underlyingScalarPath(type:Type):Null<String> {
-		return abstractScalarPath(Context.follow(type), 0);
-	}
-
-	/** Remembered `abstractScalarPath` answers by abstract path; "" means none. */
-	static final abstractScalarPaths = new Map<String, String>();
-
 	static function abstractScalarPath(type:Type, depth:Int):Null<String> {
 		return switch (type) {
 			case TAbstract(abstractRef, params):
 				var path = declarationPath(abstractRef);
-				if (path == "Int" || path == "Float") {
+				if (path == "Int" || path == "Float" || path == "Bool") {
 					return path;
 				}
 				var cached = abstractScalarPaths.get(path);
@@ -453,7 +442,7 @@ class GoTypeMapper {
 					var underlying = TypeTools.applyTypeParameters(abstractType.type, abstractType.params, params);
 					found = abstractScalarPath(followKeepingNull(underlying), depth + 1);
 				}
-				if (abstractType.params.length == 0) {
+				if (abstractType.params.length == 0 || !underlyingDependsOnParams(abstractType.type)) {
 					abstractScalarPaths.set(path, found == null ? "" : found);
 				}
 				found;
@@ -501,6 +490,53 @@ class GoTypeMapper {
 			return false;
 		}
 		return isBoolType(type) || isIntType(type) || isFloatType(type);
+	}
+
+	/** Remembered `abstractScalarPath` answers by abstract path; "" means none. */
+	static final abstractScalarPaths = new Map<String, String>();
+
+	/**
+		What: Whether the scalar answer for an abstract with type parameters can
+		change with the applied parameters.
+		Why: `isIntType` and its siblings ask about `Map<K, V>`, `Null<T>` and
+		other generic abstracts at nearly every value. Without a remembered
+		answer, each question applied the type parameters to the underlying type
+		again.
+		How: An underlying class instance (other than a type parameter), enum,
+		structure, function or `Dynamic` is never a scalar, whatever the
+		parameters are, so its answer is remembered. A type parameter or another
+		abstract may lead to a scalar for some parameters, so it is asked again.
+	**/
+	static function underlyingDependsOnParams(underlying:Type):Bool {
+		return switch (followKeepingNull(underlying)) {
+			case TInst(classRef, _): isTypeParameterClass(classRef.get());
+			case TEnum(_, _) | TAnonymous(_) | TFun(_, _) | TDynamic(_): false;
+			case _: true;
+		};
+	}
+
+	/**
+		What: Whether `type` is an abstract over Int, Float or Bool other than the
+		core scalars themselves (Int, UInt, Float, Bool), such as
+		`abstract Count(Int)`, an enum abstract over Int, or `haxe.Int32`.
+		Why: Such a value is stored like its underlying scalar, but the typer
+		still writes a `cast` node where an Int enters it. Callers that read a
+		constant through that node (an enum abstract constant is `cast 3`) need to
+		tell the abstract from the scalar.
+		How: Follow `type` like `Context.follow`, reject the core scalar paths, and
+		ask `abstractScalarPath` for the rest.
+	**/
+	public static function isScalarAbstractType(type:Type):Bool {
+		var followed = Context.follow(type);
+		return switch (followed) {
+			case TAbstract(abstractRef, _):
+				switch (declarationPath(abstractRef)) {
+					case "Int" | "UInt" | "Float" | "Bool": false;
+					case _: abstractScalarPath(followed, 0) != null;
+				}
+			case _:
+				false;
+		};
 	}
 
 	static function isPrimitiveValueType(type:Type):Bool {
@@ -746,7 +782,15 @@ class GoTypeMapper {
 			return null;
 		}
 		var backingType = TypeTools.applyTypeParameters(abstractType.type, abstractType.params, params);
-		return hasOrdinaryStringBacking(backingType, new Map<String, Bool>()) ? "*string" : null;
+		if (hasOrdinaryStringBacking(backingType, new Map<String, Bool>())) {
+			return "*string";
+		}
+		return switch (abstractScalarPath(followKeepingNull(backingType), 1)) {
+			case "Int": "int";
+			case "Float": "float64";
+			case "Bool": "bool";
+			case _: null;
+		};
 	}
 
 	/**

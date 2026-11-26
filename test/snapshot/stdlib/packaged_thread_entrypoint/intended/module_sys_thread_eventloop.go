@@ -3,8 +3,8 @@ package main
 import "snapshot/hxrt"
 
 type I_sys__thread__EventLoop interface {
-	repeat(event *hxrt.Function[func()], intervalMs int) any
-	cancel(eventHandler any)
+	repeat(event *hxrt.Function[func()], intervalMs int) int
+	cancel(eventHandler int)
 	promise()
 	run(event *hxrt.Function[func()])
 	runPromised(event *hxrt.Function[func()])
@@ -41,18 +41,12 @@ func hx_init_sys__thread__EventLoop(self *sys__thread__EventLoop) *sys__thread__
 	return self
 }
 
-func (self *sys__thread__EventLoop) repeat(event *hxrt.Function[func()], intervalMs int) any {
-	return any(hxrt.ThreadEventLoopRepeat(self.__h, hxrt.FunctionNative(event), intervalMs))
+func (self *sys__thread__EventLoop) repeat(event *hxrt.Function[func()], intervalMs int) int {
+	return hxrt.ThreadEventLoopRepeat(self.__h, hxrt.FunctionNative(event), intervalMs)
 }
 
-func (self *sys__thread__EventLoop) cancel(eventHandler any) {
-	hxrt.ThreadEventLoopCancel(self.__h, func(hx_value_1 any) int {
-		if hx_value_1 == nil {
-			var hx_zero_2 int
-			return hx_zero_2
-		}
-		return hx_value_1.(int)
-	}(eventHandler))
+func (self *sys__thread__EventLoop) cancel(eventHandler int) {
+	hxrt.ThreadEventLoopCancel(self.__h, eventHandler)
 }
 
 func (self *sys__thread__EventLoop) promise() {
@@ -70,26 +64,26 @@ func (self *sys__thread__EventLoop) runPromised(event *hxrt.Function[func()]) {
 func (self *sys__thread__EventLoop) progress() *sys__thread__NextEventTime {
 	result := hxrt.ThreadEventLoopProgress(self.__h)
 	_g := result.Kind
-	var hx_switch_3 *sys__thread__NextEventTime
+	var hx_switch_1 *sys__thread__NextEventTime
 	switch _g {
 	case 0:
-		hx_switch_3 = sys__thread__NextEventTime_Now
+		hx_switch_1 = sys__thread__NextEventTime_Now
 	case 1:
-		hx_switch_3 = sys__thread__NextEventTime_Never
+		hx_switch_1 = sys__thread__NextEventTime_Never
 	case 2:
-		var hx_if_4 *sys__thread__NextEventTime
+		var hx_if_2 *sys__thread__NextEventTime
 		if result.Time < 0 {
-			hx_if_4 = sys__thread__NextEventTime_AnyTime(nil)
+			hx_if_2 = sys__thread__NextEventTime_AnyTime(nil)
 		} else {
-			hx_if_4 = sys__thread__NextEventTime_AnyTime(result.Time)
+			hx_if_2 = sys__thread__NextEventTime_AnyTime(result.Time)
 		}
-		hx_switch_3 = hx_if_4
+		hx_switch_1 = hx_if_2
 	case 3:
-		hx_switch_3 = sys__thread__NextEventTime_At(result.Time)
+		hx_switch_1 = sys__thread__NextEventTime_At(result.Time)
 	default:
-		hx_switch_3 = sys__thread__NextEventTime_Never
+		hx_switch_1 = sys__thread__NextEventTime_Never
 	}
-	return hx_switch_3
+	return hx_switch_1
 }
 
 func (self *sys__thread__EventLoop) wait(timeout any) bool {
