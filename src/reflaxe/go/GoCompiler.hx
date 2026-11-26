@@ -36,8 +36,6 @@ import reflaxe.go.compiler.GoNativeTypeEligibility.GoNativeTypeEligibilityResult
 import reflaxe.go.compiler.GoOutputIdentity;
 import reflaxe.go.compiler.GoSourceModuleRegistry;
 import reflaxe.go.compiler.GoSourceOwnedStdlibPlanner;
-import reflaxe.go.compiler.GoSurfaceContractRegistry.GoNativeRepresentation;
-import reflaxe.go.compiler.GoSurfaceContractRegistry.GoSurfaceId;
 import reflaxe.go.compiler.GoSurfacePlanner;
 import reflaxe.go.compiler.GoStdlibShimClassifier;
 import reflaxe.go.compiler.GoStdlibOwnership;
@@ -11056,8 +11054,7 @@ class GoCompiler {
 	}
 
 	function useStringFastpath():Bool {
-		return compilationContext.buildContext.portableStringFastpathEnabled
-			&& GoSurfacePlanner.allObservedUsesSelectNative(compilationContext.surfacePlan, GoSurfaceId.HaxeString, GoNativeRepresentation.GoString);
+		return compilationContext.selectsStringFastpath();
 	}
 
 	function useProvenConcurrencyFastpath():Bool {

@@ -89,6 +89,9 @@ class CompilationContext {
 	public final surfaceContractRegistry:GoSurfaceContractRegistrySnapshot;
 	public final surfacePlan:GoSurfacePlanSnapshot;
 
+	/** The answer of `selectsStringFastpath()`, kept after its first call. */
+	var stringFastpathSelection:Null<Bool> = null;
+
 	public function new(profile:GoProfile, ?goModuleName:String, ?rawNativeMode:RawNativeMode, ?emitLineDirectives:Bool, ?buildContext:GoBuildContext,
 			?typedUsageLedger:GoTypeUsageLedgerSnapshot, ?surfaceContractRegistry:GoSurfaceContractRegistrySnapshot, ?surfacePlan:GoSurfacePlanSnapshot,
 			?runtimeImportPath:String) {
@@ -130,6 +133,27 @@ class CompilationContext {
 			?surfaceContractRegistry:GoSurfaceContractRegistrySnapshot, ?surfacePlan:GoSurfacePlanSnapshot, ?runtimeImportPath:String):CompilationContext {
 		return new CompilationContext(buildContext.profile, buildContext.goModuleName, buildContext.rawNativeMode, buildContext.emitLineDirectives,
 			buildContext, typedUsageLedger, surfaceContractRegistry, surfacePlan, runtimeImportPath);
+	}
+
+	/**
+		What: Whether lowering may use the typed native String helpers: the
+		`portable_fast` preset enables the string fast path, and every observed
+		String decision of the surface plan selects the native Go `string`.
+
+		Why: Lowering asks this for every String length read and String method call.
+		The plan check walks every plan decision: on the BeadsHX bootstrap compile
+		that was 752 walks over about 8,000 decisions, 2.2 s of the compile. Both
+		inputs, `buildContext` and `surfacePlan`, are final, so the answer cannot
+		change during a compile.
+
+		How: The first call computes the answer and keeps it; later calls return it.
+	**/
+	public function selectsStringFastpath():Bool {
+		if (stringFastpathSelection == null) {
+			stringFastpathSelection = buildContext.portableStringFastpathEnabled
+				&& GoSurfacePlanner.allObservedUsesSelectNative(surfacePlan, GoSurfaceId.HaxeString, GoNativeRepresentation.GoString);
+		}
+		return stringFastpathSelection;
 	}
 
 	static function normalizeRuntimeImportPath(raw:Null<String>, moduleName:String):String {
