@@ -405,8 +405,9 @@ private typedef DeclarationFacts = {
 	observations, native import metadata, and later runtime-capability reasons.
 
 	How
-	Compiler callbacks supply `getTypeUsage()` while Reflaxe's current module is
-	active. This collector removes macro objects at the boundary, normalizes
+	Compiler callbacks supply the type-usage map that
+	`GoReflaxeCompiler.setupModule` built for Reflaxe's current module. This
+	collector removes macro objects at the boundary, normalizes
 	locations to `Module:line`, deduplicates by stable keys, and sorts every
 	outward array. The immutable snapshot is placed in `CompilationContext` for
 	later registry/planner consumption.
@@ -1154,7 +1155,19 @@ class GoTypeUsageLedger {
 		return null;
 	}
 
-	static function isProjectOwner(moduleType:ModuleType):Bool {
+	/**
+		Whether the ledger records the module type as an owner.
+
+		Why: `collect(...)` ignores every other module type, so the compiler builds
+		a type-usage map only when this accepts the module type.
+
+		What: False for the standard library, `StdTypes`, `go.*`, `hxrt.*`,
+		`reflaxe.*`, and anything loaded from `std/`, `vendor/`, or the compiler's
+		own sources.
+
+		How: Reads the module path and the declaring file of the module type.
+	**/
+	public static function isProjectOwner(moduleType:ModuleType):Bool {
 		var module = moduleName(moduleType);
 		if (module == ""
 			|| module == "StdTypes"

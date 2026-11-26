@@ -50,7 +50,11 @@ auditable input without serializing arbitrary Haxe macro objects or using
 
 ### Collection
 
-`CompilerInit` enables Reflaxe's `trackUsedTypes` option. During each project
+`GoReflaxeCompiler.setupModule` builds Reflaxe's `TypeUsageMap` for each
+project-owned class, enum, typedef, or abstract, at the point where Reflaxe's
+own `trackUsedTypes` option would build it. `CompilerInit` leaves that option
+off because it builds a map for every module type, including standard-library
+and compiler types whose maps the ledger never reads. During each project
 class, enum, typedef, or abstract callback, `GoTypeUsageLedger` consumes the
 current `TypeUsageMap`.
 
@@ -135,7 +139,7 @@ more explicit:
 | `haxe.rust` | Enables `trackUsedTypes`; `TypeUsageAnalyzer` reduces the map to normalized module paths used by runtime-feature selection. |
 | `haxe.ruby` | Enables `trackUsedTypes`; `RequireRegistry` consumes type metadata to select deterministic Ruby `require` entries. |
 | `haxe.elixir.codex` | Does not currently enable or consume Reflaxe `TypeUsageTracker`; framework discovery uses its own typed/macro mechanisms. |
-| `haxe.go` | Enables the tracker; preserves types, member/call locations, native imports, and runtime consequences; admits exact portable shapes through a contract registry; and feeds one immutable surface plan to optimizer, import, and runtime consumers. |
+| `haxe.go` | Runs the tracker for project-owned module types; preserves types, member/call locations, native imports, and runtime consequences; admits exact portable shapes through a contract registry; and feeds one immutable surface plan to optimizer, import, and runtime consumers. |
 
 The useful common pattern is compiler-observed typed reachability. The exact
 consumer differs by target: Rust selects runtime features, Ruby selects

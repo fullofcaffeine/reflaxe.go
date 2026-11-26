@@ -61,7 +61,8 @@ class CompilerInit {
 			expressionPreprocessors: [],
 			ignoreBodilessFunctions: false,
 			ignoreExterns: true,
-			trackUsedTypes: true
+			// GoReflaxeCompiler.setupModule builds the map only for project modules.
+			trackUsedTypes: false
 		});
 	}
 	#else

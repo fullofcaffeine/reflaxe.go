@@ -6,6 +6,8 @@ import haxe.macro.Context;
 import haxe.macro.Type;
 import haxe.macro.TypedExprTools;
 import reflaxe.GenericCompiler;
+import reflaxe.compiler.TypeUsageTracker;
+import reflaxe.compiler.TypeUsageTracker.TypeUsageMap;
 import reflaxe.data.ClassFuncData;
 import reflaxe.data.ClassVarData;
 import reflaxe.data.EnumOptionData;
@@ -257,11 +259,41 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 	var projectMode:GoProjectMode = GoProjectMode.Standalone;
 	var moduleFileGuard:Null<GoModuleFileGuard> = null;
 	var typeUsageLedger:GoTypeUsageLedger = new GoTypeUsageLedger();
+
+	/** The type-usage map of the module type in `setupModule`, when the ledger will read it. */
+	var currentTypeUsage:Null<TypeUsageMap> = null;
+
 	var lastTypeUsageReport:GoTypeUsageLedgerSnapshot = GoTypeUsageLedger.emptySnapshot();
 	var lastSurfaceContractReport:GoSurfaceContractRegistrySnapshot = GoSurfaceContractRegistry.emptySnapshot();
 
 	public function new() {
 		super();
+	}
+
+	/**
+		Build the type-usage map of a module type only when the ledger will read it.
+
+		Why
+		`GoTypeUsageLedger.collect(...)` is the only reader of the map, and it skips
+		module types outside the project: the standard library, `go.*`, `hxrt`, and
+		compiler sources. Reflaxe's `trackUsedTypes` option built a map for every
+		module type, so about a fifth of the tracker's time (0.8 s of the BeadsHX
+		compile) went into maps that nothing read.
+
+		What
+		The map Reflaxe built before, at the same point of the compile (before the
+		module type's compile callback), for every module type that
+		`GoTypeUsageLedger.isProjectOwner(...)` accepts, and null for the others.
+
+		How
+		`CompilerInit` turns `trackUsedTypes` off, so Reflaxe's `setupModule` only
+		records the current module. This override then runs the tracker itself
+		and keeps the map for the compile callbacks.
+	**/
+	override public function setupModule(moduleType:Null<ModuleType>):Void {
+		super.setupModule(moduleType);
+		currentTypeUsage = moduleType != null
+			&& GoTypeUsageLedger.isProjectOwner(moduleType) ? TypeUsageTracker.trackTypesInModuleType(moduleType) : null;
 	}
 
 	override public function filterTypes(moduleTypes:Array<ModuleType>):Array<ModuleType> {
@@ -696,7 +728,7 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 	public function compileClassImpl(classType:ClassType, varFields:Array<ClassVarData>, funcFields:Array<ClassFuncData>):Null<GoReflaxeStagedOutput> {
 		var currentModule = getCurrentModule();
 		if (currentModule != null) {
-			typeUsageLedger.collect(currentModule, getTypeUsage());
+			typeUsageLedger.collect(currentModule, currentTypeUsage);
 		}
 		selectedClasses.push(classType);
 		return null;
@@ -705,7 +737,7 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 	public function compileEnumImpl(enumType:EnumType, options:Array<EnumOptionData>):Null<GoReflaxeStagedOutput> {
 		var currentModule = getCurrentModule();
 		if (currentModule != null) {
-			typeUsageLedger.collect(currentModule, getTypeUsage());
+			typeUsageLedger.collect(currentModule, currentTypeUsage);
 		}
 		selectedEnums.push(enumType);
 		return null;
@@ -714,7 +746,7 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 	override public function compileTypedefImpl(typedefType:DefType):Null<GoReflaxeStagedOutput> {
 		var currentModule = getCurrentModule();
 		if (currentModule != null) {
-			typeUsageLedger.collect(currentModule, getTypeUsage());
+			typeUsageLedger.collect(currentModule, currentTypeUsage);
 		}
 		return null;
 	}
@@ -722,7 +754,7 @@ class GoReflaxeCompiler extends GenericCompiler<GoReflaxeStagedOutput, GoReflaxe
 	override public function compileAbstractImpl(abstractType:AbstractType):Null<GoReflaxeStagedOutput> {
 		var currentModule = getCurrentModule();
 		if (currentModule != null) {
-			typeUsageLedger.collect(currentModule, getTypeUsage());
+			typeUsageLedger.collect(currentModule, currentTypeUsage);
 		}
 		return null;
 	}

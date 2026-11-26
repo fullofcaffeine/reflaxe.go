@@ -70,9 +70,16 @@ class TypeUsageLedgerContractTest(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         self.assertIn("type shape contract passed", proc.stdout + proc.stderr)
 
-    def test_tracker_is_enabled_and_report_is_deterministic(self) -> None:
+    def test_tracker_runs_for_ledger_modules_and_report_is_deterministic(self) -> None:
+        # Reflaxe's own option would build a map for every module type; the
+        # compiler builds it in setupModule only for modules the ledger reads.
         compiler_init = COMPILER_INIT.read_text(encoding="utf-8")
-        self.assertIn("trackUsedTypes: true", compiler_init)
+        compiler_source = REFLAXE_COMPILER.read_text(encoding="utf-8")
+        self.assertIn("trackUsedTypes: false", compiler_init)
+        self.assertNotIn("trackUsedTypes: true", compiler_init)
+        self.assertIn("override public function setupModule(", compiler_source)
+        self.assertIn("GoTypeUsageLedger.isProjectOwner(moduleType)", compiler_source)
+        self.assertNotIn("getTypeUsage()", compiler_source)
 
         first = self.compile_fixture()
         first_bytes = (OUT / "type_usage.json").read_bytes()
