@@ -10695,9 +10695,6 @@ class GoCompiler {
 			"float32",
 			"float64"
 		]);
-		specs.set("Int", [
-			"int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64", "uintptr"
-		]);
 		specs.set("String", ["*string", "string"]);
 
 		for (classType in projectClasses) {
@@ -10723,6 +10720,7 @@ class GoCompiler {
 			names.push(name);
 		}
 		names.push("Dynamic");
+		names.push("Int");
 		names.sort(function(a, b) return Reflect.compare(a, b));
 		var cases = new Array<GoSwitchCase>();
 		for (name in names) {
@@ -10730,6 +10728,9 @@ class GoCompiler {
 				[
 					GoStmt.GoReturn(GoExpr.GoBinary(GoBinaryOperator.NotEqual, GoExpr.GoIdent("hx_value"), GoExpr.GoNil))
 				];
+			} else if (name == "Int") {
+				// A Float with an Int value is an Int too; see `stdIsOfTypeIntExpr`.
+				[GoStmt.GoReturn(stdIsOfTypeIntExpr(GoExpr.GoIdent("hx_value"), TDynamic(null)))];
 			} else if (generatedClassSpecs.exists(name)) {
 				[
 					GoStmt.GoReturn(nominalTypeTest.matches(GoExpr.GoIdent("hx_value"), generatedClassSpecs.get(name)))
@@ -10853,15 +10854,13 @@ class GoCompiler {
 			if (isIntType(valueTypedExpr.t)) {
 				return GoExpr.GoBoolLiteral(true);
 			}
-			if (isFloatType(valueTypedExpr.t) || isBoolType(valueTypedExpr.t) || isStringType(valueTypedExpr.t)) {
+			if (isBoolType(valueTypedExpr.t) || isStringType(valueTypedExpr.t)) {
 				return GoExpr.GoBoolLiteral(false);
 			}
-			if (!isAnyLikeType(valueTypedExpr.t)) {
+			if (!isFloatType(valueTypedExpr.t) && !isAnyLikeType(valueTypedExpr.t)) {
 				return GoExpr.GoBoolLiteral(false);
 			}
-			return stdIsOfTypeTypeSwitch(valueExpr, [
-				"int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64", "uintptr"
-			]);
+			return stdIsOfTypeIntExpr(valueExpr, valueTypedExpr.t);
 		}
 
 		if (isFloatType(targetType)) {
@@ -10929,6 +10928,30 @@ class GoCompiler {
 		// For unresolved runtime-value abstract targets (for example @:runtimeValue @:coreType),
 		// align with Haxe runtime behavior by returning false instead of hard-failing compilation.
 		return stdIsOfTypeUnknownTargetExpr(valueExpr, valueTypedExpr.t, targetType);
+	}
+
+	/**
+		What: The test `Std.isOfType(value, Int)` for a value typed Float, or
+		`Dynamic`, `Any` or `Null<Float>`: a call of `hxrt.FloatIsInt` for a Go
+		float64 and of `hxrt.IsInt` for any other value.
+
+		Why: Haxe has no run-time Int for a Float with an Int value, so
+		`--interp`, neko, JS, Java, Python and PHP answer `Std.isOfType(4.0, Int)`
+		with true. `--interp`, JS and Python accept a Float that is integral and
+		within the 32-bit range, as `hxrt.FloatIsInt` does; `Type.typeof` still
+		reports `TFloat`. A Go type switch over the integer types answered false
+		for every Float (haxe_go-jxxd), and a value typed Float gave the constant
+		false.
+
+		How: A value typed Float (not `Null<Float>`, which is stored as `any`)
+		is a Go float64 and needs only the range and fraction test. Any other
+		value goes to `hxrt.IsInt`, which tests a Go int first and then a
+		float64, so an Int stays as cheap as the type switch was. A checked
+		`cast(value, Int)` shares this test.
+	**/
+	function stdIsOfTypeIntExpr(valueExpr:GoExpr, valueType:Type):GoExpr {
+		final plainFloat = isFloatType(valueType) && !isNullableFloatType(valueType) && typeToGoType(valueType) == "float64";
+		return GoExpr.GoCall(GoExpr.GoIdent(plainFloat ? "hxrt.FloatIsInt" : "hxrt.IsInt"), [valueExpr]);
 	}
 
 	function stdIsOfTypeUnknownTargetExpr(valueExpr:GoExpr, valueType:Type, targetType:Type):GoExpr {

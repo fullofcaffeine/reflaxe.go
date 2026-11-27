@@ -92,6 +92,9 @@ Key implementation points:
   - `StringLength`, `StringCharAt`, `StringCharCodeAt`, `StringSubstring`
 - Numeric helpers:
   - `FloatMod`, `Int32Wrap`
+  - `IsInt` and `FloatIsInt` answer `Std.isOfType(value, Int)`: a Go
+    integer, or a Float that is integral and within the 32-bit range
+    (`4.0`, `-0.0`), as on `--interp`.
 - Portable Array identity (`runtime/hxrt/array.go`):
   - one shared mutable carrier for root Haxe `Array<T>` values
   - null-safe indexed reads, sparse growth, length changes, and alias-preserving mutation

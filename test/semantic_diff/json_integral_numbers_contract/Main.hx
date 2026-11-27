@@ -22,17 +22,6 @@ class Main {
 			+ Std.string(Type.typeof(value)) + " json=" + haxe.Json.stringify(value));
 	}
 
-	/**
-		Prints a parsed number written with a fraction. `--interp` also answers
-		`Std.isOfType(4.0, Int)` with true for any integral Float; that check is
-		not about JSON, so it is left out here.
-	**/
-	static function describeFraction(text:String):Void {
-		var value:Dynamic = haxe.Json.parse(text);
-		Sys.println(text + " str=" + Std.string(value) + " float=" + Std.isOfType(value, Float) + " typeof=" + Std.string(Type.typeof(value)) + " json="
-			+ haxe.Json.stringify(value));
-	}
-
 	static function main() {
 		for (text in [
 			"4",
@@ -58,8 +47,10 @@ class Main {
 			"-1e400"
 		])
 			describe(text);
-		for (text in ["4.0", "-0.0", "0.0", "2147483647.0"])
-			describeFraction(text);
+		// A number written with a fraction stays a Float (`typeof=TFloat`), but
+		// `Std.isOfType(4.0, Int)` is true for an integral one (haxe_go-jxxd).
+		for (text in ["4.0", "-0.0", "0.0", "2147483647.0", "2147483648.0", "2.5"])
+			describe(text);
 
 		var counter:Counter = haxe.Json.parse('{"count":4}');
 		Sys.println("counter.count+1=" + (counter.count + 1));

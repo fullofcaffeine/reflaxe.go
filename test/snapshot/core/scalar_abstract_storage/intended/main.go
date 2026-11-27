@@ -109,34 +109,7 @@ func main() {
 				var hx_zero_9 int
 				return hx_zero_9
 			}
-			if !func(hx_value any) bool {
-				switch hx_value.(type) {
-				case int:
-					return true
-				case int8:
-					return true
-				case int16:
-					return true
-				case int32:
-					return true
-				case int64:
-					return true
-				case uint:
-					return true
-				case uint8:
-					return true
-				case uint16:
-					return true
-				case uint32:
-					return true
-				case uint64:
-					return true
-				case uintptr:
-					return true
-				default:
-					return false
-				}
-			}(hx_cast_8) {
+			if !hxrt.IsInt(hx_cast_8) {
 				hxrt.Throw(haxe__Exception_thrown(hxrt.StringFromLiteral("Class cast error")))
 			}
 			return hxrt.IntFromNullableAny(hx_cast_8)
