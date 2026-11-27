@@ -1317,34 +1317,7 @@ func haxe__Template_addValues(left any, right any) any {
 }
 
 func haxe__Template_compareValues(left any, right any) int {
-	leftNumeric := (func(hx_value any) bool {
-		switch hx_value.(type) {
-		case int:
-			return true
-		case int8:
-			return true
-		case int16:
-			return true
-		case int32:
-			return true
-		case int64:
-			return true
-		case uint:
-			return true
-		case uint8:
-			return true
-		case uint16:
-			return true
-		case uint32:
-			return true
-		case uint64:
-			return true
-		case uintptr:
-			return true
-		default:
-			return false
-		}
-	}(left) || func(hx_value any) bool {
+	leftNumeric := (hxrt.IsInt(left) || func(hx_value any) bool {
 		switch hx_value.(type) {
 		case int:
 			return true
@@ -1376,34 +1349,7 @@ func haxe__Template_compareValues(left any, right any) int {
 			return false
 		}
 	}(left))
-	rightNumeric := (func(hx_value any) bool {
-		switch hx_value.(type) {
-		case int:
-			return true
-		case int8:
-			return true
-		case int16:
-			return true
-		case int32:
-			return true
-		case int64:
-			return true
-		case uint:
-			return true
-		case uint8:
-			return true
-		case uint16:
-			return true
-		case uint32:
-			return true
-		case uint64:
-			return true
-		case uintptr:
-			return true
-		default:
-			return false
-		}
-	}(right) || func(hx_value any) bool {
+	rightNumeric := (hxrt.IsInt(right) || func(hx_value any) bool {
 		switch hx_value.(type) {
 		case int:
 			return true
@@ -1674,34 +1620,7 @@ func haxe__Template_valueAsBool(value any) bool {
 }
 
 func haxe__Template_valueAsFloat(value any) float64 {
-	if func(hx_value any) bool {
-		switch hx_value.(type) {
-		case int:
-			return true
-		case int8:
-			return true
-		case int16:
-			return true
-		case int32:
-			return true
-		case int64:
-			return true
-		case uint:
-			return true
-		case uint8:
-			return true
-		case uint16:
-			return true
-		case uint32:
-			return true
-		case uint64:
-			return true
-		case uintptr:
-			return true
-		default:
-			return false
-		}
-	}(value) || func(hx_value any) bool {
+	if hxrt.IsInt(value) || func(hx_value any) bool {
 		switch hx_value.(type) {
 		case int:
 			return true

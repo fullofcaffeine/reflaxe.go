@@ -91,7 +91,7 @@ func main() {
 	hxrt.Println(v_4)
 	var v_5 any = any(true)
 	hxrt.Println(v_5)
-	var v_6 any = any(false)
+	var v_6 any = any(hxrt.FloatIsInt(1.5))
 	hxrt.Println(v_6)
 	var v_7 any = any((hxrt.StringFromLiteral("x") != nil))
 	hxrt.Println(v_7)

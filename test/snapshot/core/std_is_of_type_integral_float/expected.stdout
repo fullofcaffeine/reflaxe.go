@@ -1,0 +1,6 @@
+4 isInt=true typeof=TFloat
+4.5 isInt=false typeof=TFloat
+2147483648 isInt=false typeof=TFloat
+7 isInt=true typeof=TInt
+Float=true Null<Float>=true Any=true token=true
+cast=9

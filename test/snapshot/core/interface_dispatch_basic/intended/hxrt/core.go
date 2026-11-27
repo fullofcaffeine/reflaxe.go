@@ -37,6 +37,38 @@ func Int32Wrap(value int) int32 {
 	return int32(value)
 }
 
+// IsInt reports whether Std.isOfType(value, Int) holds.
+//
+// What: true for a Go integer and for a Float with an Int value (FloatIsInt),
+// false for every other value, including null.
+// Why: Haxe has no run-time Int for a Float such as 4.0, so `--interp`, neko,
+// JS, Java, Python and PHP answer Std.isOfType(4.0, Int) with true
+// (haxe_go-jxxd). Type.typeof still reports TFloat for it.
+// How: A Go int, the common case, returns before the type switch over the
+// other integer and float types.
+func IsInt(value any) bool {
+	if _, ok := value.(int); ok {
+		return true
+	}
+	switch current := value.(type) {
+	case float64:
+		return FloatIsInt(current)
+	case int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, uintptr:
+		return true
+	case float32:
+		return FloatIsInt(float64(current))
+	default:
+		return false
+	}
+}
+
+// FloatIsInt reports whether a Float has an Int value: integral and within
+// Haxe's 32-bit Int range, as on `--interp`, JS and Python. -0.0 counts;
+// 2147483648.0, NaN and the infinities do not.
+func FloatIsInt(value float64) bool {
+	return value >= math.MinInt32 && value <= math.MaxInt32 && value == math.Trunc(value)
+}
+
 // IntFromNullableAny is a portable dynamic-to-Int boundary. Conversion
 // failures use Throw so generated Haxe try/catch can handle them; raw Go panics
 // are reserved for failures originating in explicit native Go authority.
