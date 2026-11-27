@@ -17,7 +17,10 @@ presets and explicit native boundaries.
 `reflaxe.go` compiles Haxe into a Go module (`go_output`) with:
 
 - `main.go`
-- per-module `module_*.go`
+- per-module `module_*.go`; when a name would end in a suffix that Go reads
+  as a build constraint (`_test`, or a GOOS or GOARCH such as `_linux` or
+  `_arm64`), the compiler adds `_hx`, so `tools.Linux` becomes
+  `module_tools_linux_hx.go` and builds on every platform
 - copied runtime files under `hxrt/`
 
 By default it also runs `go build` after code generation.

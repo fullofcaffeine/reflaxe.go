@@ -70,6 +70,7 @@ import reflaxe.go.ast.GoSymbolUsage;
 import reflaxe.go.ast.GoTermination;
 import reflaxe.go.ast.GoType;
 import reflaxe.go.ast.GoUnaryOperator;
+import reflaxe.go.naming.GoFileNameAllocator;
 import reflaxe.go.naming.GoNaming;
 #end
 
@@ -754,7 +755,7 @@ class GoCompiler {
 		moduleNames.sort(function(a, b) return Reflect.compare(a, b));
 
 		var generated = new Array<GoGeneratedFile>();
-		var usedFileNames = new Map<String, Int>();
+		var fileNames = new GoFileNameAllocator();
 		for (moduleName in moduleNames) {
 			var moduleFileDecls = moduleDecls.get(moduleName);
 			if (moduleFileDecls == null || moduleFileDecls.length == 0) {
@@ -766,7 +767,7 @@ class GoCompiler {
 				continue;
 			var fileDecls = moduleFileDecls.copy();
 			var candidateImports = moduleImports.copy();
-			var relativePath = moduleFilePath(moduleName, usedFileNames);
+			var relativePath = moduleFilePath(moduleName, fileNames);
 			if (moduleName == mainIdentity.moduleName) {
 				fileDecls = preludeDecls.concat(fileDecls).concat(supportDecls);
 				candidateImports = supportImports.concat(candidateImports);
@@ -777,7 +778,7 @@ class GoCompiler {
 		}
 
 		if (preludeDecls.length > 0 || supportDecls.length > 0) {
-			generated.push(renderGeneratedFile(nextGoFileName("support", usedFileNames), preludeDecls.concat(supportDecls), supportImports));
+			generated.push(renderGeneratedFile(nextGoFileName("support", fileNames), preludeDecls.concat(supportDecls), supportImports));
 		}
 
 		var conditionalGroups = new Map<String, Array<GoDecl>>();
@@ -793,7 +794,7 @@ class GoCompiler {
 		conditionKeys.sort((left, right) -> left < right ? -1 : left > right ? 1 : 0);
 		for (index in 0...conditionKeys.length) {
 			var key = conditionKeys[index];
-			generated.push(renderGeneratedFile(nextGoFileName("recovery_" + index, usedFileNames), conditionalGroups.get(key),
+			generated.push(renderGeneratedFile(nextGoFileName("recovery_" + index, fileNames), conditionalGroups.get(key),
 				supportImports.concat(moduleImports), conditionalSelections.get(key)));
 		}
 		return generated;
@@ -869,28 +870,27 @@ class GoCompiler {
 		}
 	}
 
-	function moduleFilePath(moduleName:String, usedFileNames:Map<String, Int>):String {
+	function moduleFilePath(moduleName:String, fileNames:GoFileNameAllocator):String {
 		if (moduleName == mainIdentity.moduleName) {
-			return nextGoFileName("main", usedFileNames);
+			return nextGoFileName("main", fileNames);
 		}
 		var sanitized = sanitizeFileToken(moduleName).toLowerCase();
 		if (sanitized == "") {
 			sanitized = "module";
 		}
-		return nextGoFileName("module_" + sanitized, usedFileNames);
+		return nextGoFileName("module_" + sanitized, fileNames);
 	}
 
-	function nextGoFileName(base:String, usedFileNames:Map<String, Int>):String {
+	/**
+		Names every generated Go file: the main file, module files, the support
+		file and the recovery files. `GoFileNameAllocator` keeps the names unique
+		and clear of the suffixes Go reads as build constraints.
+	**/
+	function nextGoFileName(base:String, fileNames:GoFileNameAllocator):String {
 		if (outputIdentity.usesExistingModuleFiles()) {
 			base = "haxego_generated_" + base;
 		}
-		var key = base.toLowerCase();
-		var count = usedFileNames.exists(key) ? usedFileNames.get(key) : 0;
-		usedFileNames.set(key, count + 1);
-		if (count == 0) {
-			return base + ".go";
-		}
-		return base + "_" + count + ".go";
+		return fileNames.next(base);
 	}
 
 	function sanitizeFileToken(value:String):String {

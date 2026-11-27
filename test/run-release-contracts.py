@@ -48,6 +48,7 @@ def main() -> int:
         ["haxe", "-cp", "src", "-cp", "test/compiler", "--macro", "GoTypeMapperContract.check()", "--no-output"],
         ["haxe", "-cp", "src", "-cp", "test/compiler", "--macro", "GoNativeTypeReachContract.check()", "--no-output"],
         ["haxe", "-cp", "src", "-cp", "test/compiler", "-main", "GoSourceFormatterContract", "--interp"],
+        ["haxe", "-cp", "src", "-cp", "test/compiler", "-main", "GoFileNameAllocatorContract", "--interp"],
         ["python3", "test/test_haxe_warning_ratchet.py"],
         ["python3", "test/test_http_admission_design_contract.py"],
         ["python3", "test/test_http_upload_sink_race_contract.py"],
