@@ -754,8 +754,10 @@ class GoCompiler {
 		var moduleNames = [for (moduleName in moduleDecls.keys()) moduleName];
 		moduleNames.sort(function(a, b) return Reflect.compare(a, b));
 
-		var generated = new Array<GoGeneratedFile>();
-		var fileNames = new GoFileNameAllocator();
+		// Files are named after all of them are rendered: `GoFileNameAllocator`
+		// needs every base of the output to keep the names unique.
+		var fileBases = new Array<String>();
+		var fileSources = new Array<String>();
 		for (moduleName in moduleNames) {
 			var moduleFileDecls = moduleDecls.get(moduleName);
 			if (moduleFileDecls == null || moduleFileDecls.length == 0) {
@@ -767,18 +769,19 @@ class GoCompiler {
 				continue;
 			var fileDecls = moduleFileDecls.copy();
 			var candidateImports = moduleImports.copy();
-			var relativePath = moduleFilePath(moduleName, fileNames);
 			if (moduleName == mainIdentity.moduleName) {
 				fileDecls = preludeDecls.concat(fileDecls).concat(supportDecls);
 				candidateImports = supportImports.concat(candidateImports);
 				preludeDecls = [];
 				supportDecls = [];
 			}
-			generated.push(renderGeneratedFile(relativePath, fileDecls, candidateImports, moduleBuildConstraints.get(moduleName)));
+			fileBases.push(moduleFileBase(moduleName));
+			fileSources.push(renderGeneratedSource(fileDecls, candidateImports, moduleBuildConstraints.get(moduleName)));
 		}
 
 		if (preludeDecls.length > 0 || supportDecls.length > 0) {
-			generated.push(renderGeneratedFile(nextGoFileName("support", fileNames), preludeDecls.concat(supportDecls), supportImports));
+			fileBases.push(generatedFileBase("support"));
+			fileSources.push(renderGeneratedSource(preludeDecls.concat(supportDecls), supportImports));
 		}
 
 		var conditionalGroups = new Map<String, Array<GoDecl>>();
@@ -794,9 +797,14 @@ class GoCompiler {
 		conditionKeys.sort((left, right) -> left < right ? -1 : left > right ? 1 : 0);
 		for (index in 0...conditionKeys.length) {
 			var key = conditionKeys[index];
-			generated.push(renderGeneratedFile(nextGoFileName("recovery_" + index, fileNames), conditionalGroups.get(key),
-				supportImports.concat(moduleImports), conditionalSelections.get(key)));
+			fileBases.push(generatedFileBase("recovery_" + index));
+			fileSources.push(renderGeneratedSource(conditionalGroups.get(key), supportImports.concat(moduleImports), conditionalSelections.get(key)));
 		}
+		var fileNames = GoFileNameAllocator.allocate(fileBases);
+		var generated:Array<GoGeneratedFile> = [
+			for (index in 0...fileNames.length)
+				{relativePath: fileNames[index], contents: fileSources[index]}
+		];
 		return generated;
 	}
 
@@ -870,27 +878,28 @@ class GoCompiler {
 		}
 	}
 
-	function moduleFilePath(moduleName:String, fileNames:GoFileNameAllocator):String {
+	function moduleFileBase(moduleName:String):String {
 		if (moduleName == mainIdentity.moduleName) {
-			return nextGoFileName("main", fileNames);
+			return generatedFileBase("main");
 		}
 		var sanitized = sanitizeFileToken(moduleName).toLowerCase();
 		if (sanitized == "") {
 			sanitized = "module";
 		}
-		return nextGoFileName("module_" + sanitized, fileNames);
+		return generatedFileBase("module_" + sanitized);
 	}
 
 	/**
-		Names every generated Go file: the main file, module files, the support
-		file and the recovery files. `GoFileNameAllocator` keeps the names unique
-		and clear of the suffixes Go reads as build constraints.
+		The file name base of a generated Go file: the main file, a module file,
+		the support file or a recovery file. `GoFileNameAllocator.allocate` turns
+		all the bases of one output into names that are unique and clear of the
+		suffixes Go reads as build constraints.
 	**/
-	function nextGoFileName(base:String, fileNames:GoFileNameAllocator):String {
+	function generatedFileBase(base:String):String {
 		if (outputIdentity.usesExistingModuleFiles()) {
-			base = "haxego_generated_" + base;
+			return "haxego_generated_" + base;
 		}
-		return fileNames.next(base);
+		return base;
 	}
 
 	function sanitizeFileToken(value:String):String {
@@ -930,7 +939,7 @@ class GoCompiler {
 		return imports;
 	}
 
-	function renderGeneratedFile(relativePath:String, decls:Array<GoDecl>, candidateImports:Array<String>, ?buildConstraint:GoBuildConstraint):GoGeneratedFile {
+	function renderGeneratedSource(decls:Array<GoDecl>, candidateImports:Array<String>, ?buildConstraint:GoBuildConstraint):String {
 		var file:GoFile = {
 			packageName: outputIdentity.packageName,
 			imports: [for (path in candidateImports) GoImportPath.parse(path)],
@@ -941,10 +950,7 @@ class GoCompiler {
 		noteTransformedRuntimeFeatures(usage);
 		var filtered = filterImportsByUsage(transformed, usage);
 		final source = GoASTPrinter.printFile(filtered);
-		return {
-			relativePath: relativePath,
-			contents: buildConstraint == null
-			|| buildConstraint.isAlways() ? source : '//go:build ${buildConstraint.render()}\n\n' + source};
+		return buildConstraint == null || buildConstraint.isAlways() ? source : '//go:build ${buildConstraint.render()}\n\n' + source;
 	}
 
 	function collectModuleBuildConstraints(classes:Array<ClassType>, enums:Array<EnumType>):Map<String, GoBuildConstraint> {

@@ -20,7 +20,10 @@ presets and explicit native boundaries.
 - per-module `module_*.go`; when a name would end in a suffix that Go reads
   as a build constraint (`_test`, or a GOOS or GOARCH such as `_linux` or
   `_arm64`), the compiler adds `_hx`, so `tools.Linux` becomes
-  `module_tools_linux_hx.go` and builds on every platform
+  `module_tools_linux_hx.go` and builds on every platform; when two modules
+  get the same name, such as `a_b.Util` and `a.b.Util`, the second one gets a
+  number that no other module's own name uses, so with a module `a.b.Util_1`
+  present it becomes `module_a_b_util_2.go`
 - copied runtime files under `hxrt/`
 
 By default it also runs `go build` after code generation.

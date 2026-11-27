@@ -1,3 +1,4 @@
+import haxe.ds.ArraySort;
 import haxe.io.Path;
 import reflaxe.go.naming.GoFileNameAllocator;
 import sys.FileSystem;
@@ -12,7 +13,11 @@ import sys.io.Process;
 	or in a known GOOS or GOARCH value, and generated names come from Haxe
 	module paths. Every generated file must build on every platform, and names
 	that Go does not constrain must stay exactly as they were, because
-	existing-module mode records them with their digests.
+	existing-module mode records them with their digests. Two modules can also
+	want the same name: `a_b.Util` and `a.b.Util` share the base
+	`module_a_b_util`, and the numbered name of the second one used to be
+	`module_a_b_util_1.go`, the own name of `a.b.Util_1`, so one file silently
+	replaced the other.
 
 	What
 	Pins that `GoFileNameAllocator`:
@@ -21,13 +26,20 @@ import sys.io.Process;
 	  in `go tool dist list`, for every `_test`, GOOS, GOARCH and GOOS_GOARCH
 	  ending;
 	- leaves other names, including `_unix`, unchanged, and keeps names unique
-	  and deterministic.
+	  and deterministic;
+	- never gives one name twice, even when a numbered name is another base's
+	  own name, and gives every list the names the old counter gave whenever
+	  those were already unique;
+	- gives the first base of each stem its own name in any order, and makes a
+	  base's name depend only on the bases that share its stem.
 
 	How
 	Runs under `--interp` with `go` on the search path. It reads `KnownOS` and
 	`KnownArch` from the toolchain's `syslist.go`, writes one small Go file per
 	allocated name into a scratch module, and runs `go list` once per platform
-	to compare the files Go builds with all the files written.
+	to compare the files Go builds with all the files written. The uniqueness
+	and order properties are checked on every list of up to four bases drawn
+	from a small set of bases that meet, against a copy of the old counter.
 **/
 class GoFileNameAllocatorContract {
 	static final failures = new Array<String>();
@@ -89,8 +101,7 @@ class GoFileNameAllocatorContract {
 	}
 
 	static function checkNames(label:String, bases:Array<String>, expected:Array<String>):Void {
-		final allocator = new GoFileNameAllocator();
-		final actual = [for (base in bases) allocator.next(base)];
+		final actual = GoFileNameAllocator.allocate(bases);
 		check(actual.join(" ") == expected.join(" "), label + ": expected " + expected.join(" ") + ", got " + actual.join(" "));
 	}
 
@@ -160,14 +171,166 @@ class GoFileNameAllocatorContract {
 		]);
 
 		// The use counter must step over 386, a GOARCH value.
-		final allocator = new GoFileNameAllocator();
-		final names = [for (_ in 0...388) allocator.next("module_y")];
+		final names = GoFileNameAllocator.allocate([for (_ in 0...388) "module_y"]);
 		check(names[385] == "module_y_385.go" && names[386] == "module_y_387.go" && names[387] == "module_y_388.go",
 			"the use counter must skip 386, got " + names.slice(385).join(" "));
 		final unique = new Map<String, Bool>();
 		for (name in names)
 			unique.set(name, true);
 		check([for (_ in unique.keys()) 1].length == names.length, "repeated bases must give distinct names");
+	}
+
+	/**
+		Bases whose numbered names are other bases' own names, as the modules of
+		`test/snapshot/core/go_file_name_collisions` give them in sorted module
+		order.
+	**/
+	static function checkCollidingNames():Void {
+		checkNames("a numbered name skips another base's own name", ["module_a_b_util", "module_a_b_util_1", "module_a_b_util"],
+			["module_a_b_util.go", "module_a_b_util_1.go", "module_a_b_util_2.go"]);
+		checkNames("a base keeps its own name after the bases it collides with", ["module_m_n_util", "module_m_n_util", "module_m_n_util_1"],
+			["module_m_n_util.go", "module_m_n_util_2.go", "module_m_n_util_1.go"]);
+		checkNames("a numbered escaped name skips another base's own name", ["module_tools_linux", "module_tools_linux_hx", "module_tools_linux_hx_1"], [
+			"module_tools_linux_hx.go",
+			"module_tools_linux_hx_2.go",
+			"module_tools_linux_hx_1.go"
+		]);
+		checkNames("numbered names skip every taken number", ["x", "x", "x", "x_1", "x_2", "x_1"],
+			["x.go", "x_3.go", "x_4.go", "x_1.go", "x_2.go", "x_1_1.go"]);
+		checkNames("taken names are compared without letter case", ["module_a", "Module_A_1", "module_a"], ["module_a.go", "Module_A_1.go", "module_a_2.go"]);
+	}
+
+	/** Every order of `values`, repeats included. **/
+	static function permutations(values:Array<String>):Array<Array<String>> {
+		if (values.length <= 1)
+			return [values.copy()];
+		final result = new Array<Array<String>>();
+		for (index in 0...values.length) {
+			final rest = values.slice(0, index).concat(values.slice(index + 1));
+			for (tail in permutations(rest))
+				result.push([values[index]].concat(tail));
+		}
+		return result;
+	}
+
+	/** The `base=name` pairs of one allocation, sorted, so equal bases may swap names. **/
+	static function pairs(bases:Array<String>):String {
+		final names = GoFileNameAllocator.allocate(bases);
+		return sorted([for (index in 0...bases.length) bases[index] + "=" + names[index]]).join(" ");
+	}
+
+	/**
+		Checks that every order of `bases` gives each base the same name. Bases
+		that share a stem must be equal strings here: of two different bases with
+		one stem, the first in the list gets the stem's own name.
+	**/
+	static function checkSameNamesInEveryOrder(label:String, bases:Array<String>):Void {
+		final expected = pairs(bases);
+		for (order in permutations(bases)) {
+			final actual = pairs(order);
+			if (actual != expected) {
+				check(false, label + ": order " + order.join(" ") + " gives " + actual + ", expected " + expected);
+				return;
+			}
+		}
+	}
+
+	static function checkOrderIndependence():Void {
+		checkSameNamesInEveryOrder("module_a_b_util_1 keeps its own name in every order", ["module_a_b_util", "module_a_b_util", "module_a_b_util_1"]);
+		checkSameNamesInEveryOrder("escaped names in every order", ["module_tools_linux", "module_tools_linux", "module_tools_linux_hx_1"]);
+		checkSameNamesInEveryOrder("chained numbers in every order", ["x", "x", "x", "x_1", "x_2", "x_1"]);
+	}
+
+	/**
+		The allocator before haxe_go-eh1u: one use counter per stem, and no
+		check against the names of other stems. Kept only to prove that every
+		list it already named without a repeat keeps exactly those names.
+	**/
+	static function legacyNames(bases:Array<String>):Array<String> {
+		final uses = new Map<String, Int>();
+		return [
+			for (base in bases) {
+				final stem = stemOf(base);
+				final key = stem.toLowerCase();
+				var count = uses.exists(key) ? uses.get(key) : 0;
+				while (count > 0 && GoFileNameAllocator.hasBuildConstraintSuffix(stem + "_" + count))
+					count++;
+				uses.set(key, count + 1);
+				count == 0 ? stem + ".go" : stem + "_" + count + ".go";
+			}
+		];
+	}
+
+	static function stemOf(base:String):String {
+		return GoFileNameAllocator.hasBuildConstraintSuffix(base) ? base + "_hx" : base;
+	}
+
+	static function distinctIgnoringCase(names:Array<String>):Bool {
+		final seen = new Map<String, Bool>();
+		for (name in names) {
+			final key = name.toLowerCase();
+			if (seen.exists(key))
+				return false;
+			seen.set(key, true);
+		}
+		return true;
+	}
+
+	/**
+		Checks every list of one to four bases drawn from bases that meet:
+		shared stems, a stem in other letter case, numbered names that are other
+		stems, and the `_hx` escape. For each list:
+		- no two names are equal without letter case;
+		- the names equal the old counter's names whenever those were unique;
+		- the first base of each stem gets `<stem>.go`;
+		- moving the bases of other stems does not change any name: the list
+		  gives the same name to each base as its arrangement grouped by stem,
+		  which keeps the order within each stem.
+	**/
+	static function checkEveryShortList():Void {
+		final alphabet = ["x", "X", "x_1", "x_2", "x_1_1", "x_linux", "x_linux_hx", "x_linux_hx_1"];
+		final firstFailure = new Map<String, String>();
+		function fail(property:String, bases:Array<String>, detail:String):Void {
+			if (!firstFailure.exists(property))
+				firstFailure.set(property, property + ": [" + bases.join(" ") + "] " + detail);
+		}
+		var lists = [new Array<String>()];
+		for (_ in 0...4) {
+			final longer = new Array<Array<String>>();
+			for (list in lists)
+				for (base in alphabet)
+					longer.push(list.concat([base]));
+			lists = longer;
+			for (bases in lists) {
+				final names = GoFileNameAllocator.allocate(bases);
+				if (!distinctIgnoringCase(names))
+					fail("unique names", bases, "gives " + names.join(" "));
+				final legacy = legacyNames(bases);
+				if (distinctIgnoringCase(legacy) && legacy.join(" ") != names.join(" "))
+					fail("unchanged names", bases, "gives " + names.join(" ") + ", the old counter gave " + legacy.join(" "));
+				final seenStems = new Map<String, Bool>();
+				for (index in 0...bases.length) {
+					final stem = stemOf(bases[index]);
+					if (!seenStems.exists(stem.toLowerCase()) && names[index] != stem + ".go")
+						fail("own name of the first base", bases, "gives " + names.join(" "));
+					seenStems.set(stem.toLowerCase(), true);
+				}
+				final grouped = [for (index in 0...bases.length) index];
+				ArraySort.sort(grouped, (left, right) -> {
+					final leftKey = stemOf(bases[left]).toLowerCase();
+					final rightKey = stemOf(bases[right]).toLowerCase();
+					leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0;
+				});
+				final groupedNames = GoFileNameAllocator.allocate([for (index in grouped) bases[index]]);
+				for (position in 0...grouped.length)
+					if (groupedNames[position] != names[grouped[position]]) {
+						fail("order independence", bases, "gives " + names.join(" ") + ", grouped by stem it gives " + groupedNames.join(" "));
+						break;
+					}
+			}
+		}
+		for (message in firstFailure)
+			check(false, message);
 	}
 
 	/**
@@ -196,8 +359,7 @@ class GoFileNameAllocatorContract {
 	}
 
 	static function checkGoBuildsEveryFile(scratch:String):Void {
-		final allocator = new GoFileNameAllocator();
-		final names = [for (base in constrainedBases()) allocator.next(base)];
+		final names = GoFileNameAllocator.allocate(constrainedBases());
 		File.saveContent(Path.join([scratch, "go.mod"]), "module example.com/filenames\n\ngo 1.22\n");
 		for (index in 0...names.length)
 			File.saveContent(Path.join([scratch, names[index]]), "package filenames\n\nconst c" + index + " = " + index + "\n");
@@ -256,6 +418,9 @@ class GoFileNameAllocatorContract {
 	static function main():Void {
 		checkTablesMatchToolchain();
 		checkStableNames();
+		checkCollidingNames();
+		checkOrderIndependence();
+		checkEveryShortList();
 		final scratch = Path.join([
 			Sys.getCwd(),
 			".cache",

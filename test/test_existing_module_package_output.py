@@ -885,6 +885,78 @@ class Main {
             assert_module_files_unchanged(self, module_root, go_mod, go_sum)
             self.assertNotIn(str(module_root), output)
 
+    def test_modules_whose_file_names_meet_get_distinct_owned_files(self) -> None:
+        # a_b.Util and a.b.Util share the file base module_a_b_util. The numbered
+        # name of the second one must skip haxego_generated_module_a_b_util_1.go,
+        # the own name of a.b.Util_1; it used to fail as a duplicate destination.
+        with tempfile.TemporaryDirectory(prefix="haxe-go-package-output-") as raw:
+            module_root = Path(raw)
+            go_mod, go_sum = write_module(module_root)
+            (module_root / "Main.hx").write_text(
+                "class Main { static function main():Void { "
+                'Sys.println(a_b.Util.name() + " " + a.b.Util.name() + " " + a.b.Util_1.name()); } }\n',
+                encoding="utf-8",
+            )
+            for directory, package, name in (
+                ("a_b", "a_b", "Util"),
+                ("a/b", "a.b", "Util"),
+                ("a/b", "a.b", "Util_1"),
+            ):
+                (module_root / directory).mkdir(parents=True, exist_ok=True)
+                (module_root / directory / f"{name}.hx").write_text(
+                    f"package {package}; class {name} "
+                    f'{{ public static function name():String return "{package}.{name}"; }}\n',
+                    encoding="utf-8",
+                )
+            write_manifest(
+                module_root,
+                package_dir="cmd/tool",
+                package_name="main",
+                runtime_dir="internal/haxe_hxrt",
+                entrypoint={"kind": "compiler-main"},
+            )
+            package_dir = module_root / "cmd" / "tool"
+            ownership_path = package_dir / ".reflaxe-go-owned.json"
+
+            completed = run_compiler(module_root, "cmd/tool")
+            self.assertEqual(0, completed.returncode, completed.stdout + completed.stderr)
+            names = [path.name for path in generated_sources(package_dir)]
+            for name in (
+                "haxego_generated_module_a_b_util.go",
+                "haxego_generated_module_a_b_util_1.go",
+                "haxego_generated_module_a_b_util_2.go",
+            ):
+                self.assertIn(name, names)
+            self.assertIn(
+                'StringFromLiteral("a.b.Util_1")',
+                (package_dir / "haxego_generated_module_a_b_util_1.go").read_text(encoding="utf-8"),
+            )
+            manifest_bytes = ownership_path.read_bytes()
+            records = json.loads(manifest_bytes)["files"]
+            self.assertEqual(
+                sorted(f"cmd/tool/{name}" for name in names),
+                sorted(record["path"] for record in records if record["path"].startswith("cmd/tool/")),
+            )
+            for record in records:
+                self.assertEqual(
+                    sha256((module_root / record["path"]).read_bytes()), record["sha256"], record["path"]
+                )
+
+            repeated = run_compiler(module_root, "cmd/tool")
+            self.assertEqual(0, repeated.returncode, repeated.stdout + repeated.stderr)
+            self.assertEqual(manifest_bytes, ownership_path.read_bytes())
+
+            run = subprocess.run(
+                ["go", "run", "./cmd/tool"],
+                cwd=module_root,
+                capture_output=True,
+                text=True,
+                timeout=180,
+            )
+            self.assertEqual(0, run.returncode, run.stdout + run.stderr)
+            self.assertEqual("a_b.Util a.b.Util a.b.Util_1\n", run.stdout)
+            assert_module_files_unchanged(self, module_root, go_mod, go_sum)
+
     def test_rerun_rejects_a_caller_modified_generated_file(self) -> None:
         with tempfile.TemporaryDirectory(prefix="haxe-go-package-output-") as raw:
             module_root = Path(raw)

@@ -13,21 +13,40 @@ package reflaxe.go.naming;
 	`unit.Test` or `tools.Linux` used to produce such a name, and the program
 	then failed to build with "undefined" errors.
 
+	Two modules can also want one name. `a_b.Util` and `a.b.Util` both have the
+	base `module_a_b_util`, and the old counter gave the second one
+	`module_a_b_util_1.go` without checking that this is the own name of a
+	module `a.b.Util_1`. One file then silently replaced the other.
+
 	What
-	`next` returns `<base>.go` for the first use of a base and `<base>_<n>.go`
-	for later uses, as the compiler always did. When the base would end in a
-	constrained suffix, `next` first appends `_hx` to it, so
-	`module_tools_linux` becomes `module_tools_linux_hx.go`. A counter value
-	that is itself constrained (`386`) is skipped. Other names do not change.
+	`allocate` names all the files of one output together. When the base would
+	end in a constrained suffix, it first appends `_hx` to it, so
+	`module_tools_linux` becomes `module_tools_linux_hx.go`; the result is the
+	stem. The first base of each stem gets `<stem>.go`. Later bases of that stem
+	get `<stem>_<n>.go` with the smallest free `n` from 1 up: `n` skips a
+	constrained counter value (`386`) and every name that is the `<stem>.go` of
+	another base in the list. So the module `a.b.Util_1` keeps
+	`module_a_b_util_1.go` and the second `module_a_b_util` base gets
+	`module_a_b_util_2.go`. Every list that the old counter named without a
+	repeat keeps exactly the same names.
 
 	How
 	`hasBuildConstraintSuffix` mirrors Go's own test-file rule and
 	`goodOSArchFile` from `go/build`: Go ignores everything before the first
 	underscore, then looks only at the last underscore-separated word. The
-	escaped base is also the key of the use counter, so a module whose own name
+	escaped base is also the key of the counter, so a module whose own name
 	already ends in `_hx` still gets a distinct file. Callers pass bases made only
 	of letters, digits and underscores (module paths are sanitized first), so
 	Go's cut of the name at its first dot never applies.
+
+	All names are compared without letter case, because macOS and Windows file
+	systems do. `allocate` first marks every stem's own name as taken, then
+	hands out names in list order. A numbered name `<stem>_<n>` has the digits
+	`n` after its last underscore, so it can only equal a numbered name of the
+	same stem or another stem's own name, and both are skipped. As a result the
+	names cannot repeat, the first base of each stem always gets its own name,
+	and a base's name depends only on the order of the bases that share its
+	stem, never on where the other bases are in the list.
 **/
 class GoFileNameAllocator {
 	/**
@@ -98,28 +117,39 @@ class GoFileNameAllocator {
 		"wasm"
 	];
 
-	final uses = new Map<String, Int>();
-
-	public function new() {}
-
 	/**
-		Returns the next unique `.go` file name for `base`.
+		Returns one distinct `.go` file name for each of `bases`, in the same
+		order.
 
 		Bases are compared without letter case, so `Module_A` and `module_a`
-		share one counter.
+		share one stem. The caller passes every file of the output in one call;
+		see the class documentation for the rule.
 	**/
-	public function next(base:String):String {
-		final stem = hasBuildConstraintSuffix(base) ? base + "_hx" : base;
-		final key = stem.toLowerCase();
-		var count = uses.exists(key) ? uses.get(key) : 0;
-		while (count > 0 && hasBuildConstraintSuffix(stem + "_" + count)) {
-			count++;
+	public static function allocate(bases:Array<String>):Array<String> {
+		final stems = [for (base in bases) hasBuildConstraintSuffix(base) ? base + "_hx" : base];
+		final taken = new Map<String, Bool>();
+		for (stem in stems) {
+			taken.set(stem.toLowerCase(), true);
 		}
-		uses.set(key, count + 1);
-		if (count == 0) {
-			return stem + ".go";
+		final nextCount = new Map<String, Int>();
+		final names = new Array<String>();
+		for (stem in stems) {
+			final key = stem.toLowerCase();
+			final number = nextCount.get(key);
+			if (number == null) {
+				nextCount.set(key, 1);
+				names.push(stem + ".go");
+				continue;
+			}
+			var count:Int = number;
+			while (hasBuildConstraintSuffix(stem + "_" + count) || taken.exists(key + "_" + count)) {
+				count++;
+			}
+			nextCount.set(key, count + 1);
+			taken.set(key + "_" + count, true);
+			names.push(stem + "_" + count + ".go");
 		}
-		return stem + "_" + count + ".go";
+		return names;
 	}
 
 	/**
