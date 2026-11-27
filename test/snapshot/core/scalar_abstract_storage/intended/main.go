@@ -151,17 +151,11 @@ func main() {
 		hx_try_7 = hxrt.StringFromLiteral("threw")
 	})
 	nullCast := hx_try_7
-	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("casts="), (func(hx_value_13 any) float64 {
+	var v_3 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringConcatStringPtr(hxrt.StringConcatAny(hxrt.StringFromLiteral("casts="), (hxrt.DynamicToFloatSlot(quarter)*float64(2))), hxrt.StringFromLiteral(",")), (func(hx_value_13 any) float64 {
 		if hx_value_13 == nil {
-			var hx_zero_14 float64
-			return hx_zero_14
-		}
-		return hx_value_13.(float64)
-	}(quarter)*float64(2))), hxrt.StringFromLiteral(",")), (func(hx_value_15 any) float64 {
-		if hx_value_15 == nil {
 			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
 		}
-		return hx_value_15.(float64)
+		return hx_value_13.(float64)
 	}(widened)+0.5)), hxrt.StringFromLiteral(",")), nullCast))
 	hxrt.Println(v_3)
 }
@@ -171,13 +165,13 @@ func next(c int) int {
 }
 
 func optional(c any) *string {
-	var hx_if_16 *string
+	var hx_if_14 *string
 	if c == nil {
-		hx_if_16 = hxrt.StringFromLiteral("none")
+		hx_if_14 = hxrt.StringFromLiteral("none")
 	} else {
-		hx_if_16 = hxrt.StdString(c.(int))
+		hx_if_14 = hxrt.StdString(c.(int))
 	}
-	return hx_if_16
+	return hx_if_14
 }
 
 func _Main__Score_Impl__doubled(this1 int) int {

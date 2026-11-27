@@ -565,27 +565,22 @@ func spend(tally hxrt.Anonymous) *string {
 			return nil
 		}
 		return hx_value_129.(int)
-	}(hxrt.AnonymousGet(tally, "count")), hxrt.StringFromLiteral(":")), post), hxrt.StringFromLiteral(":")), pre), hxrt.StringFromLiteral(":")), func(hx_value_130 any) any {
+	}(hxrt.AnonymousGet(tally, "count")), hxrt.StringFromLiteral(":")), post), hxrt.StringFromLiteral(":")), pre), hxrt.StringFromLiteral(":")), hxrt.DynamicToNullableFloat(hxrt.AnonymousGet(tally, "weight"))), hxrt.StringFromLiteral(":")), hxrt.StdString(!func(hx_value_131 any) bool {
+		if hx_value_131 == nil {
+			var hx_zero_132 bool
+			return hx_zero_132
+		}
+		return hx_value_131.(bool)
+	}(func(hx_value_130 any) any {
 		if hx_value_130 == nil {
 			return nil
 		}
-		return hx_value_130.(float64)
-	}(hxrt.AnonymousGet(tally, "weight"))), hxrt.StringFromLiteral(":")), hxrt.StdString(!func(hx_value_132 any) bool {
-		if hx_value_132 == nil {
-			var hx_zero_133 bool
-			return hx_zero_133
-		}
-		return hx_value_132.(bool)
-	}(func(hx_value_131 any) any {
-		if hx_value_131 == nil {
+		return hx_value_130.(bool)
+	}(hxrt.AnonymousGet(tally, "seen"))))), hxrt.StringFromLiteral(":")), int(-int32(hxrt.IntFromNullableAny(func(hx_value_133 any) any {
+		if hx_value_133 == nil {
 			return nil
 		}
-		return hx_value_131.(bool)
-	}(hxrt.AnonymousGet(tally, "seen"))))), hxrt.StringFromLiteral(":")), int(-int32(hxrt.IntFromNullableAny(func(hx_value_134 any) any {
-		if hx_value_134 == nil {
-			return nil
-		}
-		return hx_value_134.(int)
+		return hx_value_133.(int)
 	}(hxrt.AnonymousGet(tally, "count"))))))
 }
 

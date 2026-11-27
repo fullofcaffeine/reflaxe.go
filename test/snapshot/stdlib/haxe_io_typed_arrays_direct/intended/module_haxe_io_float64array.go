@@ -38,13 +38,7 @@ func haxe__io___Float64Array__Float64Array_Impl__fromArray(a *hxrt.Array, pos in
 		hx_post_2 := _g
 		_g = int(int32((_g + 1)))
 		idx := hx_post_2
-		value := func(hx_value_3 any) float64 {
-			if hx_value_3 == nil {
-				var hx_zero_4 float64
-				return hx_zero_4
-			}
-			return hx_value_3.(float64)
-		}(a.Get(int((hxrt.Int32Wrap(idx) + hxrt.Int32Wrap(pos)))))
+		value := hxrt.DynamicToFloatSlot(a.Get(int((hxrt.Int32Wrap(idx) + hxrt.Int32Wrap(pos)))))
 		if (idx >= 0) && (idx < int((hxrt.Int32Wrap(out.byteLength) >> uint(3)))) {
 			pos_1 := int((hxrt.Int32Wrap(int((hxrt.Int32Wrap(idx) << uint(3)))) + hxrt.Int32Wrap(out.byteOffset)))
 			bits := haxe__io__FPHelper_doubleToI64(value)
@@ -77,13 +71,13 @@ func haxe__io___Float64Array__Float64Array_Impl__fromArray(a *hxrt.Array, pos in
 }
 
 func haxe__io___Float64Array__Float64Array_Impl__fromBytes(bytes *haxe__io__Bytes, bytePos int, length any) *haxe__io__ArrayBufferViewImpl {
-	var hx_if_5 any
+	var hx_if_3 any
 	if length == nil {
-		hx_if_5 = nil
+		hx_if_3 = nil
 	} else {
-		hx_if_5 = int((hxrt.Int32Wrap(length.(int)) << uint(3)))
+		hx_if_3 = int((hxrt.Int32Wrap(length.(int)) << uint(3)))
 	}
-	var resolvedLength any = hx_if_5
+	var resolvedLength any = hx_if_3
 	return haxe__io___Float64Array__Float64Array_Impl__fromData(func() *haxe__io__ArrayBufferViewImpl {
 		this1 := haxe__io___ArrayBufferView__ArrayBufferView_Impl__fromBytes(bytes, bytePos, resolvedLength)
 		return this1
@@ -149,31 +143,31 @@ func haxe__io___Float64Array__Float64Array_Impl__set(this1 *haxe__io__ArrayBuffe
 }
 
 func haxe__io___Float64Array__Float64Array_Impl__sub(this1 *haxe__io__ArrayBufferViewImpl, begin int, length any) *haxe__io__ArrayBufferViewImpl {
-	var hx_if_6 any
+	var hx_if_4 any
 	if length == nil {
-		hx_if_6 = nil
+		hx_if_4 = nil
 	} else {
-		hx_if_6 = int((hxrt.Int32Wrap(length.(int)) << uint(3)))
+		hx_if_4 = int((hxrt.Int32Wrap(length.(int)) << uint(3)))
 	}
-	var scaledLength any = hx_if_6
+	var scaledLength any = hx_if_4
 	return haxe__io___Float64Array__Float64Array_Impl__fromData(this1.__hx_this.sub(int((hxrt.Int32Wrap(begin) << uint(3))), scaledLength))
 }
 
 func haxe__io___Float64Array__Float64Array_Impl__subarray(this1 *haxe__io__ArrayBufferViewImpl, begin any, end any) *haxe__io__ArrayBufferViewImpl {
-	var hx_if_7 any
+	var hx_if_5 any
 	if begin == nil {
-		hx_if_7 = nil
+		hx_if_5 = nil
 	} else {
-		hx_if_7 = int((hxrt.Int32Wrap(begin.(int)) << uint(3)))
+		hx_if_5 = int((hxrt.Int32Wrap(begin.(int)) << uint(3)))
 	}
-	var scaledBegin any = hx_if_7
-	var hx_if_8 any
+	var scaledBegin any = hx_if_5
+	var hx_if_6 any
 	if end == nil {
-		hx_if_8 = nil
+		hx_if_6 = nil
 	} else {
-		hx_if_8 = int((hxrt.Int32Wrap(end.(int)) << uint(3)))
+		hx_if_6 = int((hxrt.Int32Wrap(end.(int)) << uint(3)))
 	}
-	var scaledEnd any = hx_if_8
+	var scaledEnd any = hx_if_6
 	return haxe__io___Float64Array__Float64Array_Impl__fromData(this1.__hx_this.subarray(scaledBegin, scaledEnd))
 }
 

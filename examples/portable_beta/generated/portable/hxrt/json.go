@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"math"
 	"reflect"
+	"strconv"
+	"strings"
 )
 
 // jsonVisit identifies one reference-shaped value along the active encoding path.
@@ -15,16 +17,20 @@ type jsonVisit struct {
 
 // jsonToHaxeValue converts Go JSON containers into Haxe's runtime containers.
 //
-// What: It replaces decoded strings and []any values with the Haxe runtime carriers.
-// Why: encoding/json has no knowledge of Haxe's nullable string pointer or Array
-// identity. Raw Go strings panic when a typed Haxe Dynamic cast expects *string,
-// while raw slices bypass Array APIs and later stringify as {}.
+// What: It replaces decoded strings, numbers and []any values with the Haxe
+// runtime carriers.
+// Why: encoding/json has no knowledge of Haxe's nullable string pointer, Array
+// identity or Int. Raw Go strings panic when a typed Haxe Dynamic cast expects
+// *string, while raw slices bypass Array APIs and later stringify as {}.
 // How: Objects remain map[string]any, strings use the canonical string constructor,
-// and every nested JSON array uses the portable Array constructor from array.go.
+// numbers become an Int or a Float through jsonNumberToHaxe, and every nested JSON
+// array uses the portable Array constructor from array.go.
 func jsonToHaxeValue(value any) any {
 	switch current := value.(type) {
 	case string:
 		return StringFromLiteral(current)
+	case json.Number:
+		return jsonNumberToHaxe(string(current))
 	case []any:
 		values := make([]any, len(current))
 		for index, item := range current {
@@ -138,13 +144,47 @@ func jsonFromHaxeValue(value any, visiting map[jsonVisit]bool) (any, bool) {
 	}
 }
 
+// jsonNumberToHaxe returns the Haxe value of one JSON number.
+//
+// What: An Int for a number written without a `.` whose value is integral and
+// fits in Haxe's 32-bit Int (`4`, `-0`, `1e3`), and a Float for every other
+// number (`4.0`, `2.5e0`, `2147483648`, `1e400`).
+// Why: Haxe's JsonParser, which `--interp`, neko, Java, C++ and HashLink use,
+// makes this choice: it reads the number as a Float and returns `Std.int(f)`
+// when the text has no `.` and that Int equals `f`. A typed `{count:Int}` read
+// needs a Go int, and Std.isOfType, Type.typeof, Std.string (`-0` is the Int 0)
+// and the Serializer (`i4`) report the Int. An integral value beyond 32 bits
+// stays a Float, as Haxe's Int is 32-bit on every target.
+// How: The decoder keeps each number's text (json.Decoder.UseNumber), and
+// encoding/json has already checked its grammar, so ParseFloat can only report
+// a value out of range. It then returns the infinity that `Std.parseFloat`
+// gives in `--interp`; json.Unmarshal used to reject the whole document.
+func jsonNumberToHaxe(text string) any {
+	value, _ := strconv.ParseFloat(text, 64)
+	if !strings.Contains(text, ".") && value == math.Trunc(value) && value >= math.MinInt32 && value <= math.MaxInt32 {
+		return int(value)
+	}
+	return value
+}
+
+// JsonParse decodes one JSON document into Haxe runtime values, or returns nil
+// when the text is not exactly one JSON value.
+//
+// A json.Decoder keeps each number's text for jsonNumberToHaxe. Unlike
+// json.Unmarshal, it stops after the first value, so anything but JSON white
+// space after that value rejects the document, as json.Unmarshal did.
 func JsonParse(source *string) any {
 	if source == nil {
 		return nil
 	}
 
+	decoder := json.NewDecoder(strings.NewReader(*source))
+	decoder.UseNumber()
 	var decoded any
-	if err := json.Unmarshal([]byte(*source), &decoded); err != nil {
+	if err := decoder.Decode(&decoded); err != nil {
+		return nil
+	}
+	if strings.TrimLeft((*source)[decoder.InputOffset():], " \t\r\n") != "" {
 		return nil
 	}
 	return jsonToHaxeValue(decoded)

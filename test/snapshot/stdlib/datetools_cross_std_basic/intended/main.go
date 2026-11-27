@@ -50,13 +50,7 @@ func main() {
 		return hx_value_8.(int)
 	}(hxrt.AnonymousGet(parsed, "seconds")))
 	hxrt.Println(v_5)
-	var v_6 any = any(func(hx_value_10 any) float64 {
-		if hx_value_10 == nil {
-			var hx_zero_11 float64
-			return hx_zero_11
-		}
-		return hx_value_10.(float64)
-	}(hxrt.AnonymousGet(parsed, "ms")))
+	var v_6 any = any(hxrt.DynamicToFloatSlot(hxrt.AnonymousGet(parsed, "ms")))
 	hxrt.Println(v_6)
 	shifted := Date_fromTime((base.ms + 93784000.))
 	var v_7 any = any(DateTools_format(shifted, hxrt.StringFromLiteral("%F %T")))

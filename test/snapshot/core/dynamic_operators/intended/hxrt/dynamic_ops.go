@@ -324,13 +324,23 @@ func DynamicToFloat(value any) float64 {
 // Float (`(r : Float)` with `abstract Real(Float)`, which Go stores as `any`)
 // or `cast value` of a type parameter. An unsafe or checked cast or a
 // `Dynamic` value can put an Int there, and `--interp` reads it as a Float.
+// It calls them as well for every Float read of erased storage, such as a
+// structure field or an Array element (haxe_go-2bge): haxe.Json.parse, a
+// `Dynamic` field write and Reflect.setField store an Int there unchanged.
+// Each Float helper is split so that Go inlines the float64 test at the call
+// and calls the rest only for another value.
 
 // DynamicToFloatSlot converts a `Dynamic` value for a Float slot.
 func DynamicToFloatSlot(value any) float64 {
-	switch number := value.(type) {
-	case float64:
+	if number, ok := value.(float64); ok {
 		return number
-	case int:
+	}
+	return dynamicToFloatSlotOther(value)
+}
+
+// dynamicToFloatSlotOther is DynamicToFloatSlot for a value that is not a float64.
+func dynamicToFloatSlotOther(value any) float64 {
+	if number, ok := value.(int); ok {
 		return float64(number)
 	}
 	if isAnyNil(value) {
@@ -343,10 +353,16 @@ func DynamicToFloatSlot(value any) float64 {
 // slot: null stays null, and a number is stored as a Go float64. A float64
 // is returned in the same `any`, so it is not boxed again.
 func DynamicToNullableFloat(value any) any {
-	switch number := value.(type) {
-	case float64:
+	if _, ok := value.(float64); ok {
 		return value
-	case int:
+	}
+	return dynamicToNullableFloatOther(value)
+}
+
+// dynamicToNullableFloatOther is DynamicToNullableFloat for a value that is
+// not a float64.
+func dynamicToNullableFloatOther(value any) any {
+	if number, ok := value.(int); ok {
 		return float64(number)
 	}
 	if isAnyNil(value) {

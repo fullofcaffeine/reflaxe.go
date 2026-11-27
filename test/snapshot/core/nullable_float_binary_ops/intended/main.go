@@ -598,19 +598,19 @@ func main() {
 				hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
 			}
 			return hx_value_115.(float64)
-		}(slots.Get(0)) + float64(1)))
+		}(hxrt.DynamicToNullableFloat(slots.Get(0))) + float64(1)))
 	})), attempt(hxrt.NewFunction(func() *string {
 		return hxrt.StringConcatAny(hxrt.StringFromLiteral(""), (float64(3) - func(hx_value_116 any) float64 {
 			if hx_value_116 == nil {
 				hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
 			}
 			return hx_value_116.(float64)
-		}(slots.Get(0))))
+		}(hxrt.DynamicToNullableFloat(slots.Get(0)))))
 	})), attempt(hxrt.NewFunction(func() *string {
 		func() any {
 			hx_array_target_117 := slots
 			hx_array_index_118 := 0
-			var hx_array_current_119 any = hx_array_target_117.Get(hx_array_index_118)
+			var hx_array_current_119 any = hxrt.DynamicToNullableFloat(hx_array_target_117.Get(hx_array_index_118))
 			var hx_array_assigned_120 any = (func(hx_value_121 any) float64 {
 				if hx_value_121 == nil {
 					hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
@@ -627,34 +627,34 @@ func main() {
 			return (0 / hx_zero_123)
 		}
 		return hx_value_122.(float64)
-	}(slots.Get(0)) < 2))), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), hxrt.StdString((2 > func(hx_value_124 any) float64 {
+	}(hxrt.DynamicToNullableFloat(slots.Get(0))) < 2))), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), hxrt.StdString((2 > func(hx_value_124 any) float64 {
 		if hx_value_124 == nil {
 			var hx_zero_125 float64
 			return (0 / hx_zero_125)
 		}
 		return hx_value_124.(float64)
-	}(slots.Get(0))))), hxrt.StringConcatAny(hxrt.StringFromLiteral(""), slots.Get(0)), hxrt.StringConcatAny(hxrt.StringFromLiteral(""), (func(hx_value_126 any) float64 {
+	}(hxrt.DynamicToNullableFloat(slots.Get(0)))))), hxrt.StringConcatAny(hxrt.StringFromLiteral(""), slots.Get(0)), hxrt.StringConcatAny(hxrt.StringFromLiteral(""), (func(hx_value_126 any) float64 {
 		if hx_value_126 == nil {
 			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
 		}
 		return hx_value_126.(float64)
-	}(slots.Get(1))+float64(1))), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), hxrt.StdString((func(hx_value_127 any) float64 {
+	}(hxrt.DynamicToNullableFloat(slots.Get(1)))+float64(1))), hxrt.StringConcatStringPtr(hxrt.StringFromLiteral(""), hxrt.StdString((func(hx_value_127 any) float64 {
 		if hx_value_127 == nil {
 			var hx_zero_128 float64
 			return (0 / hx_zero_128)
 		}
 		return hx_value_127.(float64)
-	}(slots.Get(1)) < 2))), hxrt.StringConcatAny(hxrt.StringFromLiteral(""), (func(hx_value_129 any) float64 {
+	}(hxrt.DynamicToNullableFloat(slots.Get(1))) < 2))), hxrt.StringConcatAny(hxrt.StringFromLiteral(""), (func(hx_value_129 any) float64 {
 		if hx_value_129 == nil {
 			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
 		}
 		return hx_value_129.(float64)
-	}(slots.Get(1))*func(hx_value_130 any) float64 {
+	}(hxrt.DynamicToNullableFloat(slots.Get(1)))*func(hx_value_130 any) float64 {
 		if hx_value_130 == nil {
 			hxrt.Throw(hxrt.StringFromLiteral("Invalid operation: null"))
 		}
 		return hx_value_130.(float64)
-	}(slots.Get(1))))))
+	}(hxrt.DynamicToNullableFloat(slots.Get(1)))))))
 	row(hxrt.StringFromLiteral("call"), hxrt.NewArray(attempt(hxrt.NewFunction(func() *string {
 		return hxrt.StringConcatAny(hxrt.StringFromLiteral(""), (func(hx_value_131 any) float64 {
 			if hx_value_131 == nil {

@@ -21,35 +21,23 @@ func main() {
 	floats := values()
 	_g := 0
 	for _g < floats.Len() {
-		value := func(hx_value_1 any) float64 {
-			if hx_value_1 == nil {
-				var hx_zero_2 float64
-				return hx_zero_2
-			}
-			return hx_value_1.(float64)
-		}(floats.Get(_g))
+		value := hxrt.DynamicToFloatSlot(floats.Get(_g))
 		_g = int(int32((_g + 1)))
 		var dyn any = value
 		var buffer_b *string
 		buffer_b = hxrt.StringFromLiteral("")
 		buffer_b = hxrt.StringConcatStringPtr(buffer_b, hxrt.StdString(value))
 		var v any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StdString(value), hxrt.StringFromLiteral(" | ")), hxrt.StringConcatAny(hxrt.StringFromLiteral(""), value)), hxrt.StringFromLiteral(" | ")), hxrt.StringConcatAny(hxrt.StringFromLiteral(""), value)), hxrt.StringFromLiteral(" | ")), buffer_b), hxrt.StringFromLiteral(" | ")), hxrt.StdString(dyn)), hxrt.StringFromLiteral(" | ")), hxrt.StdString(hxrt.NewArray(value))), hxrt.StringFromLiteral(" | ")), hxrt.StdString(Holder_Hold(value))), hxrt.StringFromLiteral(" | ")), hxrt.StdString(func() hxrt.Anonymous {
-			hx_obj_3 := map[string]any{}
-			hx_obj_3["value"] = value
-			return hxrt.AnonymousFromMap(hx_obj_3)
+			hx_obj_1 := map[string]any{}
+			hx_obj_1["value"] = value
+			return hxrt.AnonymousFromMap(hx_obj_1)
 		}())), hxrt.StringFromLiteral(" | ")), haxe__Log_formatOutput(value, nil)))
 		hxrt.Println(v)
 	}
 	hxrt.Println(any(hxrt.StringFromLiteral("--- Sys.println")))
 	_g_1 := 0
 	for _g_1 < floats.Len() {
-		value_1 := func(hx_value_4 any) float64 {
-			if hx_value_4 == nil {
-				var hx_zero_5 float64
-				return hx_zero_5
-			}
-			return hx_value_4.(float64)
-		}(floats.Get(_g_1))
+		value_1 := hxrt.DynamicToFloatSlot(floats.Get(_g_1))
 		_g_1 = int(int32((_g_1 + 1)))
 		hxrt.Println(any(value_1))
 	}
@@ -91,9 +79,9 @@ func main() {
 	var v_4 any = any(func() *string {
 		var space_1 *string = nil
 		return hxrt.StdString(hxrt.JsonStringify(any(func() hxrt.Anonymous {
-			hx_obj_6 := map[string]any{}
-			hx_obj_6["big"] = 1e8
-			return hxrt.AnonymousFromMap(hx_obj_6)
+			hx_obj_2 := map[string]any{}
+			hx_obj_2["big"] = 1e8
+			return hxrt.AnonymousFromMap(hx_obj_2)
 		}()), space_1))
 	}())
 	hxrt.Println(v_4)

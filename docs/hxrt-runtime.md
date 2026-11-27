@@ -84,6 +84,9 @@ Key implementation points:
     that reads back as the same Float), in C's `%g` layout, so `2147483647`,
     `1e+15` and `0.300000000000000044`; NaN and the infinities print `nan`,
     `infinity` and `neg_infinity`. `JsonStringify` writes Floats the same way.
+    `JsonParse` returns a Go `int` for a JSON number written without a `.`
+    whose value is integral and fits in 32 bits, and a `float64` for every
+    other number, as Haxe's JsonParser does.
   - `StringConcatAny`, `StringEqualAny`
   - `StringConcatStringPtr`, `StringEqualStringPtr`
   - `StringLength`, `StringCharAt`, `StringCharCodeAt`, `StringSubstring`

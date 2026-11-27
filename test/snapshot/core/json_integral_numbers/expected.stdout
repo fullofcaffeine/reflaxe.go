@@ -1,0 +1,12 @@
+count+1=5
+price+0.5=10.5
+discount/4=0.5
+samples[0]+0.5=3.5
+sorted=[1,2.5,3]
+4 typeof=TInt str=4 json=4
+-0 typeof=TInt str=0 json=0
+1e3 typeof=TInt str=1000 json=1000
+4.0 typeof=TFloat str=4 json=4
+2147483647 typeof=TInt str=2147483647 json=2147483647
+2147483648 typeof=TFloat str=2147483648 json=2147483648
+1e20 typeof=TFloat str=1e+20 json=1e+20

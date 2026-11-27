@@ -8361,6 +8361,32 @@ class GoCompiler {
 		return sizes.concat([queuedClasses.join(","), queuedEnums.join(","), aliases.join(",")]).join("|");
 	}
 
+	/**
+		What: Reads a Float or `Null<Float>` value out of erased (`any`) storage:
+		a structure field, an Array element, a callback argument or result, or
+		another value that `lowerNullableAwareTypeAssertExpr` recovers. Returns
+		null for any other type.
+		Why: Erased storage can hold an Int where the static type says Float.
+		`haxe.Json.parse` returns an Int for `4`, as Haxe's JsonParser does on
+		every target, and `Reflect.setField` or a `Dynamic` field write store
+		what they get. Haxe's Int is a subtype of Float, so `--interp` reads such
+		an Int as a Float through a typed `{price:Float}` or `Array<Float>`, and
+		the static Haxe targets convert it. A plain `.(float64)` assertion
+		stopped the program with a Go panic that Haxe `try`/`catch` cannot handle
+		(haxe_go-2bge).
+		How: Use the `Dynamic` slot helpers through `lowerDynamicSlotExpr`. A
+		float64 takes the inlined fast path of `hxrt.DynamicToFloatSlot` (or
+		`hxrt.DynamicToNullableFloat`), the same one type test as the assertion;
+		an Int is converted, null reads as 0 (or stays null in `Null<Float>`), and
+		any other value raises a catchable Haxe error. A Float type whose Go
+		storage is not float64 keeps its earlier recovery.
+	**/
+	function lowerErasedFloatRead(stored:GoExpr, slotType:Type):Null<GoExpr> {
+		if (isNullableFloatType(slotType) || (isFloatType(slotType) && typeToGoType(slotType) == "float64"))
+			return lowerDynamicSlotExpr(stored, slotType);
+		return null;
+	}
+
 	function lowerNullableAwareTypeAssertExpr(expr:GoExpr, returnType:Type):GoExpr {
 		if (isAnonymousObjectType(returnType))
 			return structuralObjectLowering.recover(expr, returnType);
@@ -8370,6 +8396,9 @@ class GoCompiler {
 		if (expectedType == "any") {
 			return expr;
 		}
+		final floatRead = lowerErasedFloatRead(expr, returnType);
+		if (floatRead != null)
+			return floatRead;
 		if (shouldPreserveNilInTypeAssert(returnType, expectedType)) {
 			return lowerNilPreservingTypeAssertExpr(expr, expectedType);
 		}
@@ -13138,11 +13167,17 @@ class GoCompiler {
 		Why: Generic `any -> String` conversion would turn a stored nil into the text
 		`"null"`, and leaving class/interface elements erased would produce invalid Go
 		selectors. Array reads need assertions, not general Dynamic conversion.
-		How: Preserve nullable primitives as `any`, use the existing numeric/bool
+		How: Read Float and `Null<Float>` elements through `lowerErasedFloatRead`, since
+		an element written through `Dynamic` (or parsed from JSON) can be an Int.
+		Preserve other nullable primitives as `any`, use the existing numeric/bool
 		coercions when a concrete scalar is required, and nil-safely assert every other
 		concrete Go type.
 	**/
 	function coerceStoredArrayElementExpr(expr:GoExpr, targetType:Type):GoExpr {
+		final floatRead = lowerErasedFloatRead(expr, targetType);
+		if (floatRead != null) {
+			return floatRead;
+		}
 		if (isNullablePrimitiveType(targetType)) {
 			return expr;
 		}

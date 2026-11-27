@@ -148,30 +148,25 @@ func floatSlots(d any) {
 	m := New_haxe__ds__StringMap()
 	v_12 := hxrt.DynamicToFloatSlot(d)
 	m.__hx_this.set(hxrt.StringFromLiteral("k"), v_12)
-	var v_13 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("map write "), floatText(func(hx_value_2 any) float64 {
-		if hx_value_2 == nil {
-			var hx_zero_3 float64
-			return hx_zero_3
-		}
-		return hx_value_2.(float64)
-	}(func(hx_value_1 any) any {
+	var v_13 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("map write "), floatText(func(hx_value_1 any) float64 {
 		if hx_value_1 == nil {
-			return nil
+			var hx_zero_2 float64
+			return hx_zero_2
 		}
 		return hx_value_1.(float64)
-	}(m.__hx_this.get(hxrt.StringFromLiteral("k")))))))
+	}(hxrt.DynamicToNullableFloat(m.__hx_this.get(hxrt.StringFromLiteral("k")))))))
 	hxrt.Println(v_13)
 	var st_f float64
 	st_f = hxrt.DynamicToFloatSlot(d)
 	var v_14 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("structure "), floatText(st_f)))
 	hxrt.Println(v_14)
-	var hx_if_4 float64
+	var hx_if_3 float64
 	if always {
-		hx_if_4 = hxrt.DynamicToFloatSlot(d)
+		hx_if_3 = hxrt.DynamicToFloatSlot(d)
 	} else {
-		hx_if_4 = 0.5
+		hx_if_3 = 0.5
 	}
-	picked := hx_if_4
+	picked := hx_if_3
 	var v_15 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("ternary "), floatText(picked)))
 	hxrt.Println(v_15)
 	casted := hxrt.DynamicToFloatSlot(d)
@@ -183,9 +178,9 @@ func floatSlots(d any) {
 	var v_17 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Array<Dynamic> element "), floatText(element)))
 	hxrt.Println(v_17)
 	reflected := hxrt.DynamicToFloatSlot(Reflect_field(func() hxrt.Anonymous {
-		hx_obj_5 := map[string]any{}
-		hx_obj_5["n"] = d
-		return hxrt.AnonymousFromMap(hx_obj_5)
+		hx_obj_4 := map[string]any{}
+		hx_obj_4["n"] = d
+		return hxrt.AnonymousFromMap(hx_obj_4)
 	}(), hxrt.StringFromLiteral("n")))
 	var v_18 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Reflect.field "), floatText(reflected)))
 	hxrt.Println(v_18)
@@ -193,12 +188,12 @@ func floatSlots(d any) {
 	var v_19 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("call "), floatText(called)))
 	hxrt.Println(v_19)
 	var nullable any = hxrt.DynamicToNullableFloat(d)
-	unwrapped := func(hx_value_6 any) float64 {
-		if hx_value_6 == nil {
-			var hx_zero_7 float64
-			return hx_zero_7
+	unwrapped := func(hx_value_5 any) float64 {
+		if hx_value_5 == nil {
+			var hx_zero_6 float64
+			return hx_zero_6
 		}
-		return hx_value_6.(float64)
+		return hx_value_5.(float64)
 	}(nullable)
 	var v_20 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Null<Float> then Float "), floatText(unwrapped)))
 	hxrt.Println(v_20)
@@ -206,9 +201,9 @@ func floatSlots(d any) {
 		return (x / float64(2))
 	})
 	var v_21 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("lambda argument "), hxrt.StdString(func() float64 {
-		var hx_callable_8 *hxrt.Function[func(float64) float64] = lambda
-		var hx_argument_9 float64 = hxrt.DynamicToFloatSlot(d)
-		return hxrt.FunctionCall(hx_callable_8)(hx_argument_9)
+		var hx_callable_7 *hxrt.Function[func(float64) float64] = lambda
+		var hx_argument_8 float64 = hxrt.DynamicToFloatSlot(d)
+		return hxrt.FunctionCall(hx_callable_7)(hx_argument_8)
 	}())))
 	hxrt.Println(v_21)
 }
@@ -224,14 +219,14 @@ func half(f float64) *string {
 func handled(label *string, run *hxrt.Function[func() *string]) {
 	hxrt.TryCatch(func() {
 		consumed = func() *string {
-			var hx_callable_13 *hxrt.Function[func() *string] = run
-			return hxrt.FunctionCall(hx_callable_13)()
+			var hx_callable_12 *hxrt.Function[func() *string] = run
+			return hxrt.FunctionCall(hx_callable_12)()
 		}()
-	}, func(hx_caught_10 any) {
-		hx_exception_11 := haxe__Exception_caught(hx_caught_10)
-		hx_payload_12 := haxe__Exception_catchValue(hx_caught_10)
-		_ = hx_exception_11
-		var e any = hx_payload_12
+	}, func(hx_caught_9 any) {
+		hx_exception_10 := haxe__Exception_caught(hx_caught_9)
+		hx_payload_11 := haxe__Exception_catchValue(hx_caught_9)
+		_ = hx_exception_10
+		var e any = hx_payload_11
 		_ = e
 	})
 	hxrt.Println(any(hxrt.StringConcatStringPtr(label, hxrt.StringFromLiteral(" handled"))))
@@ -240,9 +235,9 @@ func handled(label *string, run *hxrt.Function[func() *string]) {
 func incompatibleValues() {
 	hxrt.Println(any(hxrt.StringFromLiteral("-- values that the slot cannot hold")))
 	values := hxrt.NewArray(hxrt.StringFromLiteral("x"), true, func() hxrt.Anonymous {
-		hx_obj_14 := map[string]any{}
-		hx_obj_14["a"] = 1
-		return hxrt.AnonymousFromMap(hx_obj_14)
+		hx_obj_13 := map[string]any{}
+		hx_obj_13["a"] = 1
+		return hxrt.AnonymousFromMap(hx_obj_13)
 	}())
 	_g := 0
 	for _g < values.Len() {
@@ -264,9 +259,9 @@ func incompatibleValues() {
 		}))
 	}
 	others := hxrt.NewArray(1, 2.5, hxrt.StringFromLiteral("x"), func() hxrt.Anonymous {
-		hx_obj_15 := map[string]any{}
-		hx_obj_15["a"] = 1
-		return hxrt.AnonymousFromMap(hx_obj_15)
+		hx_obj_14 := map[string]any{}
+		hx_obj_14["a"] = 1
+		return hxrt.AnonymousFromMap(hx_obj_14)
 	}())
 	_g_1 := 0
 	for _g_1 < others.Len() {
@@ -323,13 +318,13 @@ func nullableSlots() {
 		_g = int(int32((_g + 1)))
 		var v any = hxrt.DynamicToNullableFloat(d)
 		var returned any = nullableFloatOf(d)
-		var hx_if_16 *string
+		var hx_if_15 *string
 		if v == nil {
-			hx_if_16 = hxrt.StringFromLiteral("null")
+			hx_if_15 = hxrt.StringFromLiteral("null")
 		} else {
-			hx_if_16 = hxrt.StdString((v.(float64) + 0.5))
+			hx_if_15 = hxrt.StdString((v.(float64) + 0.5))
 		}
-		text := hx_if_16
+		text := hx_if_15
 		var v_1 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Null<Float> "), hxrt.StdString(v)), hxrt.StringFromLiteral(" ")), text), hxrt.StringFromLiteral(" ")), hxrt.StdString((returned == nil))))
 		hxrt.Println(v_1)
 		box := New_Box(0.5)
@@ -344,13 +339,13 @@ func nullableSlots() {
 		_g_1 = int(int32((_g_1 + 1)))
 		var v_3 any = hxrt.DynamicToNullableBool(d_1)
 		var v_4 any = any(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Null<Bool> "), hxrt.StdString(v_3)), hxrt.StringFromLiteral(" ")), hxrt.StdString((v_3 == nil))), hxrt.StringFromLiteral(" ")), func() *string {
-			var hx_if_17 *string
+			var hx_if_16 *string
 			if v_3 == true {
-				hx_if_17 = hxrt.StringFromLiteral("yes")
+				hx_if_16 = hxrt.StringFromLiteral("yes")
 			} else {
-				hx_if_17 = hxrt.StringFromLiteral("no")
+				hx_if_16 = hxrt.StringFromLiteral("no")
 			}
-			return hx_if_17
+			return hx_if_16
 		}()))
 		hxrt.Println(v_4)
 	}
@@ -417,25 +412,25 @@ func stringSlots(d any) {
 	m := New_haxe__ds__StringMap()
 	v_10 := hxrt.DynamicToString(d)
 	m.__hx_this.set(hxrt.StringFromLiteral("k"), v_10)
-	var v_11 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("map write "), stringText(func(hx_value_18 any) *string {
-		if hx_value_18 == nil {
-			var hx_zero_19 *string
-			return hx_zero_19
+	var v_11 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("map write "), stringText(func(hx_value_17 any) *string {
+		if hx_value_17 == nil {
+			var hx_zero_18 *string
+			return hx_zero_18
 		}
-		return hx_value_18.(*string)
+		return hx_value_17.(*string)
 	}(m.__hx_this.get(hxrt.StringFromLiteral("k"))))))
 	hxrt.Println(v_11)
 	var st_s *string
 	st_s = hxrt.DynamicToString(d)
 	var v_12 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("structure "), stringText(st_s)))
 	hxrt.Println(v_12)
-	var hx_if_20 *string
+	var hx_if_19 *string
 	if always {
-		hx_if_20 = hxrt.DynamicToString(d)
+		hx_if_19 = hxrt.DynamicToString(d)
 	} else {
-		hx_if_20 = hxrt.StringFromLiteral("other")
+		hx_if_19 = hxrt.StringFromLiteral("other")
 	}
-	picked := hx_if_20
+	picked := hx_if_19
 	var v_13 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("ternary "), stringText(picked)))
 	hxrt.Println(v_13)
 	casted := hxrt.DynamicToString(d)
@@ -447,9 +442,9 @@ func stringSlots(d any) {
 	var v_15 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Array<Dynamic> element "), stringText(element)))
 	hxrt.Println(v_15)
 	reflected := hxrt.DynamicToString(Reflect_field(func() hxrt.Anonymous {
-		hx_obj_21 := map[string]any{}
-		hx_obj_21["n"] = d
-		return hxrt.AnonymousFromMap(hx_obj_21)
+		hx_obj_20 := map[string]any{}
+		hx_obj_20["n"] = d
+		return hxrt.AnonymousFromMap(hx_obj_20)
 	}(), hxrt.StringFromLiteral("n")))
 	var v_16 any = any(hxrt.StringConcatStringPtr(hxrt.StringFromLiteral("Reflect.field "), stringText(reflected)))
 	hxrt.Println(v_16)
@@ -463,13 +458,13 @@ func stringText(s *string) *string {
 }
 
 func yesNo(b bool) *string {
-	var hx_if_22 *string
+	var hx_if_21 *string
 	if b {
-		hx_if_22 = hxrt.StringFromLiteral("yes")
+		hx_if_21 = hxrt.StringFromLiteral("yes")
 	} else {
-		hx_if_22 = hxrt.StringFromLiteral("no")
+		hx_if_21 = hxrt.StringFromLiteral("no")
 	}
-	return hx_if_22
+	return hx_if_21
 }
 
 func hxrt__generated_method_field(obj any, key string) any {

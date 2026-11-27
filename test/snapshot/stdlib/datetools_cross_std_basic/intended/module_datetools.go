@@ -216,36 +216,30 @@ func DateTools_hours(n float64) float64 {
 }
 
 func DateTools_make(o hxrt.Anonymous) float64 {
-	return (func(hx_value_16 any) float64 {
+	return (hxrt.DynamicToFloatSlot(hxrt.AnonymousGet(o, "ms")) + (1000.0 * (float64(func(hx_value_16 any) int {
 		if hx_value_16 == nil {
-			var hx_zero_17 float64
+			var hx_zero_17 int
 			return hx_zero_17
 		}
-		return hx_value_16.(float64)
-	}(hxrt.AnonymousGet(o, "ms")) + (1000.0 * (float64(func(hx_value_18 any) int {
+		return hx_value_16.(int)
+	}(hxrt.AnonymousGet(o, "seconds"))) + (60.0 * (float64(func(hx_value_18 any) int {
 		if hx_value_18 == nil {
 			var hx_zero_19 int
 			return hx_zero_19
 		}
 		return hx_value_18.(int)
-	}(hxrt.AnonymousGet(o, "seconds"))) + (60.0 * (float64(func(hx_value_20 any) int {
+	}(hxrt.AnonymousGet(o, "minutes"))) + (60.0 * (float64(func(hx_value_20 any) int {
 		if hx_value_20 == nil {
 			var hx_zero_21 int
 			return hx_zero_21
 		}
 		return hx_value_20.(int)
-	}(hxrt.AnonymousGet(o, "minutes"))) + (60.0 * (float64(func(hx_value_22 any) int {
+	}(hxrt.AnonymousGet(o, "hours"))) + (24.0 * float64(func(hx_value_22 any) int {
 		if hx_value_22 == nil {
 			var hx_zero_23 int
 			return hx_zero_23
 		}
 		return hx_value_22.(int)
-	}(hxrt.AnonymousGet(o, "hours"))) + (24.0 * float64(func(hx_value_24 any) int {
-		if hx_value_24 == nil {
-			var hx_zero_25 int
-			return hx_zero_25
-		}
-		return hx_value_24.(int)
 	}(hxrt.AnonymousGet(o, "days")))))))))))
 }
 
@@ -257,13 +251,13 @@ func DateTools_parse(t float64) hxrt.Anonymous {
 	s := (t / float64(1000))
 	m := (s / float64(60))
 	h := (m / float64(60))
-	hx_obj_26 := map[string]any{}
-	hx_obj_26["ms"] = hxrt.FloatMod(t, float64(1000))
-	hx_obj_26["seconds"] = hxrt.MathFloorInt(hxrt.FloatMod(s, float64(60)))
-	hx_obj_26["minutes"] = hxrt.MathFloorInt(hxrt.FloatMod(m, float64(60)))
-	hx_obj_26["hours"] = hxrt.MathFloorInt(hxrt.FloatMod(h, float64(24)))
-	hx_obj_26["days"] = hxrt.MathFloorInt((h / float64(24)))
-	return hxrt.AnonymousFromMap(hx_obj_26)
+	hx_obj_24 := map[string]any{}
+	hx_obj_24["ms"] = hxrt.FloatMod(t, float64(1000))
+	hx_obj_24["seconds"] = hxrt.MathFloorInt(hxrt.FloatMod(s, float64(60)))
+	hx_obj_24["minutes"] = hxrt.MathFloorInt(hxrt.FloatMod(m, float64(60)))
+	hx_obj_24["hours"] = hxrt.MathFloorInt(hxrt.FloatMod(h, float64(24)))
+	hx_obj_24["days"] = hxrt.MathFloorInt((h / float64(24)))
+	return hxrt.AnonymousFromMap(hx_obj_24)
 }
 
 func DateTools_seconds(n float64) float64 {
